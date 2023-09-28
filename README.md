@@ -1,0 +1,60 @@
+# PoliSim - A Political Simulation Website
+
+**PoliSim** is a Project aiming to deliver a website that can be used with any and all political simulations.
+It provides the user and admins, with organisations, titles, documents and other forms of interactive ways to
+communicate specifics of the political situation in the simulation.
+
+# Product Information
+
+**PolSim** is build to be as political agnostic as possible. Therefore, it implements general concepts of
+political systems and lets the users and admins handle the fine-tuning of their respectiv simulation. It
+does this by organising people into organisation, which can publish Documents/Discussions and Votes. Providing
+a Forum for press, handeled and reviewable by the adminstration and a public forum which lets you write short comments
+and messages.
+
+## Organisations and Titles
+
+The fundation of any state or even a stateless society is the organisation of people. Organisation are everything
+from public forums to private backroom meetings. Almost all forms of organsation can be represented with the devolped system
+which devides organisation in three groups (public, private and secret). Public organisation have nothing to hide. Their
+documents, discussions and votes are public and can be viewed by anyone. Private organisation can make discussions and
+votes, when necessary private. Secret organisations can not make anything public. If a organisation changes for example from
+private to public all private discussions and votes are made public. This gives a secret organisation, which wants to
+announce their existance to the world, the possibility of keeping their past hidden, while posting new public content.
+
+# Technical Information
+
+## Building
+
+The project has a public Docker repro where the newest version can be found as a container. An example docker-compose file
+can be found in the files of the projects. All needed environment parameters to start up the container are listed here:
+
+```env
+DB_NAME=prod
+DB_PASSWORD=root
+DB_USER=postgres
+DB_ADRESS=DB adress with port
+ADRESS=host adress with port
+INIT_NAME=Root Account Name
+INIT_USERNAME=Root Account Username
+INIT_PASSWORD=Root Account password
+CORS_URL=Your URL needed for CORS
+```
+
+## Architecture
+
+**PoliSim** is build on 4 layers:
+1. Database Layer
+2. Data Abstraction Layer
+3. Data Validation Layer
+4. HTML Generation Layer
+
+**PoliSim** realises the first Layer with GORM. The second layer uses the GORM modells and queries to extract only the needed
+data for the request, thereby minimizing the data flow between database and program. The third layer takes in the data from
+the HTML-Request, process it, requests the needed complimentary data from the abstraction layer and gives back the state
+of validity of the request to the HTML layer to generate a appropiate response.
+
+The HTML requests and responses are recieved and served with go-chi. The HTML is extended with Hyperscript and HTMX to
+minimize the needed HTML send back to the client.
+
+## HTML Serving
