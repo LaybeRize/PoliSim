@@ -28,7 +28,7 @@ func main() {
 		}
 	})
 
-	_, _ = fmt.Fprintf(os.Stdout, "PoliSim trying to start listener\n")
+	_, _ = fmt.Fprintf(os.Stdout, "PoliSim is trying to start listener.\n")
 	err := http.ListenAndServe(os.Getenv("ADRESS"), r)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to start the Router:\n"+err.Error()+"\n")
