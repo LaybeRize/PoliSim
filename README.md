@@ -22,6 +22,16 @@ votes, when necessary private. Secret organisations can not make anything public
 private to public all private discussions and votes are made public. This gives a secret organisation, which wants to
 announce their existance to the world, the possibility of keeping their past hidden, while posting new public content.
 
+## Press, Letters and Social Media
+
+Besides organisation one of the most important pillars for an immersive simulation is information and contracts.
+People can send letters/contracts to other members of the simulation and can write/publish press articles. Either in a
+regularly published collection made by the adminstration or requesting it to be made a breaking news article on its own.
+Both ways let the users and adminstration add context, intrigue and situation which need reactions to the simulation.
+
+It enables Opinion pieces and general discourse which can then be lead in the social media added to the website. As well 
+as sparking discussions in the organisations.
+
 # Technical Information
 
 ## Building
