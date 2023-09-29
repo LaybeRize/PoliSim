@@ -1,14 +1,22 @@
 package componentBuilder
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 )
 
-// RenderDoctype writes the html doctype to the io.Writer
-// and returns the error, if one occures.
-func RenderDoctype(w io.Writer) error {
+// RenderHTMLDoc writes the html doctype to the io.Writer
+// then adds the basic <html> element and writes first the head Node and
+// then the body Node to the inside of the html tag.
+// It returns the error, if one occures.
+func RenderHTMLDoc(w io.Writer, head Node, body Node) error {
 	_, err := w.Write([]byte("<!DOCTYPE html>"))
+	if err != nil {
+		return err
+	}
+
+	err = El(HTML, head, body).Render(w)
 	return err
 }
 
@@ -16,7 +24,12 @@ type Node interface {
 	Render(w io.Writer) error
 }
 
+// ElementFunc is the Node function to return, if you want the text to
+// be rendered inside the parent element
 type ElementFunc func(io.Writer) error
+
+// AttributeFunc is the Node function to return, if you want it rendered as an
+// on the parent element.
 type AttributeFunc func(io.Writer) error
 
 func (n ElementFunc) Render(w io.Writer) error {
@@ -41,7 +54,7 @@ func El(name ElementType, children ...Node) Node {
 		}
 
 		for _, c := range children {
-			err = renderAttributes(w, c)
+			err = renderChild[AttributeFunc](w, c)
 			if err != nil {
 				return
 			}
@@ -57,7 +70,7 @@ func El(name ElementType, children ...Node) Node {
 		}
 
 		for _, c := range children {
-			err = renderElements(w, c)
+			err = renderChild[ElementFunc](w, c)
 			if err != nil {
 				return
 			}
@@ -101,26 +114,13 @@ func Raw(t string) Node {
 	})
 }
 
-func renderElements(w io.Writer, c Node) error {
+// renderChild renders the child, if it has the given function type.
+// For only rendering Elements use renderChild[ElementFunc](writer, node)
+func renderChild[t AttributeFunc | ElementFunc](w io.Writer, c Node) error {
 	switch c.(type) {
-	case ElementFunc:
+	case t:
 		return c.Render(w)
-	case AttributeFunc:
-		return nil
-	default:
-		panic("Node type is not allowed!")
 	}
-	return nil
-}
-
-func renderAttributes(w io.Writer, c Node) error {
-	switch c.(type) {
-	case ElementFunc:
-		return nil
-	case AttributeFunc:
-		return c.Render(w)
-	default:
-		panic("Node type is not allowed!")
-	}
+	fmt.Print()
 	return nil
 }

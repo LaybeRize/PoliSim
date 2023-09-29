@@ -23,15 +23,13 @@ func main() {
 	}))
 
 	r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-		err := RenderDoctype(w)
+		err := RenderHTMLDoc(w,
+			El(HEAD, El(TITLE, Text("Test"))),
+			El(BODY, Raw("<p>test</p>"), El(DIV, Attr(HXPOST, "/test"), Text("test"))))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		err = El(HTML,
-			El(HEAD, El(TITLE, Text("Test"))),
-			El(BODY, Raw("<p>test</p>"), El(DIV, Attr(HXPOST, "/test"), Text("test"))),
-		).Render(w)
 	})
 
 	_, _ = fmt.Fprintf(os.Stdout, "PoliSim is trying to start listener.\n")
