@@ -78,4 +78,5 @@ The HTML snippet builder is seperated from both the validation and serving packa
 ## Language
 
 if you want to support a different language, you have to add a file with your language named 
-{your two letter shorthand for your language}.json in the resource folder and change your LANG env variable to that shorthand.
+{your two letter shorthand for your language}.json in the resources folder and change your LANG env variable to that shorthand.
+This repo accepts pull requests for any new language support. We as the maintainer will inform you of any new translations needed.
