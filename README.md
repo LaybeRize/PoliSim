@@ -49,6 +49,7 @@ INIT_NAME=Root Account Name
 INIT_USERNAME=Root Account Username
 INIT_PASSWORD=Root Account password
 CORS_URL=Your URL needed for CORS
+LANG=your language (most likely DE or EN)
 ```
 
 ## Architecture
@@ -73,3 +74,8 @@ HTML is build with the component builder which is inspired by gomponents.
 It uses the idea, but simplifies it down to only four functions, which makes shortens the code
 quite significantly. It also uses a different approach when validating if the function is an attribute or not.
 The HTML snippet builder is seperated from both the validation and serving package.
+
+## Language
+
+if you want to support a different language, you have to add a file with your language named 
+{your two letter shorthand for your language}.json in the resource folder and change your LANG env variable to that shorthand.

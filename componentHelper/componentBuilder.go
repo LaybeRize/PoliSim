@@ -1,4 +1,4 @@
-package componentBuilder
+package componentHelper
 
 import (
 	"fmt"

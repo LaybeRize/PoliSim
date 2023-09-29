@@ -1,4 +1,4 @@
-package componentBuilder
+package componentHelper
 
 type ElementType string
 type AttributeType string

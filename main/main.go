@@ -1,7 +1,8 @@
 package main
 
 import (
-	. "PoliSim/componentBuilder"
+	"PoliSim/componentHelper"
+	"PoliSim/htmlServer"
 	"fmt"
 	"github.com/go-chi/cors"
 	"net/http"
@@ -14,6 +15,8 @@ import (
 func main() {
 	_, _ = fmt.Fprintf(os.Stdout, "PoliSim starting up...\n\n")
 
+	componentHelper.ImportTranslation(os.Getenv("LANG"))
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -22,15 +25,7 @@ func main() {
 		AllowedMethods: []string{"GET", "POST", "PATCH", "DELETE"},
 	}))
 
-	r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
-		err := RenderHTMLDoc(w,
-			El(HEAD, El(TITLE, Text("Test"))),
-			El(BODY, Raw("<p>test</p>"), El(DIV, Attr(HXPOST, "/test"), Text("test"))))
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-	})
+	r.Get("/test", htmlServer.ServeTestGet)
 
 	_, _ = fmt.Fprintf(os.Stdout, "PoliSim is trying to start listener.\n")
 	err := http.ListenAndServe(os.Getenv("ADRESS"), r)
