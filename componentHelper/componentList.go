@@ -4,11 +4,12 @@ type ElementType string
 type AttributeType string
 
 const (
-	DIV   ElementType = "div"
-	HTML  ElementType = "html"
-	HEAD  ElementType = "head"
-	BODY  ElementType = "body"
-	TITLE ElementType = "title"
+	DIV    ElementType = "div"
+	HTML   ElementType = "html"
+	HEAD   ElementType = "head"
+	BODY   ElementType = "body"
+	TITLE  ElementType = "title"
+	SCRIPT ElementType = "script"
 
 	AREA    ElementType = "area"
 	BASE    ElementType = "base"
@@ -27,8 +28,14 @@ const (
 	TRACK   ElementType = "track"
 	WBR     ElementType = "wbr"
 
-	HXPOST AttributeType = "hx-post"
-	SRC    AttributeType = "src"
+	HXPOST  AttributeType = "hx-post"
+	SRC     AttributeType = "src"
+	CHARSET AttributeType = "charset"
+	NAME    AttributeType = "name"
+	CONTENT AttributeType = "content"
+	REL     AttributeType = "rel"
+	HREF    AttributeType = "href"
+	CLASS   AttributeType = "class"
 )
 
 var voidElements = map[ElementType]struct{}{

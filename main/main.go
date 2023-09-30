@@ -25,9 +25,14 @@ func main() {
 		AllowedMethods: []string{"GET", "POST", "PATCH", "DELETE"},
 	}))
 
+	_, _ = fmt.Fprintf(os.Stdout, "Serving static files\n")
+	fs := http.FileServer(http.Dir("public"))
+	r.Handle("/public/*", http.StripPrefix("/public/", fs))
+
+	_, _ = fmt.Fprintf(os.Stdout, "Setting up dynamic routes\n")
 	r.Get("/test", htmlServer.ServeTestGet)
 
-	_, _ = fmt.Fprintf(os.Stdout, "PoliSim is trying to start listener.\n")
+	_, _ = fmt.Fprintf(os.Stdout, "PoliSim is trying to start the listener...\n")
 	err := http.ListenAndServe(os.Getenv("ADRESS"), r)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to start the Router:\n"+err.Error()+"\n")

@@ -7,16 +7,8 @@ import (
 )
 
 // RenderHTMLDoc writes the html doctype to the io.Writer
-// then adds the basic <html> element and writes first the head Node and
-// then the body Node to the inside of the html tag.
-// It returns the error, if one occures.
-func RenderHTMLDoc(w io.Writer, head Node, body Node) error {
+func RenderHTMLDoc(w io.Writer) error {
 	_, err := w.Write([]byte("<!DOCTYPE html>"))
-	if err != nil {
-		return err
-	}
-
-	err = El(HTML, head, body).Render(w)
 	return err
 }
 
@@ -98,20 +90,40 @@ func Attr(name AttributeType, str ...string) Node {
 	})
 }
 
-// Text creates a text DOM Node that Renders the escaped string t.
-func Text(t string) Node {
+// Text creates a text DOM Node that Renders the escaped string format
+// run through fmt.Sprintf beforehand with the given args.
+func Text(format string, args ...any) Node {
 	return ElementFunc(func(w io.Writer) error {
-		_, err := w.Write([]byte(template.HTMLEscapeString(t)))
+		_, err := w.Write([]byte(template.HTMLEscapeString(fmt.Sprintf(format, args...))))
 		return err
 	})
 }
 
-// Raw creates a text DOM Node that just Renders the unescaped string t.
-func Raw(t string) Node {
+// Raw creates a text DOM Node that just Renders the unescaped string format
+// run through fmt.Sprintf beforehand with the given args.
+func Raw(format string, args ...any) Node {
 	return ElementFunc(func(w io.Writer) error {
-		_, err := w.Write([]byte(t))
+		_, err := w.Write([]byte(fmt.Sprintf(format, args...)))
 		return err
 	})
+}
+
+// If returns the Node if the statment is true, otherwise returns nil.
+// for returning a different Node on a false statment see IfElse.
+func If(statement bool, node Node) Node {
+	if statement {
+		return node
+	}
+	return nil
+}
+
+// IfElse returns the whenTrue Node when the statment evaluates to true
+// otherwhise it returns the whenFalse Node.
+func IfElse(statment bool, whenTrue Node, whenFalse Node) Node {
+	if statment {
+		return whenTrue
+	}
+	return whenFalse
 }
 
 // renderChild renders the child, if it has the given function type.
