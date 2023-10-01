@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+// GetFullPage returns a http.HandlerFunc that writes a full page to the response
+// with a div that automatically requests the URL via htmx.
 func GetFullPage(pageTitle string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		addition := "?" + r.URL.RawQuery
@@ -39,6 +41,9 @@ func renderRequest(w http.ResponseWriter, addDoc bool, f func(io.Writer) error) 
 	}
 }
 
+// extractValuesForFields reads in all the fields of a struct and that has the "input" tag
+// it looks up that tag as a form field and writes the value depending on the type of the struct field back into it.
+// Any fields without the "input" tag will be ignored.
 func extractValuesForFields(object any, r *http.Request, onError int64) error {
 	err := r.ParseForm()
 	if err != nil {
@@ -66,19 +71,26 @@ func extractValuesForFields(object any, r *http.Request, onError int64) error {
 	return nil
 }
 
+// getText extracs the first string in http.Request PostForm field
+// and trims it before returning.
 func getText(r *http.Request, fieldName string) string {
 	return strings.TrimSpace(r.PostFormValue(fieldName))
 }
 
+// getSliceAsValue reads in the string slice of the requested PostForm field
+// trims every entry and removes any empty entries and doubled entries.
 func getSliceAsValue(r *http.Request, fieldName string) reflect.Value {
 	slice := dataValidation.DeleteMultiplesAndEmpty(r.PostForm[fieldName])
 	return reflect.ValueOf(slice)
 }
 
+// getBool checks if the requested field contains the text "true" and returns that value
 func getBool(r *http.Request, fieldName string) bool {
 	return getText(r, fieldName) == "true"
 }
 
+// getInt reads in the field then tries to transform it to a number. On sucess it returns the
+// read in number on error it returns the onError int provided.
 func getInt(r *http.Request, fieldName string, onError int64) int64 {
 	i, err := strconv.Atoi(getText(r, fieldName))
 	if err != nil {

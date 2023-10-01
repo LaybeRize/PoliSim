@@ -77,7 +77,13 @@ The HTML snippet builder is seperated from both the validation and serving packa
 
 ## Sidebar Handling
 
-Because the website should 
+Because the website should save the status the sidebar is in, when the user tries to open another site, the sidebar
+handling is getting extended by providing the server with necessary information on what to swap and when.
+How exactly the system will look is still in the planing phase.
+
+A few keypoints are the visiblity of certain sidebar elements based on ones account role. And also swapping elements 
+on theoretical redirects. As well as storing this information somehow on the website. Also, a way of informing the server
+that the sidebar has already been modified by the user and doesn't need any server side modification.
 
 ## Language
 

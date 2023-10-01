@@ -14,7 +14,7 @@ type Account struct {
 	Username       string `gorm:"index:unique"`
 	Password       string
 	Suspended      bool
-	RefreshToken   sql.NullString
+	RefreshToken   string `gorm:"index:unique"`
 	ExpirationDate sql.NullTime
 	LoginTries     int
 	NextLoginTime  sql.NullTime

@@ -11,7 +11,7 @@ func InstallStart() {
 		SidebarButtonText:  nil,
 		SidebarSubMenuText: nil,
 		GetFunction:        GetStartService,
-		PostFunction:       nil,
+		PostFunction:       PostStartService,
 		PatchFunction:      nil,
 		DeleteFunction:     nil,
 	}
@@ -20,4 +20,8 @@ func InstallStart() {
 func GetStartService(w http.ResponseWriter, r *http.Request) {
 	html := htmlComposition.GetStartPage(r.URL.RawQuery)
 	renderRequest(w, false, html.Render)
+}
+
+func PostStartService(w http.ResponseWriter, r *http.Request) {
+
 }
