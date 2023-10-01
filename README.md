@@ -75,6 +75,10 @@ It uses the idea, but simplifies it down to only four functions, which makes sho
 quite significantly. It also uses a different approach when validating if the function is an attribute or not.
 The HTML snippet builder is seperated from both the validation and serving package.
 
+## Sidebar Handling
+
+Because the website should 
+
 ## Language
 
 if you want to support a different language, you have to add a file with your language named 

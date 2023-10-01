@@ -5,6 +5,7 @@ type AttributeType string
 
 const (
 	DIV    ElementType = "div"
+	P      ElementType = "p"
 	HTML   ElementType = "html"
 	HEAD   ElementType = "head"
 	BODY   ElementType = "body"
@@ -28,14 +29,18 @@ const (
 	TRACK   ElementType = "track"
 	WBR     ElementType = "wbr"
 
-	HXPOST  AttributeType = "hx-post"
-	SRC     AttributeType = "src"
-	CHARSET AttributeType = "charset"
-	NAME    AttributeType = "name"
-	CONTENT AttributeType = "content"
-	REL     AttributeType = "rel"
-	HREF    AttributeType = "href"
-	CLASS   AttributeType = "class"
+	HXPOST    AttributeType = "hx-post"
+	HXGET     AttributeType = "hx-get"
+	HXTRIGGER AttributeType = "hx-trigger"
+	HXINCLUDE AttributeType = "hx-include"
+	HXSWAP    AttributeType = "hx-swap"
+	SRC       AttributeType = "src"
+	CHARSET   AttributeType = "charset"
+	NAME      AttributeType = "name"
+	CONTENT   AttributeType = "content"
+	REL       AttributeType = "rel"
+	HREF      AttributeType = "href"
+	CLASS     AttributeType = "class"
 )
 
 var voidElements = map[ElementType]struct{}{

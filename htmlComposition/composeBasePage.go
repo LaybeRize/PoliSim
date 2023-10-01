@@ -4,7 +4,7 @@ import (
 	. "PoliSim/componentHelper"
 )
 
-func GetBasePage(pageTitle string) Node {
+func GetBasePage(pageTitle string, loadURL string) Node {
 	return El(HTML,
 		El(HEAD,
 			El(META, Attr(CHARSET, "UTF-8")),
@@ -17,5 +17,6 @@ func GetBasePage(pageTitle string) Node {
 			El(SCRIPT, Attr(SRC, "/public/htmx_1.9.5.min.js")),
 		),
 		El(BODY, Attr(CLASS, "bg-slate-800 min-h-screen text-slate-200"),
-			Raw("<p>test new</p>"), El(DIV, Attr(HXPOST, "/test"), Text(Translation["test"]))))
+			getSidebar(),
+			El(DIV, Attr(HXGET, "/htmx"+loadURL), Attr(HXTRIGGER, "load"), Attr(HXSWAP, "outerHTML"))))
 }
