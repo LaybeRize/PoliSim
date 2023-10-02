@@ -2,7 +2,9 @@ package htmlServer
 
 import (
 	"PoliSim/componentHelper"
+	"PoliSim/dataExtraction"
 	"PoliSim/dataValidation"
+	"PoliSim/database"
 	"PoliSim/htmlComposition"
 	"io"
 	"net/http"
@@ -97,4 +99,27 @@ func getInt(r *http.Request, fieldName string, onError int64) int64 {
 		return onError
 	}
 	return int64(i)
+}
+
+func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleString) (acc *dataExtraction.AccountAuth, ok bool) {
+	inCookie, err := r.Cookie("token")
+	if err != nil {
+		return &dataExtraction.AccountAuth{Role: database.NotLoggedIn}, false
+	}
+	var cookie *http.Cookie
+	acc, cookie = dataValidation.ValidateToken(inCookie.Value)
+	if cookie != nil {
+		http.SetCookie(w, cookie)
+	}
+	ok = CheckIfHasRole(acc, roleString...)
+	return
+}
+
+func CheckIfHasRole(acc *dataExtraction.AccountAuth, roles ...database.RoleString) bool {
+	for _, r := range roles {
+		if r == acc.Role {
+			return true
+		}
+	}
+	return false
 }

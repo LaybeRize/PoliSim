@@ -2,6 +2,7 @@ package main
 
 import (
 	"PoliSim/componentHelper"
+	"PoliSim/database"
 	"PoliSim/htmlComposition"
 	"PoliSim/htmlServer"
 	"fmt"
@@ -17,6 +18,8 @@ func main() {
 	_, _ = fmt.Fprintf(os.Stdout, "PoliSim starting up...\n\n")
 
 	componentHelper.ImportTranslation(os.Getenv("LANG"))
+
+	database.ConnectDatabase()
 
 	htmlServer.InstallStart()
 
