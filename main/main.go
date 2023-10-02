@@ -23,6 +23,8 @@ func main() {
 
 	htmlServer.InstallStart()
 
+	htmlComposition.SetupSidebar()
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -57,18 +59,22 @@ func instigateRoutes(router *chi.Mux) {
 			continue
 		}
 		router.Get("/"+string(httpRoute), htmlServer.GetFullPage(handler.TitleText))
-		if handler.GetFunction != nil {
-			router.Get("/htmx/"+string(httpRoute), handler.GetFunction)
-		}
-		if handler.PostFunction != nil {
-			router.Post("/htmx/"+string(httpRoute), handler.PostFunction)
-		}
-		if handler.PatchFunction != nil {
-			router.Patch("/htmx/"+string(httpRoute), handler.PatchFunction)
-		}
-		if handler.DeleteFunction != nil {
-			router.Delete("/htmx/"+string(httpRoute), handler.DeleteFunction)
-		}
 		_, _ = fmt.Fprintf(os.Stdout, "Added Route for: /"+string(httpRoute)+"\n")
 	}
+	for url, function := range htmlComposition.GetHTMXFunctions {
+		router.Get("/"+htmlComposition.APIPreRoute+string(url), function)
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "Added Get Routes for htmx backend\n")
+	for url, function := range htmlComposition.PostHTMXFunctions {
+		router.Post("/"+htmlComposition.APIPreRoute+string(url), function)
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "Added Post Routes for htmx backend\n")
+	for url, function := range htmlComposition.PatchHTMXFunctions {
+		router.Patch("/"+htmlComposition.APIPreRoute+string(url), function)
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "Added Patch Routes for htmx backend\n")
+	for url, function := range htmlComposition.DeleteHTMXFunctions {
+		router.Delete("/"+htmlComposition.APIPreRoute+string(url), function)
+	}
+	_, _ = fmt.Fprintf(os.Stdout, "Added Delete Routes for htmx backend\n")
 }

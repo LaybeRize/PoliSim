@@ -2,11 +2,12 @@ package htmlComposition
 
 import (
 	. "PoliSim/componentHelper"
+	"PoliSim/dataExtraction"
 )
 
-func GetStartPage(additionInfo string) Node {
+func GetStartPage(acc *dataExtraction.AccountAuth) Node {
 	return El(DIV,
 		El(P, Text("Das ist eine Startseite")),
-		El(P, Text(additionInfo)),
+		El(P, Text(acc.DisplayName)),
 	)
 }

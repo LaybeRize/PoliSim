@@ -101,18 +101,18 @@ func getInt(r *http.Request, fieldName string, onError int64) int64 {
 	return int64(i)
 }
 
-func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleString) (acc *dataExtraction.AccountAuth, ok bool) {
+func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleString) (*dataExtraction.AccountAuth, bool) {
 	inCookie, err := r.Cookie("token")
 	if err != nil {
 		return &dataExtraction.AccountAuth{Role: database.NotLoggedIn}, false
 	}
-	var cookie *http.Cookie
-	acc, cookie = dataValidation.ValidateToken(inCookie.Value)
+
+	acc, cookie := dataValidation.ValidateToken(inCookie.Value)
 	if cookie != nil {
 		http.SetCookie(w, cookie)
 	}
-	ok = CheckIfHasRole(acc, roleString...)
-	return
+
+	return acc, CheckIfHasRole(acc, roleString...)
 }
 
 func CheckIfHasRole(acc *dataExtraction.AccountAuth, roles ...database.RoleString) bool {
