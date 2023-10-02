@@ -1,6 +1,7 @@
 package htmlServer
 
 import (
+	"PoliSim/dataValidation"
 	"PoliSim/database"
 	"PoliSim/htmlComposition"
 	"net/http"
@@ -27,14 +28,35 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
 	if ok {
 		//tell the user he is already logged in
+		return
 	}
-	_ = acc.ID
+	try := dataValidation.LoginForm{}
+	err := extractValuesForFields(&try, r, 0)
+	if err != nil {
+		//handel extraction error
+		return
+	}
+	msg, loginAccount, cookie := try.TryLogin()
+	if !msg.Positive {
+		//login failed
+		return
+	}
+
+	http.SetCookie(w, cookie)
+	_ = acc
+	_ = loginAccount
 }
 
 func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
 	if !ok {
 		//tell the user he is already logged out
+		return
 	}
-	_ = acc.ID
+	err, cookie := dataValidation.InvalidateAccountToken(acc)
+	if err != nil {
+		//report error
+		return
+	}
+	w.Header().Set("Set-Cookie", cookie.String())
 }

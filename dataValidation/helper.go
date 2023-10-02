@@ -82,3 +82,8 @@ func RemoveEntriesFromList(list []string, toRemove []string) []string {
 	}
 	return list
 }
+
+type ValidationMessage struct {
+	Message  string
+	Positive bool
+}

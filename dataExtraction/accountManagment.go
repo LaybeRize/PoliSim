@@ -40,6 +40,10 @@ func GetAccoutForLogin(username string) (*AccountLogin, error) {
 	return accoutLogin, err
 }
 
+func (acc *AccountLogin) SaveBack() error {
+	return database.DB.Model(database.Account{}).Save(acc).Error
+}
+
 func GetAccountForAuth(token string) (*AccountAuth, error) {
 	accountAuth := &AccountAuth{}
 	err := database.DB.Model(database.Account{}).Where("refresh_token=?", token).First(accountAuth).Error
