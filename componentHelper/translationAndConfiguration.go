@@ -8,6 +8,7 @@ import (
 
 var Translation = make(map[string]string)
 var Configuration = make(map[string]string)
+var RawStartPageContent = ""
 
 func ImportTranslation(lang string) {
 	file, err := os.ReadFile("resources/" + lang + ".json")
@@ -23,6 +24,7 @@ func ImportTranslation(lang string) {
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Imported language localisation\n")
 	importConfiguration()
+	importRawHTMLForStartPage()
 }
 
 func importConfiguration() {
@@ -38,4 +40,13 @@ func importConfiguration() {
 		os.Exit(1)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Imported config\n")
+}
+
+func importRawHTMLForStartPage() {
+	file, err := os.ReadFile("resources/startPage.html")
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to read the the start page HTML file:\n"+err.Error()+"\n")
+		os.Exit(1)
+	}
+	RawStartPageContent = string(file)
 }

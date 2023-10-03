@@ -36,6 +36,7 @@ const (
 	HXGET       AttributeType = "hx-get"
 	HXTRIGGER   AttributeType = "hx-trigger"
 	HXINCLUDE   AttributeType = "hx-include"
+	HXSWAPOOB   AttributeType = "hx-swap-oob"
 	HXTARGET    AttributeType = "hx-target"
 	HXSWAP      AttributeType = "hx-swap"
 	SRC         AttributeType = "src"
@@ -48,6 +49,7 @@ const (
 	CLASS       AttributeType = "class"
 	ID          AttributeType = "id"
 	HYPERSCRIPT AttributeType = "_"
+	HIDDEN      AttributeType = "hidden"
 )
 
 var voidElements = map[ElementType]struct{}{

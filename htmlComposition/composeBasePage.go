@@ -18,6 +18,7 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string) Node
 			El(SCRIPT, Attr(SRC, "/public/htmx_1.9.5.min.js")),
 		),
 		El(BODY, Attr(CLASS, "bg-slate-800 min-h-screen text-slate-200"),
+			El(DIV, Attr(ID, InformationID), Attr(HIDDEN)),
 			El(DIV, Attr(CLASS, "flex flex-row"),
 				getSidebar(role),
 				El(DIV, Attr(ID, MainBodyID), Attr(HXGET, "/htmx"+loadURL), Attr(HXTRIGGER, "load"), Attr(HXSWAP, "outerHTML")),
@@ -25,7 +26,7 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string) Node
 }
 
 func getBasePageWrapper(children ...Node) Node {
-	children = append(children, Attr(ID, MainBodyID), Attr(CLASS, "flex items-center pl-2 flex-col w-full"))
+	children = append(children, Attr(ID, MainBodyID), Attr(CLASS, "flex items-center basePadding flex-col w-full"))
 	return El(DIV, children...)
 }
 

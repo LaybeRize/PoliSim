@@ -8,12 +8,14 @@ import (
 type HttpUrl string
 
 const (
-	MainBodyID = "mainBody"
-	SidebarID  = "Sidebar"
+	MainBodyID    = "mainBody"
+	SidebarID     = "Sidebar"
+	InformationID = "informationDiv"
 
 	Start  HttpUrl = "start"
 	Login  HttpUrl = "login"
 	Logout HttpUrl = "logout"
+	Test   HttpUrl = "test"
 
 	APIPreRoute = "htmx/"
 )
