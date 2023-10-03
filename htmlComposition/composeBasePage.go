@@ -3,10 +3,14 @@ package htmlComposition
 import (
 	. "PoliSim/componentHelper"
 	"PoliSim/database"
+	"os"
+	"strings"
 )
 
+var language = strings.ToLower(os.Getenv("LANG"))
+
 func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string) Node {
-	return El(HTML,
+	return El(HTML, Attr(LANG, language),
 		El(HEAD,
 			El(META, Attr(CHARSET, "UTF-8")),
 			El(TITLE, Text(pageTitle)),

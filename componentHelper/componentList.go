@@ -50,6 +50,7 @@ const (
 	ID          AttributeType = "id"
 	HYPERSCRIPT AttributeType = "_"
 	HIDDEN      AttributeType = "hidden"
+	LANG        AttributeType = "lang"
 )
 
 var voidElements = map[ElementType]struct{}{

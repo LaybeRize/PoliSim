@@ -70,7 +70,7 @@ minimize the needed HTML send back to the client.
 
 ## HTML Serving
 
-HTML is build with the component builder which is inspired by gomponents.
+HTML is build with the component builder which is inspired by [gomponents](https://github.com/maragudk/gomponents).
 It uses the idea, but simplifies it down to only four functions, which makes shortens the code
 quite significantly. It also uses a different approach when validating if the function is an attribute or not.
 The HTML snippet builder is seperated from both the validation and serving package.
@@ -81,12 +81,15 @@ Because the website should save the status the sidebar is in, when the user trie
 handling is getting extended by providing the server with necessary information on what to swap and when.
 How exactly the system will look is still in the planing phase.
 
-A few keypoints are the visiblity of certain sidebar elements based on ones account role. And also swapping elements 
+A few key points are the visibility of certain sidebar elements based on ones account role. And also swapping elements 
 on theoretical redirects. As well as storing this information somehow on the website. Also, a way of informing the server
 that the sidebar has already been modified by the user and doesn't need any server side modification.
 
-## Language
+## Language and Configuration
 
-if you want to support a different language, you have to add a file with your language named 
+For most parameter, which should be easily adaptable to a new simulation, there exists a field in the config.json in the resources folder.
+If you want to support a different language, you have to add a file with your language named 
 {your two letter shorthand for your language}.json in the resources folder and change your LANG env variable to that shorthand.
+Theoretically any name can be chosen for the new file, but because the LANG env variable is used for the html lang attribute too, it 
+is advisable to use the official shorthand.
 This repo accepts pull requests for any new language support. We as the maintainer will inform you of any new translations needed.
