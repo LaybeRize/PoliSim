@@ -1,6 +1,7 @@
 package htmlServer
 
 import (
+	"PoliSim/componentHelper"
 	"PoliSim/dataValidation"
 	"PoliSim/database"
 	"PoliSim/htmlComposition"
@@ -8,11 +9,8 @@ import (
 )
 
 func InstallStart() {
-	htmlComposition.HandlerList[htmlComposition.Start] = &htmlComposition.HttpHandling{
-		TitleText:         "Startseite",
-		SidebarButtonText: "Start",
-		HasSidebarButton:  true,
-	}
+	htmlComposition.PageTitleMap[htmlComposition.Start] = componentHelper.Translation["startPageTitle"]
+	htmlComposition.SidebarTitleMap[htmlComposition.Start] = componentHelper.Translation["startSidebarText"]
 	htmlComposition.GetHTMXFunctions[htmlComposition.Start] = GetStartService
 	htmlComposition.PostHTMXFunctions[htmlComposition.Login] = PostLoginService
 	htmlComposition.PostHTMXFunctions[htmlComposition.Logout] = PostLogoutService

@@ -18,7 +18,7 @@ type AccountAuth struct {
 	Suspended      bool
 	RefreshToken   string
 	ExpirationDate sql.NullTime
-	Role           database.RoleString
+	Role           database.RoleLevel
 }
 
 type AccountLogin struct {
@@ -31,7 +31,7 @@ type AccountLogin struct {
 	ExpirationDate sql.NullTime
 	LoginTries     int
 	NextLoginTime  sql.NullTime
-	Role           database.RoleString
+	Role           database.RoleLevel
 }
 
 func GetAccoutForLogin(username string) (*AccountLogin, error) {

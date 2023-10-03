@@ -23,8 +23,6 @@ func main() {
 
 	htmlServer.InstallStart()
 
-	htmlComposition.SetupSidebar()
-
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -53,12 +51,8 @@ func main() {
 
 func instigateRoutes(router *chi.Mux) {
 	for _, httpRoute := range htmlComposition.LoadingList {
-		handler := htmlComposition.HandlerList[httpRoute]
-		if handler == nil {
-			_, _ = fmt.Fprintf(os.Stdout, "Could not find route for: /"+string(httpRoute)+"\n")
-			continue
-		}
-		router.Get("/"+string(httpRoute), htmlServer.GetFullPage(handler.TitleText))
+		pageTitle := htmlComposition.PageTitleMap[httpRoute]
+		router.Get("/"+string(httpRoute), htmlServer.GetFullPage(pageTitle))
 		_, _ = fmt.Fprintf(os.Stdout, "Added Route for: /"+string(httpRoute)+"\n")
 	}
 	for url, function := range htmlComposition.GetHTMXFunctions {

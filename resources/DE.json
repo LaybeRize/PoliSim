@@ -1,8 +1,13 @@
 {
+  "welcomMessage": "Herzlich Willkommen im MBundestag",
+
   "usernameOrPasswordMissing": "Passwort oder Nutzername fehlt",
   "passwordOrUsernameWrong": "Der Nutzername oder das Passwort sind fehlerhaft",
   "internalLoginAccountError": "Es ist ein Fehler beim Abfragen des Accounts aufgetreten",
   "hasInternalLoginTimer": "Du kannst dich erst wieder am 02.01.2006 um 15:04:05 anmelden",
   "accountIsSupended": "Dein Account ist suspendiert",
-  "successFullLoggedIn": "Du wurdest angemeldet"
+  "successFullLoggedIn": "Du wurdest angemeldet",
+
+  "startPageTitle": "Startseite",
+  "startSidebarText": "Start"
 }

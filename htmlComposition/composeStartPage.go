@@ -6,7 +6,8 @@ import (
 )
 
 func GetStartPage(acc *dataExtraction.AccountAuth) Node {
-	return El(DIV,
+	return getBasePageWrapper(
+		getCustomPageHeader(Translation["welcomMessage"]),
 		El(P, Text("Das ist eine Startseite")),
 		El(P, Text(acc.DisplayName)),
 	)

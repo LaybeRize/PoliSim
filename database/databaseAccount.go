@@ -3,7 +3,7 @@ package database
 import "database/sql"
 
 type (
-	RoleString  string
+	RoleLevel   int
 	AccountList []Account
 )
 
@@ -18,23 +18,23 @@ type Account struct {
 	ExpirationDate sql.NullTime
 	LoginTries     int
 	NextLoginTime  sql.NullTime
-	Role           RoleString
+	Role           RoleLevel
 	Linked         sql.NullInt64
 	Parent         *Account  `gorm:"foreignKey:linked;joinReferences:id"`
 	Children       []Account `gorm:"foreignKey:linked"`
 }
 
 const (
-	User         RoleString = "user"
-	MediaAdmin   RoleString = "media_admin"
-	Admin        RoleString = "admin"
-	HeadAdmin    RoleString = "head_admin"
-	PressAccount RoleString = "press_account"
-	NotLoggedIn  RoleString = "notLoggedIn"
+	PressAccount RoleLevel = iota - 1
+	NotLoggedIn
+	User
+	MediaAdmin
+	Admin
+	HeadAdmin
 )
 
-var Roles = []RoleString{PressAccount, User, MediaAdmin, Admin, HeadAdmin}
-var RoleTranslation = map[RoleString]string{
+var Roles = []RoleLevel{PressAccount, User, MediaAdmin, Admin, HeadAdmin}
+var RoleTranslation = map[RoleLevel]string{
 	PressAccount: "Presse-Account",
 	User:         "Nutzer",
 	MediaAdmin:   "Medien-Administrator",

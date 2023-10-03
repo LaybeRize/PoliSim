@@ -17,11 +17,12 @@ import (
 // with a div that automatically requests the URL via htmx.
 func GetFullPage(pageTitle string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		acc, _ := CheckUserPrivilges(w, r)
 		addition := "?" + r.URL.RawQuery
 		if addition == "?" {
 			addition = ""
 		}
-		html := htmlComposition.GetBasePage(pageTitle, r.URL.Path+addition)
+		html := htmlComposition.GetBasePage(pageTitle, acc.Role, r.URL.Path+addition)
 		renderRequest(w, true, html.Render)
 	}
 }
@@ -101,7 +102,7 @@ func getInt(r *http.Request, fieldName string, onError int64) int64 {
 	return int64(i)
 }
 
-func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleString) (*dataExtraction.AccountAuth, bool) {
+func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleLevel) (*dataExtraction.AccountAuth, bool) {
 	inCookie, err := r.Cookie("token")
 	if err != nil {
 		return &dataExtraction.AccountAuth{Role: database.NotLoggedIn}, false
@@ -115,7 +116,7 @@ func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...da
 	return acc, CheckIfHasRole(acc, roleString...)
 }
 
-func CheckIfHasRole(acc *dataExtraction.AccountAuth, roles ...database.RoleString) bool {
+func CheckIfHasRole(acc *dataExtraction.AccountAuth, roles ...database.RoleLevel) bool {
 	for _, r := range roles {
 		if r == acc.Role {
 			return true

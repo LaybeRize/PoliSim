@@ -1,10 +1,16 @@
 package htmlComposition
 
-import "net/http"
+import (
+	"PoliSim/database"
+	"net/http"
+)
 
 type HttpUrl string
 
 const (
+	MainBodyID = "mainBody"
+	SidebarID  = "Sidebar"
+
 	Start  HttpUrl = "start"
 	Login  HttpUrl = "login"
 	Logout HttpUrl = "logout"
@@ -18,10 +24,12 @@ type HttpHandling struct {
 	HasSidebarButton   bool
 	SidebarSubMenuText string
 	HasSidebarSubMenu  bool
+	RoleLevel          database.RoleLevel
 }
 
 var LoadingList = []HttpUrl{Start}
-var HandlerList = make(map[HttpUrl]*HttpHandling)
+var PageTitleMap = make(map[HttpUrl]string)
+var SidebarTitleMap = make(map[HttpUrl]string)
 var GetHTMXFunctions = make(map[HttpUrl]http.HandlerFunc)
 var PostHTMXFunctions = make(map[HttpUrl]http.HandlerFunc)
 var PatchHTMXFunctions = make(map[HttpUrl]http.HandlerFunc)
