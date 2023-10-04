@@ -2,8 +2,10 @@ package htmlComposition
 
 import (
 	. "PoliSim/componentHelper"
+	"PoliSim/dataValidation"
 	"PoliSim/database"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -24,14 +26,15 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string) Node
 		El(BODY, Attr(CLASS, "bg-slate-800 min-h-screen text-slate-200"),
 			El(DIV, Attr(ID, InformationID), Attr(HIDDEN)),
 			El(DIV, Attr(CLASS, "flex flex-row"),
-				getSidebar(role),
+				getSidebar(role, nil),
 				El(DIV, Attr(ID, MainBodyID), Attr(HXGET, "/htmx"+loadURL), Attr(HXTRIGGER, "load"), Attr(HXSWAP, "outerHTML")),
 			)))
 }
 
 func getBasePageWrapper(children ...Node) Node {
-	children = append(children, Attr(ID, MainBodyID), Attr(CLASS, "flex items-center basePadding flex-col w-full"))
-	return El(DIV, children...)
+	return El(DIV,
+		append(children, Attr(ID, MainBodyID), Attr(CLASS, "flex items-center basePadding flex-col w-full"))...,
+	)
 }
 
 func getCustomPageHeader(text string) Node {
@@ -40,4 +43,27 @@ func getCustomPageHeader(text string) Node {
 
 func getPageHeader(url HttpUrl) Node {
 	return getCustomPageHeader(PageTitleMap[url])
+}
+
+func GetInfoDiv(role database.RoleLevel, pageURL HttpUrl) Node {
+	return El(DIV, Attr(ID, InformationID), Attr(HXSWAPOOB, "true"), Attr(HIDDEN),
+		El(INPUT, Attr(NAME, "personalRoleLevel"), Attr(VALUE, strconv.Itoa(int(role))), Attr(TYPE, "hidden")),
+		El(INPUT, Attr(NAME, "currentPageURL"), Attr(VALUE, string(pageURL)), Attr(TYPE, "hidden")))
+}
+
+func GetMessage(val dataValidation.ValidationMessage) Node {
+	return El(DIV, Attr(ID, MessageID),
+		El(P, If(val.Message == "", Attr(HIDDEN)),
+			IfElse(val.Positive, Attr(CLASS, "text-white p-2 mt-2 bg-emerald-800"),
+				Attr(CLASS, "text-white p-2 mt-2 bg-rose-800")),
+			Text(val.Message),
+		))
+}
+
+func GetTitleReplacement(url HttpUrl) Node {
+	return El(TITLE, Attr(HXSWAPOOB, "true"), Text(PageTitleMap[url]))
+}
+
+func GetSidebarReplacement(level database.RoleLevel) Node {
+	return getSidebar(level, Attr(HXSWAPOOB, "true"))
 }

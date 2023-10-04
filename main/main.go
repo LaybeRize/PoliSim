@@ -2,11 +2,14 @@ package main
 
 import (
 	"PoliSim/componentHelper"
+	"PoliSim/dataExtraction"
 	"PoliSim/database"
 	"PoliSim/htmlComposition"
 	"PoliSim/htmlServer"
 	"fmt"
 	"github.com/go-chi/cors"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
 
@@ -20,6 +23,7 @@ func main() {
 	componentHelper.ImportTranslation(os.Getenv("LANG"))
 
 	database.ConnectDatabase()
+	createAdminAccount()
 
 	htmlServer.InstallStart()
 
@@ -71,4 +75,36 @@ func instigateRoutes(router *chi.Mux) {
 		router.Delete("/"+htmlComposition.APIPreRoute+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Delete Routes for htmx backend\n")
+}
+
+func createAdminAccount() {
+	ok, err := dataExtraction.RootAccountExists()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to find root account:\n"+err.Error()+"\n")
+		os.Exit(1)
+	} else if ok {
+		return
+	}
+
+	var hashedPassword []byte
+	hashedPassword, err = bcrypt.GenerateFromPassword([]byte(os.Getenv("INIT_PASSWORD")), bcrypt.DefaultCost)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to find hash root account password:\n"+err.Error()+"\n")
+		os.Exit(1)
+	}
+
+	adminAccount := dataExtraction.AccountLogin{
+		ID:           1,
+		DisplayName:  os.Getenv("INIT_NAME"),
+		Username:     os.Getenv("INIT_USERNAME"),
+		Password:     string(hashedPassword),
+		Suspended:    false,
+		RefreshToken: uuid.New().String(),
+		Role:         database.HeadAdmin,
+	}
+	err = adminAccount.CreateMe()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to create root account:\n"+err.Error()+"\n")
+		os.Exit(1)
+	}
 }

@@ -2,6 +2,7 @@ package htmlServer
 
 import (
 	"PoliSim/componentHelper"
+	"PoliSim/dataExtraction"
 	"PoliSim/dataValidation"
 	"PoliSim/database"
 	"PoliSim/htmlComposition"
@@ -18,43 +19,62 @@ func InstallStart() {
 
 func GetStartService(w http.ResponseWriter, r *http.Request) {
 	acc, _ := CheckUserPrivilges(w, r)
-	html := htmlComposition.GetStartPage(acc)
-	renderRequest(w, false, html.Render)
+	html := htmlComposition.GetStartPage(acc, dataValidation.ValidationMessage{})
+	renderRequest(w, false, updateInformation(r, acc.Role, htmlComposition.Start),
+		html.Render)
 }
 
 func PostLoginService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
+	_, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
 	if ok {
-		//tell the user he is already logged in
+		onlySwapMessage(w, dataValidation.ValidationMessage{
+			Message: componentHelper.Translation["alreadyLoggedIn"],
+		})
 		return
 	}
 	try := dataValidation.LoginForm{}
 	err := extractValuesForFields(&try, r, 0)
 	if err != nil {
-		//handel extraction error
+		onlySwapMessage(w, dataValidation.ValidationMessage{
+			Message: componentHelper.Translation["extractionError"],
+		})
 		return
 	}
 	msg, loginAccount, cookie := try.TryLogin()
 	if !msg.Positive {
-		//login failed
+		onlySwapMessage(w, msg)
 		return
 	}
 
 	http.SetCookie(w, cookie)
-	_ = acc
-	_ = loginAccount
+
+	html := htmlComposition.GetStartPage(&dataExtraction.AccountAuth{
+		DisplayName: loginAccount.DisplayName,
+		Role:        loginAccount.Role,
+	}, msg)
+	renderRequest(w, false, updateInformation(r, loginAccount.Role, htmlComposition.Start),
+		html.Render)
 }
 
 func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
+	val := dataValidation.ValidationMessage{}
 	if !ok {
-		//tell the user he is already logged out
+		val.Message = componentHelper.Translation["alreadyLoggedOut"]
+		onlySwapMessage(w, val)
 		return
 	}
 	err, cookie := dataValidation.InvalidateAccountToken(acc)
 	if err != nil {
-		//report error
+		val.Message = componentHelper.Translation["errorWhileTryingToLogYouOut"]
+		onlySwapMessage(w, val)
 		return
 	}
 	w.Header().Set("Set-Cookie", cookie.String())
+
+	val.Positive = true
+	val.Message = componentHelper.Translation["successfullyLoggedOut"]
+	html := htmlComposition.GetStartPage(&dataExtraction.AccountAuth{}, val)
+	renderRequest(w, false, updateInformation(r, database.NotLoggedIn, htmlComposition.Start),
+		html.Render)
 }

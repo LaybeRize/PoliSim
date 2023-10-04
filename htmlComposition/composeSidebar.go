@@ -5,8 +5,8 @@ import (
 	"PoliSim/database"
 )
 
-func getSidebar(level database.RoleLevel) Node {
-	return El(DIV, Attr(ID, SidebarID), Attr(CLASS, "lg:left-0 p-2 sidebarSize min-h-screen text-center bg-gray-900"),
+func getSidebar(level database.RoleLevel, specialNode Node) Node {
+	return El(DIV, specialNode, Attr(ID, SidebarID), Attr(CLASS, "lg:left-0 p-2 sidebarSize min-h-screen text-center bg-gray-900"),
 		El(DIV, Attr(CLASS, "text-gray-100 text-xl"),
 			El(DIV, Attr(CLASS, "p-2.5 mt-1 flex items-center"),
 				El(IMG, Attr(SRC, Configuration["logo"]), Attr(ALT, "Logo"),

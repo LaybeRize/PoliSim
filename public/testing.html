@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="design.css" rel="stylesheet">
+    <link href="jsdelivr.css" rel="stylesheet">
+    <script src="htmx_1.9.5.min.js"></script>
+</head>
+<body class="bg-slate-800">
+<div id="mainBody"></div>
+<div id="messageDiv"></div>
+<div id="test">
+    <input type="hidden" name="password" value="test">
+</div>
+<form hx-post="http://localhost:8080/htmx/logout" hx-include="#test">
+    <input type="text"  name="username" value="test">
+    <button type="submit">Test 1</button>
+    <button type="submit" hx-post="http://localhost:8080/htmx/login">Test 2</button>
+</form>
+</body>
+</html>

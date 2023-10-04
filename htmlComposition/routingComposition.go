@@ -11,12 +11,15 @@ const (
 	MainBodyID    = "mainBody"
 	SidebarID     = "Sidebar"
 	InformationID = "informationDiv"
+	MessageID     = "messageDiv"
 
 	Start  HttpUrl = "start"
 	Login  HttpUrl = "login"
 	Logout HttpUrl = "logout"
 	Test   HttpUrl = "test"
 
+	// APIPreRoute is a subroute for the web application to prepend to any
+	// backend partial replies. It never starts with a / because that is automatically prepend anyway
 	APIPreRoute = "htmx/"
 )
 

@@ -1,13 +1,24 @@
 {
   "welcomMessage": "Herzlich Willkommen im MReichstag",
+  "extractionError": "Es ist ein Fehler bei der Verarbeitung des Formulars aufgetreten",
 
   "usernameOrPasswordMissing": "Passwort oder Nutzername fehlt",
   "passwordOrUsernameWrong": "Der Nutzername oder das Passwort sind fehlerhaft",
   "internalLoginAccountError": "Es ist ein Fehler beim Abfragen des Accounts aufgetreten",
   "hasInternalLoginTimer": "Du kannst dich erst wieder am 02.01.2006 um 15:04:05 anmelden",
   "accountIsSupended": "Dein Account ist suspendiert",
+  "errorWhileTryingToLogYouOut": "Es ist ein Fehler aufgetreten bei dem Versuch dich abzumelden",
   "successFullLoggedIn": "Du wurdest angemeldet",
+  "successfullyLoggedOut": "Du wurdest erfolgreich abgemeldet",
+  "loginButton": "Anmelden",
+  "logoutButton": "Abmelden",
+  "alreadyLoggedIn": "Du bist bereits angemeldet",
+  "alreadyLoggedOut": "Du bist bereits abgemeldet",
+  "loggedInAccountMessage": "Herzlich Willkommen %s! Du bist jetzt im MReichstag angemeldet.",
 
   "startPageTitle": "Startseite",
-  "startSidebarText": "Start"
+  "startSidebarText": "Start",
+
+  "username": "Nutzername",
+  "password": "Passwort"
 }

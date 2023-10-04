@@ -3,6 +3,7 @@ package dataExtraction
 import (
 	"PoliSim/database"
 	"database/sql"
+	"gorm.io/gorm"
 )
 
 type (
@@ -34,6 +35,17 @@ type AccountLogin struct {
 	Role           database.RoleLevel
 }
 
+func RootAccountExists() (bool, error) {
+	err := database.DB.Where("id=?", 1).First(&database.Account{}).Error
+	if err == nil {
+		return true, nil
+	}
+	if err == gorm.ErrRecordNotFound {
+		return false, nil
+	}
+	return false, err
+}
+
 func GetAccoutForLogin(username string) (*AccountLogin, error) {
 	accoutLogin := &AccountLogin{}
 	err := database.DB.Model(database.Account{}).Where("username=?", username).First(accoutLogin).Error
@@ -41,7 +53,22 @@ func GetAccoutForLogin(username string) (*AccountLogin, error) {
 }
 
 func (acc *AccountLogin) SaveBack() error {
-	return database.DB.Model(database.Account{}).Save(acc).Error
+	return database.DB.Model(database.Account{}).Where("id=?", acc.ID).Updates(acc).Error
+}
+
+func (acc *AccountLogin) CreateMe() error {
+	return database.DB.Create(&database.Account{
+		ID:             acc.ID,
+		DisplayName:    acc.DisplayName,
+		Username:       acc.Username,
+		Password:       acc.Password,
+		Suspended:      acc.Suspended,
+		RefreshToken:   acc.RefreshToken,
+		ExpirationDate: acc.ExpirationDate,
+		LoginTries:     acc.LoginTries,
+		NextLoginTime:  acc.NextLoginTime,
+		Role:           acc.Role,
+	}).Error
 }
 
 func GetAccountForAuth(token string) (*AccountAuth, error) {
