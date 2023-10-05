@@ -61,6 +61,8 @@ const (
 	DELETE
 )
 
+// getSubmitButtonOverwriteURL returns a submit button that also overwrites the form hx-get/hx-post/hx-patch/hx-delete attribute
+// with the desired new url and submission type.
 func getSubmitButtonOverwriteURL(buttonText string, submit FormType, url string) Node {
 	hx := Node(nil)
 	switch submit {
@@ -94,13 +96,6 @@ func getFormStandardForm(id string, submit FormType, url string, children ...Nod
 }
 
 /*
-
-templ AddSubmitButton(url string) {
-    <button type="submit" class="bg-slate-700 text-white p-2 mt-2 mr-2">
-        { children... }
-    </button>
-}
-
 package partHTML
 
 import "API_MBundestag/database"

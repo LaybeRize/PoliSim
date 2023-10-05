@@ -32,7 +32,6 @@ type HttpHandling struct {
 	RoleLevel          database.RoleLevel
 }
 
-var LoadingList = []HttpUrl{Start}
 var PageTitleMap = make(map[HttpUrl]string)
 var SidebarTitleMap = make(map[HttpUrl]string)
 var GetHTMXFunctions = make(map[HttpUrl]http.HandlerFunc)

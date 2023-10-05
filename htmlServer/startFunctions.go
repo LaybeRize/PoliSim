@@ -20,29 +20,29 @@ func InstallStart() {
 func GetStartService(w http.ResponseWriter, r *http.Request) {
 	acc, _ := CheckUserPrivilges(w, r)
 	html := htmlComposition.GetStartPage(acc, dataValidation.ValidationMessage{})
-	renderRequest(w, false, updateInformation(r, acc.Role, htmlComposition.Start),
-		html.Render)
+	startRenderRequest(w, r, acc.Role, html)
 }
 
 func PostLoginService(w http.ResponseWriter, r *http.Request) {
-	_, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
+	acc, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
+	msg := dataValidation.ValidationMessage{}
 	if ok {
-		onlySwapMessage(w, dataValidation.ValidationMessage{
-			Message: componentHelper.Translation["alreadyLoggedIn"],
-		})
+		msg.Message = componentHelper.Translation["alreadyLoggedIn"]
+		startOnlySwapMessage(w, r, msg, acc.Role)
 		return
 	}
+
 	try := dataValidation.LoginForm{}
 	err := extractFormValuesForFields(&try, r, 0)
 	if err != nil {
-		onlySwapMessage(w, dataValidation.ValidationMessage{
-			Message: componentHelper.Translation["extractionError"],
-		})
+		msg.Message = componentHelper.Translation["extractionError"]
+		startOnlySwapMessage(w, r, msg, acc.Role)
 		return
 	}
+
 	msg, loginAccount, cookie := try.TryLogin()
 	if !msg.Positive {
-		onlySwapMessage(w, msg)
+		startOnlySwapMessage(w, r, msg, acc.Role)
 		return
 	}
 
@@ -61,13 +61,13 @@ func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 	val := dataValidation.ValidationMessage{}
 	if !ok {
 		val.Message = componentHelper.Translation["alreadyLoggedOut"]
-		onlySwapMessage(w, val)
+		startOnlySwapMessage(w, r, val, acc.Role)
 		return
 	}
 	cookie, err := dataValidation.InvalidateAccountToken(acc)
 	if err != nil {
 		val.Message = componentHelper.Translation["errorWhileTryingToLogYouOut"]
-		onlySwapMessage(w, val)
+		startOnlySwapMessage(w, r, val, acc.Role)
 		return
 	}
 	w.Header().Set("Set-Cookie", cookie.String())
@@ -75,6 +75,14 @@ func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 	val.Positive = true
 	val.Message = componentHelper.Translation["successfullyLoggedOut"]
 	html := htmlComposition.GetStartPage(&dataExtraction.AccountAuth{}, val)
-	renderRequest(w, false, updateInformation(r, database.NotLoggedIn, htmlComposition.Start),
-		html.Render)
+	startRenderRequest(w, r, database.NotLoggedIn, html)
+}
+
+func startRenderRequest(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node componentHelper.Node) {
+	renderRequest(w, false, updateInformation(r, level, htmlComposition.Start),
+		node.Render)
+}
+
+func startOnlySwapMessage(w http.ResponseWriter, r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
+	onlySwapMessage(w, val, updateInformation(r, level, htmlComposition.Start))
 }

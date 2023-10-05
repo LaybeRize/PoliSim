@@ -54,8 +54,7 @@ func main() {
 }
 
 func instigateRoutes(router *chi.Mux) {
-	for _, httpRoute := range htmlComposition.LoadingList {
-		pageTitle := htmlComposition.PageTitleMap[httpRoute]
+	for httpRoute, pageTitle := range htmlComposition.PageTitleMap {
 		router.Get("/"+string(httpRoute), htmlServer.GetFullPage(pageTitle))
 		_, _ = fmt.Fprintf(os.Stdout, "Added Route for: /"+string(httpRoute)+"\n")
 	}

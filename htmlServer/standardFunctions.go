@@ -22,8 +22,7 @@ func GetFullPage(pageTitle string) http.HandlerFunc {
 		if addition == "?" {
 			addition = ""
 		}
-		addition = r.URL.Path[1:] + addition
-		html := htmlComposition.GetBasePage(pageTitle, acc.Role, addition)
+		html := htmlComposition.GetBasePage(pageTitle, acc.Role, r.URL.Path[1:], addition)
 		renderRequest(w, true, html.Render)
 	}
 }
@@ -40,6 +39,9 @@ func renderRequest(w http.ResponseWriter, addDoc bool, funcs ...func(io.Writer) 
 		}
 	}
 	for _, f := range funcs {
+		if f == nil {
+			continue
+		}
 		err := f(w)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -106,6 +108,7 @@ func getInt(r *http.Request, fieldName string, onError int64) int64 {
 	return int64(i)
 }
 
+// extractUrlValuesForFields does the same for urls what extractFormValuesForFields does for forms
 func extractUrlValuesForFields(object any, r *http.Request, onError int64) error {
 	v := reflect.ValueOf(object)
 	iterate := reflect.Indirect(v).NumField()
@@ -127,14 +130,17 @@ func extractUrlValuesForFields(object any, r *http.Request, onError int64) error
 	return nil
 }
 
+// getTextFromURL reads from the url the specified field and returns the trimed text
 func getTextFromURL(r *http.Request, urlField string) string {
 	return strings.TrimSpace(r.URL.Query().Get(urlField))
 }
 
+// getBoolFromURL reads from the url the specified field and returns true if the text is "true"
 func getBoolFromURL(r *http.Request, urlField string) bool {
 	return getTextFromURL(r, urlField) == "true"
 }
 
+// getIntFromURL reads from the url the specified field and retruns it as an int64. if the text can't be converted return onError
 func getIntFromURL(r *http.Request, urlField string, onError int64) int64 {
 	i, err := strconv.Atoi(getTextFromURL(r, urlField))
 	if err != nil {
@@ -143,6 +149,8 @@ func getIntFromURL(r *http.Request, urlField string, onError int64) int64 {
 	return int64(i)
 }
 
+// CheckUserPrivilges gets the account from the cookie and returns the dataExtraction.AccountAuth if one is found for the cookie, and if
+// the account has one of the specified roles returns true. Otherwise, returns false
 func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleLevel) (*dataExtraction.AccountAuth, bool) {
 	inCookie, err := r.Cookie("token")
 	if err != nil {
@@ -157,6 +165,7 @@ func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...da
 	return acc, CheckIfHasRole(acc, roleString...)
 }
 
+// CheckIfHasRole checks if the referenced account has one of the provided roles
 func CheckIfHasRole(acc *dataExtraction.AccountAuth, roles ...database.RoleLevel) bool {
 	for _, r := range roles {
 		if r == acc.Role {
@@ -166,10 +175,11 @@ func CheckIfHasRole(acc *dataExtraction.AccountAuth, roles ...database.RoleLevel
 	return false
 }
 
-func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage) {
+// onlySwapMessage retargets the request and only replaces the Message <div> on the page via htmx
+func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage, f func(io.Writer) error) {
 	w.Header().Set("HX-Retarget", "#"+htmlComposition.MessageID)
 	html := htmlComposition.GetMessage(val)
-	renderRequest(w, false, html.Render)
+	renderRequest(w, false, f, html.Render)
 }
 
 type UserInformation struct {
@@ -177,6 +187,8 @@ type UserInformation struct {
 	Url       string `input:"currentPageURL"`
 }
 
+// updateInformation extracts the current roleLevel and pageURL via submitted form/url and if one of these are different from what
+// is expected of the page it will replace the title/sidebar according to the new page/accountLevel. This is added as extra
 func updateInformation(r *http.Request, level database.RoleLevel, currentPage htmlComposition.HttpUrl) func(io.Writer) error {
 	fields := &UserInformation{}
 	var err error

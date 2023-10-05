@@ -14,7 +14,7 @@ var language = strings.ToLower(os.Getenv("LANG"))
 // GetBasePage returns the typical <html> frame for the page.
 // it includes the correct sidebar for the parsed role and an element which automatically
 // calls the correct partial for the page content.
-func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string) Node {
+func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, loadURLAddtion string) Node {
 	return El(HTML, Attr(LANG, language),
 		El(HEAD,
 			El(META, Attr(CHARSET, "UTF-8")),
@@ -28,11 +28,14 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string) Node
 		),
 		El(BODY, Attr(CLASS, "bg-slate-800 min-h-screen text-slate-200"),
 			El(DIV, Attr(ID, InformationID), Attr(HIDDEN),
-				El(INPUT, Attr(NAME, "personalRoleLevel"), Attr(VALUE, strconv.Itoa(int(role))), Attr(TYPE, "hidden"))),
+				El(INPUT, Attr(NAME, "personalRoleLevel"), Attr(VALUE, strconv.Itoa(int(role))), Attr(TYPE, "hidden")),
+				El(INPUT, Attr(NAME, "currentPageURL"), Attr(VALUE, loadURL), Attr(TYPE, "hidden")),
+			),
 			El(DIV, Attr(CLASS, "flex flex-row"),
 				getSidebar(role, nil),
-				El(DIV, Attr(ID, MainBodyID), Attr(HXGET, "/"+APIPreRoute+loadURL), Attr(HXTRIGGER, "load"), Attr(HXSWAP, "outerHTML"), Attr(HXINCLUDE, "#"+InformationID)),
-			)))
+				El(DIV, Attr(ID, MainBodyID), Attr(HXGET, "/"+APIPreRoute+loadURL+loadURLAddtion), Attr(HXTRIGGER, "load"), Attr(HXSWAP, "outerHTML"), Attr(HXINCLUDE, "#"+InformationID)),
+			),
+		))
 }
 
 // getBasePageWrapper wraps the children in the MainBodyID div.
