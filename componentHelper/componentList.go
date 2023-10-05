@@ -6,6 +6,7 @@ type AttributeType string
 const (
 	DIV      ElementType = "div"
 	P        ElementType = "p"
+	I        ElementType = "i"
 	A        ElementType = "a"
 	SPAN     ElementType = "SPAN"
 	H1       ElementType = "h1"

@@ -2,6 +2,8 @@
   "welcomMessage": "Herzlich Willkommen im MReichstag",
   "extractionError": "Es ist ein Fehler bei der Verarbeitung des Formulars aufgetreten",
 
+  "accountSubMenu": "Benutzer verwalten",
+
   "usernameOrPasswordMissing": "Passwort oder Nutzername fehlt",
   "passwordOrUsernameWrong": "Der Nutzername oder das Passwort sind fehlerhaft",
   "internalLoginAccountError": "Es ist ein Fehler beim Abfragen des Accounts aufgetreten",

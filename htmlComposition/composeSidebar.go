@@ -18,10 +18,14 @@ func getSidebar(level database.RoleLevel, specialNode Node) Node {
 		),
 		//here come the inputs
 		getSidebarButton(level, database.NotLoggedIn, Start),
-		getSidebarButton(level, database.HeadAdmin, Test),
+		getSidebarButton(level, database.HeadAdmin, "test"),
+		// TODO: remove me ^
 		If(database.User <= level, getSidebarBreaker()),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
 		If(database.Admin <= level, getSidebarBreaker()),
+		getSideBarSubMenu(level, database.HeadAdmin, Translation["accountSubMenu"],
+			getSidebarSubMenuButton(level, database.HeadAdmin, "test"),
+		),
 	)
 }
 
@@ -39,6 +43,37 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 		Attr(HXINCLUDE, "#"+InformationID),
 		Attr(HYPERSCRIPT, getClickAction(url)), Attr(CLASS, "p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		El(SPAN, Attr(CLASS, "text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),
+	)
+}
+
+// getSideBarSubMenu returns a wrapper for submenu buttons. It can hide and show the children buttons via a click
+func getSideBarSubMenu(userLevel database.RoleLevel, minimumLevel database.RoleLevel, subMenuName string, children ...Node) Node {
+	if minimumLevel > userLevel {
+		return El(DIV, Attr(ID, subMenuName+SidebarID), Attr(HIDDEN))
+	}
+	return El(DIV, Attr(ID, subMenuName+SidebarID),
+		El(DIV, Attr(CLASS, "p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
+			Attr(HYPERSCRIPT, "on click toggle .hidden on next <div/> from me then toggle .rotate-180 on last <span/> in first <div/> in me"),
+			El(DIV, Attr(CLASS, "flex justify-between w-full items-center"),
+				El(SPAN, Attr(CLASS, "text-[15px] ml-4 text-gray-200 font-bold"), Text(subMenuName)),
+				El(SPAN, Attr(CLASS, "text-sm"),
+					El(I, Attr(CLASS, "bi bi-chevron-down")),
+				),
+			),
+		),
+		El(DIV, append(children, Attr(CLASS, "text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold"))...),
+	)
+}
+
+// getSidebarSubMenuButton returns a button specially made for the getSideBarSubMenu wrapper.
+func getSidebarSubMenuButton(userLevel database.RoleLevel, minimumLevel database.RoleLevel, url HttpUrl) Node {
+	if minimumLevel > userLevel {
+		return El(A, Attr(ID, string(url)+SidebarID), Attr(HIDDEN))
+	}
+	return El(A, Attr(HXGET, "/"+APIPreRoute+string(url)), Attr(ID, string(url)+SidebarID), Attr(HXTARGET, "#"+MainBodyID),
+		Attr(HXINCLUDE, "#"+InformationID),
+		Attr(HYPERSCRIPT, getClickAction(url)),
+		El(H1, Attr(CLASS, "cursor-pointer p-2 mt-1 w-full hover:bg-blue-600"), Text(SidebarTitleMap[url])),
 	)
 }
 
