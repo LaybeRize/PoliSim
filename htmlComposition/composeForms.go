@@ -4,6 +4,8 @@ import (
 	. "PoliSim/componentHelper"
 )
 
+// getDataList creates a <datalist> element containing all items in listItems as <option> tags
+// and the listName as the id.
 func getDataList(listName string, listItems []string) Node {
 	options := make([]Node, len(listItems)+1)
 	options[0] = Attr(ID, listName)
@@ -13,6 +15,7 @@ func getDataList(listName string, listItems []string) Node {
 	return El(DATALIST, options...)
 }
 
+// getTextArea returns a styled text area for a form. content is the text filled into the area.
 func getTextArea(id string, name string, content string, labelText string) Node {
 	return El(DIV, Attr(CLASS, "mt-2"),
 		El(LABEL, Attr(FOR, id), Text(labelText)), El(BR),
@@ -22,10 +25,13 @@ func getTextArea(id string, name string, content string, labelText string) Node 
 	)
 }
 
+// getSimpleTextInput calls getInput with the typStr "text" and list and extraClass parameter empty.
 func getSimpleTextInput(id string, name string, value string, labelText string) Node {
 	return getInput(id, name, value, labelText, "text", "", "")
 }
 
+// getInput returns an <input> element filled with the id, name, value, type (here typeStr), the used list for suggestions and
+// addition css parameter with extraClass.
 func getInput(id string, name string, value string, labelText string, typeStr string, list string, extraClass string) Node {
 	if extraClass != "" {
 		extraClass = " " + extraClass
@@ -40,6 +46,7 @@ func getInput(id string, name string, value string, labelText string, typeStr st
 
 var buttonClassAttribute = "bg-slate-700 text-white p-2"
 
+// getSubmitButton returns the standard form submit button
 func getSubmitButton(buttonText string) Node {
 	return El(BUTTON, Attr(TYPE, "submit"), Attr(CLASS, buttonClassAttribute+" mt-2 mr-2"),
 		Text(buttonText))
@@ -54,6 +61,23 @@ const (
 	DELETE
 )
 
+func getSubmitButtonOverwriteURL(buttonText string, submit FormType, url string) Node {
+	hx := Node(nil)
+	switch submit {
+	case GET:
+		hx = Attr(HXGET, url)
+	case POST:
+		hx = Attr(HXPOST, url)
+	case PATCH:
+		hx = Attr(HXPATCH, url)
+	case DELETE:
+		hx = Attr(HXDELETE, url)
+	}
+	return El(BUTTON, Attr(TYPE, "submit"), Attr(CLASS, buttonClassAttribute+" mt-2 mr-2"), hx,
+		Text(buttonText))
+}
+
+// getFormStandardForm wraps all children in a <form> element with the needed htmx parameter based on the submit type and the url.
 func getFormStandardForm(id string, submit FormType, url string, children ...Node) Node {
 	hx := Node(nil)
 	switch submit {

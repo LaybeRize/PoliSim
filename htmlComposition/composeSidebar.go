@@ -41,6 +41,7 @@ func generalSidebarButton(hidden bool, url HttpUrl, addSwap bool) Node {
 		return El(A, Attr(ID, string(url)+SidebarID), If(addSwap, Attr(HXSWAPOOB, "true")), Attr(HIDDEN))
 	}
 	return El(A, Attr(HXGET, "/"+APIPreRoute+string(url)), Attr(ID, string(url)+SidebarID), Attr(HXTARGET, "#"+MainBodyID),
+		Attr(HXINCLUDE, "#"+InformationID),
 		Attr(HYPERSCRIPT, getClickAction(url)), Attr(CLASS, "p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		If(addSwap, Attr(HXSWAPOOB, "true")),
 		El(SPAN, Attr(CLASS, "text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),

@@ -15,6 +15,9 @@ import (
 // timeUntilTokenRunsOut defines the time in seconds until a token becomes invalid
 var timeUntilTokenRunsOut = 60 * 60 * 24 * 7
 
+// ValidateToken returns a *dataExtraction.AccountAuth with the Role database.NotLoggedIn if
+// either no token exists, or the token is invalid. If the token is valid it writes a new token
+// to the database for the account and returns a new valid cookie for the account.
 func ValidateToken(token string) (returnAcc *dataExtraction.AccountAuth, cookie *http.Cookie) {
 	cookie = nil
 	returnAcc = &dataExtraction.AccountAuth{Role: database.NotLoggedIn}
@@ -40,7 +43,9 @@ func ValidateToken(token string) (returnAcc *dataExtraction.AccountAuth, cookie 
 	return
 }
 
-func InvalidateAccountToken(acc *dataExtraction.AccountAuth) (err error, cookie *http.Cookie) {
+// InvalidateAccountToken trys to invalidate the current cookie. on success, it retuns a nil error
+// and a cookie to overwrite the current valid one. On failure, it returns a nil cookie and the error.
+func InvalidateAccountToken(acc *dataExtraction.AccountAuth) (cookie *http.Cookie, err error) {
 	cookie = nil
 	err = dataExtraction.UpdateAuthToken(acc.ID, acc.RefreshToken, sql.NullTime{})
 	if err != nil {
@@ -55,7 +60,11 @@ type LoginForm struct {
 	Password string `input:"password"`
 }
 
+// TryLogin always returns a ValidationMessage containg the error or sucess for the process.
+// On sucess it also returns a filled dataExtraction.AccountLogin struct as well as a new
+// valid *http.Cookie.
 func (form LoginForm) TryLogin() (validate ValidationMessage, acc *dataExtraction.AccountLogin, cookie *http.Cookie) {
+	acc = &dataExtraction.AccountLogin{}
 	cookie = nil
 	validate = ValidationMessage{Positive: false}
 
@@ -84,7 +93,7 @@ func (form LoginForm) TryLogin() (validate ValidationMessage, acc *dataExtractio
 	err = bcrypt.CompareHashAndPassword([]byte(acc.Password), []byte(form.Password))
 	if err != nil {
 		//if the password is wrong update the login tries and return the correct error message
-		if updateError, loginError := UpdateLoginTries(acc); updateError != nil {
+		if loginError, updateError := UpdateLoginTries(acc); updateError != nil {
 			if loginError {
 				validate.Message = acc.NextLoginTime.Time.Format(componentHelper.Translation["hasInternalLoginTimer"])
 				return
@@ -119,7 +128,10 @@ func (form LoginForm) TryLogin() (validate ValidationMessage, acc *dataExtractio
 	return
 }
 
-func UpdateLoginTries(acc *dataExtraction.AccountLogin) (err error, canNotBeLoggedIn bool) {
+// UpdateLoginTries increases the LoginTries by one and calculates the new NextLoginTime if needed
+// then returns if the account is already timed out and if an error occured on trying to save back the new
+// data.
+func UpdateLoginTries(acc *dataExtraction.AccountLogin) (canNotBeLoggedIn bool, err error) {
 	canNotBeLoggedIn = false
 	acc.LoginTries += 1
 	//set the timer appropriate for the tries
@@ -132,8 +144,8 @@ func UpdateLoginTries(acc *dataExtraction.AccountLogin) (err error, canNotBeLogg
 	case 8, 9:
 		acc.NextLoginTime.Time = time.Now().UTC().Add(time.Minute * 5)
 	default:
-		min := acc.LoginTries * acc.LoginTries * 10
-		acc.NextLoginTime.Time = time.Now().UTC().Add(time.Second * time.Duration(min))
+		minimum := acc.LoginTries * acc.LoginTries * 10
+		acc.NextLoginTime.Time = time.Now().UTC().Add(time.Second * time.Duration(minimum))
 	}
 	//make it valid if it had been set
 	if acc.LoginTries > 3 {

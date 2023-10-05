@@ -22,7 +22,8 @@ func GetFullPage(pageTitle string) http.HandlerFunc {
 		if addition == "?" {
 			addition = ""
 		}
-		html := htmlComposition.GetBasePage(pageTitle, acc.Role, r.URL.Path+addition)
+		addition = r.URL.Path[1:] + addition
+		html := htmlComposition.GetBasePage(pageTitle, acc.Role, addition)
 		renderRequest(w, true, html.Render)
 	}
 }
@@ -47,10 +48,10 @@ func renderRequest(w http.ResponseWriter, addDoc bool, funcs ...func(io.Writer) 
 	}
 }
 
-// extractValuesForFields reads in all the fields of a struct and that has the "input" tag
+// extractFormValuesForFields reads in all the fields of a struct and that has the "input" tag
 // it looks up that tag as a form field and writes the value depending on the type of the struct field back into it.
 // Any fields without the "input" tag will be ignored.
-func extractValuesForFields(object any, r *http.Request, onError int64) error {
+func extractFormValuesForFields(object any, r *http.Request, onError int64) error {
 	err := r.ParseForm()
 	if err != nil {
 		return err
@@ -105,6 +106,43 @@ func getInt(r *http.Request, fieldName string, onError int64) int64 {
 	return int64(i)
 }
 
+func extractUrlValuesForFields(object any, r *http.Request, onError int64) error {
+	v := reflect.ValueOf(object)
+	iterate := reflect.Indirect(v).NumField()
+	for i := 0; i < iterate; i++ {
+		input, ok := v.Type().Elem().Field(i).Tag.Lookup("input")
+		if !ok {
+			continue
+		}
+		kind := reflect.Indirect(v).Field(i).Kind()
+		switch kind {
+		case reflect.String:
+			v.Elem().Field(i).SetString(getTextFromURL(r, input))
+		case reflect.Bool:
+			v.Elem().Field(i).SetBool(getBoolFromURL(r, input))
+		case reflect.Int, reflect.Int64:
+			v.Elem().Field(i).SetInt(getIntFromURL(r, input, onError))
+		}
+	}
+	return nil
+}
+
+func getTextFromURL(r *http.Request, urlField string) string {
+	return strings.TrimSpace(r.URL.Query().Get(urlField))
+}
+
+func getBoolFromURL(r *http.Request, urlField string) bool {
+	return getTextFromURL(r, urlField) == "true"
+}
+
+func getIntFromURL(r *http.Request, urlField string, onError int64) int64 {
+	i, err := strconv.Atoi(getTextFromURL(r, urlField))
+	if err != nil {
+		return onError
+	}
+	return int64(i)
+}
+
 func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleLevel) (*dataExtraction.AccountAuth, bool) {
 	inCookie, err := r.Cookie("token")
 	if err != nil {
@@ -141,7 +179,12 @@ type UserInformation struct {
 
 func updateInformation(r *http.Request, level database.RoleLevel, currentPage htmlComposition.HttpUrl) func(io.Writer) error {
 	fields := &UserInformation{}
-	err := extractValuesForFields(fields, r, 0)
+	var err error
+	if r.Method == http.MethodGet {
+		err = extractUrlValuesForFields(fields, r, 0)
+	} else {
+		err = extractFormValuesForFields(fields, r, 0)
+	}
 	if err != nil || (fields.RoleLevel == int(level) && fields.Url == string(currentPage)) {
 		return func(w io.Writer) error {
 			return nil

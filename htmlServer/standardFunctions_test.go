@@ -37,7 +37,7 @@ func TestFillStruct(t *testing.T) {
 		Test7: "notChanged",
 		Test8: false,
 	}
-	err = extractValuesForFields(val, req, 12)
+	err = extractFormValuesForFields(val, req, 12)
 	assert.Nil(t, err)
 	assert.Equal(t, Test{
 		Test1: "testString",

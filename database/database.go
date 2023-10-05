@@ -10,6 +10,9 @@ import (
 
 var DB *gorm.DB
 
+// ConnectDatabase establishes a connection stored in DB
+// made with the Env Parameter: DB_USER, DB_PASSWORD, DB_ADRESS and DB_NAME.
+// It exists the program on error.
 func ConnectDatabase() {
 	var err error
 	DB, err = gorm.Open(postgres.Open(fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable",

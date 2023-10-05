@@ -33,7 +33,7 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	try := dataValidation.LoginForm{}
-	err := extractValuesForFields(&try, r, 0)
+	err := extractFormValuesForFields(&try, r, 0)
 	if err != nil {
 		onlySwapMessage(w, dataValidation.ValidationMessage{
 			Message: componentHelper.Translation["extractionError"],
@@ -64,7 +64,7 @@ func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 		onlySwapMessage(w, val)
 		return
 	}
-	err, cookie := dataValidation.InvalidateAccountToken(acc)
+	cookie, err := dataValidation.InvalidateAccountToken(acc)
 	if err != nil {
 		val.Message = componentHelper.Translation["errorWhileTryingToLogYouOut"]
 		onlySwapMessage(w, val)
