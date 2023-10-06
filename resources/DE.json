@@ -1,6 +1,8 @@
 {
   "welcomMessage": "Herzlich Willkommen im MReichstag",
   "extractionError": "Es ist ein Fehler bei der Verarbeitung des Formulars aufgetreten",
+  "pageNotFoundTitle": "404 Seite nicht gefunden",
+  "pageNotFoundText": "Seite nicht gefunden",
 
   "accountSubMenu": "Benutzer verwalten",
 

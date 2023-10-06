@@ -21,6 +21,7 @@ const (
 	TEXTAREA ElementType = "textarea"
 	BUTTON   ElementType = "button"
 	FORM     ElementType = "form"
+	EL_STYLE ElementType = "style"
 
 	AREA    ElementType = "area"
 	BASE    ElementType = "base"
@@ -45,6 +46,7 @@ const (
 	HXGET       AttributeType = "hx-get"
 	HXTRIGGER   AttributeType = "hx-trigger"
 	HXINCLUDE   AttributeType = "hx-include"
+	HXVALS      AttributeType = "hx-vals"
 	HXSWAPOOB   AttributeType = "hx-swap-oob"
 	HXTARGET    AttributeType = "hx-target"
 	HXSWAP      AttributeType = "hx-swap"
@@ -56,6 +58,7 @@ const (
 	REL         AttributeType = "rel"
 	HREF        AttributeType = "href"
 	CLASS       AttributeType = "class"
+	STYLE       AttributeType = "style"
 	ID          AttributeType = "id"
 	HYPERSCRIPT AttributeType = "_"
 	HIDDEN      AttributeType = "hidden"

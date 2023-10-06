@@ -185,17 +185,21 @@ func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage
 type UserInformation struct {
 	RoleLevel int    `input:"personalRoleLevel"`
 	Url       string `input:"currentPageURL"`
+	PushURL   bool   `input:"pushURL"`
 }
 
 // updateInformation extracts the current roleLevel and pageURL via submitted form/url and if one of these are different from what
 // is expected of the page it will replace the title/sidebar according to the new page/accountLevel. This is added as extra
-func updateInformation(r *http.Request, level database.RoleLevel, currentPage htmlComposition.HttpUrl) func(io.Writer) error {
+func updateInformation(w http.ResponseWriter, r *http.Request, level database.RoleLevel, currentPage htmlComposition.HttpUrl) func(io.Writer) error {
 	fields := &UserInformation{}
 	var err error
 	if r.Method == http.MethodGet {
 		err = extractUrlValuesForFields(fields, r, 0)
 	} else {
 		err = extractFormValuesForFields(fields, r, 0)
+	}
+	if fields.PushURL {
+		w.Header().Add("HX-Push-Url", "/"+string(currentPage))
 	}
 	if err != nil || (fields.RoleLevel == int(level) && fields.Url == string(currentPage)) {
 		return func(w io.Writer) error {

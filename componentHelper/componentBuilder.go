@@ -84,6 +84,10 @@ func Attr(name AttributeType, str ...string) Node {
 			return
 		}
 		if len(str) > 0 {
+			if name == HXVALS {
+				_, err = w.Write([]byte("='" + str[0] + "'"))
+				return
+			}
 			_, err = w.Write([]byte("=\"" + str[0] + "\""))
 		}
 		return
@@ -133,6 +137,5 @@ func renderChild[t AttributeFunc | ElementFunc](w io.Writer, c Node) error {
 	case t:
 		return c.Render(w)
 	}
-	fmt.Print()
 	return nil
 }

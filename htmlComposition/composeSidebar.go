@@ -40,7 +40,7 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 		return El(A, Attr(ID, string(url)+SidebarID), Attr(HIDDEN))
 	}
 	return El(A, Attr(HXGET, "/"+APIPreRoute+string(url)), Attr(ID, string(url)+SidebarID), Attr(HXTARGET, "#"+MainBodyID),
-		Attr(HXINCLUDE, "#"+InformationID),
+		Attr(HXINCLUDE, "#"+InformationID), Attr(HXVALS, `{"pushURL": "true"}`), Attr(HXSWAP, "outerHTML"),
 		Attr(HYPERSCRIPT, getClickAction(url)), Attr(CLASS, "p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		El(SPAN, Attr(CLASS, "text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),
 	)
@@ -71,7 +71,7 @@ func getSidebarSubMenuButton(userLevel database.RoleLevel, minimumLevel database
 		return El(A, Attr(ID, string(url)+SidebarID), Attr(HIDDEN))
 	}
 	return El(A, Attr(HXGET, "/"+APIPreRoute+string(url)), Attr(ID, string(url)+SidebarID), Attr(HXTARGET, "#"+MainBodyID),
-		Attr(HXINCLUDE, "#"+InformationID),
+		Attr(HXINCLUDE, "#"+InformationID), Attr(HXVALS, `{"pushURL": "true"}`), Attr(HXSWAP, "outerHTML"),
 		Attr(HYPERSCRIPT, getClickAction(url)),
 		El(H1, Attr(CLASS, "cursor-pointer p-2 mt-1 w-full hover:bg-blue-600"), Text(SidebarTitleMap[url])),
 	)

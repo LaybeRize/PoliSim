@@ -17,6 +17,9 @@ const (
 	Login  HttpUrl = "login"
 	Logout HttpUrl = "logout"
 
+	// NotFound is only used as a way to keep the PageTitleMap in order
+	NotFound HttpUrl = "notFound"
+
 	// APIPreRoute is a subroute for the web application to prepend to any
 	// backend partial replies. It never starts with a / because that is automatically prepend anyway
 	APIPreRoute = "htmx/"
