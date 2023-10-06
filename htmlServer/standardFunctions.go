@@ -130,19 +130,19 @@ func extractUrlValuesForFields(object any, r *http.Request, onError int64) error
 	return nil
 }
 
-// getTextFromURL reads from the url the specified field and returns the trimed text
+// getTextFromURL reads from the url the specified field and returns the text
 func getTextFromURL(r *http.Request, urlField string) string {
-	return strings.TrimSpace(r.URL.Query().Get(urlField))
+	return r.URL.Query().Get(urlField)
 }
 
 // getBoolFromURL reads from the url the specified field and returns true if the text is "true"
 func getBoolFromURL(r *http.Request, urlField string) bool {
-	return getTextFromURL(r, urlField) == "true"
+	return r.URL.Query().Get(urlField) == "true"
 }
 
-// getIntFromURL reads from the url the specified field and retruns it as an int64. if the text can't be converted return onError
+// getIntFromURL reads from the url the specified field and returns it as an int64. if the text can't be converted return onError
 func getIntFromURL(r *http.Request, urlField string, onError int64) int64 {
-	i, err := strconv.Atoi(getTextFromURL(r, urlField))
+	i, err := strconv.Atoi(r.URL.Query().Get(urlField))
 	if err != nil {
 		return onError
 	}
