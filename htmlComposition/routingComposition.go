@@ -13,9 +13,11 @@ const (
 	InformationID = "informationDiv"
 	MessageID     = "messageDiv"
 
-	Start  HttpUrl = "start"
-	Login  HttpUrl = "login"
-	Logout HttpUrl = "logout"
+	Start              HttpUrl = "start"
+	Login              HttpUrl = "login"
+	Logout             HttpUrl = "logout"
+	CreateVote         HttpUrl = "create-vote"
+	RequestVotePartial HttpUrl = "request-vote-partial"
 
 	// NotFound is only used as a way to keep the PageTitleMap in order
 	NotFound HttpUrl = "notFound"

@@ -93,3 +93,8 @@ If you want to support a different language, you have to add a file with your la
 Theoretically any name can be chosen for the new file, but because the LANG env variable is used for the html lang attribute too, it 
 is advisable to use the official shorthand.
 This repo accepts pull requests for any new language support. We as the maintainer will inform you of any new translations needed.
+
+# Thanks
+
+Special Thanks to hypermedia to bring me back to writing a good server side application and https://github.com/Emtyloc/json-enc-custom for 
+letting me create an easier voting backend. Also thanks to gomponents (mentioned above) for the inspiration to writing html in go itself.

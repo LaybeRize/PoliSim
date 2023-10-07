@@ -6,6 +6,7 @@ import (
 	"PoliSim/dataValidation"
 	"PoliSim/database"
 	"PoliSim/htmlComposition"
+	"encoding/json"
 	"io"
 	"net/http"
 	"reflect"
@@ -183,9 +184,9 @@ func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage
 }
 
 type UserInformation struct {
-	RoleLevel int    `input:"personalRoleLevel"`
-	Url       string `input:"currentPageURL"`
-	PushURL   bool   `input:"pushURL"`
+	RoleLevel int    `input:"personalRoleLevel" json:"personalRoleLevel"`
+	Url       string `input:"currentPageURL" json:"currentPageURL"`
+	PushURL   bool   `input:"pushURL" json:"pushURL"`
 }
 
 // updateInformation extracts the current roleLevel and pageURL via submitted form/url and if one of these are different from what
@@ -195,6 +196,8 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 	var err error
 	if r.Method == http.MethodGet {
 		err = extractUrlValuesForFields(fields, r, 0)
+	} else if r.Header.Get("Content-Type") == "application/json" {
+		err = extractAsJson(r, fields)
 	} else {
 		err = extractFormValuesForFields(fields, r, 0)
 	}
@@ -221,4 +224,26 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 		internalError = htmlComposition.GetInfoDiv(level, currentPage).Render(w)
 		return internalError
 	}
+}
+
+func extractAsJson(r *http.Request, fields *UserInformation) error {
+	temp := &struct {
+		RoleLevel string `json:"personalRoleLevel"`
+		Url       string `json:"currentPageURL"`
+		PushURL   string `json:"pushURL"`
+	}{}
+	err := json.NewDecoder(r.Body).Decode(temp)
+	if err != nil {
+		return err
+	}
+
+	var i int
+	i, err = strconv.Atoi(temp.RoleLevel)
+	if err != nil {
+		i = 0
+	}
+	fields.RoleLevel = i
+	fields.Url = temp.Url
+	fields.PushURL = temp.PushURL == "true"
+	return nil
 }
