@@ -202,12 +202,10 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 		w.Header().Add("HX-Push-Url", "/"+string(currentPage))
 	}
 	if err != nil || (fields.RoleLevel == int(level) && fields.Url == string(currentPage)) {
-		return func(w io.Writer) error {
-			return nil
-		}
+		return nil
 	}
 	return func(w io.Writer) error {
-		var internalError error
+		var internalError error = nil
 		if fields.RoleLevel != int(level) {
 			internalError = htmlComposition.GetSidebarReplacement(level).Render(w)
 		}

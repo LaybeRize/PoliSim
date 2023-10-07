@@ -23,8 +23,8 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, load
 			El(LINK, Attr(REL, "icon"), Attr(HREF, Configuration["logo"])),
 			El(LINK, Attr(REL, "stylesheet"), Attr(HREF, "/public/jsdelivr.css")),
 			El(LINK, Attr(REL, "stylesheet"), Attr(HREF, "/public/design.css")),
-			El(SCRIPT, Attr(SRC, "/public/_hyperscript_0.9.11.min.js")),
-			El(SCRIPT, Attr(SRC, "/public/htmx_1.9.5.min.js")),
+			El(SCRIPT, Attr(SRC, "/public/_hyperscript_0.9.11.js")),
+			El(SCRIPT, Attr(SRC, "/public/htmx_1.9.5.js")),
 		),
 		El(BODY, Attr(CLASS, "bg-slate-800 min-h-screen text-slate-200"),
 			El(DIV, Attr(ID, InformationID), Attr(HIDDEN),
@@ -38,10 +38,10 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, load
 		))
 }
 
-// getBasePageWrapper wraps the children in the MainBodyID div.
+// getBasePageWrapper wraps the children in the MainBodyID div (and now an addition div to fucking standardize the fade in affect).
 func getBasePageWrapper(children ...Node) Node {
-	return El(DIV,
-		append(children, Attr(ID, MainBodyID), Attr(CLASS, "flex items-center basePadding flex-col w-full"))...,
+	return El(DIV, Attr(ID, MainBodyID), Attr(CLASS, "flex items-center flex-col basePadding w-full"),
+		El(DIV, append(children, Attr(CLASS, "flex items-center flex-col h-full fadeMeIn"))...),
 	)
 }
 
