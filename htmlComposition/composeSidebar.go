@@ -61,7 +61,7 @@ func getSideBarSubMenu(userLevel database.RoleLevel, minimumLevel database.RoleL
 				),
 			),
 		),
-		El(DIV, append(children, Attr(CLASS, "text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold"))...),
+		El(DIV, Group(children...), Attr(CLASS, "text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold")),
 	)
 }
 

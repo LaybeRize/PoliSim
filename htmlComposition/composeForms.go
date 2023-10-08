@@ -92,7 +92,7 @@ func getFormStandardForm(id string, submit FormType, url string, children ...Nod
 	case DELETE:
 		hx = Attr(HXDELETE, url)
 	}
-	return El(FORM, append(children, hx, Attr(ID, id), Attr(HXTARGET, "#"+MainBodyID), Attr(HXSWAP, "outerHTML"), Attr(HXINCLUDE, "#"+InformationID))...)
+	return El(FORM, hx, Attr(ID, id), Attr(HXTARGET, "#"+MainBodyID), Attr(HXSWAP, "outerHTML"), Attr(HXINCLUDE, "#"+InformationID), Group(children...))
 }
 
 /*

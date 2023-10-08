@@ -41,7 +41,7 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, load
 // getBasePageWrapper wraps the children in the MainBodyID div (and now an addition div to fucking standardize the fade in affect).
 func getBasePageWrapper(children ...Node) Node {
 	return El(DIV, Attr(ID, MainBodyID), Attr(CLASS, "flex items-center flex-col basePadding w-full"),
-		El(DIV, append(children, Attr(CLASS, "flex items-center flex-col h-full fadeMeIn"))...),
+		El(DIV, Attr(CLASS, "flex items-center flex-col h-full fadeMeIn"), Group(children...)),
 	)
 }
 

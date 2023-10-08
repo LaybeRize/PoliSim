@@ -28,10 +28,10 @@ func GetFullPage(pageTitle string) http.HandlerFunc {
 	}
 }
 
-// renderRequest renders the request to the response writers, if the write fails a
+// renderRequest renders the request to the response writer, if the write fails a
 // http.StatusInternalServerError is put in the provided http.ResponseWriter.
 // addDoc adds the <!DOCTYPE html> to the start of the response.
-func renderRequest(w http.ResponseWriter, addDoc bool, funcs ...func(io.Writer) error) {
+func renderRequest(w http.ResponseWriter, addDoc bool, f func(io.Writer) error) {
 	if addDoc {
 		err := componentHelper.RenderHTMLDoc(w)
 		if err != nil {
@@ -39,15 +39,11 @@ func renderRequest(w http.ResponseWriter, addDoc bool, funcs ...func(io.Writer) 
 			return
 		}
 	}
-	for _, f := range funcs {
-		if f == nil {
-			continue
-		}
-		err := f(w)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+
+	err := f(w)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -177,10 +173,10 @@ func CheckIfHasRole(acc *dataExtraction.AccountAuth, roles ...database.RoleLevel
 }
 
 // onlySwapMessage retargets the request and only replaces the Message <div> on the page via htmx
-func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage, f func(io.Writer) error) {
+func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage, node componentHelper.Node) {
 	w.Header().Set("HX-Retarget", "#"+htmlComposition.MessageID)
 	html := htmlComposition.GetMessage(val)
-	renderRequest(w, false, f, html.Render)
+	renderRequest(w, false, componentHelper.Group(node, html).Render)
 }
 
 type UserInformation struct {
@@ -191,7 +187,7 @@ type UserInformation struct {
 
 // updateInformation extracts the current roleLevel and pageURL via submitted form/url and if one of these are different from what
 // is expected of the page it will replace the title/sidebar according to the new page/accountLevel. This is added as extra
-func updateInformation(w http.ResponseWriter, r *http.Request, level database.RoleLevel, currentPage htmlComposition.HttpUrl) func(io.Writer) error {
+func updateInformation(w http.ResponseWriter, r *http.Request, level database.RoleLevel, currentPage htmlComposition.HttpUrl) componentHelper.Node {
 	fields := &UserInformation{}
 	var err error
 	if r.Method == http.MethodGet {
@@ -204,26 +200,18 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 	if fields.PushURL {
 		w.Header().Add("HX-Push-Url", "/"+string(currentPage))
 	}
-	if err != nil || (fields.RoleLevel == int(level) && fields.Url == string(currentPage)) {
+	switch true {
+	case err != nil || (fields.RoleLevel == int(level) && fields.Url == string(currentPage)):
 		return nil
+	case fields.RoleLevel != int(level) && fields.Url != string(currentPage):
+		return componentHelper.Group(htmlComposition.GetSidebarReplacement(level),
+			htmlComposition.GetTitleReplacement(currentPage))
+	case fields.RoleLevel != int(level):
+		return htmlComposition.GetSidebarReplacement(level)
+	case fields.Url != string(currentPage):
+		return htmlComposition.GetTitleReplacement(currentPage)
 	}
-	return func(w io.Writer) error {
-		var internalError error = nil
-		if fields.RoleLevel != int(level) {
-			internalError = htmlComposition.GetSidebarReplacement(level).Render(w)
-		}
-		if internalError != nil {
-			return internalError
-		}
-		if fields.Url != string(currentPage) {
-			internalError = htmlComposition.GetTitleReplacement(currentPage).Render(w)
-		}
-		if internalError != nil {
-			return internalError
-		}
-		internalError = htmlComposition.GetInfoDiv(level, currentPage).Render(w)
-		return internalError
-	}
+	return nil
 }
 
 func extractAsJson(r *http.Request, fields *UserInformation) error {

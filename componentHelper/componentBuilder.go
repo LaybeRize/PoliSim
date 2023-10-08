@@ -21,8 +21,13 @@ type Node interface {
 type ElementFunc func(io.Writer) error
 
 // AttributeFunc is the Node function to return, if you want it rendered as an
-// on the parent element.
+// attribute on the parent element.
 type AttributeFunc func(io.Writer) error
+
+// GroupFunc is the Node function to return, if you want it group a bunch of children
+// into a single node. This kind of Node can be put into an ElementFunc and gets rendered
+// correctly anyway.
+type GroupFunc func(w io.Writer, renderElements bool) error
 
 func (n ElementFunc) Render(w io.Writer) error {
 	return n(w)
@@ -30,6 +35,37 @@ func (n ElementFunc) Render(w io.Writer) error {
 
 func (n AttributeFunc) Render(w io.Writer) error {
 	return n(w)
+}
+
+func (n GroupFunc) Render(w io.Writer) error {
+	return n(w, true)
+}
+
+func (n GroupFunc) renderAttr(w io.Writer) error {
+	return n(w, false)
+}
+
+// Group groups children into a group that has the same hierarchy level.
+// the Render function for this Node only renders elements. But it can be used in
+// elements itself and will render all attributes in the group on the parent element of the group, while
+// only rendering the elements correctly in the element itself.
+func Group(children ...Node) Node {
+	return GroupFunc(func(w io.Writer, renderElements bool) (err error) {
+		var f func(io.Writer, Node) error
+		if renderElements {
+			f = renderElementChild
+		} else {
+			f = renderAttributeChild
+		}
+
+		for _, c := range children {
+			err = f(w, c)
+			if err != nil {
+				return
+			}
+		}
+		return nil
+	})
 }
 
 // El creates an element DOM Node with a name and child Nodes.
@@ -46,7 +82,7 @@ func El(name ElementType, children ...Node) Node {
 		}
 
 		for _, c := range children {
-			err = renderChild[AttributeFunc](w, c)
+			err = renderAttributeChild(w, c)
 			if err != nil {
 				return
 			}
@@ -62,7 +98,7 @@ func El(name ElementType, children ...Node) Node {
 		}
 
 		for _, c := range children {
-			err = renderChild[ElementFunc](w, c)
+			err = renderElementChild(w, c)
 			if err != nil {
 				return
 			}
@@ -130,12 +166,26 @@ func IfElse(statment bool, whenTrue Node, whenFalse Node) Node {
 	return whenFalse
 }
 
-// renderChild renders the child, if it has the given function type.
-// For only rendering Elements use renderChild[ElementFunc](writer, node)
-func renderChild[t AttributeFunc | ElementFunc](w io.Writer, c Node) error {
+// renderElementChild renders the child only if it is a ElementFunc or if it is a ElementFunc in a GroupFunc.
+func renderElementChild(w io.Writer, c Node) error {
 	switch c.(type) {
-	case t:
+	case ElementFunc:
 		return c.Render(w)
+	case GroupFunc:
+		groupFunc := any(c).(GroupFunc)
+		return groupFunc.Render(w)
+	}
+	return nil
+}
+
+// renderAttributeChild renders the child only if it is a AttributeFunc or if it is a AttributeFunc in a GroupFunc.
+func renderAttributeChild(w io.Writer, c Node) error {
+	switch c.(type) {
+	case AttributeFunc:
+		return c.Render(w)
+	case GroupFunc:
+		groupFunc := any(c).(GroupFunc)
+		return groupFunc.renderAttr(w)
 	}
 	return nil
 }

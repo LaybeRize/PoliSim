@@ -52,8 +52,9 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 		DisplayName: loginAccount.DisplayName,
 		Role:        loginAccount.Role,
 	}, msg)
-	renderRequest(w, false, updateInformation(w, r, loginAccount.Role, htmlComposition.Start),
-		html.Render)
+	renderRequest(w, false, componentHelper.Group(
+		updateInformation(w, r, loginAccount.Role, htmlComposition.Start),
+		html).Render)
 }
 
 func PostLogoutService(w http.ResponseWriter, r *http.Request) {
@@ -79,8 +80,9 @@ func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 }
 
 func startRenderRequest(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node componentHelper.Node) {
-	renderRequest(w, false, updateInformation(w, r, level, htmlComposition.Start),
-		node.Render)
+	renderRequest(w, false, componentHelper.Group(
+		updateInformation(w, r, level, htmlComposition.Start),
+		node).Render)
 }
 
 func startOnlySwapMessage(w http.ResponseWriter, r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
