@@ -6,10 +6,9 @@ import (
 	"io"
 )
 
-// RenderHTMLDoc writes the html doctype to the io.Writer
-func RenderHTMLDoc(w io.Writer) error {
-	_, err := w.Write([]byte("<!DOCTYPE html>"))
-	return err
+// RenderHTMLDoc returns a Node that writes the html doctype to the io.Writer
+func RenderHTMLDoc() Node {
+	return Raw("<!DOCTYPE html>")
 }
 
 type Node interface {
@@ -27,7 +26,7 @@ type AttributeFunc func(io.Writer) error
 // GroupFunc is the Node function to return, if you want it group a bunch of children
 // into a single node. This kind of Node can be put into an ElementFunc and gets rendered
 // correctly anyway.
-type GroupFunc func(w io.Writer, renderElements bool) error
+type GroupFunc func(w io.Writer, f func(io.Writer, Node) error) error
 
 func (n ElementFunc) Render(w io.Writer) error {
 	return n(w)
@@ -38,11 +37,11 @@ func (n AttributeFunc) Render(w io.Writer) error {
 }
 
 func (n GroupFunc) Render(w io.Writer) error {
-	return n(w, true)
+	return n(w, renderElementChild)
 }
 
 func (n GroupFunc) renderAttr(w io.Writer) error {
-	return n(w, false)
+	return n(w, renderAttributeChild)
 }
 
 // Group groups children into a group that has the same hierarchy level.
@@ -50,13 +49,7 @@ func (n GroupFunc) renderAttr(w io.Writer) error {
 // elements itself and will render all attributes in the group on the parent element of the group, while
 // only rendering the elements correctly in the element itself.
 func Group(children ...Node) Node {
-	return GroupFunc(func(w io.Writer, renderElements bool) (err error) {
-		var f func(io.Writer, Node) error
-		if renderElements {
-			f = renderElementChild
-		} else {
-			f = renderAttributeChild
-		}
+	return GroupFunc(func(w io.Writer, f func(io.Writer, Node) error) (err error) {
 
 		for _, c := range children {
 			err = f(w, c)
@@ -172,8 +165,7 @@ func renderElementChild(w io.Writer, c Node) error {
 	case ElementFunc:
 		return c.Render(w)
 	case GroupFunc:
-		groupFunc := any(c).(GroupFunc)
-		return groupFunc.Render(w)
+		return c.(GroupFunc).Render(w)
 	}
 	return nil
 }
@@ -184,8 +176,7 @@ func renderAttributeChild(w io.Writer, c Node) error {
 	case AttributeFunc:
 		return c.Render(w)
 	case GroupFunc:
-		groupFunc := any(c).(GroupFunc)
-		return groupFunc.renderAttr(w)
+		return c.(GroupFunc).renderAttr(w)
 	}
 	return nil
 }

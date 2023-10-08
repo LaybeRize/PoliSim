@@ -33,7 +33,7 @@ func GetFullPage(pageTitle string) http.HandlerFunc {
 // addDoc adds the <!DOCTYPE html> to the start of the response.
 func renderRequest(w http.ResponseWriter, addDoc bool, f func(io.Writer) error) {
 	if addDoc {
-		err := componentHelper.RenderHTMLDoc(w)
+		err := componentHelper.RenderHTMLDoc().Render(w)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
