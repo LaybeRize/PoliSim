@@ -176,7 +176,7 @@ func CheckIfHasRole(acc *dataExtraction.AccountAuth, roles ...database.RoleLevel
 func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage, node componentHelper.Node) {
 	w.Header().Set("HX-Retarget", "#"+htmlComposition.MessageID)
 	html := htmlComposition.GetMessage(val)
-	renderRequest(w, false, componentHelper.Group(node, html).Render)
+	renderRequest(w, false, groupNodes(node, html))
 }
 
 type UserInformation struct {
@@ -234,4 +234,8 @@ func extractAsJson(r *http.Request, fields *UserInformation) error {
 	fields.Url = temp.Url
 	fields.PushURL = temp.PushURL == "true"
 	return nil
+}
+
+func groupNodes(children ...componentHelper.Node) func(io.Writer) error {
+	return componentHelper.Group(children...).Render
 }

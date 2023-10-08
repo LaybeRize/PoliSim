@@ -80,9 +80,8 @@ func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 }
 
 func startRenderRequest(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node componentHelper.Node) {
-	renderRequest(w, false, componentHelper.Group(
-		updateInformation(w, r, level, htmlComposition.Start),
-		node).Render)
+	renderRequest(w, false, groupNodes(updateInformation(w, r, level, htmlComposition.Start),
+		node))
 }
 
 func startOnlySwapMessage(w http.ResponseWriter, r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
