@@ -40,13 +40,11 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg, loginAccount, cookie := try.TryLogin()
+	msg, loginAccount := try.TryLogin(w, r)
 	if !msg.Positive {
 		startOnlySwapMessage(w, r, msg, acc.Role)
 		return
 	}
-
-	http.SetCookie(w, cookie)
 
 	html := htmlComposition.GetStartPage(&dataExtraction.AccountAuth{
 		DisplayName: loginAccount.DisplayName,
@@ -65,12 +63,7 @@ func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 		startOnlySwapMessage(w, r, val, acc.Role)
 		return
 	}
-	cookie, err := dataValidation.InvalidateAccountToken(acc)
-	if err != nil {
-		val.Message = componentHelper.Translation["errorWhileTryingToLogYouOut"]
-		startOnlySwapMessage(w, r, val, acc.Role)
-		return
-	}
+	cookie := dataValidation.InvalidateAccountToken()
 	w.Header().Set("Set-Cookie", cookie.String())
 
 	val.Positive = true

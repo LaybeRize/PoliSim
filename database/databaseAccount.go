@@ -8,20 +8,18 @@ type (
 )
 
 type Account struct {
-	ID             int64  `gorm:"primaryKey;autoIncrement:true"`
-	DisplayName    string `gorm:"index:unique"`
-	Flair          string
-	Username       string `gorm:"index:unique"`
-	Password       string
-	Suspended      bool
-	RefreshToken   string `gorm:"index:unique"`
-	ExpirationDate sql.NullTime
-	LoginTries     int
-	NextLoginTime  sql.NullTime
-	Role           RoleLevel
-	Linked         sql.NullInt64
-	Parent         *Account  `gorm:"foreignKey:linked;joinReferences:id"`
-	Children       []Account `gorm:"foreignKey:linked"`
+	ID            int64  `gorm:"primaryKey;autoIncrement:true"`
+	DisplayName   string `gorm:"index:unique"`
+	Flair         string
+	Username      string `gorm:"index:unique"`
+	Password      string
+	Suspended     bool
+	LoginTries    int
+	NextLoginTime sql.NullTime
+	Role          RoleLevel
+	Linked        sql.NullInt64
+	Parent        *Account  `gorm:"foreignKey:linked;joinReferences:id"`
+	Children      []Account `gorm:"foreignKey:linked"`
 }
 
 const (

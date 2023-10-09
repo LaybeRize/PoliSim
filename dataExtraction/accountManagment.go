@@ -14,25 +14,21 @@ type (
 )
 
 type AccountAuth struct {
-	ID             int64
-	DisplayName    string
-	Suspended      bool
-	RefreshToken   string
-	ExpirationDate sql.NullTime
-	Role           database.RoleLevel
+	ID          int64
+	DisplayName string
+	Suspended   bool
+	Role        database.RoleLevel
 }
 
 type AccountLogin struct {
-	ID             int64
-	DisplayName    string
-	Username       string
-	Password       string
-	Suspended      bool
-	RefreshToken   string
-	ExpirationDate sql.NullTime
-	LoginTries     int
-	NextLoginTime  sql.NullTime
-	Role           database.RoleLevel
+	ID            int64
+	DisplayName   string
+	Username      string
+	Password      string
+	Suspended     bool
+	LoginTries    int
+	NextLoginTime sql.NullTime
+	Role          database.RoleLevel
 }
 
 // RootAccountExists checks if the account with the ID 1 exists
@@ -67,30 +63,23 @@ func (acc *AccountLogin) SaveBack() error {
 // specified in database.Account will be filled with the standard struct value for that field.
 func (acc *AccountLogin) CreateMe() error {
 	return database.DB.Create(&database.Account{
-		ID:             acc.ID,
-		DisplayName:    acc.DisplayName,
-		Username:       acc.Username,
-		Password:       acc.Password,
-		Suspended:      acc.Suspended,
-		RefreshToken:   acc.RefreshToken,
-		ExpirationDate: acc.ExpirationDate,
-		LoginTries:     acc.LoginTries,
-		NextLoginTime:  acc.NextLoginTime,
-		Role:           acc.Role,
+		ID:            acc.ID,
+		DisplayName:   acc.DisplayName,
+		Username:      acc.Username,
+		Password:      acc.Password,
+		Suspended:     acc.Suspended,
+		LoginTries:    acc.LoginTries,
+		NextLoginTime: acc.NextLoginTime,
+		Role:          acc.Role,
 	}).Error
 }
 
 // GetAccountForAuth returns a filled *AccountAuth on sucessfully locating
-// an account with that username. Otherwise, return an empty struct and the error.
-func GetAccountForAuth(token string) (*AccountAuth, error) {
+// an account with that id. Otherwise, return an empty struct and the error.
+func GetAccountForAuth(id int64) (*AccountAuth, error) {
 	accountAuth := &AccountAuth{}
-	err := database.DB.Model(database.Account{}).Where("refresh_token=?", token).First(accountAuth).Error
+	err := database.DB.Model(database.Account{}).Where("id=?", id).First(accountAuth).Error
 	return accountAuth, err
-}
-
-// UpdateAuthToken updates the rows refresh_token and experation_date for the account with the given id.
-func UpdateAuthToken(id int64, newToken string, newExperationDate sql.NullTime) error {
-	return database.DB.Model(database.Account{}).Where("id=?", id).Update("refresh_token", newToken).Update("expiration_date", newExperationDate).Error
 }
 
 // GetAllChildrenDisplayNames returns a *AccountDisplayNameList on sucessfully finding any children.

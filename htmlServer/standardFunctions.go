@@ -149,15 +149,7 @@ func getIntFromURL(r *http.Request, urlField string, onError int64) int64 {
 // CheckUserPrivilges gets the account from the cookie and returns the dataExtraction.AccountAuth if one is found for the cookie, and if
 // the account has one of the specified roles returns true. Otherwise, returns false
 func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleLevel) (*dataExtraction.AccountAuth, bool) {
-	inCookie, err := r.Cookie("token")
-	if err != nil {
-		return &dataExtraction.AccountAuth{Role: database.NotLoggedIn}, false
-	}
-
-	acc, cookie := dataValidation.ValidateToken(inCookie.Value)
-	if cookie != nil {
-		http.SetCookie(w, cookie)
-	}
+	acc := dataValidation.ValidateToken(w, r)
 
 	return acc, CheckIfHasRole(acc, roleString...)
 }
@@ -205,11 +197,14 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 		return nil
 	case fields.RoleLevel != int(level) && fields.Url != string(currentPage):
 		return componentHelper.Group(htmlComposition.GetSidebarReplacement(level),
-			htmlComposition.GetTitleReplacement(currentPage))
+			htmlComposition.GetTitleReplacement(currentPage),
+			htmlComposition.GetInfoDiv(level, currentPage))
 	case fields.RoleLevel != int(level):
-		return htmlComposition.GetSidebarReplacement(level)
+		return componentHelper.Group(htmlComposition.GetSidebarReplacement(level),
+			htmlComposition.GetInfoDiv(level, currentPage))
 	case fields.Url != string(currentPage):
-		return htmlComposition.GetTitleReplacement(currentPage)
+		return componentHelper.Group(htmlComposition.GetTitleReplacement(currentPage),
+			htmlComposition.GetInfoDiv(level, currentPage))
 	}
 	return nil
 }

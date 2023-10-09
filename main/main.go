@@ -3,6 +3,7 @@ package main
 import (
 	"PoliSim/componentHelper"
 	"PoliSim/dataExtraction"
+	"PoliSim/dataValidation"
 	"PoliSim/database"
 	"PoliSim/htmlComposition"
 	"PoliSim/htmlServer"
@@ -26,6 +27,8 @@ func main() {
 	createAdminAccount()
 
 	htmlServer.InstallStart()
+
+	dataValidation.CreateStore()
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

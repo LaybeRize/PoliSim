@@ -4,8 +4,8 @@ import (
 	"PoliSim/componentHelper"
 	"PoliSim/dataExtraction"
 	"PoliSim/database"
-	"database/sql"
-	"github.com/google/uuid"
+	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/http"
@@ -15,43 +15,40 @@ import (
 // timeUntilTokenRunsOut defines the time in seconds until a token becomes invalid
 var timeUntilTokenRunsOut = 60 * 60 * 24 * 7
 
+var store = &sessions.CookieStore{}
+
+// CreateStore sets up the cookie store for when the application starts
+func CreateStore() {
+	store = sessions.NewCookieStore(securecookie.GenerateRandomKey(32))
+	store.MaxAge(timeUntilTokenRunsOut)
+}
+
 // ValidateToken returns a *dataExtraction.AccountAuth with the Role database.NotLoggedIn if
-// either no token exists, or the token is invalid. If the token is valid it writes a new token
-// to the database for the account and returns a new valid cookie for the account.
-func ValidateToken(token string) (returnAcc *dataExtraction.AccountAuth, cookie *http.Cookie) {
-	cookie = nil
+// either no token exists, or the token is invalid. If the token is valid it renews the cookie
+// for the current session by writing it to the response.
+func ValidateToken(w http.ResponseWriter, r *http.Request) (returnAcc *dataExtraction.AccountAuth) {
+	session, err := store.Get(r, "session")
+	temp, ok := session.Values["id"]
+	id, okConvert := temp.(int64)
+
 	returnAcc = &dataExtraction.AccountAuth{Role: database.NotLoggedIn}
-	acc, err := dataExtraction.GetAccountForAuth(token)
-	if err != nil {
+	if err != nil || !ok || !okConvert {
+		return
+	}
+	acc, err := dataExtraction.GetAccountForAuth(id)
+	if err != nil || acc.Suspended {
 		return
 	}
 
-	if !acc.ExpirationDate.Valid || acc.ExpirationDate.Time.Before(time.Now()) || acc.Suspended {
-		return
-	}
-
-	acc.ExpirationDate.Time = time.Now().UTC().Add(time.Second * time.Duration(timeUntilTokenRunsOut))
-	acc.ExpirationDate.Valid = true
-	acc.RefreshToken = uuid.New().String()
-	err = dataExtraction.UpdateAuthToken(acc.ID, acc.RefreshToken, acc.ExpirationDate)
-	if err != nil {
-		return
-	}
-
-	cookie = &http.Cookie{Name: "token", Value: acc.RefreshToken, Path: "/", MaxAge: timeUntilTokenRunsOut}
+	_ = sessions.Save(r, w)
 	returnAcc = acc
 	return
 }
 
 // InvalidateAccountToken trys to invalidate the current cookie. on success, it retuns a nil error
 // and a cookie to overwrite the current valid one. On failure, it returns a nil cookie and the error.
-func InvalidateAccountToken(acc *dataExtraction.AccountAuth) (cookie *http.Cookie, err error) {
-	cookie = nil
-	err = dataExtraction.UpdateAuthToken(acc.ID, acc.RefreshToken, sql.NullTime{})
-	if err != nil {
-		return
-	}
-	cookie = &http.Cookie{Name: "token", Value: "", Path: "/", MaxAge: 0}
+func InvalidateAccountToken() (cookie *http.Cookie) {
+	cookie = &http.Cookie{Name: "session", Value: "", Path: "/", HttpOnly: true, MaxAge: -1}
 	return
 }
 
@@ -63,9 +60,8 @@ type LoginForm struct {
 // TryLogin always returns a ValidationMessage containg the error or sucess for the process.
 // On sucess it also returns a filled dataExtraction.AccountLogin struct as well as a new
 // valid *http.Cookie.
-func (form LoginForm) TryLogin() (validate ValidationMessage, acc *dataExtraction.AccountLogin, cookie *http.Cookie) {
+func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate ValidationMessage, acc *dataExtraction.AccountLogin) {
 	acc = &dataExtraction.AccountLogin{}
-	cookie = nil
 	validate = ValidationMessage{Positive: false}
 
 	if form.Username == "" || form.Password == "" {
@@ -111,7 +107,15 @@ func (form LoginForm) TryLogin() (validate ValidationMessage, acc *dataExtractio
 		return
 	}
 	//reset account login tries and make the login timer invalid before returning the correct struct
-	acc.LoginTries = 0
+	session, getError := store.Get(r, "session")
+	session.Values["id"] = acc.ID
+	err = session.Save(r, w)
+	if err != nil || getError != nil {
+		//do the error handling
+		validate.Message = componentHelper.Translation["internalLoginAccountError"]
+		return
+	}
+	/*acc.LoginTries = 0
 	acc.NextLoginTime = sql.NullTime{}
 	acc.ExpirationDate.Time = time.Now().UTC().Add(time.Second * time.Duration(timeUntilTokenRunsOut))
 	acc.ExpirationDate.Valid = true
@@ -120,11 +124,11 @@ func (form LoginForm) TryLogin() (validate ValidationMessage, acc *dataExtractio
 	if err != nil {
 		validate.Message = componentHelper.Translation["internalLoginAccountError"]
 		return
-	}
+	}*/
 
 	validate.Positive = true
 	validate.Message = componentHelper.Translation["successFullLoggedIn"]
-	cookie = &http.Cookie{Name: "token", Value: acc.RefreshToken, Path: "/", MaxAge: timeUntilTokenRunsOut}
+	//cookie = &http.Cookie{Name: "token", Value: acc.RefreshToken, Path: "/", MaxAge: timeUntilTokenRunsOut}
 	return
 }
 

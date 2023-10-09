@@ -1,3182 +1,3789 @@
-(function (e, t) {
-    if (typeof define === "function" && define.amd) {
-        define([], t)
-    } else if (typeof module === "object" && module.exports) {
-        module.exports = t()
+// UMD insanity
+// This code sets up support for (in order) AMD, ES6 modules, and globals.
+(function (root, factory) {
+    //@ts-ignore
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        //@ts-ignore
+        define([], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory();
     } else {
-        e.htmx = e.htmx || t()
+        // Browser globals
+        root.htmx = root.htmx || factory();
     }
-})(typeof self !== "undefined" ? self : this, function () {
-    return function () {
-        "use strict";
-        var G = {
-            onLoad: t,
-            process: Nt,
-            on: le,
-            off: ue,
-            trigger: oe,
-            ajax: xr,
-            find: b,
-            findAll: f,
-            closest: d,
-            values: function (e, t) {
-                var r = er(e, t || "post");
-                return r.values
-            },
-            remove: U,
-            addClass: B,
-            removeClass: n,
-            toggleClass: V,
-            takeClass: j,
-            defineExtension: Rr,
-            removeExtension: Or,
-            logAll: X,
-            logNone: F,
-            logger: null,
-            config: {
-                historyEnabled: true,
-                historyCacheSize: 10,
-                refreshOnHistoryMiss: false,
-                defaultSwapStyle: "innerHTML",
-                defaultSwapDelay: 0,
-                defaultSettleDelay: 20,
-                includeIndicatorStyles: true,
-                indicatorClass: "htmx-indicator",
-                requestClass: "htmx-request",
-                addedClass: "htmx-added",
-                settlingClass: "htmx-settling",
-                swappingClass: "htmx-swapping",
-                allowEval: true,
-                allowScriptTags: true,
-                inlineScriptNonce: "",
-                attributesToSettle: ["class", "style", "width", "height"],
-                withCredentials: false,
-                timeout: 0,
-                wsReconnectDelay: "full-jitter",
-                wsBinaryType: "blob",
-                disableSelector: "[hx-disable], [data-hx-disable]",
-                useTemplateFragments: false,
-                scrollBehavior: "smooth",
-                defaultFocusScroll: false,
-                getCacheBusterParam: false,
-                globalViewTransitions: false,
-                methodsThatUseUrlParams: ["get"],
-                selfRequestsOnly: false
-            },
-            parseInterval: v,
-            _: e,
-            createEventSource: function (e) {
-                return new EventSource(e, {withCredentials: true})
-            },
-            createWebSocket: function (e) {
-                var t = new WebSocket(e, []);
-                t.binaryType = G.config.wsBinaryType;
-                return t
-            },
-            version: "1.9.5"
-        };
-        var C = {
-            addTriggerHandler: bt,
-            bodyContains: re,
-            canAccessLocalStorage: M,
-            findThisElement: he,
-            filterValues: ar,
-            hasAttribute: o,
-            getAttributeValue: Z,
-            getClosestAttributeValue: Y,
-            getClosestMatch: c,
-            getExpressionVars: gr,
-            getHeaders: ir,
-            getInputValues: er,
-            getInternalData: ee,
-            getSwapSpecification: sr,
-            getTriggerSpecs: Ge,
-            getTarget: de,
-            makeFragment: l,
-            mergeObjects: ne,
-            makeSettleInfo: S,
-            oobSwap: me,
-            querySelectorExt: ie,
-            selectAndSwap: De,
-            settleImmediately: Wt,
-            shouldCancel: Qe,
-            triggerEvent: oe,
-            triggerErrorEvent: ae,
-            withExtensions: w
-        };
-        var R = ["get", "post", "put", "delete", "patch"];
-        var O = R.map(function (e) {
-            return "[hx-" + e + "], [data-hx-" + e + "]"
-        }).join(", ");
+}(typeof self !== 'undefined' ? self : this, function () {
+    return (function () {
+            'use strict';
 
-        function v(e) {
-            if (e == undefined) {
-                return undefined
+            // Public API
+            //** @type {import("./htmx").HtmxApi} */
+            // TODO: list all methods in public API
+            var htmx = {
+                onLoad: onLoadHelper,
+                process: processNode,
+                on: addEventListenerImpl,
+                off: removeEventListenerImpl,
+                trigger : triggerEvent,
+                ajax : ajaxHelper,
+                find : find,
+                findAll : findAll,
+                closest : closest,
+                values : function(elt, type){
+                    var inputValues = getInputValues(elt, type || "post");
+                    return inputValues.values;
+                },
+                remove : removeElement,
+                addClass : addClassToElement,
+                removeClass : removeClassFromElement,
+                toggleClass : toggleClassOnElement,
+                takeClass : takeClassForElement,
+                defineExtension : defineExtension,
+                removeExtension : removeExtension,
+                logAll : logAll,
+                logNone : logNone,
+                logger : null,
+                config : {
+                    historyEnabled:true,
+                    historyCacheSize:10,
+                    refreshOnHistoryMiss:false,
+                    defaultSwapStyle:'innerHTML',
+                    defaultSwapDelay:0,
+                    defaultSettleDelay:20,
+                    includeIndicatorStyles:true,
+                    indicatorClass:'htmx-indicator',
+                    requestClass:'htmx-request',
+                    addedClass:'htmx-added',
+                    settlingClass:'htmx-settling',
+                    swappingClass:'htmx-swapping',
+                    allowEval:true,
+                    allowScriptTags:true,
+                    inlineScriptNonce:'',
+                    attributesToSettle:["class", "style", "width", "height"],
+                    withCredentials:false,
+                    timeout:0,
+                    wsReconnectDelay: 'full-jitter',
+                    wsBinaryType: 'blob',
+                    disableSelector: "[hx-disable], [data-hx-disable]",
+                    useTemplateFragments: false,
+                    scrollBehavior: 'smooth',
+                    defaultFocusScroll: false,
+                    getCacheBusterParam: false,
+                    globalViewTransitions: false,
+                    methodsThatUseUrlParams: ["get"],
+                    selfRequestsOnly: false
+                },
+                parseInterval:parseInterval,
+                _:internalEval,
+                createEventSource: function(url){
+                    return new EventSource(url, {withCredentials:true})
+                },
+                createWebSocket: function(url){
+                    var sock = new WebSocket(url, []);
+                    sock.binaryType = htmx.config.wsBinaryType;
+                    return sock;
+                },
+                version: "1.9.6"
+            };
+
+            /** @type {import("./htmx").HtmxInternalApi} */
+            var internalAPI = {
+                addTriggerHandler: addTriggerHandler,
+                bodyContains: bodyContains,
+                canAccessLocalStorage: canAccessLocalStorage,
+                findThisElement: findThisElement,
+                filterValues: filterValues,
+                hasAttribute: hasAttribute,
+                getAttributeValue: getAttributeValue,
+                getClosestAttributeValue: getClosestAttributeValue,
+                getClosestMatch: getClosestMatch,
+                getExpressionVars: getExpressionVars,
+                getHeaders: getHeaders,
+                getInputValues: getInputValues,
+                getInternalData: getInternalData,
+                getSwapSpecification: getSwapSpecification,
+                getTriggerSpecs: getTriggerSpecs,
+                getTarget: getTarget,
+                makeFragment: makeFragment,
+                mergeObjects: mergeObjects,
+                makeSettleInfo: makeSettleInfo,
+                oobSwap: oobSwap,
+                querySelectorExt: querySelectorExt,
+                selectAndSwap: selectAndSwap,
+                settleImmediately: settleImmediately,
+                shouldCancel: shouldCancel,
+                triggerEvent: triggerEvent,
+                triggerErrorEvent: triggerErrorEvent,
+                withExtensions: withExtensions,
             }
-            if (e.slice(-2) == "ms") {
-                return parseFloat(e.slice(0, -2)) || undefined
+
+            var VERBS = ['get', 'post', 'put', 'delete', 'patch'];
+            var VERB_SELECTOR = VERBS.map(function(verb){
+                return "[hx-" + verb + "], [data-hx-" + verb + "]"
+            }).join(", ");
+
+            //====================================================================
+            // Utilities
+            //====================================================================
+
+            function parseInterval(str) {
+                if (str == undefined)  {
+                    return undefined
+                }
+                if (str.slice(-2) == "ms") {
+                    return parseFloat(str.slice(0,-2)) || undefined
+                }
+                if (str.slice(-1) == "s") {
+                    return (parseFloat(str.slice(0,-1)) * 1000) || undefined
+                }
+                if (str.slice(-1) == "m") {
+                    return (parseFloat(str.slice(0,-1)) * 1000 * 60) || undefined
+                }
+                return parseFloat(str) || undefined
             }
-            if (e.slice(-1) == "s") {
-                return parseFloat(e.slice(0, -1)) * 1e3 || undefined
+
+            /**
+             * @param {HTMLElement} elt
+             * @param {string} name
+             * @returns {(string | null)}
+             */
+            function getRawAttribute(elt, name) {
+                return elt.getAttribute && elt.getAttribute(name);
             }
-            if (e.slice(-1) == "m") {
-                return parseFloat(e.slice(0, -1)) * 1e3 * 60 || undefined
+
+            // resolve with both hx and data-hx prefixes
+            function hasAttribute(elt, qualifiedName) {
+                return elt.hasAttribute && (elt.hasAttribute(qualifiedName) ||
+                    elt.hasAttribute("data-" + qualifiedName));
             }
-            return parseFloat(e) || undefined
-        }
 
-        function J(e, t) {
-            return e.getAttribute && e.getAttribute(t)
-        }
-
-        function o(e, t) {
-            return e.hasAttribute && (e.hasAttribute(t) || e.hasAttribute("data-" + t))
-        }
-
-        function Z(e, t) {
-            return J(e, t) || J(e, "data-" + t)
-        }
-
-        function u(e) {
-            return e.parentElement
-        }
-
-        function K() {
-            return document
-        }
-
-        function c(e, t) {
-            while (e && !t(e)) {
-                e = u(e)
+            /**
+             *
+             * @param {HTMLElement} elt
+             * @param {string} qualifiedName
+             * @returns {(string | null)}
+             */
+            function getAttributeValue(elt, qualifiedName) {
+                return getRawAttribute(elt, qualifiedName) || getRawAttribute(elt, "data-" + qualifiedName);
             }
-            return e ? e : null
-        }
 
-        function T(e, t, r) {
-            var n = Z(t, r);
-            var i = Z(t, "hx-disinherit");
-            if (e !== t && i && (i === "*" || i.split(" ").indexOf(r) >= 0)) {
-                return "unset"
-            } else {
-                return n
+            /**
+             * @param {HTMLElement} elt
+             * @returns {HTMLElement | null}
+             */
+            function parentElt(elt) {
+                return elt.parentElement;
             }
-        }
 
-        function Y(t, r) {
-            var n = null;
-            c(t, function (e) {
-                return n = T(t, e, r)
-            });
-            if (n !== "unset") {
-                return n
+            /**
+             * @returns {Document}
+             */
+            function getDocument() {
+                return document;
             }
-        }
 
-        function h(e, t) {
-            var r = e.matches || e.matchesSelector || e.msMatchesSelector || e.mozMatchesSelector || e.webkitMatchesSelector || e.oMatchesSelector;
-            return r && r.call(e, t)
-        }
+            /**
+             * @param {HTMLElement} elt
+             * @param {(e:HTMLElement) => boolean} condition
+             * @returns {HTMLElement | null}
+             */
+            function getClosestMatch(elt, condition) {
+                while (elt && !condition(elt)) {
+                    elt = parentElt(elt);
+                }
 
-        function q(e) {
-            var t = /<([a-z][^\/\0>\x20\t\r\n\f]*)/i;
-            var r = t.exec(e);
-            if (r) {
-                return r[1].toLowerCase()
-            } else {
-                return ""
+                return elt ? elt : null;
             }
-        }
 
-        function i(e, t) {
-            var r = new DOMParser;
-            var n = r.parseFromString(e, "text/html");
-            var i = n.body;
-            while (t > 0) {
-                t--;
-                i = i.firstChild
-            }
-            if (i == null) {
-                i = K().createDocumentFragment()
-            }
-            return i
-        }
-
-        function H(e) {
-            return e.match(/<body/)
-        }
-
-        function l(e) {
-            var t = !H(e);
-            if (G.config.useTemplateFragments && t) {
-                var r = i("<body><template>" + e + "</template></body>", 0);
-                return r.querySelector("template").content
-            } else {
-                var n = q(e);
-                switch (n) {
-                    case"thead":
-                    case"tbody":
-                    case"tfoot":
-                    case"colgroup":
-                    case"caption":
-                        return i("<table>" + e + "</table>", 1);
-                    case"col":
-                        return i("<table><colgroup>" + e + "</colgroup></table>", 2);
-                    case"tr":
-                        return i("<table><tbody>" + e + "</tbody></table>", 2);
-                    case"td":
-                    case"th":
-                        return i("<table><tbody><tr>" + e + "</tr></tbody></table>", 3);
-                    case"script":
-                        return i("<div>" + e + "</div>", 1);
-                    default:
-                        return i(e, 0)
+            function getAttributeValueWithDisinheritance(initialElement, ancestor, attributeName){
+                var attributeValue = getAttributeValue(ancestor, attributeName);
+                var disinherit = getAttributeValue(ancestor, "hx-disinherit");
+                if (initialElement !== ancestor && disinherit && (disinherit === "*" || disinherit.split(" ").indexOf(attributeName) >= 0)) {
+                    return "unset";
+                } else {
+                    return attributeValue
                 }
             }
-        }
 
-        function Q(e) {
-            if (e) {
-                e()
-            }
-        }
-
-        function L(e, t) {
-            return Object.prototype.toString.call(e) === "[object " + t + "]"
-        }
-
-        function A(e) {
-            return L(e, "Function")
-        }
-
-        function N(e) {
-            return L(e, "Object")
-        }
-
-        function ee(e) {
-            var t = "htmx-internal-data";
-            var r = e[t];
-            if (!r) {
-                r = e[t] = {}
-            }
-            return r
-        }
-
-        function I(e) {
-            var t = [];
-            if (e) {
-                for (var r = 0; r < e.length; r++) {
-                    t.push(e[r])
+            /**
+             * @param {HTMLElement} elt
+             * @param {string} attributeName
+             * @returns {string | null}
+             */
+            function getClosestAttributeValue(elt, attributeName) {
+                var closestAttr = null;
+                getClosestMatch(elt, function (e) {
+                    return closestAttr = getAttributeValueWithDisinheritance(elt, e, attributeName);
+                });
+                if (closestAttr !== "unset") {
+                    return closestAttr;
                 }
             }
-            return t
-        }
 
-        function te(e, t) {
-            if (e) {
-                for (var r = 0; r < e.length; r++) {
-                    t(e[r])
+            /**
+             * @param {HTMLElement} elt
+             * @param {string} selector
+             * @returns {boolean}
+             */
+            function matches(elt, selector) {
+                // @ts-ignore: non-standard properties for browser compatibility
+                // noinspection JSUnresolvedVariable
+                var matchesFunction = elt.matches || elt.matchesSelector || elt.msMatchesSelector || elt.mozMatchesSelector || elt.webkitMatchesSelector || elt.oMatchesSelector;
+                return matchesFunction && matchesFunction.call(elt, selector);
+            }
+
+            /**
+             * @param {string} str
+             * @returns {string}
+             */
+            function getStartTag(str) {
+                var tagMatcher = /<([a-z][^\/\0>\x20\t\r\n\f]*)/i
+                var match = tagMatcher.exec( str );
+                if (match) {
+                    return match[1].toLowerCase();
+                } else {
+                    return "";
                 }
             }
-        }
 
-        function P(e) {
-            var t = e.getBoundingClientRect();
-            var r = t.top;
-            var n = t.bottom;
-            return r < window.innerHeight && n >= 0
-        }
+            /**
+             *
+             * @param {string} resp
+             * @param {number} depth
+             * @returns {Element}
+             */
+            function parseHTML(resp, depth) {
+                var parser = new DOMParser();
+                var responseDoc = parser.parseFromString(resp, "text/html");
 
-        function re(e) {
-            if (e.getRootNode && e.getRootNode() instanceof window.ShadowRoot) {
-                return K().body.contains(e.getRootNode().host)
-            } else {
-                return K().body.contains(e)
-            }
-        }
-
-        function k(e) {
-            return e.trim().split(/\s+/)
-        }
-
-        function ne(e, t) {
-            for (var r in t) {
-                if (t.hasOwnProperty(r)) {
-                    e[r] = t[r]
+                /** @type {Element} */
+                var responseNode = responseDoc.body;
+                while (depth > 0) {
+                    depth--;
+                    // @ts-ignore
+                    responseNode = responseNode.firstChild;
                 }
-            }
-            return e
-        }
-
-        function y(e) {
-            try {
-                return JSON.parse(e)
-            } catch (e) {
-                x(e);
-                return null
-            }
-        }
-
-        function M() {
-            var e = "htmx:localStorageTest";
-            try {
-                localStorage.setItem(e, e);
-                localStorage.removeItem(e);
-                return true
-            } catch (e) {
-                return false
-            }
-        }
-
-        function D(t) {
-            try {
-                var e = new URL(t);
-                if (e) {
-                    t = e.pathname + e.search
+                if (responseNode == null) {
+                    // @ts-ignore
+                    responseNode = getDocument().createDocumentFragment();
                 }
-                if (!t.match("^/$")) {
-                    t = t.replace(/\/+$/, "")
-                }
-                return t
-            } catch (e) {
-                return t
+                return responseNode;
             }
-        }
 
-        function e(e) {
-            return hr(K().body, function () {
-                return eval(e)
-            })
-        }
-
-        function t(t) {
-            var e = G.on("htmx:load", function (e) {
-                t(e.detail.elt)
-            });
-            return e
-        }
-
-        function X() {
-            G.logger = function (e, t, r) {
-                if (console) {
-                    console.log(t, e, r)
-                }
+            function aFullPageResponse(resp) {
+                return resp.match(/<body/);
             }
-        }
 
-        function F() {
-            G.logger = null
-        }
-
-        function b(e, t) {
-            if (t) {
-                return e.querySelector(t)
-            } else {
-                return b(K(), e)
-            }
-        }
-
-        function f(e, t) {
-            if (t) {
-                return e.querySelectorAll(t)
-            } else {
-                return f(K(), e)
-            }
-        }
-
-        function U(e, t) {
-            e = s(e);
-            if (t) {
-                setTimeout(function () {
-                    U(e);
-                    e = null
-                }, t)
-            } else {
-                e.parentElement.removeChild(e)
-            }
-        }
-
-        function B(e, t, r) {
-            e = s(e);
-            if (r) {
-                setTimeout(function () {
-                    B(e, t);
-                    e = null
-                }, r)
-            } else {
-                e.classList && e.classList.add(t)
-            }
-        }
-
-        function n(e, t, r) {
-            e = s(e);
-            if (r) {
-                setTimeout(function () {
-                    n(e, t);
-                    e = null
-                }, r)
-            } else {
-                if (e.classList) {
-                    e.classList.remove(t);
-                    if (e.classList.length === 0) {
-                        e.removeAttribute("class")
+            /**
+             *
+             * @param {string} resp
+             * @returns {Element}
+             */
+            function makeFragment(resp) {
+                var partialResponse = !aFullPageResponse(resp);
+                if (htmx.config.useTemplateFragments && partialResponse) {
+                    var documentFragment = parseHTML("<body><template>" + resp + "</template></body>", 0);
+                    // @ts-ignore type mismatch between DocumentFragment and Element.
+                    // TODO: Are these close enough for htmx to use interchangeably?
+                    return documentFragment.querySelector('template').content;
+                } else {
+                    var startTag = getStartTag(resp);
+                    switch (startTag) {
+                        case "thead":
+                        case "tbody":
+                        case "tfoot":
+                        case "colgroup":
+                        case "caption":
+                            return parseHTML("<table>" + resp + "</table>", 1);
+                        case "col":
+                            return parseHTML("<table><colgroup>" + resp + "</colgroup></table>", 2);
+                        case "tr":
+                            return parseHTML("<table><tbody>" + resp + "</tbody></table>", 2);
+                        case "td":
+                        case "th":
+                            return parseHTML("<table><tbody><tr>" + resp + "</tr></tbody></table>", 3);
+                        case "script":
+                        case "style":
+                            return parseHTML("<div>" + resp + "</div>", 1);
+                        default:
+                            return parseHTML(resp, 0);
                     }
                 }
             }
-        }
 
-        function V(e, t) {
-            e = s(e);
-            e.classList.toggle(t)
-        }
+            /**
+             * @param {Function} func
+             */
+            function maybeCall(func){
+                if(func) {
+                    func();
+                }
+            }
 
-        function j(e, t) {
-            e = s(e);
-            te(e.parentElement.children, function (e) {
-                n(e, t)
-            });
-            B(e, t)
-        }
+            /**
+             * @param {any} o
+             * @param {string} type
+             * @returns
+             */
+            function isType(o, type) {
+                return Object.prototype.toString.call(o) === "[object " + type + "]";
+            }
 
-        function d(e, t) {
-            e = s(e);
-            if (e.closest) {
-                return e.closest(t)
-            } else {
-                do {
-                    if (e == null || h(e, t)) {
-                        return e
+            /**
+             * @param {*} o
+             * @returns {o is Function}
+             */
+            function isFunction(o) {
+                return isType(o, "Function");
+            }
+
+            /**
+             * @param {*} o
+             * @returns {o is Object}
+             */
+            function isRawObject(o) {
+                return isType(o, "Object");
+            }
+
+            /**
+             * getInternalData retrieves "private" data stored by htmx within an element
+             * @param {HTMLElement} elt
+             * @returns {*}
+             */
+            function getInternalData(elt) {
+                var dataProp = 'htmx-internal-data';
+                var data = elt[dataProp];
+                if (!data) {
+                    data = elt[dataProp] = {};
+                }
+                return data;
+            }
+
+            /**
+             * toArray converts an ArrayLike object into a real array.
+             * @param {ArrayLike} arr
+             * @returns {any[]}
+             */
+            function toArray(arr) {
+                var returnArr = [];
+                if (arr) {
+                    for (var i = 0; i < arr.length; i++) {
+                        returnArr.push(arr[i]);
                     }
-                } while (e = e && u(e));
-                return null
-            }
-        }
-
-        function r(e) {
-            var t = e.trim();
-            if (t.startsWith("<") && t.endsWith("/>")) {
-                return t.substring(1, t.length - 2)
-            } else {
-                return t
-            }
-        }
-
-        function W(e, t) {
-            if (t.indexOf("closest ") === 0) {
-                return [d(e, r(t.substr(8)))]
-            } else if (t.indexOf("find ") === 0) {
-                return [b(e, r(t.substr(5)))]
-            } else if (t.indexOf("next ") === 0) {
-                return [_(e, r(t.substr(5)))]
-            } else if (t.indexOf("previous ") === 0) {
-                return [z(e, r(t.substr(9)))]
-            } else if (t === "document") {
-                return [document]
-            } else if (t === "window") {
-                return [window]
-            } else if (t === "body") {
-                return [document.body]
-            } else {
-                return K().querySelectorAll(r(t))
-            }
-        }
-
-        var _ = function (e, t) {
-            var r = K().querySelectorAll(t);
-            for (var n = 0; n < r.length; n++) {
-                var i = r[n];
-                if (i.compareDocumentPosition(e) === Node.DOCUMENT_POSITION_PRECEDING) {
-                    return i
                 }
+                return returnArr
             }
-        };
-        var z = function (e, t) {
-            var r = K().querySelectorAll(t);
-            for (var n = r.length - 1; n >= 0; n--) {
-                var i = r[n];
-                if (i.compareDocumentPosition(e) === Node.DOCUMENT_POSITION_FOLLOWING) {
-                    return i
-                }
-            }
-        };
 
-        function ie(e, t) {
-            if (t) {
-                return W(e, t)[0]
-            } else {
-                return W(K().body, e)[0]
-            }
-        }
-
-        function s(e) {
-            if (L(e, "String")) {
-                return b(e)
-            } else {
-                return e
-            }
-        }
-
-        function $(e, t, r) {
-            if (A(t)) {
-                return {target: K().body, event: e, listener: t}
-            } else {
-                return {target: s(e), event: t, listener: r}
-            }
-        }
-
-        function le(t, r, n) {
-            Hr(function () {
-                var e = $(t, r, n);
-                e.target.addEventListener(e.event, e.listener)
-            });
-            var e = A(r);
-            return e ? r : n
-        }
-
-        function ue(t, r, n) {
-            Hr(function () {
-                var e = $(t, r, n);
-                e.target.removeEventListener(e.event, e.listener)
-            });
-            return A(r) ? r : n
-        }
-
-        var fe = K().createElement("output");
-
-        function ce(e, t) {
-            var r = Y(e, t);
-            if (r) {
-                if (r === "this") {
-                    return [he(e, t)]
-                } else {
-                    var n = W(e, r);
-                    if (n.length === 0) {
-                        x('The selector "' + r + '" on ' + t + " returned no matches!");
-                        return [fe]
-                    } else {
-                        return n
+            function forEach(arr, func) {
+                if (arr) {
+                    for (var i = 0; i < arr.length; i++) {
+                        func(arr[i]);
                     }
                 }
             }
-        }
 
-        function he(e, t) {
-            return c(e, function (e) {
-                return Z(e, t) != null
-            })
-        }
+            function isScrolledIntoView(el) {
+                var rect = el.getBoundingClientRect();
+                var elemTop = rect.top;
+                var elemBottom = rect.bottom;
+                return elemTop < window.innerHeight && elemBottom >= 0;
+            }
 
-        function de(e) {
-            var t = Y(e, "hx-target");
-            if (t) {
-                if (t === "this") {
-                    return he(e, "hx-target")
+            function bodyContains(elt) {
+                // IE Fix
+                if (elt.getRootNode && elt.getRootNode() instanceof window.ShadowRoot) {
+                    return getDocument().body.contains(elt.getRootNode().host);
                 } else {
-                    return ie(e, t)
-                }
-            } else {
-                var r = ee(e);
-                if (r.boosted) {
-                    return K().body
-                } else {
-                    return e
+                    return getDocument().body.contains(elt);
                 }
             }
-        }
 
-        function ve(e) {
-            var t = G.config.attributesToSettle;
-            for (var r = 0; r < t.length; r++) {
-                if (e === t[r]) {
-                    return true
-                }
+            function splitOnWhitespace(trigger) {
+                return trigger.trim().split(/\s+/);
             }
-            return false
-        }
 
-        function ge(t, r) {
-            te(t.attributes, function (e) {
-                if (!r.hasAttribute(e.name) && ve(e.name)) {
-                    t.removeAttribute(e.name)
+            /**
+             * mergeObjects takes all of the keys from
+             * obj2 and duplicates them into obj1
+             * @param {Object} obj1
+             * @param {Object} obj2
+             * @returns {Object}
+             */
+            function mergeObjects(obj1, obj2) {
+                for (var key in obj2) {
+                    if (obj2.hasOwnProperty(key)) {
+                        obj1[key] = obj2[key];
+                    }
                 }
-            });
-            te(r.attributes, function (e) {
-                if (ve(e.name)) {
-                    t.setAttribute(e.name, e.value)
-                }
-            })
-        }
+                return obj1;
+            }
 
-        function pe(e, t) {
-            var r = Tr(t);
-            for (var n = 0; n < r.length; n++) {
-                var i = r[n];
+            function parseJSON(jString) {
                 try {
-                    if (i.isInlineSwap(e)) {
-                        return true
+                    return JSON.parse(jString);
+                } catch(error) {
+                    logError(error);
+                    return null;
+                }
+            }
+
+            function canAccessLocalStorage() {
+                var test = 'htmx:localStorageTest';
+                try {
+                    localStorage.setItem(test, test);
+                    localStorage.removeItem(test);
+                    return true;
+                } catch(e) {
+                    return false;
+                }
+            }
+
+            function normalizePath(path) {
+                try {
+                    var url = new URL(path);
+                    if (url) {
+                        path = url.pathname + url.search;
                     }
+                    // remove trailing slash, unless index page
+                    if (!path.match('^/$')) {
+                        path = path.replace(/\/+$/, '');
+                    }
+                    return path;
                 } catch (e) {
-                    x(e)
+                    // be kind to IE11, which doesn't support URL()
+                    return path;
                 }
             }
-            return e === "outerHTML"
-        }
 
-        function me(e, i, a) {
-            var t = "#" + J(i, "id");
-            var o = "outerHTML";
-            if (e === "true") {
-            } else if (e.indexOf(":") > 0) {
-                o = e.substr(0, e.indexOf(":"));
-                t = e.substr(e.indexOf(":") + 1, e.length)
-            } else {
-                o = e
-            }
-            var r = K().querySelectorAll(t);
-            if (r) {
-                te(r, function (e) {
-                    var t;
-                    var r = i.cloneNode(true);
-                    t = K().createDocumentFragment();
-                    t.appendChild(r);
-                    if (!pe(o, e)) {
-                        t = r
-                    }
-                    var n = {shouldSwap: true, target: e, fragment: t};
-                    if (!oe(e, "htmx:oobBeforeSwap", n)) return;
-                    e = n.target;
-                    if (n["shouldSwap"]) {
-                        ke(o, e, e, t, a)
-                    }
-                    te(a.elts, function (e) {
-                        oe(e, "htmx:oobAfterSwap", n)
-                    })
+            //==========================================================================================
+            // public API
+            //==========================================================================================
+
+            function internalEval(str){
+                return maybeEval(getDocument().body, function () {
+                    return eval(str);
                 });
-                i.parentNode.removeChild(i)
-            } else {
-                i.parentNode.removeChild(i);
-                ae(K().body, "htmx:oobErrorNoTarget", {content: i})
             }
-            return e
-        }
 
-        function xe(e, t, r) {
-            var n = Y(e, "hx-select-oob");
-            if (n) {
-                var i = n.split(",");
-                for (let e = 0; e < i.length; e++) {
-                    var a = i[e].split(":", 2);
-                    var o = a[0].trim();
-                    if (o.indexOf("#") === 0) {
-                        o = o.substring(1)
-                    }
-                    var s = a[1] || "true";
-                    var l = t.querySelector("#" + o);
-                    if (l) {
-                        me(s, l, r)
+            function onLoadHelper(callback) {
+                var value = htmx.on("htmx:load", function(evt) {
+                    callback(evt.detail.elt);
+                });
+                return value;
+            }
+
+            function logAll(){
+                htmx.logger = function(elt, event, data) {
+                    if(console) {
+                        console.log(event, elt, data);
                     }
                 }
             }
-            te(f(t, "[hx-swap-oob], [data-hx-swap-oob]"), function (e) {
-                var t = Z(e, "hx-swap-oob");
-                if (t != null) {
-                    me(t, e, r)
-                }
-            })
-        }
 
-        function ye(e) {
-            te(f(e, "[hx-preserve], [data-hx-preserve]"), function (e) {
-                var t = Z(e, "id");
-                var r = K().getElementById(t);
-                if (r != null) {
-                    e.parentNode.replaceChild(r, e)
-                }
-            })
-        }
+            function logNone() {
+                htmx.logger = null
+            }
 
-        function be(o, e, s) {
-            te(e.querySelectorAll("[id]"), function (e) {
-                var t = J(e, "id");
-                if (t && t.length > 0) {
-                    var r = t.replace("'", "\\'");
-                    var n = e.tagName.replace(":", "\\:");
-                    var i = o.querySelector(n + "[id='" + r + "']");
-                    if (i && i !== o) {
-                        var a = e.cloneNode();
-                        ge(e, i);
-                        s.tasks.push(function () {
-                            ge(e, a)
-                        })
-                    }
-                }
-            })
-        }
-
-        function we(e) {
-            return function () {
-                n(e, G.config.addedClass);
-                Nt(e);
-                St(e);
-                Se(e);
-                oe(e, "htmx:load")
-            }
-        }
-
-        function Se(e) {
-            var t = "[autofocus]";
-            var r = h(e, t) ? e : e.querySelector(t);
-            if (r != null) {
-                r.focus()
-            }
-        }
-
-        function a(e, t, r, n) {
-            be(e, r, n);
-            while (r.childNodes.length > 0) {
-                var i = r.firstChild;
-                B(i, G.config.addedClass);
-                e.insertBefore(i, t);
-                if (i.nodeType !== Node.TEXT_NODE && i.nodeType !== Node.COMMENT_NODE) {
-                    n.tasks.push(we(i))
-                }
-            }
-        }
-
-        function Ee(e, t) {
-            var r = 0;
-            while (r < e.length) {
-                t = (t << 5) - t + e.charCodeAt(r++) | 0
-            }
-            return t
-        }
-
-        function Ce(e) {
-            var t = 0;
-            if (e.attributes) {
-                for (var r = 0; r < e.attributes.length; r++) {
-                    var n = e.attributes[r];
-                    if (n.value) {
-                        t = Ee(n.name, t);
-                        t = Ee(n.value, t)
-                    }
-                }
-            }
-            return t
-        }
-
-        function Re(t) {
-            var r = ee(t);
-            if (r.onHandlers) {
-                for (let e = 0; e < r.onHandlers.length; e++) {
-                    const n = r.onHandlers[e];
-                    t.removeEventListener(n.event, n.listener)
-                }
-                delete r.onHandlers
-            }
-        }
-
-        function Oe(e) {
-            var t = ee(e);
-            if (t.timeout) {
-                clearTimeout(t.timeout)
-            }
-            if (t.webSocket) {
-                t.webSocket.close()
-            }
-            if (t.sseEventSource) {
-                t.sseEventSource.close()
-            }
-            if (t.listenerInfos) {
-                te(t.listenerInfos, function (e) {
-                    if (e.on) {
-                        e.on.removeEventListener(e.trigger, e.listener)
-                    }
-                })
-            }
-            if (t.initHash) {
-                t.initHash = null
-            }
-            Re(e)
-        }
-
-        function g(e) {
-            oe(e, "htmx:beforeCleanupElement");
-            Oe(e);
-            if (e.children) {
-                te(e.children, function (e) {
-                    g(e)
-                })
-            }
-        }
-
-        function Te(t, e, r) {
-            if (t.tagName === "BODY") {
-                return Ie(t, e, r)
-            } else {
-                var n;
-                var i = t.previousSibling;
-                a(u(t), t, e, r);
-                if (i == null) {
-                    n = u(t).firstChild
+            function find(eltOrSelector, selector) {
+                if (selector) {
+                    return eltOrSelector.querySelector(selector);
                 } else {
-                    n = i.nextSibling
+                    return find(getDocument(), eltOrSelector);
                 }
-                ee(t).replacedWith = n;
-                r.elts = r.elts.filter(function (e) {
-                    return e != t
-                });
-                while (n && n !== t) {
-                    if (n.nodeType === Node.ELEMENT_NODE) {
-                        r.elts.push(n)
+            }
+
+            function findAll(eltOrSelector, selector) {
+                if (selector) {
+                    return eltOrSelector.querySelectorAll(selector);
+                } else {
+                    return findAll(getDocument(), eltOrSelector);
+                }
+            }
+
+            function removeElement(elt, delay) {
+                elt = resolveTarget(elt);
+                if (delay) {
+                    setTimeout(function(){
+                        removeElement(elt);
+                        elt = null;
+                    }, delay);
+                } else {
+                    elt.parentElement.removeChild(elt);
+                }
+            }
+
+            function addClassToElement(elt, clazz, delay) {
+                elt = resolveTarget(elt);
+                if (delay) {
+                    setTimeout(function(){
+                        addClassToElement(elt, clazz);
+                        elt = null;
+                    }, delay);
+                } else {
+                    elt.classList && elt.classList.add(clazz);
+                }
+            }
+
+            function removeClassFromElement(elt, clazz, delay) {
+                elt = resolveTarget(elt);
+                if (delay) {
+                    setTimeout(function(){
+                        removeClassFromElement(elt, clazz);
+                        elt = null;
+                    }, delay);
+                } else {
+                    if (elt.classList) {
+                        elt.classList.remove(clazz);
+                        // if there are no classes left, remove the class attribute
+                        if (elt.classList.length === 0) {
+                            elt.removeAttribute("class");
+                        }
                     }
-                    n = n.nextElementSibling
                 }
-                g(t);
-                u(t).removeChild(t)
             }
-        }
 
-        function qe(e, t, r) {
-            return a(e, e.firstChild, t, r)
-        }
+            function toggleClassOnElement(elt, clazz) {
+                elt = resolveTarget(elt);
+                elt.classList.toggle(clazz);
+            }
 
-        function He(e, t, r) {
-            return a(u(e), e, t, r)
-        }
+            function takeClassForElement(elt, clazz) {
+                elt = resolveTarget(elt);
+                forEach(elt.parentElement.children, function(child){
+                    removeClassFromElement(child, clazz);
+                })
+                addClassToElement(elt, clazz);
+            }
 
-        function Le(e, t, r) {
-            return a(e, null, t, r)
-        }
-
-        function Ae(e, t, r) {
-            return a(u(e), e.nextSibling, t, r)
-        }
-
-        function Ne(e, t, r) {
-            g(e);
-            return u(e).removeChild(e)
-        }
-
-        function Ie(e, t, r) {
-            var n = e.firstChild;
-            a(e, n, t, r);
-            if (n) {
-                while (n.nextSibling) {
-                    g(n.nextSibling);
-                    e.removeChild(n.nextSibling)
+            function closest(elt, selector) {
+                elt = resolveTarget(elt);
+                if (elt.closest) {
+                    return elt.closest(selector);
+                } else {
+                    // TODO remove when IE goes away
+                    do{
+                        if (elt == null || matches(elt, selector)){
+                            return elt;
+                        }
+                    }
+                    while (elt = elt && parentElt(elt));
+                    return null;
                 }
-                g(n);
-                e.removeChild(n)
             }
-        }
 
-        function Pe(e, t, r) {
-            var n = r || Y(e, "hx-select");
-            if (n) {
-                var i = K().createDocumentFragment();
-                te(t.querySelectorAll(n), function (e) {
-                    i.appendChild(e)
+            function startsWith(str, prefix) {
+                return str.substring(0, prefix.length) === prefix
+            }
+
+            function endsWith(str, suffix) {
+                return str.substring(str.length - suffix.length) === suffix
+            }
+
+            function normalizeSelector(selector) {
+                var trimmedSelector = selector.trim();
+                if (startsWith(trimmedSelector, "<") && endsWith(trimmedSelector, "/>")) {
+                    return trimmedSelector.substring(1, trimmedSelector.length - 2);
+                } else {
+                    return trimmedSelector;
+                }
+            }
+
+            function querySelectorAllExt(elt, selector) {
+                if (selector.indexOf("closest ") === 0) {
+                    return [closest(elt, normalizeSelector(selector.substr(8)))];
+                } else if (selector.indexOf("find ") === 0) {
+                    return [find(elt, normalizeSelector(selector.substr(5)))];
+                } else if (selector.indexOf("next ") === 0) {
+                    return [scanForwardQuery(elt, normalizeSelector(selector.substr(5)))];
+                } else if (selector.indexOf("previous ") === 0) {
+                    return [scanBackwardsQuery(elt, normalizeSelector(selector.substr(9)))];
+                } else if (selector === 'document') {
+                    return [document];
+                } else if (selector === 'window') {
+                    return [window];
+                } else if (selector === 'body') {
+                    return [document.body];
+                } else {
+                    return getDocument().querySelectorAll(normalizeSelector(selector));
+                }
+            }
+
+            var scanForwardQuery = function(start, match) {
+                var results = getDocument().querySelectorAll(match);
+                for (var i = 0; i < results.length; i++) {
+                    var elt = results[i];
+                    if (elt.compareDocumentPosition(start) === Node.DOCUMENT_POSITION_PRECEDING) {
+                        return elt;
+                    }
+                }
+            }
+
+            var scanBackwardsQuery = function(start, match) {
+                var results = getDocument().querySelectorAll(match);
+                for (var i = results.length - 1; i >= 0; i--) {
+                    var elt = results[i];
+                    if (elt.compareDocumentPosition(start) === Node.DOCUMENT_POSITION_FOLLOWING) {
+                        return elt;
+                    }
+                }
+            }
+
+            function querySelectorExt(eltOrSelector, selector) {
+                if (selector) {
+                    return querySelectorAllExt(eltOrSelector, selector)[0];
+                } else {
+                    return querySelectorAllExt(getDocument().body, eltOrSelector)[0];
+                }
+            }
+
+            function resolveTarget(arg2) {
+                if (isType(arg2, 'String')) {
+                    return find(arg2);
+                } else {
+                    return arg2;
+                }
+            }
+
+            function processEventArgs(arg1, arg2, arg3) {
+                if (isFunction(arg2)) {
+                    return {
+                        target: getDocument().body,
+                        event: arg1,
+                        listener: arg2
+                    }
+                } else {
+                    return {
+                        target: resolveTarget(arg1),
+                        event: arg2,
+                        listener: arg3
+                    }
+                }
+
+            }
+
+            function addEventListenerImpl(arg1, arg2, arg3) {
+                ready(function(){
+                    var eventArgs = processEventArgs(arg1, arg2, arg3);
+                    eventArgs.target.addEventListener(eventArgs.event, eventArgs.listener);
+                })
+                var b = isFunction(arg2);
+                return b ? arg2 : arg3;
+            }
+
+            function removeEventListenerImpl(arg1, arg2, arg3) {
+                ready(function(){
+                    var eventArgs = processEventArgs(arg1, arg2, arg3);
+                    eventArgs.target.removeEventListener(eventArgs.event, eventArgs.listener);
+                })
+                return isFunction(arg2) ? arg2 : arg3;
+            }
+
+            //====================================================================
+            // Node processing
+            //====================================================================
+
+            var DUMMY_ELT = getDocument().createElement("output"); // dummy element for bad selectors
+            function findAttributeTargets(elt, attrName) {
+                var attrTarget = getClosestAttributeValue(elt, attrName);
+                if (attrTarget) {
+                    if (attrTarget === "this") {
+                        return [findThisElement(elt, attrName)];
+                    } else {
+                        var result = querySelectorAllExt(elt, attrTarget);
+                        if (result.length === 0) {
+                            logError('The selector "' + attrTarget + '" on ' + attrName + " returned no matches!");
+                            return [DUMMY_ELT]
+                        } else {
+                            return result;
+                        }
+                    }
+                }
+            }
+
+            function findThisElement(elt, attribute){
+                return getClosestMatch(elt, function (elt) {
+                    return getAttributeValue(elt, attribute) != null;
+                })
+            }
+
+            function getTarget(elt) {
+                var targetStr = getClosestAttributeValue(elt, "hx-target");
+                if (targetStr) {
+                    if (targetStr === "this") {
+                        return findThisElement(elt,'hx-target');
+                    } else {
+                        return querySelectorExt(elt, targetStr)
+                    }
+                } else {
+                    var data = getInternalData(elt);
+                    if (data.boosted) {
+                        return getDocument().body;
+                    } else {
+                        return elt;
+                    }
+                }
+            }
+
+            function shouldSettleAttribute(name) {
+                var attributesToSettle = htmx.config.attributesToSettle;
+                for (var i = 0; i < attributesToSettle.length; i++) {
+                    if (name === attributesToSettle[i]) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function cloneAttributes(mergeTo, mergeFrom) {
+                forEach(mergeTo.attributes, function (attr) {
+                    if (!mergeFrom.hasAttribute(attr.name) && shouldSettleAttribute(attr.name)) {
+                        mergeTo.removeAttribute(attr.name)
+                    }
                 });
-                t = i
+                forEach(mergeFrom.attributes, function (attr) {
+                    if (shouldSettleAttribute(attr.name)) {
+                        mergeTo.setAttribute(attr.name, attr.value);
+                    }
+                });
             }
-            return t
-        }
 
-        function ke(e, t, r, n, i) {
-            switch (e) {
-                case"none":
-                    return;
-                case"outerHTML":
-                    Te(r, n, i);
-                    return;
-                case"afterbegin":
-                    qe(r, n, i);
-                    return;
-                case"beforebegin":
-                    He(r, n, i);
-                    return;
-                case"beforeend":
-                    Le(r, n, i);
-                    return;
-                case"afterend":
-                    Ae(r, n, i);
-                    return;
-                case"delete":
-                    Ne(r, n, i);
-                    return;
-                default:
-                    var a = Tr(t);
-                    for (var o = 0; o < a.length; o++) {
-                        var s = a[o];
-                        try {
-                            var l = s.handleSwap(e, r, n, i);
-                            if (l) {
-                                if (typeof l.length !== "undefined") {
-                                    for (var u = 0; u < l.length; u++) {
-                                        var f = l[u];
-                                        if (f.nodeType !== Node.TEXT_NODE && f.nodeType !== Node.COMMENT_NODE) {
-                                            i.tasks.push(we(f))
+            function isInlineSwap(swapStyle, target) {
+                var extensions = getExtensions(target);
+                for (var i = 0; i < extensions.length; i++) {
+                    var extension = extensions[i];
+                    try {
+                        if (extension.isInlineSwap(swapStyle)) {
+                            return true;
+                        }
+                    } catch(e) {
+                        logError(e);
+                    }
+                }
+                return swapStyle === "outerHTML";
+            }
+
+            /**
+             *
+             * @param {string} oobValue
+             * @param {HTMLElement} oobElement
+             * @param {*} settleInfo
+             * @returns
+             */
+            function oobSwap(oobValue, oobElement, settleInfo) {
+                var selector = "#" + getRawAttribute(oobElement, "id");
+                var swapStyle = "outerHTML";
+                if (oobValue === "true") {
+                    // do nothing
+                } else if (oobValue.indexOf(":") > 0) {
+                    swapStyle = oobValue.substr(0, oobValue.indexOf(":"));
+                    selector  = oobValue.substr(oobValue.indexOf(":") + 1, oobValue.length);
+                } else {
+                    swapStyle = oobValue;
+                }
+
+                var targets = getDocument().querySelectorAll(selector);
+                if (targets) {
+                    forEach(
+                        targets,
+                        function (target) {
+                            var fragment;
+                            var oobElementClone = oobElement.cloneNode(true);
+                            fragment = getDocument().createDocumentFragment();
+                            fragment.appendChild(oobElementClone);
+                            if (!isInlineSwap(swapStyle, target)) {
+                                fragment = oobElementClone; // if this is not an inline swap, we use the content of the node, not the node itself
+                            }
+
+                            var beforeSwapDetails = {shouldSwap: true, target: target, fragment:fragment };
+                            if (!triggerEvent(target, 'htmx:oobBeforeSwap', beforeSwapDetails)) return;
+
+                            target = beforeSwapDetails.target; // allow re-targeting
+                            if (beforeSwapDetails['shouldSwap']){
+                                swap(swapStyle, target, target, fragment, settleInfo);
+                            }
+                            forEach(settleInfo.elts, function (elt) {
+                                triggerEvent(elt, 'htmx:oobAfterSwap', beforeSwapDetails);
+                            });
+                        }
+                    );
+                    oobElement.parentNode.removeChild(oobElement);
+                } else {
+                    oobElement.parentNode.removeChild(oobElement);
+                    triggerErrorEvent(getDocument().body, "htmx:oobErrorNoTarget", {content: oobElement});
+                }
+                return oobValue;
+            }
+
+            function handleOutOfBandSwaps(elt, fragment, settleInfo) {
+                var oobSelects = getClosestAttributeValue(elt, "hx-select-oob");
+                if (oobSelects) {
+                    var oobSelectValues = oobSelects.split(",");
+                    for (let i = 0; i < oobSelectValues.length; i++) {
+                        var oobSelectValue = oobSelectValues[i].split(":", 2);
+                        var id = oobSelectValue[0].trim();
+                        if (id.indexOf("#") === 0) {
+                            id = id.substring(1);
+                        }
+                        var oobValue = oobSelectValue[1] || "true";
+                        var oobElement = fragment.querySelector("#" + id);
+                        if (oobElement) {
+                            oobSwap(oobValue, oobElement, settleInfo);
+                        }
+                    }
+                }
+                forEach(findAll(fragment, '[hx-swap-oob], [data-hx-swap-oob]'), function (oobElement) {
+                    var oobValue = getAttributeValue(oobElement, "hx-swap-oob");
+                    if (oobValue != null) {
+                        oobSwap(oobValue, oobElement, settleInfo);
+                    }
+                });
+            }
+
+            function handlePreservedElements(fragment) {
+                forEach(findAll(fragment, '[hx-preserve], [data-hx-preserve]'), function (preservedElt) {
+                    var id = getAttributeValue(preservedElt, "id");
+                    var oldElt = getDocument().getElementById(id);
+                    if (oldElt != null) {
+                        preservedElt.parentNode.replaceChild(oldElt, preservedElt);
+                    }
+                });
+            }
+
+            function handleAttributes(parentNode, fragment, settleInfo) {
+                forEach(fragment.querySelectorAll("[id]"), function (newNode) {
+                    var id = getRawAttribute(newNode, "id")
+                    if (id && id.length > 0) {
+                        var normalizedId = id.replace("'", "\\'");
+                        var normalizedTag = newNode.tagName.replace(':', '\\:');
+                        var oldNode = parentNode.querySelector(normalizedTag + "[id='" + normalizedId + "']");
+                        if (oldNode && oldNode !== parentNode) {
+                            var newAttributes = newNode.cloneNode();
+                            cloneAttributes(newNode, oldNode);
+                            settleInfo.tasks.push(function () {
+                                cloneAttributes(newNode, newAttributes);
+                            });
+                        }
+                    }
+                });
+            }
+
+            function makeAjaxLoadTask(child) {
+                return function () {
+                    removeClassFromElement(child, htmx.config.addedClass);
+                    processNode(child);
+                    processScripts(child);
+                    processFocus(child)
+                    triggerEvent(child, 'htmx:load');
+                };
+            }
+
+            function processFocus(child) {
+                var autofocus = "[autofocus]";
+                var autoFocusedElt = matches(child, autofocus) ? child : child.querySelector(autofocus)
+                if (autoFocusedElt != null) {
+                    autoFocusedElt.focus();
+                }
+            }
+
+            function insertNodesBefore(parentNode, insertBefore, fragment, settleInfo) {
+                handleAttributes(parentNode, fragment, settleInfo);
+                while(fragment.childNodes.length > 0){
+                    var child = fragment.firstChild;
+                    addClassToElement(child, htmx.config.addedClass);
+                    parentNode.insertBefore(child, insertBefore);
+                    if (child.nodeType !== Node.TEXT_NODE && child.nodeType !== Node.COMMENT_NODE) {
+                        settleInfo.tasks.push(makeAjaxLoadTask(child));
+                    }
+                }
+            }
+
+            // based on https://gist.github.com/hyamamoto/fd435505d29ebfa3d9716fd2be8d42f0,
+            // derived from Java's string hashcode implementation
+            function stringHash(string, hash) {
+                var char = 0;
+                while (char < string.length){
+                    hash = (hash << 5) - hash + string.charCodeAt(char++) | 0; // bitwise or ensures we have a 32-bit int
+                }
+                return hash;
+            }
+
+            function attributeHash(elt) {
+                var hash = 0;
+                // IE fix
+                if (elt.attributes) {
+                    for (var i = 0; i < elt.attributes.length; i++) {
+                        var attribute = elt.attributes[i];
+                        if(attribute.value){ // only include attributes w/ actual values (empty is same as non-existent)
+                            hash = stringHash(attribute.name, hash);
+                            hash = stringHash(attribute.value, hash);
+                        }
+                    }
+                }
+                return hash;
+            }
+
+            function deInitOnHandlers(elt) {
+                var internalData = getInternalData(elt);
+                if (internalData.onHandlers) {
+                    for (let i = 0; i < internalData.onHandlers.length; i++) {
+                        const handlerInfo = internalData.onHandlers[i];
+                        elt.removeEventListener(handlerInfo.event, handlerInfo.listener);
+                    }
+                    delete internalData.onHandlers
+                }
+            }
+
+            function deInitNode(element) {
+                var internalData = getInternalData(element);
+                if (internalData.timeout) {
+                    clearTimeout(internalData.timeout);
+                }
+                if (internalData.webSocket) {
+                    internalData.webSocket.close();
+                }
+                if (internalData.sseEventSource) {
+                    internalData.sseEventSource.close();
+                }
+                if (internalData.listenerInfos) {
+                    forEach(internalData.listenerInfos, function (info) {
+                        if (info.on) {
+                            info.on.removeEventListener(info.trigger, info.listener);
+                        }
+                    });
+                }
+                if (internalData.initHash) {
+                    internalData.initHash = null
+                }
+                deInitOnHandlers(element);
+            }
+
+            function cleanUpElement(element) {
+                triggerEvent(element, "htmx:beforeCleanupElement")
+                deInitNode(element);
+                if (element.children) { // IE
+                    forEach(element.children, function(child) { cleanUpElement(child) });
+                }
+            }
+
+            function swapOuterHTML(target, fragment, settleInfo) {
+                if (target.tagName === "BODY") {
+                    return swapInnerHTML(target, fragment, settleInfo);
+                } else {
+                    // @type {HTMLElement}
+                    var newElt
+                    var eltBeforeNewContent = target.previousSibling;
+                    insertNodesBefore(parentElt(target), target, fragment, settleInfo);
+                    if (eltBeforeNewContent == null) {
+                        newElt = parentElt(target).firstChild;
+                    } else {
+                        newElt = eltBeforeNewContent.nextSibling;
+                    }
+                    getInternalData(target).replacedWith = newElt; // tuck away so we can fire events on it later
+                    settleInfo.elts = settleInfo.elts.filter(function(e) { return e != target });
+                    while(newElt && newElt !== target) {
+                        if (newElt.nodeType === Node.ELEMENT_NODE) {
+                            settleInfo.elts.push(newElt);
+                        }
+                        newElt = newElt.nextElementSibling;
+                    }
+                    cleanUpElement(target);
+                    parentElt(target).removeChild(target);
+                }
+            }
+
+            function swapAfterBegin(target, fragment, settleInfo) {
+                return insertNodesBefore(target, target.firstChild, fragment, settleInfo);
+            }
+
+            function swapBeforeBegin(target, fragment, settleInfo) {
+                return insertNodesBefore(parentElt(target), target, fragment, settleInfo);
+            }
+
+            function swapBeforeEnd(target, fragment, settleInfo) {
+                return insertNodesBefore(target, null, fragment, settleInfo);
+            }
+
+            function swapAfterEnd(target, fragment, settleInfo) {
+                return insertNodesBefore(parentElt(target), target.nextSibling, fragment, settleInfo);
+            }
+            function swapDelete(target, fragment, settleInfo) {
+                cleanUpElement(target);
+                return parentElt(target).removeChild(target);
+            }
+
+            function swapInnerHTML(target, fragment, settleInfo) {
+                var firstChild = target.firstChild;
+                insertNodesBefore(target, firstChild, fragment, settleInfo);
+                if (firstChild) {
+                    while (firstChild.nextSibling) {
+                        cleanUpElement(firstChild.nextSibling)
+                        target.removeChild(firstChild.nextSibling);
+                    }
+                    cleanUpElement(firstChild)
+                    target.removeChild(firstChild);
+                }
+            }
+
+            function maybeSelectFromResponse(elt, fragment, selectOverride) {
+                var selector = selectOverride || getClosestAttributeValue(elt, "hx-select");
+                if (selector) {
+                    var newFragment = getDocument().createDocumentFragment();
+                    forEach(fragment.querySelectorAll(selector), function (node) {
+                        newFragment.appendChild(node);
+                    });
+                    fragment = newFragment;
+                }
+                return fragment;
+            }
+
+            function swap(swapStyle, elt, target, fragment, settleInfo) {
+                switch (swapStyle) {
+                    case "none":
+                        return;
+                    case "outerHTML":
+                        swapOuterHTML(target, fragment, settleInfo);
+                        return;
+                    case "afterbegin":
+                        swapAfterBegin(target, fragment, settleInfo);
+                        return;
+                    case "beforebegin":
+                        swapBeforeBegin(target, fragment, settleInfo);
+                        return;
+                    case "beforeend":
+                        swapBeforeEnd(target, fragment, settleInfo);
+                        return;
+                    case "afterend":
+                        swapAfterEnd(target, fragment, settleInfo);
+                        return;
+                    case "delete":
+                        swapDelete(target, fragment, settleInfo);
+                        return;
+                    default:
+                        var extensions = getExtensions(elt);
+                        for (var i = 0; i < extensions.length; i++) {
+                            var ext = extensions[i];
+                            try {
+                                var newElements = ext.handleSwap(swapStyle, target, fragment, settleInfo);
+                                if (newElements) {
+                                    if (typeof newElements.length !== 'undefined') {
+                                        // if handleSwap returns an array (like) of elements, we handle them
+                                        for (var j = 0; j < newElements.length; j++) {
+                                            var child = newElements[j];
+                                            if (child.nodeType !== Node.TEXT_NODE && child.nodeType !== Node.COMMENT_NODE) {
+                                                settleInfo.tasks.push(makeAjaxLoadTask(child));
+                                            }
                                         }
                                     }
+                                    return;
                                 }
-                                return
-                            }
-                        } catch (e) {
-                            x(e)
-                        }
-                    }
-                    if (e === "innerHTML") {
-                        Ie(r, n, i)
-                    } else {
-                        ke(G.config.defaultSwapStyle, t, r, n, i)
-                    }
-            }
-        }
-
-        function Me(e) {
-            if (e.indexOf("<title") > -1) {
-                var t = e.replace(/<svg(\s[^>]*>|>)([\s\S]*?)<\/svg>/gim, "");
-                var r = t.match(/<title(\s[^>]*>|>)([\s\S]*?)<\/title>/im);
-                if (r) {
-                    return r[2]
-                }
-            }
-        }
-
-        function De(e, t, r, n, i, a) {
-            i.title = Me(n);
-            var o = l(n);
-            if (o) {
-                xe(r, o, i);
-                o = Pe(r, o, a);
-                ye(o);
-                return ke(e, r, t, o, i)
-            }
-        }
-
-        function Xe(e, t, r) {
-            var n = e.getResponseHeader(t);
-            if (n.indexOf("{") === 0) {
-                var i = y(n);
-                for (var a in i) {
-                    if (i.hasOwnProperty(a)) {
-                        var o = i[a];
-                        if (!N(o)) {
-                            o = {value: o}
-                        }
-                        oe(r, a, o)
-                    }
-                }
-            } else {
-                var s = n.split(",");
-                for (var l = 0; l < s.length; l++) {
-                    oe(r, s[l].trim(), [])
-                }
-            }
-        }
-
-        var Fe = /\s/;
-        var p = /[\s,]/;
-        var Ue = /[_$a-zA-Z]/;
-        var Be = /[_$a-zA-Z0-9]/;
-        var Ve = ['"', "'", "/"];
-        var je = /[^\s]/;
-
-        function We(e) {
-            var t = [];
-            var r = 0;
-            while (r < e.length) {
-                if (Ue.exec(e.charAt(r))) {
-                    var n = r;
-                    while (Be.exec(e.charAt(r + 1))) {
-                        r++
-                    }
-                    t.push(e.substr(n, r - n + 1))
-                } else if (Ve.indexOf(e.charAt(r)) !== -1) {
-                    var i = e.charAt(r);
-                    var n = r;
-                    r++;
-                    while (r < e.length && e.charAt(r) !== i) {
-                        if (e.charAt(r) === "\\") {
-                            r++
-                        }
-                        r++
-                    }
-                    t.push(e.substr(n, r - n + 1))
-                } else {
-                    var a = e.charAt(r);
-                    t.push(a)
-                }
-                r++
-            }
-            return t
-        }
-
-        function _e(e, t, r) {
-            return Ue.exec(e.charAt(0)) && e !== "true" && e !== "false" && e !== "this" && e !== r && t !== "."
-        }
-
-        function ze(e, t, r) {
-            if (t[0] === "[") {
-                t.shift();
-                var n = 1;
-                var i = " return (function(" + r + "){ return (";
-                var a = null;
-                while (t.length > 0) {
-                    var o = t[0];
-                    if (o === "]") {
-                        n--;
-                        if (n === 0) {
-                            if (a === null) {
-                                i = i + "true"
-                            }
-                            t.shift();
-                            i += ")})";
-                            try {
-                                var s = hr(e, function () {
-                                    return Function(i)()
-                                }, function () {
-                                    return true
-                                });
-                                s.source = i;
-                                return s
                             } catch (e) {
-                                ae(K().body, "htmx:syntax:error", {error: e, source: i});
-                                return null
+                                logError(e);
                             }
                         }
-                    } else if (o === "[") {
-                        n++
-                    }
-                    if (_e(o, a, r)) {
-                        i += "((" + r + "." + o + ") ? (" + r + "." + o + ") : (window." + o + "))"
-                    } else {
-                        i = i + o
-                    }
-                    a = t.shift()
+                        if (swapStyle === "innerHTML") {
+                            swapInnerHTML(target, fragment, settleInfo);
+                        } else {
+                            swap(htmx.config.defaultSwapStyle, elt, target, fragment, settleInfo);
+                        }
                 }
             }
-        }
 
-        function m(e, t) {
-            var r = "";
-            while (e.length > 0 && !e[0].match(t)) {
-                r += e.shift()
+            function findTitle(content) {
+                if (content.indexOf('<title') > -1) {
+                    var contentWithSvgsRemoved = content.replace(/<svg(\s[^>]*>|>)([\s\S]*?)<\/svg>/gim, '');
+                    var result = contentWithSvgsRemoved.match(/<title(\s[^>]*>|>)([\s\S]*?)<\/title>/im);
+
+                    if (result) {
+                        return result[2];
+                    }
+                }
             }
-            return r
-        }
 
-        var $e = "input, textarea, select";
+            function selectAndSwap(swapStyle, target, elt, responseText, settleInfo, selectOverride) {
+                settleInfo.title = findTitle(responseText);
+                var fragment = makeFragment(responseText);
+                if (fragment) {
+                    handleOutOfBandSwaps(elt, fragment, settleInfo);
+                    fragment = maybeSelectFromResponse(elt, fragment, selectOverride);
+                    handlePreservedElements(fragment);
+                    return swap(swapStyle, elt, target, fragment, settleInfo);
+                }
+            }
 
-        function Ge(e) {
-            var t = Z(e, "hx-trigger");
-            var r = [];
-            if (t) {
-                var n = We(t);
-                do {
-                    m(n, je);
-                    var i = n.length;
-                    var a = m(n, /[,\[\s]/);
-                    if (a !== "") {
-                        if (a === "every") {
-                            var o = {trigger: "every"};
-                            m(n, je);
-                            o.pollInterval = v(m(n, /[,\[\s]/));
-                            m(n, je);
-                            var s = ze(e, n, "event");
-                            if (s) {
-                                o.eventFilter = s
+            function handleTrigger(xhr, header, elt) {
+                var triggerBody = xhr.getResponseHeader(header);
+                if (triggerBody.indexOf("{") === 0) {
+                    var triggers = parseJSON(triggerBody);
+                    for (var eventName in triggers) {
+                        if (triggers.hasOwnProperty(eventName)) {
+                            var detail = triggers[eventName];
+                            if (!isRawObject(detail)) {
+                                detail = {"value": detail}
                             }
-                            r.push(o)
-                        } else if (a.indexOf("sse:") === 0) {
-                            r.push({trigger: "sse", sseEvent: a.substr(4)})
-                        } else {
-                            var l = {trigger: a};
-                            var s = ze(e, n, "event");
-                            if (s) {
-                                l.eventFilter = s
+                            triggerEvent(elt, eventName, detail);
+                        }
+                    }
+                } else {
+                    var eventNames = triggerBody.split(",")
+                    for (var i = 0; i < eventNames.length; i++) {
+                        triggerEvent(elt, eventNames[i].trim(), []);
+                    }
+                }
+            }
+
+            var WHITESPACE = /\s/;
+            var WHITESPACE_OR_COMMA = /[\s,]/;
+            var SYMBOL_START = /[_$a-zA-Z]/;
+            var SYMBOL_CONT = /[_$a-zA-Z0-9]/;
+            var STRINGISH_START = ['"', "'", "/"];
+            var NOT_WHITESPACE = /[^\s]/;
+            function tokenizeString(str) {
+                var tokens = [];
+                var position = 0;
+                while (position < str.length) {
+                    if(SYMBOL_START.exec(str.charAt(position))) {
+                        var startPosition = position;
+                        while (SYMBOL_CONT.exec(str.charAt(position + 1))) {
+                            position++;
+                        }
+                        tokens.push(str.substr(startPosition, position - startPosition + 1));
+                    } else if (STRINGISH_START.indexOf(str.charAt(position)) !== -1) {
+                        var startChar = str.charAt(position);
+                        var startPosition = position;
+                        position++;
+                        while (position < str.length && str.charAt(position) !== startChar ) {
+                            if (str.charAt(position) === "\\") {
+                                position++;
                             }
-                            while (n.length > 0 && n[0] !== ",") {
-                                m(n, je);
-                                var u = n.shift();
-                                if (u === "changed") {
-                                    l.changed = true
-                                } else if (u === "once") {
-                                    l.once = true
-                                } else if (u === "consume") {
-                                    l.consume = true
-                                } else if (u === "delay" && n[0] === ":") {
-                                    n.shift();
-                                    l.delay = v(m(n, p))
-                                } else if (u === "from" && n[0] === ":") {
-                                    n.shift();
-                                    var f = m(n, p);
-                                    if (f === "closest" || f === "find" || f === "next" || f === "previous") {
-                                        n.shift();
-                                        f += " " + m(n, p)
-                                    }
-                                    l.from = f
-                                } else if (u === "target" && n[0] === ":") {
-                                    n.shift();
-                                    l.target = m(n, p)
-                                } else if (u === "throttle" && n[0] === ":") {
-                                    n.shift();
-                                    l.throttle = v(m(n, p))
-                                } else if (u === "queue" && n[0] === ":") {
-                                    n.shift();
-                                    l.queue = m(n, p)
-                                } else if ((u === "root" || u === "threshold") && n[0] === ":") {
-                                    n.shift();
-                                    l[u] = m(n, p)
-                                } else {
-                                    ae(e, "htmx:syntax:error", {token: n.shift()})
+                            position++;
+                        }
+                        tokens.push(str.substr(startPosition, position - startPosition + 1));
+                    } else {
+                        var symbol = str.charAt(position);
+                        tokens.push(symbol);
+                    }
+                    position++;
+                }
+                return tokens;
+            }
+
+            function isPossibleRelativeReference(token, last, paramName) {
+                return SYMBOL_START.exec(token.charAt(0)) &&
+                    token !== "true" &&
+                    token !== "false" &&
+                    token !== "this" &&
+                    token !== paramName &&
+                    last !== ".";
+            }
+
+            function maybeGenerateConditional(elt, tokens, paramName) {
+                if (tokens[0] === '[') {
+                    tokens.shift();
+                    var bracketCount = 1;
+                    var conditionalSource = " return (function(" + paramName + "){ return (";
+                    var last = null;
+                    while (tokens.length > 0) {
+                        var token = tokens[0];
+                        if (token === "]") {
+                            bracketCount--;
+                            if (bracketCount === 0) {
+                                if (last === null) {
+                                    conditionalSource = conditionalSource + "true";
+                                }
+                                tokens.shift();
+                                conditionalSource += ")})";
+                                try {
+                                    var conditionFunction = maybeEval(elt,function () {
+                                            return Function(conditionalSource)();
+                                        },
+                                        function(){return true})
+                                    conditionFunction.source = conditionalSource;
+                                    return conditionFunction;
+                                } catch (e) {
+                                    triggerErrorEvent(getDocument().body, "htmx:syntax:error", {error:e, source:conditionalSource})
+                                    return null;
                                 }
                             }
-                            r.push(l)
+                        } else if (token === "[") {
+                            bracketCount++;
                         }
-                    }
-                    if (n.length === i) {
-                        ae(e, "htmx:syntax:error", {token: n.shift()})
-                    }
-                    m(n, je)
-                } while (n[0] === "," && n.shift())
-            }
-            if (r.length > 0) {
-                return r
-            } else if (h(e, "form")) {
-                return [{trigger: "submit"}]
-            } else if (h(e, 'input[type="button"], input[type="submit"]')) {
-                return [{trigger: "click"}]
-            } else if (h(e, $e)) {
-                return [{trigger: "change"}]
-            } else {
-                return [{trigger: "click"}]
-            }
-        }
-
-        function Je(e) {
-            ee(e).cancelled = true
-        }
-
-        function Ze(e, t, r) {
-            var n = ee(e);
-            n.timeout = setTimeout(function () {
-                if (re(e) && n.cancelled !== true) {
-                    if (!tt(r, e, Pt("hx:poll:trigger", {triggerSpec: r, target: e}))) {
-                        t(e)
-                    }
-                    Ze(e, t, r)
-                }
-            }, r.pollInterval)
-        }
-
-        function Ke(e) {
-            return location.hostname === e.hostname && J(e, "href") && J(e, "href").indexOf("#") !== 0
-        }
-
-        function Ye(t, r, e) {
-            if (t.tagName === "A" && Ke(t) && (t.target === "" || t.target === "_self") || t.tagName === "FORM") {
-                r.boosted = true;
-                var n, i;
-                if (t.tagName === "A") {
-                    n = "get";
-                    i = t.href
-                } else {
-                    var a = J(t, "method");
-                    n = a ? a.toLowerCase() : "get";
-                    if (n === "get") {
-                    }
-                    i = J(t, "action")
-                }
-                e.forEach(function (e) {
-                    rt(t, function (e, t) {
-                        if (d(e, G.config.disableSelector)) {
-                            g(e);
-                            return
+                        if (isPossibleRelativeReference(token, last, paramName)) {
+                            conditionalSource += "((" + paramName + "." + token + ") ? (" + paramName + "." + token + ") : (window." + token + "))";
+                        } else {
+                            conditionalSource = conditionalSource + token;
                         }
-                        se(n, i, e, t)
-                    }, r, e, true)
-                })
-            }
-        }
-
-        function Qe(e, t) {
-            if (e.type === "submit" || e.type === "click") {
-                if (t.tagName === "FORM") {
-                    return true
-                }
-                if (h(t, 'input[type="submit"], button') && d(t, "form") !== null) {
-                    return true
-                }
-                if (t.tagName === "A" && t.href && (t.getAttribute("href") === "#" || t.getAttribute("href").indexOf("#") !== 0)) {
-                    return true
+                        last = tokens.shift();
+                    }
                 }
             }
-            return false
-        }
 
-        function et(e, t) {
-            return ee(e).boosted && e.tagName === "A" && t.type === "click" && (t.ctrlKey || t.metaKey)
-        }
-
-        function tt(e, t, r) {
-            var n = e.eventFilter;
-            if (n) {
-                try {
-                    return n.call(t, r) !== true
-                } catch (e) {
-                    ae(K().body, "htmx:eventFilter:error", {error: e, source: n.source});
-                    return true
+            function consumeUntil(tokens, match) {
+                var result = "";
+                while (tokens.length > 0 && !tokens[0].match(match)) {
+                    result += tokens.shift();
                 }
+                return result;
             }
-            return false
-        }
 
-        function rt(a, o, e, s, l) {
-            var u = ee(a);
-            var t;
-            if (s.from) {
-                t = W(a, s.from)
-            } else {
-                t = [a]
-            }
-            if (s.changed) {
-                t.forEach(function (e) {
-                    var t = ee(e);
-                    t.lastValue = e.value
-                })
-            }
-            te(t, function (n) {
-                var i = function (e) {
-                    if (!re(a)) {
-                        n.removeEventListener(s.trigger, i);
-                        return
-                    }
-                    if (et(a, e)) {
-                        return
-                    }
-                    if (l || Qe(e, a)) {
-                        e.preventDefault()
-                    }
-                    if (tt(s, a, e)) {
-                        return
-                    }
-                    var t = ee(e);
-                    t.triggerSpec = s;
-                    if (t.handledFor == null) {
-                        t.handledFor = []
-                    }
-                    if (t.handledFor.indexOf(a) < 0) {
-                        t.handledFor.push(a);
-                        if (s.consume) {
-                            e.stopPropagation()
-                        }
-                        if (s.target && e.target) {
-                            if (!h(e.target, s.target)) {
-                                return
-                            }
-                        }
-                        if (s.once) {
-                            if (u.triggeredOnce) {
-                                return
+            var INPUT_SELECTOR = 'input, textarea, select';
+
+            /**
+             * @param {HTMLElement} elt
+             * @returns {import("./htmx").HtmxTriggerSpecification[]}
+             */
+            function getTriggerSpecs(elt) {
+                var explicitTrigger = getAttributeValue(elt, 'hx-trigger');
+                var triggerSpecs = [];
+                if (explicitTrigger) {
+                    var tokens = tokenizeString(explicitTrigger);
+                    do {
+                        consumeUntil(tokens, NOT_WHITESPACE);
+                        var initialLength = tokens.length;
+                        var trigger = consumeUntil(tokens, /[,\[\s]/);
+                        if (trigger !== "") {
+                            if (trigger === "every") {
+                                var every = {trigger: 'every'};
+                                consumeUntil(tokens, NOT_WHITESPACE);
+                                every.pollInterval = parseInterval(consumeUntil(tokens, /[,\[\s]/));
+                                consumeUntil(tokens, NOT_WHITESPACE);
+                                var eventFilter = maybeGenerateConditional(elt, tokens, "event");
+                                if (eventFilter) {
+                                    every.eventFilter = eventFilter;
+                                }
+                                triggerSpecs.push(every);
+                            } else if (trigger.indexOf("sse:") === 0) {
+                                triggerSpecs.push({trigger: 'sse', sseEvent: trigger.substr(4)});
                             } else {
-                                u.triggeredOnce = true
-                            }
-                        }
-                        if (s.changed) {
-                            var r = ee(n);
-                            if (r.lastValue === n.value) {
-                                return
-                            }
-                            r.lastValue = n.value
-                        }
-                        if (u.delayed) {
-                            clearTimeout(u.delayed)
-                        }
-                        if (u.throttle) {
-                            return
-                        }
-                        if (s.throttle) {
-                            if (!u.throttle) {
-                                o(a, e);
-                                u.throttle = setTimeout(function () {
-                                    u.throttle = null
-                                }, s.throttle)
-                            }
-                        } else if (s.delay) {
-                            u.delayed = setTimeout(function () {
-                                o(a, e)
-                            }, s.delay)
-                        } else {
-                            oe(a, "htmx:trigger");
-                            o(a, e)
-                        }
-                    }
-                };
-                if (e.listenerInfos == null) {
-                    e.listenerInfos = []
-                }
-                e.listenerInfos.push({trigger: s.trigger, listener: i, on: n});
-                n.addEventListener(s.trigger, i)
-            })
-        }
-
-        var nt = false;
-        var it = null;
-
-        function at() {
-            if (!it) {
-                it = function () {
-                    nt = true
-                };
-                window.addEventListener("scroll", it);
-                setInterval(function () {
-                    if (nt) {
-                        nt = false;
-                        te(K().querySelectorAll("[hx-trigger='revealed'],[data-hx-trigger='revealed']"), function (e) {
-                            ot(e)
-                        })
-                    }
-                }, 200)
-            }
-        }
-
-        function ot(t) {
-            if (!o(t, "data-hx-revealed") && P(t)) {
-                t.setAttribute("data-hx-revealed", "true");
-                var e = ee(t);
-                if (e.initHash) {
-                    oe(t, "revealed")
-                } else {
-                    t.addEventListener("htmx:afterProcessNode", function (e) {
-                        oe(t, "revealed")
-                    }, {once: true})
-                }
-            }
-        }
-
-        function st(e, t, r) {
-            var n = k(r);
-            for (var i = 0; i < n.length; i++) {
-                var a = n[i].split(/:(.+)/);
-                if (a[0] === "connect") {
-                    lt(e, a[1], 0)
-                }
-                if (a[0] === "send") {
-                    ft(e)
-                }
-            }
-        }
-
-        function lt(s, r, n) {
-            if (!re(s)) {
-                return
-            }
-            if (r.indexOf("/") == 0) {
-                var e = location.hostname + (location.port ? ":" + location.port : "");
-                if (location.protocol == "https:") {
-                    r = "wss://" + e + r
-                } else if (location.protocol == "http:") {
-                    r = "ws://" + e + r
-                }
-            }
-            var t = G.createWebSocket(r);
-            t.onerror = function (e) {
-                ae(s, "htmx:wsError", {error: e, socket: t});
-                ut(s)
-            };
-            t.onclose = function (e) {
-                if ([1006, 1012, 1013].indexOf(e.code) >= 0) {
-                    var t = ct(n);
-                    setTimeout(function () {
-                        lt(s, r, n + 1)
-                    }, t)
-                }
-            };
-            t.onopen = function (e) {
-                n = 0
-            };
-            ee(s).webSocket = t;
-            t.addEventListener("message", function (e) {
-                if (ut(s)) {
-                    return
-                }
-                var t = e.data;
-                w(s, function (e) {
-                    t = e.transformResponse(t, null, s)
-                });
-                var r = S(s);
-                var n = l(t);
-                var i = I(n.children);
-                for (var a = 0; a < i.length; a++) {
-                    var o = i[a];
-                    me(Z(o, "hx-swap-oob") || "true", o, r)
-                }
-                Wt(r.tasks)
-            })
-        }
-
-        function ut(e) {
-            if (!re(e)) {
-                ee(e).webSocket.close();
-                return true
-            }
-        }
-
-        function ft(u) {
-            var f = c(u, function (e) {
-                return ee(e).webSocket != null
-            });
-            if (f) {
-                u.addEventListener(Ge(u)[0].trigger, function (e) {
-                    var t = ee(f).webSocket;
-                    var r = ir(u, f);
-                    var n = er(u, "post");
-                    var i = n.errors;
-                    var a = n.values;
-                    var o = gr(u);
-                    var s = ne(a, o);
-                    var l = ar(s, u);
-                    l["HEADERS"] = r;
-                    if (i && i.length > 0) {
-                        oe(u, "htmx:validation:halted", i);
-                        return
-                    }
-                    t.send(JSON.stringify(l));
-                    if (Qe(e, u)) {
-                        e.preventDefault()
-                    }
-                })
-            } else {
-                ae(u, "htmx:noWebSocketSourceError")
-            }
-        }
-
-        function ct(e) {
-            var t = G.config.wsReconnectDelay;
-            if (typeof t === "function") {
-                return t(e)
-            }
-            if (t === "full-jitter") {
-                var r = Math.min(e, 6);
-                var n = 1e3 * Math.pow(2, r);
-                return n * Math.random()
-            }
-            x('htmx.config.wsReconnectDelay must either be a function or the string "full-jitter"')
-        }
-
-        function ht(e, t, r) {
-            var n = k(r);
-            for (var i = 0; i < n.length; i++) {
-                var a = n[i].split(/:(.+)/);
-                if (a[0] === "connect") {
-                    dt(e, a[1])
-                }
-                if (a[0] === "swap") {
-                    vt(e, a[1])
-                }
-            }
-        }
-
-        function dt(t, e) {
-            var r = G.createEventSource(e);
-            r.onerror = function (e) {
-                ae(t, "htmx:sseError", {error: e, source: r});
-                pt(t)
-            };
-            ee(t).sseEventSource = r
-        }
-
-        function vt(a, o) {
-            var s = c(a, mt);
-            if (s) {
-                var l = ee(s).sseEventSource;
-                var u = function (e) {
-                    if (pt(s)) {
-                        return
-                    }
-                    if (!re(a)) {
-                        l.removeEventListener(o, u);
-                        return
-                    }
-                    var t = e.data;
-                    w(a, function (e) {
-                        t = e.transformResponse(t, null, a)
-                    });
-                    var r = sr(a);
-                    var n = de(a);
-                    var i = S(a);
-                    De(r.swapStyle, n, a, t, i);
-                    Wt(i.tasks);
-                    oe(a, "htmx:sseMessage", e)
-                };
-                ee(a).sseListener = u;
-                l.addEventListener(o, u)
-            } else {
-                ae(a, "htmx:noSSESourceError")
-            }
-        }
-
-        function gt(e, t, r) {
-            var n = c(e, mt);
-            if (n) {
-                var i = ee(n).sseEventSource;
-                var a = function () {
-                    if (!pt(n)) {
-                        if (re(e)) {
-                            t(e)
-                        } else {
-                            i.removeEventListener(r, a)
-                        }
-                    }
-                };
-                ee(e).sseListener = a;
-                i.addEventListener(r, a)
-            } else {
-                ae(e, "htmx:noSSESourceError")
-            }
-        }
-
-        function pt(e) {
-            if (!re(e)) {
-                ee(e).sseEventSource.close();
-                return true
-            }
-        }
-
-        function mt(e) {
-            return ee(e).sseEventSource != null
-        }
-
-        function xt(e, t, r, n) {
-            var i = function () {
-                if (!r.loaded) {
-                    r.loaded = true;
-                    t(e)
-                }
-            };
-            if (n) {
-                setTimeout(i, n)
-            } else {
-                i()
-            }
-        }
-
-        function yt(t, i, e) {
-            var a = false;
-            te(R, function (r) {
-                if (o(t, "hx-" + r)) {
-                    var n = Z(t, "hx-" + r);
-                    a = true;
-                    i.path = n;
-                    i.verb = r;
-                    e.forEach(function (e) {
-                        bt(t, e, i, function (e, t) {
-                            if (d(e, G.config.disableSelector)) {
-                                g(e);
-                                return
-                            }
-                            se(r, n, e, t)
-                        })
-                    })
-                }
-            });
-            return a
-        }
-
-        function bt(n, e, t, r) {
-            if (e.sseEvent) {
-                gt(n, r, e.sseEvent)
-            } else if (e.trigger === "revealed") {
-                at();
-                rt(n, r, t, e);
-                ot(n)
-            } else if (e.trigger === "intersect") {
-                var i = {};
-                if (e.root) {
-                    i.root = ie(n, e.root)
-                }
-                if (e.threshold) {
-                    i.threshold = parseFloat(e.threshold)
-                }
-                var a = new IntersectionObserver(function (e) {
-                    for (var t = 0; t < e.length; t++) {
-                        var r = e[t];
-                        if (r.isIntersecting) {
-                            oe(n, "intersect");
-                            break
-                        }
-                    }
-                }, i);
-                a.observe(n);
-                rt(n, r, t, e)
-            } else if (e.trigger === "load") {
-                if (!tt(e, n, Pt("load", {elt: n}))) {
-                    xt(n, r, t, e.delay)
-                }
-            } else if (e.pollInterval) {
-                t.polling = true;
-                Ze(n, r, e)
-            } else {
-                rt(n, r, t, e)
-            }
-        }
-
-        function wt(e) {
-            if (G.config.allowScriptTags && (e.type === "text/javascript" || e.type === "module" || e.type === "")) {
-                var t = K().createElement("script");
-                te(e.attributes, function (e) {
-                    t.setAttribute(e.name, e.value)
-                });
-                t.textContent = e.textContent;
-                t.async = false;
-                if (G.config.inlineScriptNonce) {
-                    t.nonce = G.config.inlineScriptNonce
-                }
-                var r = e.parentElement;
-                try {
-                    r.insertBefore(t, e)
-                } catch (e) {
-                    x(e)
-                } finally {
-                    if (e.parentElement) {
-                        e.parentElement.removeChild(e)
-                    }
-                }
-            }
-        }
-
-        function St(e) {
-            if (h(e, "script")) {
-                wt(e)
-            }
-            te(f(e, "script"), function (e) {
-                wt(e)
-            })
-        }
-
-        function Et() {
-            return document.querySelector("[hx-boost], [data-hx-boost]")
-        }
-
-        function Ct(e) {
-            if (!document.evaluate) return [];
-            let t = null;
-            const r = [];
-            const n = document.evaluate('//*[@*[ starts-with(name(), "hx-on:") or starts-with(name(), "data-hx-on:") ]]', e);
-            while (t = n.iterateNext()) r.push(t);
-            return r
-        }
-
-        function Rt(e) {
-            if (e.querySelectorAll) {
-                var t = Et() ? ", a" : "";
-                var r = e.querySelectorAll(O + t + ", form, [type='submit'], [hx-sse], [data-hx-sse], [hx-ws]," + " [data-hx-ws], [hx-ext], [data-hx-ext], [hx-trigger], [data-hx-trigger], [hx-on], [data-hx-on]");
-                return r
-            } else {
-                return []
-            }
-        }
-
-        function Ot(e) {
-            var n = s("#" + J(e, "form")) || d(e, "form");
-            if (!n) {
-                return
-            }
-            var t = function (e) {
-                var t = d(e.target, "button, input[type='submit']");
-                if (t !== null) {
-                    var r = ee(n);
-                    r.lastButtonClicked = t
-                }
-            };
-            e.addEventListener("click", t);
-            e.addEventListener("focusin", t);
-            e.addEventListener("focusout", function (e) {
-                var t = ee(n);
-                t.lastButtonClicked = null
-            })
-        }
-
-        function Tt(e) {
-            var t = We(e);
-            var r = 0;
-            for (let e = 0; e < t.length; e++) {
-                const n = t[e];
-                if (n === "{") {
-                    r++
-                } else if (n === "}") {
-                    r--
-                }
-            }
-            return r
-        }
-
-        function qt(t, e, r) {
-            var n = ee(t);
-            n.onHandlers = [];
-            var i;
-            var a = function (e) {
-                return hr(t, function () {
-                    if (!i) {
-                        i = new Function("event", r)
-                    }
-                    i.call(t, e)
-                })
-            };
-            t.addEventListener(e, a);
-            n.onHandlers.push({event: e, listener: a})
-        }
-
-        function Ht(e) {
-            var t = Z(e, "hx-on");
-            if (t) {
-                var r = {};
-                var n = t.split("\n");
-                var i = null;
-                var a = 0;
-                while (n.length > 0) {
-                    var o = n.shift();
-                    var s = o.match(/^\s*([a-zA-Z:\-]+:)(.*)/);
-                    if (a === 0 && s) {
-                        o.split(":");
-                        i = s[1].slice(0, -1);
-                        r[i] = s[2]
-                    } else {
-                        r[i] += o
-                    }
-                    a += Tt(o)
-                }
-                for (var l in r) {
-                    qt(e, l, r[l])
-                }
-            }
-        }
-
-        function Lt(t) {
-            Re(t);
-            for (var e = 0; e < t.attributes.length; e++) {
-                var r = t.attributes[e].name;
-                var n = t.attributes[e].value;
-                if (r.startsWith("hx-on:") || r.startsWith("data-hx-on:")) {
-                    let e = r.slice(r.indexOf(":") + 1);
-                    if (e.startsWith(":")) e = "htmx" + e;
-                    qt(t, e, n)
-                }
-            }
-        }
-
-        function At(t) {
-            if (d(t, G.config.disableSelector)) {
-                g(t);
-                return
-            }
-            var r = ee(t);
-            if (r.initHash !== Ce(t)) {
-                Oe(t);
-                r.initHash = Ce(t);
-                Ht(t);
-                oe(t, "htmx:beforeProcessNode");
-                if (t.value) {
-                    r.lastValue = t.value
-                }
-                var e = Ge(t);
-                var n = yt(t, r, e);
-                if (!n) {
-                    if (Y(t, "hx-boost") === "true") {
-                        Ye(t, r, e)
-                    } else if (o(t, "hx-trigger")) {
-                        e.forEach(function (e) {
-                            bt(t, e, r, function () {
-                            })
-                        })
-                    }
-                }
-                if (t.tagName === "FORM" || J(t, "type") === "submit" && o(t, "form")) {
-                    Ot(t)
-                }
-                var i = Z(t, "hx-sse");
-                if (i) {
-                    ht(t, r, i)
-                }
-                var a = Z(t, "hx-ws");
-                if (a) {
-                    st(t, r, a)
-                }
-                oe(t, "htmx:afterProcessNode")
-            }
-        }
-
-        function Nt(e) {
-            e = s(e);
-            if (d(e, G.config.disableSelector)) {
-                g(e);
-                return
-            }
-            At(e);
-            te(Rt(e), function (e) {
-                At(e)
-            });
-            te(Ct(e), Lt)
-        }
-
-        function It(e) {
-            return e.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase()
-        }
-
-        function Pt(e, t) {
-            var r;
-            if (window.CustomEvent && typeof window.CustomEvent === "function") {
-                r = new CustomEvent(e, {bubbles: true, cancelable: true, detail: t})
-            } else {
-                r = K().createEvent("CustomEvent");
-                r.initCustomEvent(e, true, true, t)
-            }
-            return r
-        }
-
-        function ae(e, t, r) {
-            oe(e, t, ne({error: t}, r))
-        }
-
-        function kt(e) {
-            return e === "htmx:afterProcessNode"
-        }
-
-        function w(e, t) {
-            te(Tr(e), function (e) {
-                try {
-                    t(e)
-                } catch (e) {
-                    x(e)
-                }
-            })
-        }
-
-        function x(e) {
-            if (console.error) {
-                console.error(e)
-            } else if (console.log) {
-                console.log("ERROR: ", e)
-            }
-        }
-
-        function oe(e, t, r) {
-            e = s(e);
-            if (r == null) {
-                r = {}
-            }
-            r["elt"] = e;
-            var n = Pt(t, r);
-            if (G.logger && !kt(t)) {
-                G.logger(e, t, r)
-            }
-            if (r.error) {
-                x(r.error);
-                oe(e, "htmx:error", {errorInfo: r})
-            }
-            var i = e.dispatchEvent(n);
-            var a = It(t);
-            if (i && a !== t) {
-                var o = Pt(a, n.detail);
-                i = i && e.dispatchEvent(o)
-            }
-            w(e, function (e) {
-                i = i && e.onEvent(t, n) !== false
-            });
-            return i
-        }
-
-        var Mt = location.pathname + location.search;
-
-        function Dt() {
-            var e = K().querySelector("[hx-history-elt],[data-hx-history-elt]");
-            return e || K().body
-        }
-
-        function Xt(e, t, r, n) {
-            if (!M()) {
-                return
-            }
-            e = D(e);
-            var i = y(localStorage.getItem("htmx-history-cache")) || [];
-            for (var a = 0; a < i.length; a++) {
-                if (i[a].url === e) {
-                    i.splice(a, 1);
-                    break
-                }
-            }
-            var o = {url: e, content: t, title: r, scroll: n};
-            oe(K().body, "htmx:historyItemCreated", {item: o, cache: i});
-            i.push(o);
-            while (i.length > G.config.historyCacheSize) {
-                i.shift()
-            }
-            while (i.length > 0) {
-                try {
-                    localStorage.setItem("htmx-history-cache", JSON.stringify(i));
-                    break
-                } catch (e) {
-                    ae(K().body, "htmx:historyCacheError", {cause: e, cache: i});
-                    i.shift()
-                }
-            }
-        }
-
-        function Ft(e) {
-            if (!M()) {
-                return null
-            }
-            e = D(e);
-            var t = y(localStorage.getItem("htmx-history-cache")) || [];
-            for (var r = 0; r < t.length; r++) {
-                if (t[r].url === e) {
-                    return t[r]
-                }
-            }
-            return null
-        }
-
-        function Ut(e) {
-            var t = G.config.requestClass;
-            var r = e.cloneNode(true);
-            te(f(r, "." + t), function (e) {
-                n(e, t)
-            });
-            return r.innerHTML
-        }
-
-        function Bt() {
-            var e = Dt();
-            var t = Mt || location.pathname + location.search;
-            var r = K().querySelector('[hx-history="false" i],[data-hx-history="false" i]');
-            if (!r) {
-                oe(K().body, "htmx:beforeHistorySave", {path: t, historyElt: e});
-                Xt(t, Ut(e), K().title, window.scrollY)
-            }
-            if (G.config.historyEnabled) history.replaceState({htmx: true}, K().title, window.location.href)
-        }
-
-        function Vt(e) {
-            if (G.config.getCacheBusterParam) {
-                e = e.replace(/org\.htmx\.cache-buster=[^&]*&?/, "");
-                if (e.endsWith("&") || e.endsWith("?")) {
-                    e = e.slice(0, -1)
-                }
-            }
-            if (G.config.historyEnabled) {
-                history.pushState({htmx: true}, "", e)
-            }
-            Mt = e
-        }
-
-        function jt(e) {
-            if (G.config.historyEnabled) history.replaceState({htmx: true}, "", e);
-            Mt = e
-        }
-
-        function Wt(e) {
-            te(e, function (e) {
-                e.call()
-            })
-        }
-
-        function _t(a) {
-            var e = new XMLHttpRequest;
-            var o = {path: a, xhr: e};
-            oe(K().body, "htmx:historyCacheMiss", o);
-            e.open("GET", a, true);
-            e.setRequestHeader("HX-History-Restore-Request", "true");
-            e.onload = function () {
-                if (this.status >= 200 && this.status < 400) {
-                    oe(K().body, "htmx:historyCacheMissLoad", o);
-                    var e = l(this.response);
-                    e = e.querySelector("[hx-history-elt],[data-hx-history-elt]") || e;
-                    var t = Dt();
-                    var r = S(t);
-                    var n = Me(this.response);
-                    if (n) {
-                        var i = b("title");
-                        if (i) {
-                            i.innerHTML = n
-                        } else {
-                            window.document.title = n
-                        }
-                    }
-                    Ie(t, e, r);
-                    Wt(r.tasks);
-                    Mt = a;
-                    oe(K().body, "htmx:historyRestore", {path: a, cacheMiss: true, serverResponse: this.response})
-                } else {
-                    ae(K().body, "htmx:historyCacheMissLoadError", o)
-                }
-            };
-            e.send()
-        }
-
-        function zt(e) {
-            Bt();
-            e = e || location.pathname + location.search;
-            var t = Ft(e);
-            if (t) {
-                var r = l(t.content);
-                var n = Dt();
-                var i = S(n);
-                Ie(n, r, i);
-                Wt(i.tasks);
-                document.title = t.title;
-                setTimeout(function () {
-                    window.scrollTo(0, t.scroll)
-                }, 0);
-                Mt = e;
-                oe(K().body, "htmx:historyRestore", {path: e, item: t})
-            } else {
-                if (G.config.refreshOnHistoryMiss) {
-                    window.location.reload(true)
-                } else {
-                    _t(e)
-                }
-            }
-        }
-
-        function $t(e) {
-            var t = ce(e, "hx-indicator");
-            if (t == null) {
-                t = [e]
-            }
-            te(t, function (e) {
-                var t = ee(e);
-                t.requestCount = (t.requestCount || 0) + 1;
-                e.classList["add"].call(e.classList, G.config.requestClass)
-            });
-            return t
-        }
-
-        function Gt(e) {
-            te(e, function (e) {
-                var t = ee(e);
-                t.requestCount = (t.requestCount || 0) - 1;
-                if (t.requestCount === 0) {
-                    e.classList["remove"].call(e.classList, G.config.requestClass)
-                }
-            })
-        }
-
-        function Jt(e, t) {
-            for (var r = 0; r < e.length; r++) {
-                var n = e[r];
-                if (n.isSameNode(t)) {
-                    return true
-                }
-            }
-            return false
-        }
-
-        function Zt(e) {
-            if (e.name === "" || e.name == null || e.disabled) {
-                return false
-            }
-            if (e.type === "button" || e.type === "submit" || e.tagName === "image" || e.tagName === "reset" || e.tagName === "file") {
-                return false
-            }
-            if (e.type === "checkbox" || e.type === "radio") {
-                return e.checked
-            }
-            return true
-        }
-
-        function Kt(e, t, r) {
-            if (e != null && t != null) {
-                var n = r[e];
-                if (n === undefined) {
-                    r[e] = t
-                } else if (Array.isArray(n)) {
-                    if (Array.isArray(t)) {
-                        r[e] = n.concat(t)
-                    } else {
-                        n.push(t)
-                    }
-                } else {
-                    if (Array.isArray(t)) {
-                        r[e] = [n].concat(t)
-                    } else {
-                        r[e] = [n, t]
-                    }
-                }
-            }
-        }
-
-        function Yt(t, r, n, e, i) {
-            if (e == null || Jt(t, e)) {
-                return
-            } else {
-                t.push(e)
-            }
-            if (Zt(e)) {
-                var a = J(e, "name");
-                var o = e.value;
-                if (e.multiple) {
-                    o = I(e.querySelectorAll("option:checked")).map(function (e) {
-                        return e.value
-                    })
-                }
-                if (e.files) {
-                    o = I(e.files)
-                }
-                Kt(a, o, r);
-                if (i) {
-                    Qt(e, n)
-                }
-            }
-            if (h(e, "form")) {
-                var s = e.elements;
-                te(s, function (e) {
-                    Yt(t, r, n, e, i)
-                })
-            }
-        }
-
-        function Qt(e, t) {
-            if (e.willValidate) {
-                oe(e, "htmx:validation:validate");
-                if (!e.checkValidity()) {
-                    t.push({elt: e, message: e.validationMessage, validity: e.validity});
-                    oe(e, "htmx:validation:failed", {message: e.validationMessage, validity: e.validity})
-                }
-            }
-        }
-
-        function er(e, t) {
-            var r = [];
-            var n = {};
-            var i = {};
-            var a = [];
-            var o = ee(e);
-            var s = h(e, "form") && e.noValidate !== true || Z(e, "hx-validate") === "true";
-            if (o.lastButtonClicked) {
-                s = s && o.lastButtonClicked.formNoValidate !== true
-            }
-            if (t !== "get") {
-                Yt(r, i, a, d(e, "form"), s)
-            }
-            Yt(r, n, a, e, s);
-            if (o.lastButtonClicked || e.tagName === "BUTTON" || e.tagName === "INPUT" && J(e, "type") === "submit") {
-                var l = o.lastButtonClicked || e;
-                var u = J(l, "name");
-                Kt(u, l.value, i)
-            }
-            var f = ce(e, "hx-include");
-            te(f, function (e) {
-                Yt(r, n, a, e, s);
-                if (!h(e, "form")) {
-                    te(e.querySelectorAll($e), function (e) {
-                        Yt(r, n, a, e, s)
-                    })
-                }
-            });
-            n = ne(n, i);
-            return {errors: a, values: n}
-        }
-
-        function tr(e, t, r) {
-            if (e !== "") {
-                e += "&"
-            }
-            if (String(r) === "[object Object]") {
-                r = JSON.stringify(r)
-            }
-            var n = encodeURIComponent(r);
-            e += encodeURIComponent(t) + "=" + n;
-            return e
-        }
-
-        function rr(e) {
-            var t = "";
-            for (var r in e) {
-                if (e.hasOwnProperty(r)) {
-                    var n = e[r];
-                    if (Array.isArray(n)) {
-                        te(n, function (e) {
-                            t = tr(t, r, e)
-                        })
-                    } else {
-                        t = tr(t, r, n)
-                    }
-                }
-            }
-            return t
-        }
-
-        function nr(e) {
-            var t = new FormData;
-            for (var r in e) {
-                if (e.hasOwnProperty(r)) {
-                    var n = e[r];
-                    if (Array.isArray(n)) {
-                        te(n, function (e) {
-                            t.append(r, e)
-                        })
-                    } else {
-                        t.append(r, n)
-                    }
-                }
-            }
-            return t
-        }
-
-        function ir(e, t, r) {
-            var n = {
-                "HX-Request": "true",
-                "HX-Trigger": J(e, "id"),
-                "HX-Trigger-Name": J(e, "name"),
-                "HX-Target": Z(t, "id"),
-                "HX-Current-URL": K().location.href
-            };
-            cr(e, "hx-headers", false, n);
-            if (r !== undefined) {
-                n["HX-Prompt"] = r
-            }
-            if (ee(e).boosted) {
-                n["HX-Boosted"] = "true"
-            }
-            return n
-        }
-
-        function ar(t, e) {
-            var r = Y(e, "hx-params");
-            if (r) {
-                if (r === "none") {
-                    return {}
-                } else if (r === "*") {
-                    return t
-                } else if (r.indexOf("not ") === 0) {
-                    te(r.substr(4).split(","), function (e) {
-                        e = e.trim();
-                        delete t[e]
-                    });
-                    return t
-                } else {
-                    var n = {};
-                    te(r.split(","), function (e) {
-                        e = e.trim();
-                        n[e] = t[e]
-                    });
-                    return n
-                }
-            } else {
-                return t
-            }
-        }
-
-        function or(e) {
-            return J(e, "href") && J(e, "href").indexOf("#") >= 0
-        }
-
-        function sr(e, t) {
-            var r = t ? t : Y(e, "hx-swap");
-            var n = {
-                swapStyle: ee(e).boosted ? "innerHTML" : G.config.defaultSwapStyle,
-                swapDelay: G.config.defaultSwapDelay,
-                settleDelay: G.config.defaultSettleDelay
-            };
-            if (ee(e).boosted && !or(e)) {
-                n["show"] = "top"
-            }
-            if (r) {
-                var i = k(r);
-                if (i.length > 0) {
-                    n["swapStyle"] = i[0];
-                    for (var a = 1; a < i.length; a++) {
-                        var o = i[a];
-                        if (o.indexOf("swap:") === 0) {
-                            n["swapDelay"] = v(o.substr(5))
-                        }
-                        if (o.indexOf("settle:") === 0) {
-                            n["settleDelay"] = v(o.substr(7))
-                        }
-                        if (o.indexOf("transition:") === 0) {
-                            n["transition"] = o.substr(11) === "true"
-                        }
-                        if (o.indexOf("scroll:") === 0) {
-                            var s = o.substr(7);
-                            var l = s.split(":");
-                            var u = l.pop();
-                            var f = l.length > 0 ? l.join(":") : null;
-                            n["scroll"] = u;
-                            n["scrollTarget"] = f
-                        }
-                        if (o.indexOf("show:") === 0) {
-                            var c = o.substr(5);
-                            var l = c.split(":");
-                            var h = l.pop();
-                            var f = l.length > 0 ? l.join(":") : null;
-                            n["show"] = h;
-                            n["showTarget"] = f
-                        }
-                        if (o.indexOf("focus-scroll:") === 0) {
-                            var d = o.substr("focus-scroll:".length);
-                            n["focusScroll"] = d == "true"
-                        }
-                    }
-                }
-            }
-            return n
-        }
-
-        function lr(e) {
-            return Y(e, "hx-encoding") === "multipart/form-data" || h(e, "form") && J(e, "enctype") === "multipart/form-data"
-        }
-
-        function ur(t, r, n) {
-            var i = null;
-            w(r, function (e) {
-                if (i == null) {
-                    i = e.encodeParameters(t, n, r)
-                }
-            });
-            if (i != null) {
-                return i
-            } else {
-                if (lr(r)) {
-                    return nr(n)
-                } else {
-                    return rr(n)
-                }
-            }
-        }
-
-        function S(e) {
-            return {tasks: [], elts: [e]}
-        }
-
-        function fr(e, t) {
-            var r = e[0];
-            var n = e[e.length - 1];
-            if (t.scroll) {
-                var i = null;
-                if (t.scrollTarget) {
-                    i = ie(r, t.scrollTarget)
-                }
-                if (t.scroll === "top" && (r || i)) {
-                    i = i || r;
-                    i.scrollTop = 0
-                }
-                if (t.scroll === "bottom" && (n || i)) {
-                    i = i || n;
-                    i.scrollTop = i.scrollHeight
-                }
-            }
-            if (t.show) {
-                var i = null;
-                if (t.showTarget) {
-                    var a = t.showTarget;
-                    if (t.showTarget === "window") {
-                        a = "body"
-                    }
-                    i = ie(r, a)
-                }
-                if (t.show === "top" && (r || i)) {
-                    i = i || r;
-                    i.scrollIntoView({block: "start", behavior: G.config.scrollBehavior})
-                }
-                if (t.show === "bottom" && (n || i)) {
-                    i = i || n;
-                    i.scrollIntoView({block: "end", behavior: G.config.scrollBehavior})
-                }
-            }
-        }
-
-        function cr(e, t, r, n) {
-            if (n == null) {
-                n = {}
-            }
-            if (e == null) {
-                return n
-            }
-            var i = Z(e, t);
-            if (i) {
-                var a = i.trim();
-                var o = r;
-                if (a === "unset") {
-                    return null
-                }
-                if (a.indexOf("javascript:") === 0) {
-                    a = a.substr(11);
-                    o = true
-                } else if (a.indexOf("js:") === 0) {
-                    a = a.substr(3);
-                    o = true
-                }
-                if (a.indexOf("{") !== 0) {
-                    a = "{" + a + "}"
-                }
-                var s;
-                if (o) {
-                    s = hr(e, function () {
-                        return Function("return (" + a + ")")()
-                    }, {})
-                } else {
-                    s = y(a)
-                }
-                for (var l in s) {
-                    if (s.hasOwnProperty(l)) {
-                        if (n[l] == null) {
-                            n[l] = s[l]
-                        }
-                    }
-                }
-            }
-            return cr(u(e), t, r, n)
-        }
-
-        function hr(e, t, r) {
-            if (G.config.allowEval) {
-                return t()
-            } else {
-                ae(e, "htmx:evalDisallowedError");
-                return r
-            }
-        }
-
-        function dr(e, t) {
-            return cr(e, "hx-vars", true, t)
-        }
-
-        function vr(e, t) {
-            return cr(e, "hx-vals", false, t)
-        }
-
-        function gr(e) {
-            return ne(dr(e), vr(e))
-        }
-
-        function pr(t, r, n) {
-            if (n !== null) {
-                try {
-                    t.setRequestHeader(r, n)
-                } catch (e) {
-                    t.setRequestHeader(r, encodeURIComponent(n));
-                    t.setRequestHeader(r + "-URI-AutoEncoded", "true")
-                }
-            }
-        }
-
-        function mr(t) {
-            if (t.responseURL && typeof URL !== "undefined") {
-                try {
-                    var e = new URL(t.responseURL);
-                    return e.pathname + e.search
-                } catch (e) {
-                    ae(K().body, "htmx:badResponseUrl", {url: t.responseURL})
-                }
-            }
-        }
-
-        function E(e, t) {
-            return e.getAllResponseHeaders().match(t)
-        }
-
-        function xr(e, t, r) {
-            e = e.toLowerCase();
-            if (r) {
-                if (r instanceof Element || L(r, "String")) {
-                    return se(e, t, null, null, {targetOverride: s(r), returnPromise: true})
-                } else {
-                    return se(e, t, s(r.source), r.event, {
-                        handler: r.handler,
-                        headers: r.headers,
-                        values: r.values,
-                        targetOverride: s(r.target),
-                        swapOverride: r.swap,
-                        returnPromise: true
-                    })
-                }
-            } else {
-                return se(e, t, null, null, {returnPromise: true})
-            }
-        }
-
-        function yr(e) {
-            var t = [];
-            while (e) {
-                t.push(e);
-                e = e.parentElement
-            }
-            return t
-        }
-
-        function br(e, t, r) {
-            var n = new URL(t, document.location.href);
-            var i = document.location.origin;
-            var a = i === n.origin;
-            if (G.config.selfRequestsOnly) {
-                if (!a) {
-                    return false
-                }
-            }
-            return oe(e, "htmx:validateUrl", ne({url: n, sameHost: a}, r))
-        }
-
-        function se(e, t, n, r, i, M) {
-            var a = null;
-            var o = null;
-            i = i != null ? i : {};
-            if (i.returnPromise && typeof Promise !== "undefined") {
-                var s = new Promise(function (e, t) {
-                    a = e;
-                    o = t
-                })
-            }
-            if (n == null) {
-                n = K().body
-            }
-            var D = i.handler || Sr;
-            if (!re(n)) {
-                return
-            }
-            var l = i.targetOverride || de(n);
-            if (l == null || l == fe) {
-                ae(n, "htmx:targetError", {target: Z(n, "hx-target")});
-                return
-            }
-            if (!M) {
-                var X = function () {
-                    return se(e, t, n, r, i, true)
-                };
-                var F = {target: l, elt: n, path: t, verb: e, triggeringEvent: r, etc: i, issueRequest: X};
-                if (oe(n, "htmx:confirm", F) === false) {
-                    return
-                }
-            }
-            var u = n;
-            var f = ee(n);
-            var c = Y(n, "hx-sync");
-            var h = null;
-            var d = false;
-            if (c) {
-                var v = c.split(":");
-                var g = v[0].trim();
-                if (g === "this") {
-                    u = he(n, "hx-sync")
-                } else {
-                    u = ie(n, g)
-                }
-                c = (v[1] || "drop").trim();
-                f = ee(u);
-                if (c === "drop" && f.xhr && f.abortable !== true) {
-                    return
-                } else if (c === "abort") {
-                    if (f.xhr) {
-                        return
-                    } else {
-                        d = true
-                    }
-                } else if (c === "replace") {
-                    oe(u, "htmx:abort")
-                } else if (c.indexOf("queue") === 0) {
-                    var U = c.split(" ");
-                    h = (U[1] || "last").trim()
-                }
-            }
-            if (f.xhr) {
-                if (f.abortable) {
-                    oe(u, "htmx:abort")
-                } else {
-                    if (h == null) {
-                        if (r) {
-                            var p = ee(r);
-                            if (p && p.triggerSpec && p.triggerSpec.queue) {
-                                h = p.triggerSpec.queue
-                            }
-                        }
-                        if (h == null) {
-                            h = "last"
-                        }
-                    }
-                    if (f.queuedRequests == null) {
-                        f.queuedRequests = []
-                    }
-                    if (h === "first" && f.queuedRequests.length === 0) {
-                        f.queuedRequests.push(function () {
-                            se(e, t, n, r, i)
-                        })
-                    } else if (h === "all") {
-                        f.queuedRequests.push(function () {
-                            se(e, t, n, r, i)
-                        })
-                    } else if (h === "last") {
-                        f.queuedRequests = [];
-                        f.queuedRequests.push(function () {
-                            se(e, t, n, r, i)
-                        })
-                    }
-                    return
-                }
-            }
-            var m = new XMLHttpRequest;
-            f.xhr = m;
-            f.abortable = d;
-            var x = function () {
-                f.xhr = null;
-                f.abortable = false;
-                if (f.queuedRequests != null && f.queuedRequests.length > 0) {
-                    var e = f.queuedRequests.shift();
-                    e()
-                }
-            };
-            var y = Y(n, "hx-prompt");
-            if (y) {
-                var b = prompt(y);
-                if (b === null || !oe(n, "htmx:prompt", {prompt: b, target: l})) {
-                    Q(a);
-                    x();
-                    return s
-                }
-            }
-            var w = Y(n, "hx-confirm");
-            if (w) {
-                if (!confirm(w)) {
-                    Q(a);
-                    x();
-                    return s
-                }
-            }
-            var S = ir(n, l, b);
-            if (i.headers) {
-                S = ne(S, i.headers)
-            }
-            var E = er(n, e);
-            var C = E.errors;
-            var R = E.values;
-            if (i.values) {
-                R = ne(R, i.values)
-            }
-            var B = gr(n);
-            var O = ne(R, B);
-            var T = ar(O, n);
-            if (e !== "get" && !lr(n)) {
-                S["Content-Type"] = "application/x-www-form-urlencoded"
-            }
-            if (G.config.getCacheBusterParam && e === "get") {
-                T["org.htmx.cache-buster"] = J(l, "id") || "true"
-            }
-            if (t == null || t === "") {
-                t = K().location.href
-            }
-            var q = cr(n, "hx-request");
-            var V = ee(n).boosted;
-            var H = G.config.methodsThatUseUrlParams.indexOf(e) >= 0;
-            var L = {
-                boosted: V,
-                useUrlParams: H,
-                parameters: T,
-                unfilteredParameters: O,
-                headers: S,
-                target: l,
-                verb: e,
-                errors: C,
-                withCredentials: i.credentials || q.credentials || G.config.withCredentials,
-                timeout: i.timeout || q.timeout || G.config.timeout,
-                path: t,
-                triggeringEvent: r
-            };
-            if (!oe(n, "htmx:configRequest", L)) {
-                Q(a);
-                x();
-                return s
-            }
-            t = L.path;
-            e = L.verb;
-            S = L.headers;
-            T = L.parameters;
-            C = L.errors;
-            H = L.useUrlParams;
-            if (C && C.length > 0) {
-                oe(n, "htmx:validation:halted", L);
-                Q(a);
-                x();
-                return s
-            }
-            var j = t.split("#");
-            var W = j[0];
-            var A = j[1];
-            var N = t;
-            if (H) {
-                N = W;
-                var _ = Object.keys(T).length !== 0;
-                if (_) {
-                    if (N.indexOf("?") < 0) {
-                        N += "?"
-                    } else {
-                        N += "&"
-                    }
-                    N += rr(T);
-                    if (A) {
-                        N += "#" + A
-                    }
-                }
-            }
-            if (!br(n, N, L)) {
-                ae(n, "htmx:invalidPath", L);
-                return
-            }
-            m.open(e.toUpperCase(), N, true);
-            m.overrideMimeType("text/html");
-            m.withCredentials = L.withCredentials;
-            m.timeout = L.timeout;
-            if (q.noHeaders) {
-            } else {
-                for (var I in S) {
-                    if (S.hasOwnProperty(I)) {
-                        var z = S[I];
-                        pr(m, I, z)
-                    }
-                }
-            }
-            var P = {
-                xhr: m,
-                target: l,
-                requestConfig: L,
-                etc: i,
-                boosted: V,
-                pathInfo: {requestPath: t, finalRequestPath: N, anchor: A}
-            };
-            m.onload = function () {
-                try {
-                    var e = yr(n);
-                    P.pathInfo.responsePath = mr(m);
-                    D(n, P);
-                    Gt(k);
-                    oe(n, "htmx:afterRequest", P);
-                    oe(n, "htmx:afterOnLoad", P);
-                    if (!re(n)) {
-                        var t = null;
-                        while (e.length > 0 && t == null) {
-                            var r = e.shift();
-                            if (re(r)) {
-                                t = r
-                            }
-                        }
-                        if (t) {
-                            oe(t, "htmx:afterRequest", P);
-                            oe(t, "htmx:afterOnLoad", P)
-                        }
-                    }
-                    Q(a);
-                    x()
-                } catch (e) {
-                    ae(n, "htmx:onLoadError", ne({error: e}, P));
-                    throw e
-                }
-            };
-            m.onerror = function () {
-                Gt(k);
-                ae(n, "htmx:afterRequest", P);
-                ae(n, "htmx:sendError", P);
-                Q(o);
-                x()
-            };
-            m.onabort = function () {
-                Gt(k);
-                ae(n, "htmx:afterRequest", P);
-                ae(n, "htmx:sendAbort", P);
-                Q(o);
-                x()
-            };
-            m.ontimeout = function () {
-                Gt(k);
-                ae(n, "htmx:afterRequest", P);
-                ae(n, "htmx:timeout", P);
-                Q(o);
-                x()
-            };
-            if (!oe(n, "htmx:beforeRequest", P)) {
-                Q(a);
-                x();
-                return s
-            }
-            var k = $t(n);
-            te(["loadstart", "loadend", "progress", "abort"], function (t) {
-                te([m, m.upload], function (e) {
-                    e.addEventListener(t, function (e) {
-                        oe(n, "htmx:xhr:" + t, {lengthComputable: e.lengthComputable, loaded: e.loaded, total: e.total})
-                    })
-                })
-            });
-            oe(n, "htmx:beforeSend", P);
-            var $ = H ? null : ur(m, n, T);
-            m.send($);
-            return s
-        }
-
-        function wr(e, t) {
-            var r = t.xhr;
-            var n = null;
-            var i = null;
-            if (E(r, /HX-Push:/i)) {
-                n = r.getResponseHeader("HX-Push");
-                i = "push"
-            } else if (E(r, /HX-Push-Url:/i)) {
-                n = r.getResponseHeader("HX-Push-Url");
-                i = "push"
-            } else if (E(r, /HX-Replace-Url:/i)) {
-                n = r.getResponseHeader("HX-Replace-Url");
-                i = "replace"
-            }
-            if (n) {
-                if (n === "false") {
-                    return {}
-                } else {
-                    return {type: i, path: n}
-                }
-            }
-            var a = t.pathInfo.finalRequestPath;
-            var o = t.pathInfo.responsePath;
-            var s = Y(e, "hx-push-url");
-            var l = Y(e, "hx-replace-url");
-            var u = ee(e).boosted;
-            var f = null;
-            var c = null;
-            if (s) {
-                f = "push";
-                c = s
-            } else if (l) {
-                f = "replace";
-                c = l
-            } else if (u) {
-                f = "push";
-                c = o || a
-            }
-            if (c) {
-                if (c === "false") {
-                    return {}
-                }
-                if (c === "true") {
-                    c = o || a
-                }
-                if (t.pathInfo.anchor && c.indexOf("#") === -1) {
-                    c = c + "#" + t.pathInfo.anchor
-                }
-                return {type: f, path: c}
-            } else {
-                return {}
-            }
-        }
-
-        function Sr(l, u) {
-            var f = u.xhr;
-            var c = u.target;
-            var e = u.etc;
-            if (!oe(l, "htmx:beforeOnLoad", u)) return;
-            if (E(f, /HX-Trigger:/i)) {
-                Xe(f, "HX-Trigger", l)
-            }
-            if (E(f, /HX-Location:/i)) {
-                Bt();
-                var t = f.getResponseHeader("HX-Location");
-                var h;
-                if (t.indexOf("{") === 0) {
-                    h = y(t);
-                    t = h["path"];
-                    delete h["path"]
-                }
-                xr("GET", t, h).then(function () {
-                    Vt(t)
-                });
-                return
-            }
-            if (E(f, /HX-Redirect:/i)) {
-                location.href = f.getResponseHeader("HX-Redirect");
-                return
-            }
-            if (E(f, /HX-Refresh:/i)) {
-                if ("true" === f.getResponseHeader("HX-Refresh")) {
-                    location.reload();
-                    return
-                }
-            }
-            if (E(f, /HX-Retarget:/i)) {
-                u.target = K().querySelector(f.getResponseHeader("HX-Retarget"))
-            }
-            var d = wr(l, u);
-            var r = f.status >= 200 && f.status < 400 && f.status !== 204;
-            var v = f.response;
-            var n = f.status >= 400;
-            var i = ne({shouldSwap: r, serverResponse: v, isError: n}, u);
-            if (!oe(c, "htmx:beforeSwap", i)) return;
-            c = i.target;
-            v = i.serverResponse;
-            n = i.isError;
-            u.target = c;
-            u.failed = n;
-            u.successful = !n;
-            if (i.shouldSwap) {
-                if (f.status === 286) {
-                    Je(l)
-                }
-                w(l, function (e) {
-                    v = e.transformResponse(v, f, l)
-                });
-                if (d.type) {
-                    Bt()
-                }
-                var a = e.swapOverride;
-                if (E(f, /HX-Reswap:/i)) {
-                    a = f.getResponseHeader("HX-Reswap")
-                }
-                var h = sr(l, a);
-                c.classList.add(G.config.swappingClass);
-                var g = null;
-                var p = null;
-                var o = function () {
-                    try {
-                        var e = document.activeElement;
-                        var t = {};
-                        try {
-                            t = {elt: e, start: e ? e.selectionStart : null, end: e ? e.selectionEnd : null}
-                        } catch (e) {
-                        }
-                        var r;
-                        if (E(f, /HX-Reselect:/i)) {
-                            r = f.getResponseHeader("HX-Reselect")
-                        }
-                        var n = S(c);
-                        De(h.swapStyle, c, l, v, n, r);
-                        if (t.elt && !re(t.elt) && J(t.elt, "id")) {
-                            var i = document.getElementById(J(t.elt, "id"));
-                            var a = {preventScroll: h.focusScroll !== undefined ? !h.focusScroll : !G.config.defaultFocusScroll};
-                            if (i) {
-                                if (t.start && i.setSelectionRange) {
-                                    try {
-                                        i.setSelectionRange(t.start, t.end)
-                                    } catch (e) {
+                                var triggerSpec = {trigger: trigger};
+                                var eventFilter = maybeGenerateConditional(elt, tokens, "event");
+                                if (eventFilter) {
+                                    triggerSpec.eventFilter = eventFilter;
+                                }
+                                while (tokens.length > 0 && tokens[0] !== ",") {
+                                    consumeUntil(tokens, NOT_WHITESPACE)
+                                    var token = tokens.shift();
+                                    if (token === "changed") {
+                                        triggerSpec.changed = true;
+                                    } else if (token === "once") {
+                                        triggerSpec.once = true;
+                                    } else if (token === "consume") {
+                                        triggerSpec.consume = true;
+                                    } else if (token === "delay" && tokens[0] === ":") {
+                                        tokens.shift();
+                                        triggerSpec.delay = parseInterval(consumeUntil(tokens, WHITESPACE_OR_COMMA));
+                                    } else if (token === "from" && tokens[0] === ":") {
+                                        tokens.shift();
+                                        var from_arg = consumeUntil(tokens, WHITESPACE_OR_COMMA);
+                                        if (from_arg === "closest" || from_arg === "find" || from_arg === "next" || from_arg === "previous") {
+                                            tokens.shift();
+                                            from_arg +=
+                                                " " +
+                                                consumeUntil(
+                                                    tokens,
+                                                    WHITESPACE_OR_COMMA
+                                                );
+                                        }
+                                        triggerSpec.from = from_arg;
+                                    } else if (token === "target" && tokens[0] === ":") {
+                                        tokens.shift();
+                                        triggerSpec.target = consumeUntil(tokens, WHITESPACE_OR_COMMA);
+                                    } else if (token === "throttle" && tokens[0] === ":") {
+                                        tokens.shift();
+                                        triggerSpec.throttle = parseInterval(consumeUntil(tokens, WHITESPACE_OR_COMMA));
+                                    } else if (token === "queue" && tokens[0] === ":") {
+                                        tokens.shift();
+                                        triggerSpec.queue = consumeUntil(tokens, WHITESPACE_OR_COMMA);
+                                    } else if ((token === "root" || token === "threshold") && tokens[0] === ":") {
+                                        tokens.shift();
+                                        triggerSpec[token] = consumeUntil(tokens, WHITESPACE_OR_COMMA);
+                                    } else {
+                                        triggerErrorEvent(elt, "htmx:syntax:error", {token:tokens.shift()});
                                     }
                                 }
-                                i.focus(a)
+                                triggerSpecs.push(triggerSpec);
                             }
                         }
-                        c.classList.remove(G.config.swappingClass);
-                        te(n.elts, function (e) {
-                            if (e.classList) {
-                                e.classList.add(G.config.settlingClass)
-                            }
-                            oe(e, "htmx:afterSwap", u)
-                        });
-                        if (E(f, /HX-Trigger-After-Swap:/i)) {
-                            var o = l;
-                            if (!re(l)) {
-                                o = K().body
-                            }
-                            Xe(f, "HX-Trigger-After-Swap", o)
+                        if (tokens.length === initialLength) {
+                            triggerErrorEvent(elt, "htmx:syntax:error", {token:tokens.shift()});
                         }
-                        var s = function () {
-                            te(n.tasks, function (e) {
-                                e.call()
-                            });
-                            te(n.elts, function (e) {
-                                if (e.classList) {
-                                    e.classList.remove(G.config.settlingClass)
+                        consumeUntil(tokens, NOT_WHITESPACE);
+                    } while (tokens[0] === "," && tokens.shift())
+                }
+
+                if (triggerSpecs.length > 0) {
+                    return triggerSpecs;
+                } else if (matches(elt, 'form')) {
+                    return [{trigger: 'submit'}];
+                } else if (matches(elt, 'input[type="button"], input[type="submit"]')){
+                    return [{trigger: 'click'}];
+                } else if (matches(elt, INPUT_SELECTOR)) {
+                    return [{trigger: 'change'}];
+                } else {
+                    return [{trigger: 'click'}];
+                }
+            }
+
+            function cancelPolling(elt) {
+                getInternalData(elt).cancelled = true;
+            }
+
+            function processPolling(elt, handler, spec) {
+                var nodeData = getInternalData(elt);
+                nodeData.timeout = setTimeout(function () {
+                    if (bodyContains(elt) && nodeData.cancelled !== true) {
+                        if (!maybeFilterEvent(spec, elt, makeEvent('hx:poll:trigger', {
+                            triggerSpec: spec,
+                            target: elt
+                        }))) {
+                            handler(elt);
+                        }
+                        processPolling(elt, handler, spec);
+                    }
+                }, spec.pollInterval);
+            }
+
+            function isLocalLink(elt) {
+                return location.hostname === elt.hostname &&
+                    getRawAttribute(elt,'href') &&
+                    getRawAttribute(elt,'href').indexOf("#") !== 0;
+            }
+
+            function boostElement(elt, nodeData, triggerSpecs) {
+                if ((elt.tagName === "A" && isLocalLink(elt) && (elt.target === "" || elt.target === "_self")) || elt.tagName === "FORM") {
+                    nodeData.boosted = true;
+                    var verb, path;
+                    if (elt.tagName === "A") {
+                        verb = "get";
+                        path = getRawAttribute(elt, 'href')
+                    } else {
+                        var rawAttribute = getRawAttribute(elt, "method");
+                        verb = rawAttribute ? rawAttribute.toLowerCase() : "get";
+                        if (verb === "get") {
+                        }
+                        path = getRawAttribute(elt, 'action');
+                    }
+                    triggerSpecs.forEach(function(triggerSpec) {
+                        addEventListener(elt, function(elt, evt) {
+                            if (closest(elt, htmx.config.disableSelector)) {
+                                cleanUpElement(elt)
+                                return
+                            }
+                            issueAjaxRequest(verb, path, elt, evt)
+                        }, nodeData, triggerSpec, true);
+                    });
+                }
+            }
+
+            /**
+             *
+             * @param {Event} evt
+             * @param {HTMLElement} elt
+             * @returns
+             */
+            function shouldCancel(evt, elt) {
+                if (evt.type === "submit" || evt.type === "click") {
+                    if (elt.tagName === "FORM") {
+                        return true;
+                    }
+                    if (matches(elt, 'input[type="submit"], button') && closest(elt, 'form') !== null) {
+                        return true;
+                    }
+                    if (elt.tagName === "A" && elt.href &&
+                        (elt.getAttribute('href') === '#' || elt.getAttribute('href').indexOf("#") !== 0)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function ignoreBoostedAnchorCtrlClick(elt, evt) {
+                return getInternalData(elt).boosted && elt.tagName === "A" && evt.type === "click" && (evt.ctrlKey || evt.metaKey);
+            }
+
+            function maybeFilterEvent(triggerSpec, elt, evt) {
+                var eventFilter = triggerSpec.eventFilter;
+                if(eventFilter){
+                    try {
+                        return eventFilter.call(elt, evt) !== true;
+                    } catch(e) {
+                        triggerErrorEvent(getDocument().body, "htmx:eventFilter:error", {error: e, source:eventFilter.source});
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function addEventListener(elt, handler, nodeData, triggerSpec, explicitCancel) {
+                var elementData = getInternalData(elt);
+                var eltsToListenOn;
+                if (triggerSpec.from) {
+                    eltsToListenOn = querySelectorAllExt(elt, triggerSpec.from);
+                } else {
+                    eltsToListenOn = [elt];
+                }
+                // store the initial values of the elements, so we can tell if they change
+                if (triggerSpec.changed) {
+                    eltsToListenOn.forEach(function (eltToListenOn) {
+                        var eltToListenOnData = getInternalData(eltToListenOn);
+                        eltToListenOnData.lastValue = eltToListenOn.value;
+                    })
+                }
+                forEach(eltsToListenOn, function (eltToListenOn) {
+                    var eventListener = function (evt) {
+                        if (!bodyContains(elt)) {
+                            eltToListenOn.removeEventListener(triggerSpec.trigger, eventListener);
+                            return;
+                        }
+                        if (ignoreBoostedAnchorCtrlClick(elt, evt)) {
+                            return;
+                        }
+                        if (explicitCancel || shouldCancel(evt, elt)) {
+                            evt.preventDefault();
+                        }
+                        if (maybeFilterEvent(triggerSpec, elt, evt)) {
+                            return;
+                        }
+                        var eventData = getInternalData(evt);
+                        eventData.triggerSpec = triggerSpec;
+                        if (eventData.handledFor == null) {
+                            eventData.handledFor = [];
+                        }
+                        if (eventData.handledFor.indexOf(elt) < 0) {
+                            eventData.handledFor.push(elt);
+                            if (triggerSpec.consume) {
+                                evt.stopPropagation();
+                            }
+                            if (triggerSpec.target && evt.target) {
+                                if (!matches(evt.target, triggerSpec.target)) {
+                                    return;
                                 }
-                                oe(e, "htmx:afterSettle", u)
-                            });
-                            if (d.type) {
-                                if (d.type === "push") {
-                                    Vt(d.path);
-                                    oe(K().body, "htmx:pushedIntoHistory", {path: d.path})
+                            }
+                            if (triggerSpec.once) {
+                                if (elementData.triggeredOnce) {
+                                    return;
                                 } else {
-                                    jt(d.path);
-                                    oe(K().body, "htmx:replacedInHistory", {path: d.path})
+                                    elementData.triggeredOnce = true;
                                 }
                             }
-                            if (u.pathInfo.anchor) {
-                                var e = b("#" + u.pathInfo.anchor);
-                                if (e) {
-                                    e.scrollIntoView({block: "start", behavior: "auto"})
+                            if (triggerSpec.changed) {
+                                var eltToListenOnData = getInternalData(eltToListenOn)
+                                if (eltToListenOnData.lastValue === eltToListenOn.value) {
+                                    return;
                                 }
+                                eltToListenOnData.lastValue = eltToListenOn.value
                             }
-                            if (n.title) {
-                                var t = b("title");
-                                if (t) {
-                                    t.innerHTML = n.title
-                                } else {
-                                    window.document.title = n.title
+                            if (elementData.delayed) {
+                                clearTimeout(elementData.delayed);
+                            }
+                            if (elementData.throttle) {
+                                return;
+                            }
+
+                            if (triggerSpec.throttle) {
+                                if (!elementData.throttle) {
+                                    handler(elt, evt);
+                                    elementData.throttle = setTimeout(function () {
+                                        elementData.throttle = null;
+                                    }, triggerSpec.throttle);
                                 }
+                            } else if (triggerSpec.delay) {
+                                elementData.delayed = setTimeout(function() { handler(elt, evt) }, triggerSpec.delay);
+                            } else {
+                                triggerEvent(elt, 'htmx:trigger')
+                                handler(elt, evt);
                             }
-                            fr(n.elts, h);
-                            if (E(f, /HX-Trigger-After-Settle:/i)) {
-                                var r = l;
-                                if (!re(l)) {
-                                    r = K().body
-                                }
-                                Xe(f, "HX-Trigger-After-Settle", r)
-                            }
-                            Q(g)
-                        };
-                        if (h.settleDelay > 0) {
-                            setTimeout(s, h.settleDelay)
-                        } else {
-                            s()
                         }
-                    } catch (e) {
-                        ae(l, "htmx:swapError", u);
-                        Q(p);
-                        throw e
+                    };
+                    if (nodeData.listenerInfos == null) {
+                        nodeData.listenerInfos = [];
+                    }
+                    nodeData.listenerInfos.push({
+                        trigger: triggerSpec.trigger,
+                        listener: eventListener,
+                        on: eltToListenOn
+                    })
+                    eltToListenOn.addEventListener(triggerSpec.trigger, eventListener);
+                });
+            }
+
+            var windowIsScrolling = false // used by initScrollHandler
+            var scrollHandler = null;
+            function initScrollHandler() {
+                if (!scrollHandler) {
+                    scrollHandler = function() {
+                        windowIsScrolling = true
+                    };
+                    window.addEventListener("scroll", scrollHandler)
+                    setInterval(function() {
+                        if (windowIsScrolling) {
+                            windowIsScrolling = false;
+                            forEach(getDocument().querySelectorAll("[hx-trigger='revealed'],[data-hx-trigger='revealed']"), function (elt) {
+                                maybeReveal(elt);
+                            })
+                        }
+                    }, 200);
+                }
+            }
+
+            function maybeReveal(elt) {
+                if (!hasAttribute(elt,'data-hx-revealed') && isScrolledIntoView(elt)) {
+                    elt.setAttribute('data-hx-revealed', 'true');
+                    var nodeData = getInternalData(elt);
+                    if (nodeData.initHash) {
+                        triggerEvent(elt, 'revealed');
+                    } else {
+                        // if the node isn't initialized, wait for it before triggering the request
+                        elt.addEventListener("htmx:afterProcessNode", function(evt) { triggerEvent(elt, 'revealed') }, {once: true});
+                    }
+                }
+            }
+
+            //====================================================================
+            // Web Sockets
+            //====================================================================
+
+            function processWebSocketInfo(elt, nodeData, info) {
+                var values = splitOnWhitespace(info);
+                for (var i = 0; i < values.length; i++) {
+                    var value = values[i].split(/:(.+)/);
+                    if (value[0] === "connect") {
+                        ensureWebSocket(elt, value[1], 0);
+                    }
+                    if (value[0] === "send") {
+                        processWebSocketSend(elt);
+                    }
+                }
+            }
+
+            function ensureWebSocket(elt, wssSource, retryCount) {
+                if (!bodyContains(elt)) {
+                    return;  // stop ensuring websocket connection when socket bearing element ceases to exist
+                }
+
+                if (wssSource.indexOf("/") == 0) {  // complete absolute paths only
+                    var base_part = location.hostname + (location.port ? ':'+location.port: '');
+                    if (location.protocol == 'https:') {
+                        wssSource = "wss://" + base_part + wssSource;
+                    } else if (location.protocol == 'http:') {
+                        wssSource = "ws://" + base_part + wssSource;
+                    }
+                }
+                var socket = htmx.createWebSocket(wssSource);
+                socket.onerror = function (e) {
+                    triggerErrorEvent(elt, "htmx:wsError", {error:e, socket:socket});
+                    maybeCloseWebSocketSource(elt);
+                };
+
+                socket.onclose = function (e) {
+                    if ([1006, 1012, 1013].indexOf(e.code) >= 0) {  // Abnormal Closure/Service Restart/Try Again Later
+                        var delay = getWebSocketReconnectDelay(retryCount);
+                        setTimeout(function() {
+                            ensureWebSocket(elt, wssSource, retryCount+1);  // creates a websocket with a new timeout
+                        }, delay);
                     }
                 };
-                var s = G.config.globalViewTransitions;
-                if (h.hasOwnProperty("transition")) {
-                    s = h.transition
+                socket.onopen = function (e) {
+                    retryCount = 0;
                 }
-                if (s && oe(l, "htmx:beforeTransition", u) && typeof Promise !== "undefined" && document.startViewTransition) {
-                    var m = new Promise(function (e, t) {
-                        g = e;
-                        p = t
+
+                getInternalData(elt).webSocket = socket;
+                socket.addEventListener('message', function (event) {
+                    if (maybeCloseWebSocketSource(elt)) {
+                        return;
+                    }
+
+                    var response = event.data;
+                    withExtensions(elt, function(extension){
+                        response = extension.transformResponse(response, null, elt);
                     });
-                    var x = o;
-                    o = function () {
-                        document.startViewTransition(function () {
-                            x();
-                            return m
-                        })
+
+                    var settleInfo = makeSettleInfo(elt);
+                    var fragment = makeFragment(response);
+                    var children = toArray(fragment.children);
+                    for (var i = 0; i < children.length; i++) {
+                        var child = children[i];
+                        oobSwap(getAttributeValue(child, "hx-swap-oob") || "true", child, settleInfo);
                     }
+
+                    settleImmediately(settleInfo.tasks);
+                });
+            }
+
+            function maybeCloseWebSocketSource(elt) {
+                if (!bodyContains(elt)) {
+                    getInternalData(elt).webSocket.close();
+                    return true;
                 }
-                if (h.swapDelay > 0) {
-                    setTimeout(o, h.swapDelay)
+            }
+
+            function processWebSocketSend(elt) {
+                var webSocketSourceElt = getClosestMatch(elt, function (parent) {
+                    return getInternalData(parent).webSocket != null;
+                });
+                if (webSocketSourceElt) {
+                    elt.addEventListener(getTriggerSpecs(elt)[0].trigger, function (evt) {
+                        var webSocket = getInternalData(webSocketSourceElt).webSocket;
+                        var headers = getHeaders(elt, webSocketSourceElt);
+                        var results = getInputValues(elt, 'post');
+                        var errors = results.errors;
+                        var rawParameters = results.values;
+                        var expressionVars = getExpressionVars(elt);
+                        var allParameters = mergeObjects(rawParameters, expressionVars);
+                        var filteredParameters = filterValues(allParameters, elt);
+                        filteredParameters['HEADERS'] = headers;
+                        if (errors && errors.length > 0) {
+                            triggerEvent(elt, 'htmx:validation:halted', errors);
+                            return;
+                        }
+                        webSocket.send(JSON.stringify(filteredParameters));
+                        if(shouldCancel(evt, elt)){
+                            evt.preventDefault();
+                        }
+                    });
                 } else {
-                    o()
+                    triggerErrorEvent(elt, "htmx:noWebSocketSourceError");
                 }
             }
-            if (n) {
-                ae(l, "htmx:responseError", ne({error: "Response Status Error Code " + f.status + " from " + u.pathInfo.requestPath}, u))
-            }
-        }
 
-        var Er = {};
-
-        function Cr() {
-            return {
-                init: function (e) {
-                    return null
-                }, onEvent: function (e, t) {
-                    return true
-                }, transformResponse: function (e, t, r) {
-                    return e
-                }, isInlineSwap: function (e) {
-                    return false
-                }, handleSwap: function (e, t, r, n) {
-                    return false
-                }, encodeParameters: function (e, t, r) {
-                    return null
+            function getWebSocketReconnectDelay(retryCount) {
+                var delay = htmx.config.wsReconnectDelay;
+                if (typeof delay === 'function') {
+                    // @ts-ignore
+                    return delay(retryCount);
                 }
+                if (delay === 'full-jitter') {
+                    var exp = Math.min(retryCount, 6);
+                    var maxDelay = 1000 * Math.pow(2, exp);
+                    return maxDelay * Math.random();
+                }
+                logError('htmx.config.wsReconnectDelay must either be a function or the string "full-jitter"');
             }
-        }
 
-        function Rr(e, t) {
-            if (t.init) {
-                t.init(C)
-            }
-            Er[e] = ne(Cr(), t)
-        }
+            //====================================================================
+            // Server Sent Events
+            //====================================================================
 
-        function Or(e) {
-            delete Er[e]
-        }
-
-        function Tr(e, r, n) {
-            if (e == undefined) {
-                return r
-            }
-            if (r == undefined) {
-                r = []
-            }
-            if (n == undefined) {
-                n = []
-            }
-            var t = Z(e, "hx-ext");
-            if (t) {
-                te(t.split(","), function (e) {
-                    e = e.replace(/ /g, "");
-                    if (e.slice(0, 7) == "ignore:") {
-                        n.push(e.slice(7));
-                        return
+            function processSSEInfo(elt, nodeData, info) {
+                var values = splitOnWhitespace(info);
+                for (var i = 0; i < values.length; i++) {
+                    var value = values[i].split(/:(.+)/);
+                    if (value[0] === "connect") {
+                        processSSESource(elt, value[1]);
                     }
-                    if (n.indexOf(e) < 0) {
-                        var t = Er[e];
-                        if (t && r.indexOf(t) < 0) {
-                            r.push(t)
+
+                    if ((value[0] === "swap")) {
+                        processSSESwap(elt, value[1])
+                    }
+                }
+            }
+
+            function processSSESource(elt, sseSrc) {
+                var source = htmx.createEventSource(sseSrc);
+                source.onerror = function (e) {
+                    triggerErrorEvent(elt, "htmx:sseError", {error:e, source:source});
+                    maybeCloseSSESource(elt);
+                };
+                getInternalData(elt).sseEventSource = source;
+            }
+
+            function processSSESwap(elt, sseEventName) {
+                var sseSourceElt = getClosestMatch(elt, hasEventSource);
+                if (sseSourceElt) {
+                    var sseEventSource = getInternalData(sseSourceElt).sseEventSource;
+                    var sseListener = function (event) {
+                        if (maybeCloseSSESource(sseSourceElt)) {
+                            return;
+                        }
+                        if (!bodyContains(elt)) {
+                            sseEventSource.removeEventListener(sseEventName, sseListener);
+                            return;
+                        }
+
+                        ///////////////////////////
+                        // TODO: merge this code with AJAX and WebSockets code in the future.
+
+                        var response = event.data;
+                        withExtensions(elt, function(extension){
+                            response = extension.transformResponse(response, null, elt);
+                        });
+
+                        var swapSpec = getSwapSpecification(elt)
+                        var target = getTarget(elt)
+                        var settleInfo = makeSettleInfo(elt);
+
+                        selectAndSwap(swapSpec.swapStyle, target, elt, response, settleInfo)
+                        settleImmediately(settleInfo.tasks)
+                        triggerEvent(elt, "htmx:sseMessage", event)
+                    };
+
+                    getInternalData(elt).sseListener = sseListener;
+                    sseEventSource.addEventListener(sseEventName, sseListener);
+                } else {
+                    triggerErrorEvent(elt, "htmx:noSSESourceError");
+                }
+            }
+
+            function processSSETrigger(elt, handler, sseEventName) {
+                var sseSourceElt = getClosestMatch(elt, hasEventSource);
+                if (sseSourceElt) {
+                    var sseEventSource = getInternalData(sseSourceElt).sseEventSource;
+                    var sseListener = function () {
+                        if (!maybeCloseSSESource(sseSourceElt)) {
+                            if (bodyContains(elt)) {
+                                handler(elt);
+                            } else {
+                                sseEventSource.removeEventListener(sseEventName, sseListener);
+                            }
+                        }
+                    };
+                    getInternalData(elt).sseListener = sseListener;
+                    sseEventSource.addEventListener(sseEventName, sseListener);
+                } else {
+                    triggerErrorEvent(elt, "htmx:noSSESourceError");
+                }
+            }
+
+            function maybeCloseSSESource(elt) {
+                if (!bodyContains(elt)) {
+                    getInternalData(elt).sseEventSource.close();
+                    return true;
+                }
+            }
+
+            function hasEventSource(node) {
+                return getInternalData(node).sseEventSource != null;
+            }
+
+            //====================================================================
+
+            function loadImmediately(elt, handler, nodeData, delay) {
+                var load = function(){
+                    if (!nodeData.loaded) {
+                        nodeData.loaded = true;
+                        handler(elt);
+                    }
+                }
+                if (delay) {
+                    setTimeout(load, delay);
+                } else {
+                    load();
+                }
+            }
+
+            function processVerbs(elt, nodeData, triggerSpecs) {
+                var explicitAction = false;
+                forEach(VERBS, function (verb) {
+                    if (hasAttribute(elt,'hx-' + verb)) {
+                        var path = getAttributeValue(elt, 'hx-' + verb);
+                        explicitAction = true;
+                        nodeData.path = path;
+                        nodeData.verb = verb;
+                        triggerSpecs.forEach(function(triggerSpec) {
+                            addTriggerHandler(elt, triggerSpec, nodeData, function (elt, evt) {
+                                if (closest(elt, htmx.config.disableSelector)) {
+                                    cleanUpElement(elt)
+                                    return
+                                }
+                                issueAjaxRequest(verb, path, elt, evt)
+                            })
+                        });
+                    }
+                });
+                return explicitAction;
+            }
+
+            function addTriggerHandler(elt, triggerSpec, nodeData, handler) {
+                if (triggerSpec.sseEvent) {
+                    processSSETrigger(elt, handler, triggerSpec.sseEvent);
+                } else if (triggerSpec.trigger === "revealed") {
+                    initScrollHandler();
+                    addEventListener(elt, handler, nodeData, triggerSpec);
+                    maybeReveal(elt);
+                } else if (triggerSpec.trigger === "intersect") {
+                    var observerOptions = {};
+                    if (triggerSpec.root) {
+                        observerOptions.root = querySelectorExt(elt, triggerSpec.root)
+                    }
+                    if (triggerSpec.threshold) {
+                        observerOptions.threshold = parseFloat(triggerSpec.threshold);
+                    }
+                    var observer = new IntersectionObserver(function (entries) {
+                        for (var i = 0; i < entries.length; i++) {
+                            var entry = entries[i];
+                            if (entry.isIntersecting) {
+                                triggerEvent(elt, "intersect");
+                                break;
+                            }
+                        }
+                    }, observerOptions);
+                    observer.observe(elt);
+                    addEventListener(elt, handler, nodeData, triggerSpec);
+                } else if (triggerSpec.trigger === "load") {
+                    if (!maybeFilterEvent(triggerSpec, elt, makeEvent("load", {elt: elt}))) {
+                        loadImmediately(elt, handler, nodeData, triggerSpec.delay);
+                    }
+                } else if (triggerSpec.pollInterval) {
+                    nodeData.polling = true;
+                    processPolling(elt, handler, triggerSpec);
+                } else {
+                    addEventListener(elt, handler, nodeData, triggerSpec);
+                }
+            }
+
+            function evalScript(script) {
+                if (htmx.config.allowScriptTags && (script.type === "text/javascript" || script.type === "module" || script.type === "") ) {
+                    var newScript = getDocument().createElement("script");
+                    forEach(script.attributes, function (attr) {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    newScript.textContent = script.textContent;
+                    newScript.async = false;
+                    if (htmx.config.inlineScriptNonce) {
+                        newScript.nonce = htmx.config.inlineScriptNonce;
+                    }
+                    var parent = script.parentElement;
+
+                    try {
+                        parent.insertBefore(newScript, script);
+                    } catch (e) {
+                        logError(e);
+                    } finally {
+                        // remove old script element, but only if it is still in DOM
+                        if (script.parentElement) {
+                            script.parentElement.removeChild(script);
                         }
                     }
-                })
-            }
-            return Tr(u(e), r, n)
-        }
-
-        var qr = false;
-        K().addEventListener("DOMContentLoaded", function () {
-            qr = true
-        });
-
-        function Hr(e) {
-            if (qr || K().readyState === "complete") {
-                e()
-            } else {
-                K().addEventListener("DOMContentLoaded", e)
-            }
-        }
-
-        function Lr() {
-            if (G.config.includeIndicatorStyles !== false) {
-                K().head.insertAdjacentHTML("beforeend", "<style>                      ." + G.config.indicatorClass + "{opacity:0;transition: opacity 200ms ease-in;}                      ." + G.config.requestClass + " ." + G.config.indicatorClass + "{opacity:1}                      ." + G.config.requestClass + "." + G.config.indicatorClass + "{opacity:1}                    </style>")
-            }
-        }
-
-        function Ar() {
-            var e = K().querySelector('meta[name="htmx-config"]');
-            if (e) {
-                return y(e.content)
-            } else {
-                return null
-            }
-        }
-
-        function Nr() {
-            var e = Ar();
-            if (e) {
-                G.config = ne(G.config, e)
-            }
-        }
-
-        Hr(function () {
-            Nr();
-            Lr();
-            var e = K().body;
-            Nt(e);
-            var t = K().querySelectorAll("[hx-trigger='restored'],[data-hx-trigger='restored']");
-            e.addEventListener("htmx:abort", function (e) {
-                var t = e.target;
-                var r = ee(t);
-                if (r && r.xhr) {
-                    r.xhr.abort()
                 }
-            });
-            var r = window.onpopstate;
-            window.onpopstate = function (e) {
-                if (e.state && e.state.htmx) {
-                    zt();
-                    te(t, function (e) {
-                        oe(e, "htmx:restored", {document: K(), triggerEvent: oe})
-                    })
+            }
+
+            function processScripts(elt) {
+                if (matches(elt, "script")) {
+                    evalScript(elt);
+                }
+                forEach(findAll(elt, "script"), function (script) {
+                    evalScript(script);
+                });
+            }
+
+            function hasChanceOfBeingBoosted() {
+                return document.querySelector("[hx-boost], [data-hx-boost]");
+            }
+
+            function findHxOnWildcardElements(elt) {
+                var node = null
+                var elements = []
+
+                if (document.evaluate) {
+                    var iter = document.evaluate('//*[@*[ starts-with(name(), "hx-on:") or starts-with(name(), "data-hx-on:") ]]', elt)
+                    while (node = iter.iterateNext()) elements.push(node)
                 } else {
-                    if (r) {
-                        r(e)
+                    var allElements = document.getElementsByTagName("*")
+                    for (var i = 0; i < allElements.length; i++) {
+                        var attributes = allElements[i].attributes
+                        for (var j = 0; j < attributes.length; j++) {
+                            var attrName = attributes[j].name
+                            if (startsWith(attrName, "hx-on:") || startsWith(attrName, "data-hx-on:")) {
+                                elements.push(allElements[i])
+                            }
+                        }
                     }
                 }
-            };
-            setTimeout(function () {
-                oe(e, "htmx:load", {});
-                e = null
-            }, 0)
-        });
-        return G
-    }()
-});
+
+                return elements
+            }
+
+            function findElementsToProcess(elt) {
+                if (elt.querySelectorAll) {
+                    var boostedElts = hasChanceOfBeingBoosted() ? ", a" : "";
+                    var results = elt.querySelectorAll(VERB_SELECTOR + boostedElts + ", form, [type='submit'], [hx-sse], [data-hx-sse], [hx-ws]," +
+                        " [data-hx-ws], [hx-ext], [data-hx-ext], [hx-trigger], [data-hx-trigger], [hx-on], [data-hx-on]");
+                    return results;
+                } else {
+                    return [];
+                }
+            }
+
+            function initButtonTracking(elt) {
+                // Handle submit buttons/inputs that have the form attribute set
+                // see https://developer.mozilla.org/docs/Web/HTML/Element/button
+                var form = resolveTarget("#" + getRawAttribute(elt, "form")) || closest(elt, "form")
+                if (!form) {
+                    return
+                }
+
+                var maybeSetLastButtonClicked = function (evt) {
+                    var elt = closest(evt.target, "button, input[type='submit']");
+                    if (elt !== null) {
+                        var internalData = getInternalData(form);
+                        internalData.lastButtonClicked = elt;
+                    }
+                };
+
+                // need to handle both click and focus in:
+                //   focusin - in case someone tabs in to a button and hits the space bar
+                //   click - on OSX buttons do not focus on click see https://bugs.webkit.org/show_bug.cgi?id=13724
+
+                elt.addEventListener('click', maybeSetLastButtonClicked)
+                elt.addEventListener('focusin', maybeSetLastButtonClicked)
+                elt.addEventListener('focusout', function(evt){
+                    var internalData = getInternalData(form);
+                    internalData.lastButtonClicked = null;
+                })
+            }
+
+            function countCurlies(line) {
+                var tokens = tokenizeString(line);
+                var netCurlies = 0;
+                for (let i = 0; i < tokens.length; i++) {
+                    const token = tokens[i];
+                    if (token === "{") {
+                        netCurlies++;
+                    } else if (token === "}") {
+                        netCurlies--;
+                    }
+                }
+                return netCurlies;
+            }
+
+            function addHxOnEventHandler(elt, eventName, code) {
+                var nodeData = getInternalData(elt);
+                nodeData.onHandlers = [];
+                var func;
+                var listener = function (e) {
+                    return maybeEval(elt, function() {
+                        if (!func) {
+                            func = new Function("event", code);
+                        }
+                        func.call(elt, e);
+                    });
+                };
+                elt.addEventListener(eventName, listener);
+                nodeData.onHandlers.push({event:eventName, listener:listener});
+            }
+
+            function processHxOn(elt) {
+                var hxOnValue = getAttributeValue(elt, 'hx-on');
+                if (hxOnValue) {
+                    var handlers = {}
+                    var lines = hxOnValue.split("\n");
+                    var currentEvent = null;
+                    var curlyCount = 0;
+                    while (lines.length > 0) {
+                        var line = lines.shift();
+                        var match = line.match(/^\s*([a-zA-Z:\-\.]+:)(.*)/);
+                        if (curlyCount === 0 && match) {
+                            line.split(":")
+                            currentEvent = match[1].slice(0, -1); // strip last colon
+                            handlers[currentEvent] = match[2];
+                        } else {
+                            handlers[currentEvent] += line;
+                        }
+                        curlyCount += countCurlies(line);
+                    }
+
+                    for (var eventName in handlers) {
+                        addHxOnEventHandler(elt, eventName, handlers[eventName]);
+                    }
+                }
+            }
+
+            function processHxOnWildcard(elt) {
+                // wipe any previous on handlers so that this function takes precedence
+                deInitOnHandlers(elt)
+
+                for (var i = 0; i < elt.attributes.length; i++) {
+                    var name = elt.attributes[i].name
+                    var value = elt.attributes[i].value
+                    if (startsWith(name, "hx-on:") || startsWith(name, "data-hx-on:")) {
+                        let eventName = name.slice(name.indexOf(":") + 1)
+                        // if the eventName starts with a colon, prepend "htmx" for shorthand support
+                        if (startsWith(eventName, ":")) eventName = "htmx" + eventName
+
+                        addHxOnEventHandler(elt, eventName, value)
+                    }
+                }
+            }
+
+            function initNode(elt) {
+                if (closest(elt, htmx.config.disableSelector)) {
+                    cleanUpElement(elt)
+                    return;
+                }
+                var nodeData = getInternalData(elt);
+                if (nodeData.initHash !== attributeHash(elt)) {
+                    // clean up any previously processed info
+                    deInitNode(elt);
+
+                    nodeData.initHash = attributeHash(elt);
+
+                    processHxOn(elt);
+
+                    triggerEvent(elt, "htmx:beforeProcessNode")
+
+                    if (elt.value) {
+                        nodeData.lastValue = elt.value;
+                    }
+
+                    var triggerSpecs = getTriggerSpecs(elt);
+                    var hasExplicitHttpAction = processVerbs(elt, nodeData, triggerSpecs);
+
+                    if (!hasExplicitHttpAction) {
+                        if (getClosestAttributeValue(elt, "hx-boost") === "true") {
+                            boostElement(elt, nodeData, triggerSpecs);
+                        } else if (hasAttribute(elt, 'hx-trigger')) {
+                            triggerSpecs.forEach(function (triggerSpec) {
+                                // For "naked" triggers, don't do anything at all
+                                addTriggerHandler(elt, triggerSpec, nodeData, function () {
+                                })
+                            })
+                        }
+                    }
+
+                    // Handle submit buttons/inputs that have the form attribute set
+                    // see https://developer.mozilla.org/docs/Web/HTML/Element/button
+                    if (elt.tagName === "FORM" || (getRawAttribute(elt, "type") === "submit" && hasAttribute(elt, "form"))) {
+                        initButtonTracking(elt)
+                    }
+
+                    var sseInfo = getAttributeValue(elt, 'hx-sse');
+                    if (sseInfo) {
+                        processSSEInfo(elt, nodeData, sseInfo);
+                    }
+
+                    var wsInfo = getAttributeValue(elt, 'hx-ws');
+                    if (wsInfo) {
+                        processWebSocketInfo(elt, nodeData, wsInfo);
+                    }
+                    triggerEvent(elt, "htmx:afterProcessNode");
+                }
+            }
+
+            function processNode(elt) {
+                elt = resolveTarget(elt);
+                if (closest(elt, htmx.config.disableSelector)) {
+                    cleanUpElement(elt)
+                    return;
+                }
+                initNode(elt);
+                forEach(findElementsToProcess(elt), function(child) { initNode(child) });
+                // Because it happens second, the new way of adding onHandlers superseeds the old one
+                // i.e. if there are any hx-on:eventName attributes, the hx-on attribute will be ignored
+                forEach(findHxOnWildcardElements(elt), processHxOnWildcard);
+            }
+
+            //====================================================================
+            // Event/Log Support
+            //====================================================================
+
+            function kebabEventName(str) {
+                return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+            }
+
+            function makeEvent(eventName, detail) {
+                var evt;
+                if (window.CustomEvent && typeof window.CustomEvent === 'function') {
+                    evt = new CustomEvent(eventName, {bubbles: true, cancelable: true, detail: detail});
+                } else {
+                    evt = getDocument().createEvent('CustomEvent');
+                    evt.initCustomEvent(eventName, true, true, detail);
+                }
+                return evt;
+            }
+
+            function triggerErrorEvent(elt, eventName, detail) {
+                triggerEvent(elt, eventName, mergeObjects({error:eventName}, detail));
+            }
+
+            function ignoreEventForLogging(eventName) {
+                return eventName === "htmx:afterProcessNode"
+            }
+
+            /**
+             * `withExtensions` locates all active extensions for a provided element, then
+             * executes the provided function using each of the active extensions.  It should
+             * be called internally at every extendable execution point in htmx.
+             *
+             * @param {HTMLElement} elt
+             * @param {(extension:import("./htmx").HtmxExtension) => void} toDo
+             * @returns void
+             */
+            function withExtensions(elt, toDo) {
+                forEach(getExtensions(elt), function(extension){
+                    try {
+                        toDo(extension);
+                    } catch (e) {
+                        logError(e);
+                    }
+                });
+            }
+
+            function logError(msg) {
+                if(console.error) {
+                    console.error(msg);
+                } else if (console.log) {
+                    console.log("ERROR: ", msg);
+                }
+            }
+
+            function triggerEvent(elt, eventName, detail) {
+                elt = resolveTarget(elt);
+                if (detail == null) {
+                    detail = {};
+                }
+                detail["elt"] = elt;
+                var event = makeEvent(eventName, detail);
+                if (htmx.logger && !ignoreEventForLogging(eventName)) {
+                    htmx.logger(elt, eventName, detail);
+                }
+                if (detail.error) {
+                    logError(detail.error);
+                    triggerEvent(elt, "htmx:error", {errorInfo:detail})
+                }
+                var eventResult = elt.dispatchEvent(event);
+                var kebabName = kebabEventName(eventName);
+                if (eventResult && kebabName !== eventName) {
+                    var kebabedEvent = makeEvent(kebabName, event.detail);
+                    eventResult = eventResult && elt.dispatchEvent(kebabedEvent)
+                }
+                withExtensions(elt, function (extension) {
+                    eventResult = eventResult && (extension.onEvent(eventName, event) !== false && !event.defaultPrevented)
+                });
+                return eventResult;
+            }
+
+            //====================================================================
+            // History Support
+            //====================================================================
+            var currentPathForHistory = location.pathname+location.search;
+
+            function getHistoryElement() {
+                var historyElt = getDocument().querySelector('[hx-history-elt],[data-hx-history-elt]');
+                return historyElt || getDocument().body;
+            }
+
+            function saveToHistoryCache(url, content, title, scroll) {
+                if (!canAccessLocalStorage()) {
+                    return;
+                }
+
+                url = normalizePath(url);
+
+                var historyCache = parseJSON(localStorage.getItem("htmx-history-cache")) || [];
+                for (var i = 0; i < historyCache.length; i++) {
+                    if (historyCache[i].url === url) {
+                        historyCache.splice(i, 1);
+                        break;
+                    }
+                }
+                var newHistoryItem = {url:url, content: content, title:title, scroll:scroll};
+                triggerEvent(getDocument().body, "htmx:historyItemCreated", {item:newHistoryItem, cache: historyCache})
+                historyCache.push(newHistoryItem)
+                while (historyCache.length > htmx.config.historyCacheSize) {
+                    historyCache.shift();
+                }
+                while(historyCache.length > 0){
+                    try {
+                        localStorage.setItem("htmx-history-cache", JSON.stringify(historyCache));
+                        break;
+                    } catch (e) {
+                        triggerErrorEvent(getDocument().body, "htmx:historyCacheError", {cause:e, cache: historyCache})
+                        historyCache.shift(); // shrink the cache and retry
+                    }
+                }
+            }
+
+            function getCachedHistory(url) {
+                if (!canAccessLocalStorage()) {
+                    return null;
+                }
+
+                url = normalizePath(url);
+
+                var historyCache = parseJSON(localStorage.getItem("htmx-history-cache")) || [];
+                for (var i = 0; i < historyCache.length; i++) {
+                    if (historyCache[i].url === url) {
+                        return historyCache[i];
+                    }
+                }
+                return null;
+            }
+
+            function cleanInnerHtmlForHistory(elt) {
+                var className = htmx.config.requestClass;
+                var clone = elt.cloneNode(true);
+                forEach(findAll(clone, "." + className), function(child){
+                    removeClassFromElement(child, className);
+                });
+                return clone.innerHTML;
+            }
+
+            function saveCurrentPageToHistory() {
+                var elt = getHistoryElement();
+                var path = currentPathForHistory || location.pathname+location.search;
+
+                // Allow history snapshot feature to be disabled where hx-history="false"
+                // is present *anywhere* in the current document we're about to save,
+                // so we can prevent privileged data entering the cache.
+                // The page will still be reachable as a history entry, but htmx will fetch it
+                // live from the server onpopstate rather than look in the localStorage cache
+                var disableHistoryCache
+                try {
+                    disableHistoryCache = getDocument().querySelector('[hx-history="false" i],[data-hx-history="false" i]')
+                } catch (e) {
+                    // IE11: insensitive modifier not supported so fallback to case sensitive selector
+                    disableHistoryCache = getDocument().querySelector('[hx-history="false"],[data-hx-history="false"]')
+                }
+                if (!disableHistoryCache) {
+                    triggerEvent(getDocument().body, "htmx:beforeHistorySave", {path: path, historyElt: elt});
+                    saveToHistoryCache(path, cleanInnerHtmlForHistory(elt), getDocument().title, window.scrollY);
+                }
+
+                if (htmx.config.historyEnabled) history.replaceState({htmx: true}, getDocument().title, window.location.href);
+            }
+
+            function pushUrlIntoHistory(path) {
+                // remove the cache buster parameter, if any
+                if (htmx.config.getCacheBusterParam) {
+                    path = path.replace(/org\.htmx\.cache-buster=[^&]*&?/, '')
+                    if (endsWith(path, '&') || endsWith(path, "?")) {
+                        path = path.slice(0, -1);
+                    }
+                }
+                if(htmx.config.historyEnabled) {
+                    history.pushState({htmx:true}, "", path);
+                }
+                currentPathForHistory = path;
+            }
+
+            function replaceUrlInHistory(path) {
+                if(htmx.config.historyEnabled)  history.replaceState({htmx:true}, "", path);
+                currentPathForHistory = path;
+            }
+
+            function settleImmediately(tasks) {
+                forEach(tasks, function (task) {
+                    task.call();
+                });
+            }
+
+            function loadHistoryFromServer(path) {
+                var request = new XMLHttpRequest();
+                var details = {path: path, xhr:request};
+                triggerEvent(getDocument().body, "htmx:historyCacheMiss", details);
+                request.open('GET', path, true);
+                request.setRequestHeader("HX-History-Restore-Request", "true");
+                request.onload = function () {
+                    if (this.status >= 200 && this.status < 400) {
+                        triggerEvent(getDocument().body, "htmx:historyCacheMissLoad", details);
+                        var fragment = makeFragment(this.response);
+                        // @ts-ignore
+                        fragment = fragment.querySelector('[hx-history-elt],[data-hx-history-elt]') || fragment;
+                        var historyElement = getHistoryElement();
+                        var settleInfo = makeSettleInfo(historyElement);
+                        var title = findTitle(this.response);
+                        if (title) {
+                            var titleElt = find("title");
+                            if (titleElt) {
+                                titleElt.innerHTML = title;
+                            } else {
+                                window.document.title = title;
+                            }
+                        }
+                        // @ts-ignore
+                        swapInnerHTML(historyElement, fragment, settleInfo)
+                        settleImmediately(settleInfo.tasks);
+                        currentPathForHistory = path;
+                        triggerEvent(getDocument().body, "htmx:historyRestore", {path: path, cacheMiss:true, serverResponse:this.response});
+                    } else {
+                        triggerErrorEvent(getDocument().body, "htmx:historyCacheMissLoadError", details);
+                    }
+                };
+                request.send();
+            }
+
+            function restoreHistory(path) {
+                saveCurrentPageToHistory();
+                path = path || location.pathname+location.search;
+                var cached = getCachedHistory(path);
+                if (cached) {
+                    var fragment = makeFragment(cached.content);
+                    var historyElement = getHistoryElement();
+                    var settleInfo = makeSettleInfo(historyElement);
+                    swapInnerHTML(historyElement, fragment, settleInfo)
+                    settleImmediately(settleInfo.tasks);
+                    document.title = cached.title;
+                    setTimeout(function () {
+                        window.scrollTo(0, cached.scroll);
+                    }, 0); // next 'tick', so browser has time to render layout
+                    currentPathForHistory = path;
+                    triggerEvent(getDocument().body, "htmx:historyRestore", {path:path, item:cached});
+                } else {
+                    if (htmx.config.refreshOnHistoryMiss) {
+
+                        // @ts-ignore: optional parameter in reload() function throws error
+                        window.location.reload(true);
+                    } else {
+                        loadHistoryFromServer(path);
+                    }
+                }
+            }
+
+            function addRequestIndicatorClasses(elt) {
+                var indicators = findAttributeTargets(elt, 'hx-indicator');
+                if (indicators == null) {
+                    indicators = [elt];
+                }
+                forEach(indicators, function (ic) {
+                    var internalData = getInternalData(ic);
+                    internalData.requestCount = (internalData.requestCount || 0) + 1;
+                    ic.classList["add"].call(ic.classList, htmx.config.requestClass);
+                });
+                return indicators;
+            }
+
+            function disableElements(elt) {
+                var disabledElts = findAttributeTargets(elt, 'hx-disabled-elt');
+                if (disabledElts == null) {
+                    disabledElts = [];
+                }
+                forEach(disabledElts, function (disabledElement) {
+                    var internalData = getInternalData(disabledElement);
+                    internalData.requestCount = (internalData.requestCount || 0) + 1;
+                    disabledElement.setAttribute("disabled", "");
+                });
+                return disabledElts;
+            }
+
+            function removeRequestIndicators(indicators, disabled) {
+                forEach(indicators, function (ic) {
+                    var internalData = getInternalData(ic);
+                    internalData.requestCount = (internalData.requestCount || 0) - 1;
+                    if (internalData.requestCount === 0) {
+                        ic.classList["remove"].call(ic.classList, htmx.config.requestClass);
+                    }
+                });
+                forEach(disabled, function (disabledElement) {
+                    var internalData = getInternalData(disabledElement);
+                    internalData.requestCount = (internalData.requestCount || 0) - 1;
+                    if (internalData.requestCount === 0) {
+                        disabledElement.removeAttribute('disabled');
+                    }
+                });
+            }
+
+            //====================================================================
+            // Input Value Processing
+            //====================================================================
+
+            function haveSeenNode(processed, elt) {
+                for (var i = 0; i < processed.length; i++) {
+                    var node = processed[i];
+                    if (node.isSameNode(elt)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function shouldInclude(elt) {
+                if(elt.name === "" || elt.name == null || elt.disabled) {
+                    return false;
+                }
+                // ignore "submitter" types (see jQuery src/serialize.js)
+                if (elt.type === "button" || elt.type === "submit" || elt.tagName === "image" || elt.tagName === "reset" || elt.tagName === "file" ) {
+                    return false;
+                }
+                if (elt.type === "checkbox" || elt.type === "radio" ) {
+                    return elt.checked;
+                }
+                return true;
+            }
+
+            function addValueToValues(name, value, values) {
+                // This is a little ugly because both the current value of the named value in the form
+                // and the new value could be arrays, so we have to handle all four cases :/
+                if (name != null && value != null) {
+                    var current = values[name];
+                    if (current === undefined) {
+                        values[name] = value;
+                    } else if (Array.isArray(current)) {
+                        if (Array.isArray(value)) {
+                            values[name] = current.concat(value);
+                        } else {
+                            current.push(value);
+                        }
+                    } else {
+                        if (Array.isArray(value)) {
+                            values[name] = [current].concat(value);
+                        } else {
+                            values[name] = [current, value];
+                        }
+                    }
+                }
+            }
+
+            function processInputValue(processed, values, errors, elt, validate) {
+                if (elt == null || haveSeenNode(processed, elt)) {
+                    return;
+                } else {
+                    processed.push(elt);
+                }
+                if (shouldInclude(elt)) {
+                    var name = getRawAttribute(elt,"name");
+                    var value = elt.value;
+                    if (elt.multiple) {
+                        value = toArray(elt.querySelectorAll("option:checked")).map(function (e) { return e.value });
+                    }
+                    // include file inputs
+                    if (elt.files) {
+                        value = toArray(elt.files);
+                    }
+                    addValueToValues(name, value, values);
+                    if (validate) {
+                        validateElement(elt, errors);
+                    }
+                }
+                if (matches(elt, 'form')) {
+                    var inputs = elt.elements;
+                    forEach(inputs, function(input) {
+                        processInputValue(processed, values, errors, input, validate);
+                    });
+                }
+            }
+
+            function validateElement(element, errors) {
+                if (element.willValidate) {
+                    triggerEvent(element, "htmx:validation:validate")
+                    if (!element.checkValidity()) {
+                        errors.push({elt: element, message:element.validationMessage, validity:element.validity});
+                        triggerEvent(element, "htmx:validation:failed", {message:element.validationMessage, validity:element.validity})
+                    }
+                }
+            }
+
+            /**
+             * @param {HTMLElement} elt
+             * @param {string} verb
+             */
+            function getInputValues(elt, verb) {
+                var processed = [];
+                var values = {};
+                var formValues = {};
+                var errors = [];
+                var internalData = getInternalData(elt);
+
+                // only validate when form is directly submitted and novalidate or formnovalidate are not set
+                // or if the element has an explicit hx-validate="true" on it
+                var validate = (matches(elt, 'form') && elt.noValidate !== true) || getAttributeValue(elt, "hx-validate") === "true";
+                if (internalData.lastButtonClicked) {
+                    validate = validate && internalData.lastButtonClicked.formNoValidate !== true;
+                }
+
+                // for a non-GET include the closest form
+                if (verb !== 'get') {
+                    processInputValue(processed, formValues, errors, closest(elt, 'form'), validate);
+                }
+
+                // include the element itself
+                processInputValue(processed, values, errors, elt, validate);
+
+                // if a button or submit was clicked last, include its value
+                if (internalData.lastButtonClicked || elt.tagName === "BUTTON" ||
+                    (elt.tagName === "INPUT" && getRawAttribute(elt, "type") === "submit")) {
+                    var button = internalData.lastButtonClicked || elt
+                    var name = getRawAttribute(button, "name")
+                    addValueToValues(name, button.value, formValues)
+                }
+
+                // include any explicit includes
+                var includes = findAttributeTargets(elt, "hx-include");
+                forEach(includes, function(node) {
+                    processInputValue(processed, values, errors, node, validate);
+                    // if a non-form is included, include any input values within it
+                    if (!matches(node, 'form')) {
+                        forEach(node.querySelectorAll(INPUT_SELECTOR), function (descendant) {
+                            processInputValue(processed, values, errors, descendant, validate);
+                        })
+                    }
+                });
+
+                // form values take precedence, overriding the regular values
+                values = mergeObjects(values, formValues);
+
+                return {errors:errors, values:values};
+            }
+
+            function appendParam(returnStr, name, realValue) {
+                if (returnStr !== "") {
+                    returnStr += "&";
+                }
+                if (String(realValue) === "[object Object]") {
+                    realValue = JSON.stringify(realValue);
+                }
+                var s = encodeURIComponent(realValue);
+                returnStr += encodeURIComponent(name) + "=" + s;
+                return returnStr;
+            }
+
+            function urlEncode(values) {
+                var returnStr = "";
+                for (var name in values) {
+                    if (values.hasOwnProperty(name)) {
+                        var value = values[name];
+                        if (Array.isArray(value)) {
+                            forEach(value, function(v) {
+                                returnStr = appendParam(returnStr, name, v);
+                            });
+                        } else {
+                            returnStr = appendParam(returnStr, name, value);
+                        }
+                    }
+                }
+                return returnStr;
+            }
+
+            function makeFormData(values) {
+                var formData = new FormData();
+                for (var name in values) {
+                    if (values.hasOwnProperty(name)) {
+                        var value = values[name];
+                        if (Array.isArray(value)) {
+                            forEach(value, function(v) {
+                                formData.append(name, v);
+                            });
+                        } else {
+                            formData.append(name, value);
+                        }
+                    }
+                }
+                return formData;
+            }
+
+            //====================================================================
+            // Ajax
+            //====================================================================
+
+            /**
+             * @param {HTMLElement} elt
+             * @param {HTMLElement} target
+             * @param {string} prompt
+             * @returns {Object} // TODO: Define/Improve HtmxHeaderSpecification
+             */
+            function getHeaders(elt, target, prompt) {
+                var headers = {
+                    "HX-Request" : "true",
+                    "HX-Trigger" : getRawAttribute(elt, "id"),
+                    "HX-Trigger-Name" : getRawAttribute(elt, "name"),
+                    "HX-Target" : getAttributeValue(target, "id"),
+                    "HX-Current-URL" : getDocument().location.href,
+                }
+                getValuesForElement(elt, "hx-headers", false, headers)
+                if (prompt !== undefined) {
+                    headers["HX-Prompt"] = prompt;
+                }
+                if (getInternalData(elt).boosted) {
+                    headers["HX-Boosted"] = "true";
+                }
+                return headers;
+            }
+
+            /**
+             * filterValues takes an object containing form input values
+             * and returns a new object that only contains keys that are
+             * specified by the closest "hx-params" attribute
+             * @param {Object} inputValues
+             * @param {HTMLElement} elt
+             * @returns {Object}
+             */
+            function filterValues(inputValues, elt) {
+                var paramsValue = getClosestAttributeValue(elt, "hx-params");
+                if (paramsValue) {
+                    if (paramsValue === "none") {
+                        return {};
+                    } else if (paramsValue === "*") {
+                        return inputValues;
+                    } else if(paramsValue.indexOf("not ") === 0) {
+                        forEach(paramsValue.substr(4).split(","), function (name) {
+                            name = name.trim();
+                            delete inputValues[name];
+                        });
+                        return inputValues;
+                    } else {
+                        var newValues = {}
+                        forEach(paramsValue.split(","), function (name) {
+                            name = name.trim();
+                            newValues[name] = inputValues[name];
+                        });
+                        return newValues;
+                    }
+                } else {
+                    return inputValues;
+                }
+            }
+
+            function isAnchorLink(elt) {
+                return getRawAttribute(elt, 'href') && getRawAttribute(elt, 'href').indexOf("#") >=0
+            }
+
+            /**
+             *
+             * @param {HTMLElement} elt
+             * @param {string} swapInfoOverride
+             * @returns {import("./htmx").HtmxSwapSpecification}
+             */
+            function getSwapSpecification(elt, swapInfoOverride) {
+                var swapInfo = swapInfoOverride ? swapInfoOverride : getClosestAttributeValue(elt, "hx-swap");
+                var swapSpec = {
+                    "swapStyle" : getInternalData(elt).boosted ? 'innerHTML' : htmx.config.defaultSwapStyle,
+                    "swapDelay" : htmx.config.defaultSwapDelay,
+                    "settleDelay" : htmx.config.defaultSettleDelay
+                }
+                if (getInternalData(elt).boosted && !isAnchorLink(elt)) {
+                    swapSpec["show"] = "top"
+                }
+                if (swapInfo) {
+                    var split = splitOnWhitespace(swapInfo);
+                    if (split.length > 0) {
+                        for (var i = 0; i < split.length; i++) {
+                            var value = split[i];
+                            if (value.indexOf("swap:") === 0) {
+                                swapSpec["swapDelay"] = parseInterval(value.substr(5));
+                            } else if (value.indexOf("settle:") === 0) {
+                                swapSpec["settleDelay"] = parseInterval(value.substr(7));
+                            } else if (value.indexOf("transition:") === 0) {
+                                swapSpec["transition"] = value.substr(11) === "true";
+                            } else if (value.indexOf("ignoreTitle:") === 0) {
+                                swapSpec["ignoreTitle"] = value.substr(12) === "true";
+                            } else if (value.indexOf("scroll:") === 0) {
+                                var scrollSpec = value.substr(7);
+                                var splitSpec = scrollSpec.split(":");
+                                var scrollVal = splitSpec.pop();
+                                var selectorVal = splitSpec.length > 0 ? splitSpec.join(":") : null;
+                                swapSpec["scroll"] = scrollVal;
+                                swapSpec["scrollTarget"] = selectorVal;
+                            } else if (value.indexOf("show:") === 0) {
+                                var showSpec = value.substr(5);
+                                var splitSpec = showSpec.split(":");
+                                var showVal = splitSpec.pop();
+                                var selectorVal = splitSpec.length > 0 ? splitSpec.join(":") : null;
+                                swapSpec["show"] = showVal;
+                                swapSpec["showTarget"] = selectorVal;
+                            } else if (value.indexOf("focus-scroll:") === 0) {
+                                var focusScrollVal = value.substr("focus-scroll:".length);
+                                swapSpec["focusScroll"] = focusScrollVal == "true";
+                            } else if (i == 0) {
+                                swapSpec["swapStyle"] = value;
+                            } else {
+                                logError('Unknown modifier in hx-swap: ' + value);
+                            }
+                        }
+                    }
+                }
+                return swapSpec;
+            }
+
+            function usesFormData(elt) {
+                return getClosestAttributeValue(elt, "hx-encoding") === "multipart/form-data" ||
+                    (matches(elt, "form") && getRawAttribute(elt, 'enctype') === "multipart/form-data");
+            }
+
+            function encodeParamsForBody(xhr, elt, filteredParameters) {
+                var encodedParameters = null;
+                withExtensions(elt, function (extension) {
+                    if (encodedParameters == null) {
+                        encodedParameters = extension.encodeParameters(xhr, filteredParameters, elt);
+                    }
+                });
+                if (encodedParameters != null) {
+                    return encodedParameters;
+                } else {
+                    if (usesFormData(elt)) {
+                        return makeFormData(filteredParameters);
+                    } else {
+                        return urlEncode(filteredParameters);
+                    }
+                }
+            }
+
+            /**
+             *
+             * @param {Element} target
+             * @returns {import("./htmx").HtmxSettleInfo}
+             */
+            function makeSettleInfo(target) {
+                return {tasks: [], elts: [target]};
+            }
+
+            function updateScrollState(content, swapSpec) {
+                var first = content[0];
+                var last = content[content.length - 1];
+                if (swapSpec.scroll) {
+                    var target = null;
+                    if (swapSpec.scrollTarget) {
+                        target = querySelectorExt(first, swapSpec.scrollTarget);
+                    }
+                    if (swapSpec.scroll === "top" && (first || target)) {
+                        target = target || first;
+                        target.scrollTop = 0;
+                    }
+                    if (swapSpec.scroll === "bottom" && (last || target)) {
+                        target = target || last;
+                        target.scrollTop = target.scrollHeight;
+                    }
+                }
+                if (swapSpec.show) {
+                    var target = null;
+                    if (swapSpec.showTarget) {
+                        var targetStr = swapSpec.showTarget;
+                        if (swapSpec.showTarget === "window") {
+                            targetStr = "body";
+                        }
+                        target = querySelectorExt(first, targetStr);
+                    }
+                    if (swapSpec.show === "top" && (first || target)) {
+                        target = target || first;
+                        target.scrollIntoView({block:'start', behavior: htmx.config.scrollBehavior});
+                    }
+                    if (swapSpec.show === "bottom" && (last || target)) {
+                        target = target || last;
+                        target.scrollIntoView({block:'end', behavior: htmx.config.scrollBehavior});
+                    }
+                }
+            }
+
+            /**
+             * @param {HTMLElement} elt
+             * @param {string} attr
+             * @param {boolean=} evalAsDefault
+             * @param {Object=} values
+             * @returns {Object}
+             */
+            function getValuesForElement(elt, attr, evalAsDefault, values) {
+                if (values == null) {
+                    values = {};
+                }
+                if (elt == null) {
+                    return values;
+                }
+                var attributeValue = getAttributeValue(elt, attr);
+                if (attributeValue) {
+                    var str = attributeValue.trim();
+                    var evaluateValue = evalAsDefault;
+                    if (str === "unset") {
+                        return null;
+                    }
+                    if (str.indexOf("javascript:") === 0) {
+                        str = str.substr(11);
+                        evaluateValue = true;
+                    } else if (str.indexOf("js:") === 0) {
+                        str = str.substr(3);
+                        evaluateValue = true;
+                    }
+                    if (str.indexOf('{') !== 0) {
+                        str = "{" + str + "}";
+                    }
+                    var varsValues;
+                    if (evaluateValue) {
+                        varsValues = maybeEval(elt,function () {return Function("return (" + str + ")")();}, {});
+                    } else {
+                        varsValues = parseJSON(str);
+                    }
+                    for (var key in varsValues) {
+                        if (varsValues.hasOwnProperty(key)) {
+                            if (values[key] == null) {
+                                values[key] = varsValues[key];
+                            }
+                        }
+                    }
+                }
+                return getValuesForElement(parentElt(elt), attr, evalAsDefault, values);
+            }
+
+            function maybeEval(elt, toEval, defaultVal) {
+                if (htmx.config.allowEval) {
+                    return toEval();
+                } else {
+                    triggerErrorEvent(elt, 'htmx:evalDisallowedError');
+                    return defaultVal;
+                }
+            }
+
+            /**
+             * @param {HTMLElement} elt
+             * @param {*} expressionVars
+             * @returns
+             */
+            function getHXVarsForElement(elt, expressionVars) {
+                return getValuesForElement(elt, "hx-vars", true, expressionVars);
+            }
+
+            /**
+             * @param {HTMLElement} elt
+             * @param {*} expressionVars
+             * @returns
+             */
+            function getHXValsForElement(elt, expressionVars) {
+                return getValuesForElement(elt, "hx-vals", false, expressionVars);
+            }
+
+            /**
+             * @param {HTMLElement} elt
+             * @returns {Object}
+             */
+            function getExpressionVars(elt) {
+                return mergeObjects(getHXVarsForElement(elt), getHXValsForElement(elt));
+            }
+
+            function safelySetHeaderValue(xhr, header, headerValue) {
+                if (headerValue !== null) {
+                    try {
+                        xhr.setRequestHeader(header, headerValue);
+                    } catch (e) {
+                        // On an exception, try to set the header URI encoded instead
+                        xhr.setRequestHeader(header, encodeURIComponent(headerValue));
+                        xhr.setRequestHeader(header + "-URI-AutoEncoded", "true");
+                    }
+                }
+            }
+
+            function getPathFromResponse(xhr) {
+                // NB: IE11 does not support this stuff
+                if (xhr.responseURL && typeof(URL) !== "undefined") {
+                    try {
+                        var url = new URL(xhr.responseURL);
+                        return url.pathname + url.search;
+                    } catch (e) {
+                        triggerErrorEvent(getDocument().body, "htmx:badResponseUrl", {url: xhr.responseURL});
+                    }
+                }
+            }
+
+            function hasHeader(xhr, regexp) {
+                return xhr.getAllResponseHeaders().match(regexp);
+            }
+
+            function ajaxHelper(verb, path, context) {
+                verb = verb.toLowerCase();
+                if (context) {
+                    if (context instanceof Element || isType(context, 'String')) {
+                        return issueAjaxRequest(verb, path, null, null, {
+                            targetOverride: resolveTarget(context),
+                            returnPromise: true
+                        });
+                    } else {
+                        return issueAjaxRequest(verb, path, resolveTarget(context.source), context.event,
+                            {
+                                handler : context.handler,
+                                headers : context.headers,
+                                values : context.values,
+                                targetOverride: resolveTarget(context.target),
+                                swapOverride: context.swap,
+                                returnPromise: true
+                            });
+                    }
+                } else {
+                    return issueAjaxRequest(verb, path, null, null, {
+                        returnPromise: true
+                    });
+                }
+            }
+
+            function hierarchyForElt(elt) {
+                var arr = [];
+                while (elt) {
+                    arr.push(elt);
+                    elt = elt.parentElement;
+                }
+                return arr;
+            }
+
+            function verifyPath(elt, path, requestConfig) {
+                var sameHost
+                var url
+                if (typeof URL === "function") {
+                    url = new URL(path, document.location.href);
+                    var origin = document.location.origin;
+                    sameHost = origin === url.origin;
+                } else {
+                    // IE11 doesn't support URL
+                    url = path
+                    sameHost = startsWith(path, document.location.origin)
+                }
+
+                if (htmx.config.selfRequestsOnly) {
+                    if (!sameHost) {
+                        return false;
+                    }
+                }
+                return triggerEvent(elt, "htmx:validateUrl", mergeObjects({url: url, sameHost: sameHost}, requestConfig));
+            }
+
+            function issueAjaxRequest(verb, path, elt, event, etc, confirmed) {
+                var resolve = null;
+                var reject = null;
+                etc = etc != null ? etc : {};
+                if(etc.returnPromise && typeof Promise !== "undefined"){
+                    var promise = new Promise(function (_resolve, _reject) {
+                        resolve = _resolve;
+                        reject = _reject;
+                    });
+                }
+                if(elt == null) {
+                    elt = getDocument().body;
+                }
+                var responseHandler = etc.handler || handleAjaxResponse;
+
+                if (!bodyContains(elt)) {
+                    // do not issue requests for elements removed from the DOM
+                    maybeCall(resolve);
+                    return promise;
+                }
+                var target = etc.targetOverride || getTarget(elt);
+                if (target == null || target == DUMMY_ELT) {
+                    triggerErrorEvent(elt, 'htmx:targetError', {target: getAttributeValue(elt, "hx-target")});
+                    maybeCall(reject);
+                    return promise;
+                }
+
+                var eltData = getInternalData(elt);
+                var submitter = eltData.lastButtonClicked;
+
+                if (submitter) {
+                    var buttonPath = getRawAttribute(submitter, "formaction");
+                    if (buttonPath != null) {
+                        path = buttonPath;
+                    }
+
+                    var buttonVerb = getRawAttribute(submitter, "formmethod")
+                    if (buttonVerb != null) {
+                        verb = buttonVerb;
+                    }
+                }
+
+                // allow event-based confirmation w/ a callback
+                if (!confirmed) {
+                    var issueRequest = function() {
+                        return issueAjaxRequest(verb, path, elt, event, etc, true);
+                    }
+                    var confirmDetails = {target: target, elt: elt, path: path, verb: verb, triggeringEvent: event, etc: etc, issueRequest: issueRequest};
+                    if (triggerEvent(elt, 'htmx:confirm', confirmDetails) === false) {
+                        maybeCall(resolve);
+                        return promise;
+                    }
+                }
+
+                var syncElt = elt;
+                var syncStrategy = getClosestAttributeValue(elt, "hx-sync");
+                var queueStrategy = null;
+                var abortable = false;
+                if (syncStrategy) {
+                    var syncStrings = syncStrategy.split(":");
+                    var selector = syncStrings[0].trim();
+                    if (selector === "this") {
+                        syncElt = findThisElement(elt, 'hx-sync');
+                    } else {
+                        syncElt = querySelectorExt(elt, selector);
+                    }
+                    // default to the drop strategy
+                    syncStrategy = (syncStrings[1] || 'drop').trim();
+                    eltData = getInternalData(syncElt);
+                    if (syncStrategy === "drop" && eltData.xhr && eltData.abortable !== true) {
+                        maybeCall(resolve);
+                        return promise;
+                    } else if (syncStrategy === "abort") {
+                        if (eltData.xhr) {
+                            maybeCall(resolve);
+                            return promise;
+                        } else {
+                            abortable = true;
+                        }
+                    } else if (syncStrategy === "replace") {
+                        triggerEvent(syncElt, 'htmx:abort'); // abort the current request and continue
+                    } else if (syncStrategy.indexOf("queue") === 0) {
+                        var queueStrArray = syncStrategy.split(" ");
+                        queueStrategy = (queueStrArray[1] || "last").trim();
+                    }
+                }
+
+                if (eltData.xhr) {
+                    if (eltData.abortable) {
+                        triggerEvent(syncElt, 'htmx:abort'); // abort the current request and continue
+                    } else {
+                        if(queueStrategy == null){
+                            if (event) {
+                                var eventData = getInternalData(event);
+                                if (eventData && eventData.triggerSpec && eventData.triggerSpec.queue) {
+                                    queueStrategy = eventData.triggerSpec.queue;
+                                }
+                            }
+                            if (queueStrategy == null) {
+                                queueStrategy = "last";
+                            }
+                        }
+                        if (eltData.queuedRequests == null) {
+                            eltData.queuedRequests = [];
+                        }
+                        if (queueStrategy === "first" && eltData.queuedRequests.length === 0) {
+                            eltData.queuedRequests.push(function () {
+                                issueAjaxRequest(verb, path, elt, event, etc)
+                            });
+                        } else if (queueStrategy === "all") {
+                            eltData.queuedRequests.push(function () {
+                                issueAjaxRequest(verb, path, elt, event, etc)
+                            });
+                        } else if (queueStrategy === "last") {
+                            eltData.queuedRequests = []; // dump existing queue
+                            eltData.queuedRequests.push(function () {
+                                issueAjaxRequest(verb, path, elt, event, etc)
+                            });
+                        }
+                        maybeCall(resolve);
+                        return promise;
+                    }
+                }
+
+                var xhr = new XMLHttpRequest();
+                eltData.xhr = xhr;
+                eltData.abortable = abortable;
+                var endRequestLock = function(){
+                    eltData.xhr = null;
+                    eltData.abortable = false;
+                    if (eltData.queuedRequests != null &&
+                        eltData.queuedRequests.length > 0) {
+                        var queuedRequest = eltData.queuedRequests.shift();
+                        queuedRequest();
+                    }
+                }
+                var promptQuestion = getClosestAttributeValue(elt, "hx-prompt");
+                if (promptQuestion) {
+                    var promptResponse = prompt(promptQuestion);
+                    // prompt returns null if cancelled and empty string if accepted with no entry
+                    if (promptResponse === null ||
+                        !triggerEvent(elt, 'htmx:prompt', {prompt: promptResponse, target:target})) {
+                        maybeCall(resolve);
+                        endRequestLock();
+                        return promise;
+                    }
+                }
+
+                var confirmQuestion = getClosestAttributeValue(elt, "hx-confirm");
+                if (confirmQuestion) {
+                    if(!confirm(confirmQuestion)) {
+                        maybeCall(resolve);
+                        endRequestLock()
+                        return promise;
+                    }
+                }
+
+
+                var headers = getHeaders(elt, target, promptResponse);
+                if (etc.headers) {
+                    headers = mergeObjects(headers, etc.headers);
+                }
+                var results = getInputValues(elt, verb);
+                var errors = results.errors;
+                var rawParameters = results.values;
+                if (etc.values) {
+                    rawParameters = mergeObjects(rawParameters, etc.values);
+                }
+                var expressionVars = getExpressionVars(elt);
+                var allParameters = mergeObjects(rawParameters, expressionVars);
+                var filteredParameters = filterValues(allParameters, elt);
+
+                if (verb !== 'get' && !usesFormData(elt)) {
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                }
+
+                if (htmx.config.getCacheBusterParam && verb === 'get') {
+                    filteredParameters['org.htmx.cache-buster'] = getRawAttribute(target, "id") || "true";
+                }
+
+                // behavior of anchors w/ empty href is to use the current URL
+                if (path == null || path === "") {
+                    path = getDocument().location.href;
+                }
+
+
+                var requestAttrValues = getValuesForElement(elt, 'hx-request');
+
+                var eltIsBoosted = getInternalData(elt).boosted;
+
+                var useUrlParams = htmx.config.methodsThatUseUrlParams.indexOf(verb) >= 0
+
+                var requestConfig = {
+                    boosted: eltIsBoosted,
+                    useUrlParams: useUrlParams,
+                    parameters: filteredParameters,
+                    unfilteredParameters: allParameters,
+                    headers:headers,
+                    target:target,
+                    verb:verb,
+                    errors:errors,
+                    withCredentials: etc.credentials || requestAttrValues.credentials || htmx.config.withCredentials,
+                    timeout:  etc.timeout || requestAttrValues.timeout || htmx.config.timeout,
+                    path:path,
+                    triggeringEvent:event
+                };
+
+                if(!triggerEvent(elt, 'htmx:configRequest', requestConfig)){
+                    maybeCall(resolve);
+                    endRequestLock();
+                    return promise;
+                }
+
+                // copy out in case the object was overwritten
+                path = requestConfig.path;
+                verb = requestConfig.verb;
+                headers = requestConfig.headers;
+                filteredParameters = requestConfig.parameters;
+                errors = requestConfig.errors;
+                useUrlParams = requestConfig.useUrlParams;
+
+                if(errors && errors.length > 0){
+                    triggerEvent(elt, 'htmx:validation:halted', requestConfig)
+                    maybeCall(resolve);
+                    endRequestLock();
+                    return promise;
+                }
+
+                var splitPath = path.split("#");
+                var pathNoAnchor = splitPath[0];
+                var anchor = splitPath[1];
+
+                var finalPath = path
+                if (useUrlParams) {
+                    finalPath = pathNoAnchor;
+                    var values = Object.keys(filteredParameters).length !== 0;
+                    if (values) {
+                        if (finalPath.indexOf("?") < 0) {
+                            finalPath += "?";
+                        } else {
+                            finalPath += "&";
+                        }
+                        finalPath += urlEncode(filteredParameters);
+                        if (anchor) {
+                            finalPath += "#" + anchor;
+                        }
+                    }
+                }
+
+                if (!verifyPath(elt, finalPath, requestConfig)) {
+                    triggerErrorEvent(elt, 'htmx:invalidPath', requestConfig)
+                    maybeCall(reject);
+                    return promise;
+                };
+
+                xhr.open(verb.toUpperCase(), finalPath, true);
+                xhr.overrideMimeType("text/html");
+                xhr.withCredentials = requestConfig.withCredentials;
+                xhr.timeout = requestConfig.timeout;
+
+                // request headers
+                if (requestAttrValues.noHeaders) {
+                    // ignore all headers
+                } else {
+                    for (var header in headers) {
+                        if (headers.hasOwnProperty(header)) {
+                            var headerValue = headers[header];
+                            safelySetHeaderValue(xhr, header, headerValue);
+                        }
+                    }
+                }
+
+                var responseInfo = {
+                    xhr: xhr, target: target, requestConfig: requestConfig, etc: etc, boosted: eltIsBoosted,
+                    pathInfo: {
+                        requestPath: path,
+                        finalRequestPath: finalPath,
+                        anchor: anchor
+                    }
+                };
+
+                xhr.onload = function () {
+                    try {
+                        var hierarchy = hierarchyForElt(elt);
+                        responseInfo.pathInfo.responsePath = getPathFromResponse(xhr);
+                        responseHandler(elt, responseInfo);
+                        removeRequestIndicators(indicators, disableElts);
+                        triggerEvent(elt, 'htmx:afterRequest', responseInfo);
+                        triggerEvent(elt, 'htmx:afterOnLoad', responseInfo);
+                        // if the body no longer contains the element, trigger the event on the closest parent
+                        // remaining in the DOM
+                        if (!bodyContains(elt)) {
+                            var secondaryTriggerElt = null;
+                            while (hierarchy.length > 0 && secondaryTriggerElt == null) {
+                                var parentEltInHierarchy = hierarchy.shift();
+                                if (bodyContains(parentEltInHierarchy)) {
+                                    secondaryTriggerElt = parentEltInHierarchy;
+                                }
+                            }
+                            if (secondaryTriggerElt) {
+                                triggerEvent(secondaryTriggerElt, 'htmx:afterRequest', responseInfo);
+                                triggerEvent(secondaryTriggerElt, 'htmx:afterOnLoad', responseInfo);
+                            }
+                        }
+                        maybeCall(resolve);
+                        endRequestLock();
+                    } catch (e) {
+                        triggerErrorEvent(elt, 'htmx:onLoadError', mergeObjects({error:e}, responseInfo));
+                        throw e;
+                    }
+                }
+                xhr.onerror = function () {
+                    removeRequestIndicators(indicators, disableElts);
+                    triggerErrorEvent(elt, 'htmx:afterRequest', responseInfo);
+                    triggerErrorEvent(elt, 'htmx:sendError', responseInfo);
+                    maybeCall(reject);
+                    endRequestLock();
+                }
+                xhr.onabort = function() {
+                    removeRequestIndicators(indicators, disableElts);
+                    triggerErrorEvent(elt, 'htmx:afterRequest', responseInfo);
+                    triggerErrorEvent(elt, 'htmx:sendAbort', responseInfo);
+                    maybeCall(reject);
+                    endRequestLock();
+                }
+                xhr.ontimeout = function() {
+                    removeRequestIndicators(indicators, disableElts);
+                    triggerErrorEvent(elt, 'htmx:afterRequest', responseInfo);
+                    triggerErrorEvent(elt, 'htmx:timeout', responseInfo);
+                    maybeCall(reject);
+                    endRequestLock();
+                }
+                if(!triggerEvent(elt, 'htmx:beforeRequest', responseInfo)){
+                    maybeCall(resolve);
+                    endRequestLock()
+                    return promise
+                }
+                var indicators = addRequestIndicatorClasses(elt);
+                var disableElts = disableElements(elt);
+
+                forEach(['loadstart', 'loadend', 'progress', 'abort'], function(eventName) {
+                    forEach([xhr, xhr.upload], function (target) {
+                        target.addEventListener(eventName, function(event){
+                            triggerEvent(elt, "htmx:xhr:" + eventName, {
+                                lengthComputable:event.lengthComputable,
+                                loaded:event.loaded,
+                                total:event.total
+                            });
+                        })
+                    });
+                });
+                triggerEvent(elt, 'htmx:beforeSend', responseInfo);
+                var params = useUrlParams ? null : encodeParamsForBody(xhr, elt, filteredParameters)
+                xhr.send(params);
+                return promise;
+            }
+
+            function determineHistoryUpdates(elt, responseInfo) {
+
+                var xhr = responseInfo.xhr;
+
+                //===========================================
+                // First consult response headers
+                //===========================================
+                var pathFromHeaders = null;
+                var typeFromHeaders = null;
+                if (hasHeader(xhr,/HX-Push:/i)) {
+                    pathFromHeaders = xhr.getResponseHeader("HX-Push");
+                    typeFromHeaders = "push";
+                } else if (hasHeader(xhr,/HX-Push-Url:/i)) {
+                    pathFromHeaders = xhr.getResponseHeader("HX-Push-Url");
+                    typeFromHeaders = "push";
+                } else if (hasHeader(xhr,/HX-Replace-Url:/i)) {
+                    pathFromHeaders = xhr.getResponseHeader("HX-Replace-Url");
+                    typeFromHeaders = "replace";
+                }
+
+                // if there was a response header, that has priority
+                if (pathFromHeaders) {
+                    if (pathFromHeaders === "false") {
+                        return {}
+                    } else {
+                        return {
+                            type: typeFromHeaders,
+                            path : pathFromHeaders
+                        }
+                    }
+                }
+
+                //===========================================
+                // Next resolve via DOM values
+                //===========================================
+                var requestPath =  responseInfo.pathInfo.finalRequestPath;
+                var responsePath =  responseInfo.pathInfo.responsePath;
+
+                var pushUrl = getClosestAttributeValue(elt, "hx-push-url");
+                var replaceUrl = getClosestAttributeValue(elt, "hx-replace-url");
+                var elementIsBoosted = getInternalData(elt).boosted;
+
+                var saveType = null;
+                var path = null;
+
+                if (pushUrl) {
+                    saveType = "push";
+                    path = pushUrl;
+                } else if (replaceUrl) {
+                    saveType = "replace";
+                    path = replaceUrl;
+                } else if (elementIsBoosted) {
+                    saveType = "push";
+                    path = responsePath || requestPath; // if there is no response path, go with the original request path
+                }
+
+                if (path) {
+                    // false indicates no push, return empty object
+                    if (path === "false") {
+                        return {};
+                    }
+
+                    // true indicates we want to follow wherever the server ended up sending us
+                    if (path === "true") {
+                        path = responsePath || requestPath; // if there is no response path, go with the original request path
+                    }
+
+                    // restore any anchor associated with the request
+                    if (responseInfo.pathInfo.anchor &&
+                        path.indexOf("#") === -1) {
+                        path = path + "#" + responseInfo.pathInfo.anchor;
+                    }
+
+                    return {
+                        type:saveType,
+                        path: path
+                    }
+                } else {
+                    return {};
+                }
+            }
+
+            function handleAjaxResponse(elt, responseInfo) {
+                var xhr = responseInfo.xhr;
+                var target = responseInfo.target;
+                var etc = responseInfo.etc;
+                var requestConfig = responseInfo.requestConfig;
+
+                if (!triggerEvent(elt, 'htmx:beforeOnLoad', responseInfo)) return;
+
+                if (hasHeader(xhr, /HX-Trigger:/i)) {
+                    handleTrigger(xhr, "HX-Trigger", elt);
+                }
+
+                if (hasHeader(xhr, /HX-Location:/i)) {
+                    saveCurrentPageToHistory();
+                    var redirectPath = xhr.getResponseHeader("HX-Location");
+                    var swapSpec;
+                    if (redirectPath.indexOf("{") === 0) {
+                        swapSpec = parseJSON(redirectPath);
+                        // what's the best way to throw an error if the user didn't include this
+                        redirectPath = swapSpec['path'];
+                        delete swapSpec['path'];
+                    }
+                    ajaxHelper('GET', redirectPath, swapSpec).then(function(){
+                        pushUrlIntoHistory(redirectPath);
+                    });
+                    return;
+                }
+
+                var shouldRefresh = hasHeader(xhr, /HX-Refresh:/i) && "true" === xhr.getResponseHeader("HX-Refresh");
+
+                if (hasHeader(xhr, /HX-Redirect:/i)) {
+                    location.href = xhr.getResponseHeader("HX-Redirect");
+                    shouldRefresh && location.reload();
+                    return;
+                }
+
+                if (shouldRefresh) {
+                    location.reload();
+                    return;
+                }
+
+                if (hasHeader(xhr,/HX-Retarget:/i)) {
+                    responseInfo.target = getDocument().querySelector(xhr.getResponseHeader("HX-Retarget"));
+                }
+
+                var historyUpdate = determineHistoryUpdates(elt, responseInfo);
+
+                // by default htmx only swaps on 200 return codes and does not swap
+                // on 204 'No Content'
+                // this can be ovverriden by responding to the htmx:beforeSwap event and
+                // overriding the detail.shouldSwap property
+                var shouldSwap = xhr.status >= 200 && xhr.status < 400 && xhr.status !== 204;
+                var serverResponse = xhr.response;
+                var isError = xhr.status >= 400;
+                var ignoreTitle = htmx.config.ignoreTitle
+                var beforeSwapDetails = mergeObjects({shouldSwap: shouldSwap, serverResponse:serverResponse, isError:isError, ignoreTitle:ignoreTitle }, responseInfo);
+                if (!triggerEvent(target, 'htmx:beforeSwap', beforeSwapDetails)) return;
+
+                target = beforeSwapDetails.target; // allow re-targeting
+                serverResponse = beforeSwapDetails.serverResponse; // allow updating content
+                isError = beforeSwapDetails.isError; // allow updating error
+                ignoreTitle = beforeSwapDetails.ignoreTitle; // allow updating ignoring title
+
+                responseInfo.target = target; // Make updated target available to response events
+                responseInfo.failed = isError; // Make failed property available to response events
+                responseInfo.successful = !isError; // Make successful property available to response events
+
+                if (beforeSwapDetails.shouldSwap) {
+                    if (xhr.status === 286) {
+                        cancelPolling(elt);
+                    }
+
+                    withExtensions(elt, function (extension) {
+                        serverResponse = extension.transformResponse(serverResponse, xhr, elt);
+                    });
+
+                    // Save current page if there will be a history update
+                    if (historyUpdate.type) {
+                        saveCurrentPageToHistory();
+                    }
+
+                    var swapOverride = etc.swapOverride;
+                    if (hasHeader(xhr,/HX-Reswap:/i)) {
+                        swapOverride = xhr.getResponseHeader("HX-Reswap");
+                    }
+                    var swapSpec = getSwapSpecification(elt, swapOverride);
+
+                    if (swapSpec.hasOwnProperty('ignoreTitle')) {
+                        ignoreTitle = swapSpec.ignoreTitle;
+                    }
+
+                    target.classList.add(htmx.config.swappingClass);
+
+                    // optional transition API promise callbacks
+                    var settleResolve = null;
+                    var settleReject = null;
+
+                    var doSwap = function () {
+                        try {
+                            var activeElt = document.activeElement;
+                            var selectionInfo = {};
+                            try {
+                                selectionInfo = {
+                                    elt: activeElt,
+                                    // @ts-ignore
+                                    start: activeElt ? activeElt.selectionStart : null,
+                                    // @ts-ignore
+                                    end: activeElt ? activeElt.selectionEnd : null
+                                };
+                            } catch (e) {
+                                // safari issue - see https://github.com/microsoft/playwright/issues/5894
+                            }
+
+                            var selectOverride;
+                            if (hasHeader(xhr, /HX-Reselect:/i)) {
+                                selectOverride = xhr.getResponseHeader("HX-Reselect");
+                            }
+
+                            var settleInfo = makeSettleInfo(target);
+                            selectAndSwap(swapSpec.swapStyle, target, elt, serverResponse, settleInfo, selectOverride);
+
+                            if (selectionInfo.elt &&
+                                !bodyContains(selectionInfo.elt) &&
+                                getRawAttribute(selectionInfo.elt, "id")) {
+                                var newActiveElt = document.getElementById(getRawAttribute(selectionInfo.elt, "id"));
+                                var focusOptions = { preventScroll: swapSpec.focusScroll !== undefined ? !swapSpec.focusScroll : !htmx.config.defaultFocusScroll };
+                                if (newActiveElt) {
+                                    // @ts-ignore
+                                    if (selectionInfo.start && newActiveElt.setSelectionRange) {
+                                        // @ts-ignore
+                                        try {
+                                            newActiveElt.setSelectionRange(selectionInfo.start, selectionInfo.end);
+                                        } catch (e) {
+                                            // the setSelectionRange method is present on fields that don't support it, so just let this fail
+                                        }
+                                    }
+                                    newActiveElt.focus(focusOptions);
+                                }
+                            }
+
+                            target.classList.remove(htmx.config.swappingClass);
+                            forEach(settleInfo.elts, function (elt) {
+                                if (elt.classList) {
+                                    elt.classList.add(htmx.config.settlingClass);
+                                }
+                                triggerEvent(elt, 'htmx:afterSwap', responseInfo);
+                            });
+
+                            if (hasHeader(xhr, /HX-Trigger-After-Swap:/i)) {
+                                var finalElt = elt;
+                                if (!bodyContains(elt)) {
+                                    finalElt = getDocument().body;
+                                }
+                                handleTrigger(xhr, "HX-Trigger-After-Swap", finalElt);
+                            }
+
+                            var doSettle = function () {
+                                forEach(settleInfo.tasks, function (task) {
+                                    task.call();
+                                });
+                                forEach(settleInfo.elts, function (elt) {
+                                    if (elt.classList) {
+                                        elt.classList.remove(htmx.config.settlingClass);
+                                    }
+                                    triggerEvent(elt, 'htmx:afterSettle', responseInfo);
+                                });
+
+                                // if we need to save history, do so
+                                if (historyUpdate.type) {
+                                    if (historyUpdate.type === "push") {
+                                        pushUrlIntoHistory(historyUpdate.path);
+                                        triggerEvent(getDocument().body, 'htmx:pushedIntoHistory', {path: historyUpdate.path});
+                                    } else {
+                                        replaceUrlInHistory(historyUpdate.path);
+                                        triggerEvent(getDocument().body, 'htmx:replacedInHistory', {path: historyUpdate.path});
+                                    }
+                                }
+                                if (responseInfo.pathInfo.anchor) {
+                                    var anchorTarget = find("#" + responseInfo.pathInfo.anchor);
+                                    if(anchorTarget) {
+                                        anchorTarget.scrollIntoView({block:'start', behavior: "auto"});
+                                    }
+                                }
+
+                                if(settleInfo.title && !ignoreTitle) {
+                                    var titleElt = find("title");
+                                    if(titleElt) {
+                                        titleElt.innerHTML = settleInfo.title;
+                                    } else {
+                                        window.document.title = settleInfo.title;
+                                    }
+                                }
+
+                                updateScrollState(settleInfo.elts, swapSpec);
+
+                                if (hasHeader(xhr, /HX-Trigger-After-Settle:/i)) {
+                                    var finalElt = elt;
+                                    if (!bodyContains(elt)) {
+                                        finalElt = getDocument().body;
+                                    }
+                                    handleTrigger(xhr, "HX-Trigger-After-Settle", finalElt);
+                                }
+                                maybeCall(settleResolve);
+                            }
+
+                            if (swapSpec.settleDelay > 0) {
+                                setTimeout(doSettle, swapSpec.settleDelay)
+                            } else {
+                                doSettle();
+                            }
+                        } catch (e) {
+                            triggerErrorEvent(elt, 'htmx:swapError', responseInfo);
+                            maybeCall(settleReject);
+                            throw e;
+                        }
+                    };
+
+                    var shouldTransition = htmx.config.globalViewTransitions
+                    if(swapSpec.hasOwnProperty('transition')){
+                        shouldTransition = swapSpec.transition;
+                    }
+
+                    if(shouldTransition &&
+                        triggerEvent(elt, 'htmx:beforeTransition', responseInfo) &&
+                        typeof Promise !== "undefined" && document.startViewTransition){
+                        var settlePromise = new Promise(function (_resolve, _reject) {
+                            settleResolve = _resolve;
+                            settleReject = _reject;
+                        });
+                        // wrap the original doSwap() in a call to startViewTransition()
+                        var innerDoSwap = doSwap;
+                        doSwap = function() {
+                            document.startViewTransition(function () {
+                                innerDoSwap();
+                                return settlePromise;
+                            });
+                        }
+                    }
+
+
+                    if (swapSpec.swapDelay > 0) {
+                        setTimeout(doSwap, swapSpec.swapDelay)
+                    } else {
+                        doSwap();
+                    }
+                }
+                if (isError) {
+                    triggerErrorEvent(elt, 'htmx:responseError', mergeObjects({error: "Response Status Error Code " + xhr.status + " from " + responseInfo.pathInfo.requestPath}, responseInfo));
+                }
+            }
+
+            //====================================================================
+            // Extensions API
+            //====================================================================
+
+            /** @type {Object<string, import("./htmx").HtmxExtension>} */
+            var extensions = {};
+
+            /**
+             * extensionBase defines the default functions for all extensions.
+             * @returns {import("./htmx").HtmxExtension}
+             */
+            function extensionBase() {
+                return {
+                    init: function(api) {return null;},
+                    onEvent : function(name, evt) {return true;},
+                    transformResponse : function(text, xhr, elt) {return text;},
+                    isInlineSwap : function(swapStyle) {return false;},
+                    handleSwap : function(swapStyle, target, fragment, settleInfo) {return false;},
+                    encodeParameters : function(xhr, parameters, elt) {return null;}
+                }
+            }
+
+            /**
+             * defineExtension initializes the extension and adds it to the htmx registry
+             *
+             * @param {string} name
+             * @param {import("./htmx").HtmxExtension} extension
+             */
+            function defineExtension(name, extension) {
+                if(extension.init) {
+                    extension.init(internalAPI)
+                }
+                extensions[name] = mergeObjects(extensionBase(), extension);
+            }
+
+            /**
+             * removeExtension removes an extension from the htmx registry
+             *
+             * @param {string} name
+             */
+            function removeExtension(name) {
+                delete extensions[name];
+            }
+
+            /**
+             * getExtensions searches up the DOM tree to return all extensions that can be applied to a given element
+             *
+             * @param {HTMLElement} elt
+             * @param {import("./htmx").HtmxExtension[]=} extensionsToReturn
+             * @param {import("./htmx").HtmxExtension[]=} extensionsToIgnore
+             */
+            function getExtensions(elt, extensionsToReturn, extensionsToIgnore) {
+
+                if (elt == undefined) {
+                    return extensionsToReturn;
+                }
+                if (extensionsToReturn == undefined) {
+                    extensionsToReturn = [];
+                }
+                if (extensionsToIgnore == undefined) {
+                    extensionsToIgnore = [];
+                }
+                var extensionsForElement = getAttributeValue(elt, "hx-ext");
+                if (extensionsForElement) {
+                    forEach(extensionsForElement.split(","), function(extensionName){
+                        extensionName = extensionName.replace(/ /g, '');
+                        if (extensionName.slice(0, 7) == "ignore:") {
+                            extensionsToIgnore.push(extensionName.slice(7));
+                            return;
+                        }
+                        if (extensionsToIgnore.indexOf(extensionName) < 0) {
+                            var extension = extensions[extensionName];
+                            if (extension && extensionsToReturn.indexOf(extension) < 0) {
+                                extensionsToReturn.push(extension);
+                            }
+                        }
+                    });
+                }
+                return getExtensions(parentElt(elt), extensionsToReturn, extensionsToIgnore);
+            }
+
+            //====================================================================
+            // Initialization
+            //====================================================================
+            var isReady = false
+            getDocument().addEventListener('DOMContentLoaded', function() {
+                isReady = true
+            })
+
+            /**
+             * Execute a function now if DOMContentLoaded has fired, otherwise listen for it.
+             *
+             * This function uses isReady because there is no realiable way to ask the browswer whether
+             * the DOMContentLoaded event has already been fired; there's a gap between DOMContentLoaded
+             * firing and readystate=complete.
+             */
+            function ready(fn) {
+                // Checking readyState here is a failsafe in case the htmx script tag entered the DOM by
+                // some means other than the initial page load.
+                if (isReady || getDocument().readyState === 'complete') {
+                    fn();
+                } else {
+                    getDocument().addEventListener('DOMContentLoaded', fn);
+                }
+            }
+
+            function insertIndicatorStyles() {
+                if (htmx.config.includeIndicatorStyles !== false) {
+                    getDocument().head.insertAdjacentHTML("beforeend",
+                        "<style>\
+                      ." + htmx.config.indicatorClass + "{opacity:0;transition: opacity 200ms ease-in;}\
+                      ." + htmx.config.requestClass + " ." + htmx.config.indicatorClass + "{opacity:1}\
+                      ." + htmx.config.requestClass + "." + htmx.config.indicatorClass + "{opacity:1}\
+                    </style>");
+                }
+            }
+
+            function getMetaConfig() {
+                var element = getDocument().querySelector('meta[name="htmx-config"]');
+                if (element) {
+                    // @ts-ignore
+                    return parseJSON(element.content);
+                } else {
+                    return null;
+                }
+            }
+
+            function mergeMetaConfig() {
+                var metaConfig = getMetaConfig();
+                if (metaConfig) {
+                    htmx.config = mergeObjects(htmx.config , metaConfig)
+                }
+            }
+
+            // initialize the document
+            ready(function () {
+                mergeMetaConfig();
+                insertIndicatorStyles();
+                var body = getDocument().body;
+                processNode(body);
+                var restoredElts = getDocument().querySelectorAll(
+                    "[hx-trigger='restored'],[data-hx-trigger='restored']"
+                );
+                body.addEventListener("htmx:abort", function (evt) {
+                    var target = evt.target;
+                    var internalData = getInternalData(target);
+                    if (internalData && internalData.xhr) {
+                        internalData.xhr.abort();
+                    }
+                });
+                var originalPopstate = window.onpopstate;
+                window.onpopstate = function (event) {
+                    if (event.state && event.state.htmx) {
+                        restoreHistory();
+                        forEach(restoredElts, function(elt){
+                            triggerEvent(elt, 'htmx:restored', {
+                                'document': getDocument(),
+                                'triggerEvent': triggerEvent
+                            });
+                        });
+                    } else {
+                        if (originalPopstate) {
+                            originalPopstate(event);
+                        }
+                    }
+                };
+                setTimeout(function () {
+                    triggerEvent(body, 'htmx:load', {}); // give ready handlers a chance to load up before firing this event
+                    body = null; // kill reference for gc
+                }, 0);
+            })
+
+            return htmx;
+        }
+    )()
+}));

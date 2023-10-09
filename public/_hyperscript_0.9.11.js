@@ -81,7 +81,7 @@
     }
 
     class Lexer {
-        OP_TABLE = {
+        static OP_TABLE = {
             "+": "PLUS",
             "-": "MINUS",
             "*": "MULTIPLY",
@@ -1880,11 +1880,7 @@
             var element = this.parse(src);
             if (element.execute) {
                 element.execute(ctx);
-                if(typeof ctx.meta.returnValue !== 'undefined'){
-                    return ctx.meta.returnValue;
-                } else {
-                    return ctx.result;
-                }
+                return ctx.result;
             } else if (element.apply) {
                 element.apply(body, body, args);
                 return this.getHyperscriptFeatures(body);
