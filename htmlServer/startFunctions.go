@@ -18,13 +18,13 @@ func InstallStart() {
 }
 
 func GetStartService(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivilges(w, r)
+	acc, _ := CheckUserPrivileges(w, r)
 	html := htmlComposition.GetStartPage(acc, dataValidation.ValidationMessage{})
 	startRenderRequest(w, r, acc.Role, html)
 }
 
 func PostLoginService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
 	msg := dataValidation.ValidationMessage{}
 	if ok {
 		msg.Message = componentHelper.Translation["alreadyLoggedIn"]
@@ -56,7 +56,7 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 }
 
 func PostLogoutService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivilges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(w, r, database.User, database.MediaAdmin, database.Admin, database.HeadAdmin)
 	val := dataValidation.ValidationMessage{}
 	if !ok {
 		val.Message = componentHelper.Translation["alreadyLoggedOut"]

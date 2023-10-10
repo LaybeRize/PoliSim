@@ -18,7 +18,7 @@ import (
 // with a div that automatically requests the URL via htmx.
 func GetFullPage(pageTitle string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		acc, _ := CheckUserPrivilges(w, r)
+		acc, _ := CheckUserPrivileges(w, r)
 		addition := "?" + r.URL.RawQuery
 		if addition == "?" {
 			addition = ""
@@ -77,7 +77,7 @@ func extractFormValuesForFields(object any, r *http.Request, onError int64) erro
 	return nil
 }
 
-// getText extracs the first string in http.Request PostForm field
+// getText extracts the first string in http.Request PostForm field
 // and trims it before returning.
 func getText(r *http.Request, fieldName string) string {
 	return strings.TrimSpace(r.PostFormValue(fieldName))
@@ -95,7 +95,7 @@ func getBool(r *http.Request, fieldName string) bool {
 	return getText(r, fieldName) == "true"
 }
 
-// getInt reads in the field then tries to transform it to a number. On sucess it returns the
+// getInt reads in the field then tries to transform it to a number. On success, it returns the
 // read in number on error it returns the onError int provided.
 func getInt(r *http.Request, fieldName string, onError int64) int64 {
 	i, err := strconv.Atoi(getText(r, fieldName))
@@ -146,9 +146,9 @@ func getIntFromURL(r *http.Request, urlField string, onError int64) int64 {
 	return int64(i)
 }
 
-// CheckUserPrivilges gets the account from the cookie and returns the dataExtraction.AccountAuth if one is found for the cookie, and if
+// CheckUserPrivileges gets the account from the cookie and returns the dataExtraction.AccountAuth if one is found for the cookie, and if
 // the account has one of the specified roles returns true. Otherwise, returns false
-func CheckUserPrivilges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleLevel) (*dataExtraction.AccountAuth, bool) {
+func CheckUserPrivileges(w http.ResponseWriter, r *http.Request, roleString ...database.RoleLevel) (*dataExtraction.AccountAuth, bool) {
 	acc := dataValidation.ValidateToken(w, r)
 
 	return acc, CheckIfHasRole(acc, roleString...)

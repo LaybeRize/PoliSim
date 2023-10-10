@@ -18,7 +18,7 @@ type Test struct {
 }
 
 func TestFillStruct(t *testing.T) {
-	req := httptest.NewRequest("GET", "http://google.com", strings.NewReader(""))
+	req := httptest.NewRequest("GET", "https://google.com", strings.NewReader(""))
 	err := req.ParseForm()
 	assert.Nil(t, err)
 	req.PostForm = map[string][]string{

@@ -34,7 +34,7 @@ type AccountLogin struct {
 // RootAccountExists checks if the account with the ID 1 exists
 // if so, it returns true and nil. If the DB gives back a gorm.ErrRecordNotFound
 // it will return false and nil.
-// If any other error occures it will return false and the error.
+// If any other error occurs it will return false and the error.
 func RootAccountExists() (bool, error) {
 	err := database.DB.Where("id=?", 1).First(&database.Account{}).Error
 	if err == nil {
@@ -46,12 +46,12 @@ func RootAccountExists() (bool, error) {
 	return false, err
 }
 
-// GetAccoutForLogin returns a filled *AccountLogin on sucessfully locating
+// GetAccountForLogin returns a filled *AccountLogin on successfully locating
 // an account with that username. Otherwise, return an empty struct and the error.
-func GetAccoutForLogin(username string) (*AccountLogin, error) {
-	accoutLogin := &AccountLogin{}
-	err := database.DB.Model(database.Account{}).Where("username=?", username).First(accoutLogin).Error
-	return accoutLogin, err
+func GetAccountForLogin(username string) (*AccountLogin, error) {
+	accountLogin := &AccountLogin{}
+	err := database.DB.Model(database.Account{}).Where("username=?", username).First(accountLogin).Error
+	return accountLogin, err
 }
 
 // SaveBack updates the given account in the DB by id.
@@ -74,7 +74,7 @@ func (acc *AccountLogin) CreateMe() error {
 	}).Error
 }
 
-// GetAccountForAuth returns a filled *AccountAuth on sucessfully locating
+// GetAccountForAuth returns a filled *AccountAuth on successfully locating
 // an account with that id. Otherwise, return an empty struct and the error.
 func GetAccountForAuth(id int64) (*AccountAuth, error) {
 	accountAuth := &AccountAuth{}
@@ -82,7 +82,7 @@ func GetAccountForAuth(id int64) (*AccountAuth, error) {
 	return accountAuth, err
 }
 
-// GetAllChildrenDisplayNames returns a *AccountDisplayNameList on sucessfully finding any children.
+// GetAllChildrenDisplayNames returns a *AccountDisplayNameList on successfully finding any children.
 // Will return an empty array and a gorm.ErrRecordNotFound on no children found and any other error if there was one.
 func GetAllChildrenDisplayNames(parentID int64) (*AccountDisplayNameList, error) {
 	array := &AccountDisplayNameList{}

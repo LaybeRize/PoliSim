@@ -3,87 +3,106 @@ package componentHelper
 type ElementType string
 type AttributeType string
 
+var (
+	DIV      = elementWrapper("div")
+	P        = elementWrapper("p")
+	I        = elementWrapper("i")
+	A        = elementWrapper("a")
+	SPAN     = elementWrapper("span")
+	H1       = elementWrapper("h1")
+	HTML     = elementWrapper("html")
+	HEAD     = elementWrapper("head")
+	BODY     = elementWrapper("body")
+	TITLE    = elementWrapper("title")
+	SCRIPT   = elementWrapper("script")
+	OPTION   = elementWrapper("option")
+	DATALIST = elementWrapper("datalist")
+	LABEL    = elementWrapper("label")
+	TEXTAREA = elementWrapper("textarea")
+	BUTTON   = elementWrapper("button")
+	FORM     = elementWrapper("form")
+
+	BASE    = elementWrapper(BaseTag)
+	BR      = elementWrapper(BrTag)
+	COL     = elementWrapper(ColTag)
+	COMMAND = elementWrapper(CommandTag)
+	EMBED   = elementWrapper(EmbedTag)
+	HR      = elementWrapper(HrTag)
+	IMG     = elementWrapper(ImgTag)
+	INPUT   = elementWrapper(InputTag)
+	KEYGEN  = elementWrapper(KeygenTag)
+	LINK    = elementWrapper(LinkTag)
+	META    = elementWrapper(MetaTag)
+	PARAM   = elementWrapper(ParamTag)
+	SOURCE  = elementWrapper(SourceTag)
+	TRACK   = elementWrapper(TrackTag)
+	WBR     = elementWrapper(WbrTag)
+
+	HXDELETE    = attributeWrapper("hx-delete")
+	HXPATCH     = attributeWrapper("hx-patch")
+	HXPOST      = attributeWrapper("hx-post")
+	HXGET       = attributeWrapper("hx-get")
+	HXTRIGGER   = attributeWrapper("hx-trigger")
+	HXINCLUDE   = attributeWrapper("hx-include")
+	HXVALS      = attributeWrapper(HxValue)
+	HXSWAPOOB   = attributeWrapper("hx-swap-oob")
+	HXTARGET    = attributeWrapper("hx-target")
+	HXSWAP      = attributeWrapper("hx-swap")
+	SRC         = attributeWrapper("src")
+	ALT         = attributeWrapper("alt")
+	CHARSET     = attributeWrapper("charset")
+	NAME        = attributeWrapper("name")
+	CONTENT     = attributeWrapper("content")
+	REL         = attributeWrapper("rel")
+	HREF        = attributeWrapper("href")
+	CLASS       = attributeWrapper("class")
+	STYLE       = attributeWrapper("style")
+	ID          = attributeWrapper("id")
+	HYPERSCRIPT = attributeWrapper("_")
+	HIDDEN      = attributeWrapper("hidden")
+	LANG        = attributeWrapper("lang")
+	VALUE       = attributeWrapper("value")
+	FOR         = attributeWrapper("for")
+	TYPE        = attributeWrapper("type")
+	LIST        = attributeWrapper("list")
+)
+
 const (
-	DIV      ElementType = "div"
-	P        ElementType = "p"
-	I        ElementType = "i"
-	A        ElementType = "a"
-	SPAN     ElementType = "SPAN"
-	H1       ElementType = "h1"
-	HTML     ElementType = "html"
-	HEAD     ElementType = "head"
-	BODY     ElementType = "body"
-	TITLE    ElementType = "title"
-	SCRIPT   ElementType = "script"
-	OPTION   ElementType = "option"
-	DATALIST ElementType = "datalist"
-	LABEL    ElementType = "label"
-	TEXTAREA ElementType = "textarea"
-	BUTTON   ElementType = "button"
-	FORM     ElementType = "form"
-	EL_STYLE ElementType = "style"
+	AreaTag    ElementType = "area"
+	BaseTag    ElementType = "base"
+	BrTag      ElementType = "br"
+	ColTag     ElementType = "col"
+	CommandTag ElementType = "command"
+	EmbedTag   ElementType = "embed"
+	HrTag      ElementType = "hr"
+	ImgTag     ElementType = "img"
+	InputTag   ElementType = "input"
+	KeygenTag  ElementType = "keygen"
+	LinkTag    ElementType = "link"
+	MetaTag    ElementType = "meta"
+	ParamTag   ElementType = "param"
+	SourceTag  ElementType = "source"
+	TrackTag   ElementType = "track"
+	WbrTag     ElementType = "wbr"
 
-	AREA    ElementType = "area"
-	BASE    ElementType = "base"
-	BR      ElementType = "br"
-	COL     ElementType = "col"
-	COMMAND ElementType = "command"
-	EMBED   ElementType = "embed"
-	HR      ElementType = "hr"
-	IMG     ElementType = "img"
-	INPUT   ElementType = "input"
-	KEYGEN  ElementType = "keygen"
-	LINK    ElementType = "link"
-	META    ElementType = "meta"
-	PARAM   ElementType = "param"
-	SOURCE  ElementType = "source"
-	TRACK   ElementType = "track"
-	WBR     ElementType = "wbr"
-
-	HXDELETE    AttributeType = "hx-delete"
-	HXPATCH     AttributeType = "hx-patch"
-	HXPOST      AttributeType = "hx-post"
-	HXGET       AttributeType = "hx-get"
-	HXTRIGGER   AttributeType = "hx-trigger"
-	HXINCLUDE   AttributeType = "hx-include"
-	HXVALS      AttributeType = "hx-vals"
-	HXSWAPOOB   AttributeType = "hx-swap-oob"
-	HXTARGET    AttributeType = "hx-target"
-	HXSWAP      AttributeType = "hx-swap"
-	SRC         AttributeType = "src"
-	ALT         AttributeType = "alt"
-	CHARSET     AttributeType = "charset"
-	NAME        AttributeType = "name"
-	CONTENT     AttributeType = "content"
-	REL         AttributeType = "rel"
-	HREF        AttributeType = "href"
-	CLASS       AttributeType = "class"
-	STYLE       AttributeType = "style"
-	ID          AttributeType = "id"
-	HYPERSCRIPT AttributeType = "_"
-	HIDDEN      AttributeType = "hidden"
-	LANG        AttributeType = "lang"
-	VALUE       AttributeType = "value"
-	FOR         AttributeType = "for"
-	TYPE        AttributeType = "type"
-	LIST        AttributeType = "list"
+	HxValue AttributeType = "hx-vals"
 )
 
 var voidElements = map[ElementType]struct{}{
-	AREA:    {},
-	BASE:    {},
-	BR:      {},
-	COL:     {},
-	COMMAND: {},
-	EMBED:   {},
-	HR:      {},
-	IMG:     {},
-	INPUT:   {},
-	KEYGEN:  {},
-	LINK:    {},
-	META:    {},
-	PARAM:   {},
-	SOURCE:  {},
-	TRACK:   {},
-	WBR:     {},
+	AreaTag:    {},
+	BaseTag:    {},
+	BrTag:      {},
+	ColTag:     {},
+	CommandTag: {},
+	EmbedTag:   {},
+	HrTag:      {},
+	ImgTag:     {},
+	InputTag:   {},
+	KeygenTag:  {},
+	LinkTag:    {},
+	MetaTag:    {},
+	ParamTag:   {},
+	SourceTag:  {},
+	TrackTag:   {},
+	WbrTag:     {},
 }

@@ -4,11 +4,12 @@ import (
 	"PoliSim/componentHelper"
 	"PoliSim/dataExtraction"
 	"PoliSim/database"
-	"github.com/gorilla/securecookie"
+	"database/sql"
 	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -19,12 +20,12 @@ var store = &sessions.CookieStore{}
 
 // CreateStore sets up the cookie store for when the application starts
 func CreateStore() {
-	store = sessions.NewCookieStore(securecookie.GenerateRandomKey(32))
+	store = sessions.NewCookieStore([]byte(os.Getenv("COOKIE_KEY")))
 	store.MaxAge(timeUntilTokenRunsOut)
 }
 
 // ValidateToken returns a *dataExtraction.AccountAuth with the Role database.NotLoggedIn if
-// either no token exists, or the token is invalid. If the token is valid it renews the cookie
+// either no cookie exists on the request, or it is invalid. If the cookie is valid it renews it
 // for the current session by writing it to the response.
 func ValidateToken(w http.ResponseWriter, r *http.Request) (returnAcc *dataExtraction.AccountAuth) {
 	session, err := store.Get(r, "session")
@@ -45,8 +46,8 @@ func ValidateToken(w http.ResponseWriter, r *http.Request) (returnAcc *dataExtra
 	return
 }
 
-// InvalidateAccountToken trys to invalidate the current cookie. on success, it retuns a nil error
-// and a cookie to overwrite the current valid one. On failure, it returns a nil cookie and the error.
+// InvalidateAccountToken trys to invalidate the current cookie. ot returns a
+// cookie to overwrite the current valid one.
 func InvalidateAccountToken() (cookie *http.Cookie) {
 	cookie = &http.Cookie{Name: "session", Value: "", Path: "/", HttpOnly: true, MaxAge: -1}
 	return
@@ -57,9 +58,9 @@ type LoginForm struct {
 	Password string `input:"password"`
 }
 
-// TryLogin always returns a ValidationMessage containg the error or sucess for the process.
-// On sucess it also returns a filled dataExtraction.AccountLogin struct as well as a new
-// valid *http.Cookie.
+// TryLogin always returns a ValidationMessage containing the error or success for the process.
+// On success, it also returns a filled dataExtraction.AccountLogin struct as well as writing
+// a valid *http.Cookie to the response.
 func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate ValidationMessage, acc *dataExtraction.AccountLogin) {
 	acc = &dataExtraction.AccountLogin{}
 	validate = ValidationMessage{Positive: false}
@@ -70,7 +71,7 @@ func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate
 	}
 	//check if user account exists
 	var err error
-	acc, err = dataExtraction.GetAccoutForLogin(form.Username)
+	acc, err = dataExtraction.GetAccountForLogin(form.Username)
 	if err == gorm.ErrRecordNotFound {
 		validate.Message = componentHelper.Translation["passwordOrUsernameWrong"]
 		return
@@ -103,37 +104,31 @@ func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate
 	}
 
 	if acc.Suspended {
-		validate.Message = componentHelper.Translation["accountIsSupended"]
+		validate.Message = componentHelper.Translation["accountIsSuspended"]
 		return
 	}
-	//reset account login tries and make the login timer invalid before returning the correct struct
-	session, getError := store.Get(r, "session")
+
+	// reset account login tries and make the login timer invalid before returning the correct struct
+	// and setting the cookie for identification
+	acc.LoginTries = 0
+	acc.NextLoginTime = sql.NullTime{}
+	dbError := acc.SaveBack()
+	session, _ := store.Get(r, "session")
 	session.Values["id"] = acc.ID
 	err = session.Save(r, w)
-	if err != nil || getError != nil {
+	if err != nil || dbError != nil {
 		//do the error handling
 		validate.Message = componentHelper.Translation["internalLoginAccountError"]
 		return
 	}
-	/*acc.LoginTries = 0
-	acc.NextLoginTime = sql.NullTime{}
-	acc.ExpirationDate.Time = time.Now().UTC().Add(time.Second * time.Duration(timeUntilTokenRunsOut))
-	acc.ExpirationDate.Valid = true
-	acc.RefreshToken = uuid.New().String()
-	err = acc.SaveBack()
-	if err != nil {
-		validate.Message = componentHelper.Translation["internalLoginAccountError"]
-		return
-	}*/
 
 	validate.Positive = true
 	validate.Message = componentHelper.Translation["successFullLoggedIn"]
-	//cookie = &http.Cookie{Name: "token", Value: acc.RefreshToken, Path: "/", MaxAge: timeUntilTokenRunsOut}
 	return
 }
 
 // UpdateLoginTries increases the LoginTries by one and calculates the new NextLoginTime if needed
-// then returns if the account is already timed out and if an error occured on trying to save back the new
+// then returns if the account is already timed out and if an error occurred on trying to save back the new
 // data.
 func UpdateLoginTries(acc *dataExtraction.AccountLogin) (canNotBeLoggedIn bool, err error) {
 	canNotBeLoggedIn = false

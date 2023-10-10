@@ -8,42 +8,42 @@ import (
 
 func TestEl(t *testing.T) {
 	var buf bytes.Buffer
-	err := El("test").Render(&buf)
+	err := el("test").Render(&buf)
 	assert.Nil(t, err)
 	assert.Equal(t, "<test></test>", buf.String())
 }
 
 func TestAttr(t *testing.T) {
 	var buf bytes.Buffer
-	err := Attr("test").Render(&buf)
+	err := attr("test").Render(&buf)
 	assert.Nil(t, err)
 	assert.Equal(t, " test", buf.String())
 
 	buf = bytes.Buffer{}
-	err = Attr("test", "val", "ahsdk").Render(&buf)
+	err = attr("test", "val", "ahsdk").Render(&buf)
 	assert.Nil(t, err)
 	assert.Equal(t, " test=\"val\"", buf.String())
 
 	buf = bytes.Buffer{}
-	err = Attr(HXVALS, "val", "test2").Render(&buf)
+	err = attr(HxValue, "val", "test2").Render(&buf)
 	assert.Nil(t, err)
-	assert.Equal(t, " "+string(HXVALS)+"='val'", buf.String())
+	assert.Equal(t, " "+string(HxValue)+"='val'", buf.String())
 }
 
 func TestGroup(t *testing.T) {
 	var buf bytes.Buffer
-	err := Group(El("test"),
-		Attr(HXVALS, "val", "test2"),
-		El("other")).Render(&buf)
+	err := Group(el("test"),
+		attr(HxValue, "val", "test2"),
+		el("other")).Render(&buf)
 	assert.Nil(t, err)
 	assert.Equal(t, "<test></test><other></other>", buf.String())
 }
 
 func TestMixing(t *testing.T) {
 	var buf bytes.Buffer
-	err := El("abc", Group(El("test"),
-		Attr(HXVALS, "val", "test2"),
-		El("other"))).Render(&buf)
+	err := el("abc", Group(el("test"),
+		attr(HxValue, "val", "test2"),
+		el("other"))).Render(&buf)
 	assert.Nil(t, err)
-	assert.Equal(t, "<abc "+string(HXVALS)+"='val'><test></test><other></other></abc>", buf.String())
+	assert.Equal(t, "<abc "+string(HxValue)+"='val'><test></test><other></other></abc>", buf.String())
 }

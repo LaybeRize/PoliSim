@@ -75,7 +75,7 @@ func DeleteMultiplesAndEmpty(a []string) []string {
 	return a
 }
 
-// RemoveEntriesFromList removes the first occurence in list of every element form toRemove
+// RemoveEntriesFromList removes the first occurrence in list of every element form toRemove
 func RemoveEntriesFromList(list []string, toRemove []string) []string {
 	for _, str := range toRemove {
 		list = RemoveFirstStringOccurrenceFromArray(list, str)

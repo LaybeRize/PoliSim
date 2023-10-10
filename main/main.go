@@ -9,7 +9,6 @@ import (
 	"PoliSim/htmlServer"
 	"fmt"
 	"github.com/go-chi/cors"
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
@@ -49,7 +48,7 @@ func main() {
 	instigateRoutes(r)
 
 	_, _ = fmt.Fprintf(os.Stdout, "PoliSim is trying to start the listener...\n")
-	err := http.ListenAndServe(os.Getenv("ADRESS"), r)
+	err := http.ListenAndServe(os.Getenv("ADDRESS"), r)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to start the Router:\n"+err.Error()+"\n")
 		os.Exit(1)
@@ -103,13 +102,12 @@ func createAdminAccount() {
 	}
 
 	adminAccount := dataExtraction.AccountLogin{
-		ID:           1,
-		DisplayName:  os.Getenv("INIT_NAME"),
-		Username:     os.Getenv("INIT_USERNAME"),
-		Password:     string(hashedPassword),
-		Suspended:    false,
-		RefreshToken: uuid.New().String(),
-		Role:         database.HeadAdmin,
+		ID:          1,
+		DisplayName: os.Getenv("INIT_NAME"),
+		Username:    os.Getenv("INIT_USERNAME"),
+		Password:    string(hashedPassword),
+		Suspended:   false,
+		Role:        database.HeadAdmin,
 	}
 	err = adminAccount.CreateMe()
 	if err != nil {

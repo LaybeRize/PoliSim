@@ -23,6 +23,22 @@ type ElementFunc func(io.Writer) error
 // attribute on the parent element.
 type AttributeFunc func(io.Writer) error
 
+type ElementReturn func(nodes ...Node) Node
+
+func elementWrapper(str ElementType) ElementReturn {
+	return func(nodes ...Node) Node {
+		return el(str, nodes...)
+	}
+}
+
+func attributeWrapper(name AttributeType) AttributeReturn {
+	return func(str ...string) Node {
+		return attr(name, str...)
+	}
+}
+
+type AttributeReturn func(str ...string) Node
+
 // GroupFunc is the Node function to return, if you want it group a bunch of children
 // into a single node. This kind of Node can be put into an ElementFunc and gets rendered
 // correctly anyway.
@@ -61,12 +77,12 @@ func Group(children ...Node) Node {
 	})
 }
 
-// El creates an element DOM Node with a name and child Nodes.
+// el creates an element DOM Node with a name and child Nodes.
 // See https://dev.w3.org/html5/spec-LC/syntax.html#elements-0 for how elements are rendered.
 // No tags are ever omitted from normal tags, even though it's allowed for elements given at
 // https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
-// If an element is a void element, non-attribute children nodes are ignored.
-func El(name ElementType, children ...Node) Node {
+// if an element is a void element, non-attribute children nodes are ignored.
+func el(name ElementType, children ...Node) Node {
 	return ElementFunc(func(w io.Writer) (err error) {
 
 		_, err = w.Write([]byte("<" + name))
@@ -102,18 +118,19 @@ func El(name ElementType, children ...Node) Node {
 	})
 }
 
-// Attr creates an attribute DOM Node with a name and optional value.
+// attr creates an attribute DOM Node with a name and optional value.
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
-// Attr ignores more than the first provided parameter.
-func Attr(name AttributeType, str ...string) Node {
+// attr ignores more than the first provided parameter.
+func attr(name AttributeType, str ...string) Node {
 	return AttributeFunc(func(w io.Writer) (err error) {
 		_, err = w.Write([]byte(" " + name))
 		if err != nil {
 			return
 		}
 		if len(str) > 0 {
-			if name == HXVALS {
+			// special case for hx-vals because it uses json as input text
+			if name == HxValue {
 				_, err = w.Write([]byte("='" + str[0] + "'"))
 				return
 			}
@@ -141,8 +158,8 @@ func Raw(format string, args ...any) Node {
 	})
 }
 
-// If returns the Node if the statment is true, otherwise returns nil.
-// for returning a different Node on a false statment see IfElse.
+// If returns the Node if the statement is true, otherwise returns nil.
+// for returning a different Node on a false statement see IfElse.
 func If(statement bool, node Node) Node {
 	if statement {
 		return node
@@ -150,10 +167,10 @@ func If(statement bool, node Node) Node {
 	return nil
 }
 
-// IfElse returns the whenTrue Node when the statment evaluates to true
-// otherwhise it returns the whenFalse Node.
-func IfElse(statment bool, whenTrue Node, whenFalse Node) Node {
-	if statment {
+// IfElse returns the whenTrue Node when the statement evaluates to true
+// otherwise it returns the whenFalse Node.
+func IfElse(statement bool, whenTrue Node, whenFalse Node) Node {
+	if statement {
 		return whenTrue
 	}
 	return whenFalse

@@ -46,8 +46,8 @@ type (
 		Options     []string           `json:"options"`
 	}
 	Results struct {
-		Votee       string         `json:"votee"`
-		InvalidVote bool           `json:"invald"`
+		Voter       string         `json:"voter"`
+		InvalidVote bool           `json:"invalid"`
 		Votes       map[string]int `json:"votes"`
 	}
 	Summary struct {

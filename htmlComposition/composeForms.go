@@ -8,18 +8,18 @@ import (
 // and the listName as the id.
 func getDataList(listName string, listItems []string) Node {
 	options := make([]Node, len(listItems)+1)
-	options[0] = Attr(ID, listName)
+	options[0] = ID(listName)
 	for i, str := range listItems {
-		options[i+1] = El(OPTION, Attr(VALUE, str))
+		options[i+1] = OPTION(VALUE(str))
 	}
-	return El(DATALIST, options...)
+	return DATALIST(options...)
 }
 
 // getTextArea returns a styled text area for a form. content is the text filled into the area.
 func getTextArea(id string, name string, content string, labelText string) Node {
-	return El(DIV, Attr(CLASS, "mt-2"),
-		El(LABEL, Attr(FOR, id), Text(labelText)), El(BR),
-		El(TEXTAREA, Attr(NAME, name), Attr(ID, id), Attr(CLASS, "bg-slate-700 appearance-none w-full h-[200px] py-2 px-3"),
+	return DIV(CLASS("mt-2"),
+		LABEL(FOR(id), Text(labelText)), BR(),
+		TEXTAREA(NAME(name), ID(id), CLASS("bg-slate-700 appearance-none w-full h-[200px] py-2 px-3"),
 			Text(content),
 		),
 	)
@@ -36,11 +36,11 @@ func getInput(id string, name string, value string, labelText string, typeStr st
 	if extraClass != "" {
 		extraClass = " " + extraClass
 	}
-	return El(DIV, Attr(CLASS, "mt-2"),
-		El(LABEL, Attr(FOR, id), Text(labelText)),
-		El(INPUT, Attr(TYPE, typeStr), Attr(NAME, name), Attr(ID, id), Attr(VALUE, value),
-			Attr(CLASS, "bg-slate-700 appearance-none w-full py-2 px-3"+extraClass),
-			If(list != "", Attr(LIST, list))),
+	return DIV(CLASS("mt-2"),
+		LABEL(FOR(id), Text(labelText)),
+		INPUT(TYPE(typeStr), NAME(name), ID(id), VALUE(value),
+			CLASS("bg-slate-700 appearance-none w-full py-2 px-3"+extraClass),
+			If(list != "", LIST(list))),
 	)
 }
 
@@ -48,7 +48,7 @@ var buttonClassAttribute = "bg-slate-700 text-white p-2"
 
 // getSubmitButton returns the standard form submit button
 func getSubmitButton(buttonText string) Node {
-	return El(BUTTON, Attr(TYPE, "submit"), Attr(CLASS, buttonClassAttribute+" mt-2 mr-2"),
+	return BUTTON(TYPE("submit"), CLASS(buttonClassAttribute+" mt-2 mr-2"),
 		Text(buttonText))
 }
 
@@ -67,15 +67,15 @@ func getSubmitButtonOverwriteURL(buttonText string, submit FormType, url string)
 	hx := Node(nil)
 	switch submit {
 	case GET:
-		hx = Attr(HXGET, url)
+		hx = HXGET(url)
 	case POST:
-		hx = Attr(HXPOST, url)
+		hx = HXPOST(url)
 	case PATCH:
-		hx = Attr(HXPATCH, url)
+		hx = HXPATCH(url)
 	case DELETE:
-		hx = Attr(HXDELETE, url)
+		hx = HXDELETE(url)
 	}
-	return El(BUTTON, Attr(TYPE, "submit"), Attr(CLASS, buttonClassAttribute+" mt-2 mr-2"), hx,
+	return BUTTON(TYPE("submit"), CLASS(buttonClassAttribute+" mt-2 mr-2"), hx,
 		Text(buttonText))
 }
 
@@ -84,15 +84,15 @@ func getFormStandardForm(id string, submit FormType, url string, children ...Nod
 	hx := Node(nil)
 	switch submit {
 	case GET:
-		hx = Attr(HXGET, url)
+		hx = HXGET(url)
 	case POST:
-		hx = Attr(HXPOST, url)
+		hx = HXPOST(url)
 	case PATCH:
-		hx = Attr(HXPATCH, url)
+		hx = HXPATCH(url)
 	case DELETE:
-		hx = Attr(HXDELETE, url)
+		hx = HXDELETE(url)
 	}
-	return El(FORM, hx, Attr(ID, id), Attr(HXTARGET, "#"+MainBodyID), Attr(HXSWAP, "outerHTML"), Attr(HXINCLUDE, "#"+InformationID), Group(children...))
+	return FORM(hx, ID(id), HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"), HXINCLUDE("#"+InformationID), Group(children...))
 }
 
 /*
