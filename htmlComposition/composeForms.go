@@ -2,8 +2,46 @@ package htmlComposition
 
 import (
 	. "PoliSim/componentHelper"
+	"fmt"
 )
 
+// getDropDown only works correct if the type t used also has the fmt.Stringer interface implemented.
+func getDropDown[t comparable](name string, id string, labelText string, disable bool, arr []t, m map[t]string, selectedItem t) Node {
+	return DIV(CLASS("mt-2"),
+		LABEL(FOR(id), Text(labelText)),
+		SELECT(If(disable, DISABLED()), ID(id), NAME(name), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
+			getOptions(arr, m, selectedItem),
+		),
+	)
+}
+
+func getOptions[t comparable](arr []t, m map[t]string, selectedItem t) Node {
+	nodes := make([]Node, len(arr))
+	for index, item := range arr {
+		strItem := any(item).(fmt.Stringer).String()
+		nodes[index] = OPTION(VALUE(strItem), If(item == selectedItem, SELECTED()),
+			Text(m[item]))
+	}
+	return Group(nodes...)
+}
+
+/*
+templ DropDownSelectedAccount(name string, list database.AccountList, selectedAccount string, disable bool) {
+    <div class="mt-2">
+        <label for="selectedAccount">{ children... }</label>
+        <select name={ name } id="selectedAccount" class="bg-slate-700 appearance-none w-full py-2 px-3"
+            disabled?={ disable }>
+            @addOptionsForAccounts(list, selectedAccount)
+        </select>
+    </div>
+}
+
+templ addOptionsForAccounts(list database.AccountList, selectedAccount string) {
+    for _, acc := range list {
+        <option value={ acc.DisplayName } selected?={ selectedAccount == acc.DisplayName }>{ acc.DisplayName }</option>
+    }
+}
+*/
 // getDataList creates a <datalist> element containing all items in listItems as <option> tags
 // and the listName as the id.
 func getDataList(listName string, listItems []string) Node {
@@ -32,13 +70,13 @@ func getSimpleTextInput(id string, name string, value string, labelText string) 
 
 // getInput returns an <input> element filled with the id, name, value, type (here typeStr), the used list for suggestions and
 // addition css parameter with extraClass.
-func getInput(id string, name string, value string, labelText string, typeStr string, list string, extraClass string) Node {
+func getInput(id string, name string, value string, labelText string, typeStr string, list string, extraClass string, others ...Node) Node {
 	if extraClass != "" {
 		extraClass = " " + extraClass
 	}
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR(id), Text(labelText)),
-		INPUT(TYPE(typeStr), NAME(name), ID(id), VALUE(value),
+		INPUT(TYPE(typeStr), NAME(name), ID(id), VALUE(value), Group(others...),
 			CLASS("bg-slate-700 appearance-none w-full py-2 px-3"+extraClass),
 			If(list != "", LIST(list))),
 	)
@@ -174,21 +212,6 @@ templ AddPreviewField() {
 }
 
 
-templ DropDownSelectedAccount(name string, list database.AccountList, selectedAccount string, disable bool) {
-    <div class="mt-2">
-        <label for="selectedAccount">{ children... }</label>
-        <select name={ name } id="selectedAccount" class="bg-slate-700 appearance-none w-full py-2 px-3"
-            disabled?={ disable }>
-            @addOptionsForAccounts(list, selectedAccount)
-        </select>
-    </div>
-}
-
-templ addOptionsForAccounts(list database.AccountList, selectedAccount string) {
-    for _, acc := range list {
-        <option value={ acc.DisplayName } selected?={ selectedAccount == acc.DisplayName }>{ acc.DisplayName }</option>
-    }
-}
 
 templ AddDropDownSelection[K database.StatusString | database.RoleString | database.VoteType](name string, id string, disable bool, list []K, mapping map[K]string, selectedItem K) {
     <div class="mt-2">

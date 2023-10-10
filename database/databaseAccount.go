@@ -1,6 +1,9 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+	"strconv"
+)
 
 type (
 	RoleLevel   int
@@ -38,4 +41,8 @@ var RoleTranslation = map[RoleLevel]string{
 	MediaAdmin:   "Medien-Administrator",
 	Admin:        "Administrator",
 	HeadAdmin:    "Leitender Administrator",
+}
+
+func (t RoleLevel) String() string {
+	return strconv.Itoa(int(t))
 }

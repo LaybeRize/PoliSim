@@ -234,3 +234,16 @@ func extractAsJson(r *http.Request, fields *UserInformation) error {
 func groupNodes(children ...componentHelper.Node) func(io.Writer) error {
 	return componentHelper.Group(children...).Render
 }
+
+func genericRenderer(currentPage htmlComposition.HttpUrl) func(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node componentHelper.Node) {
+	return func(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node componentHelper.Node) {
+		renderRequest(w, false, groupNodes(updateInformation(w, r, level, currentPage),
+			node))
+	}
+}
+
+func genericMessageSwapper(currentPage htmlComposition.HttpUrl) func(w http.ResponseWriter, r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
+	return func(w http.ResponseWriter, r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
+		onlySwapMessage(w, val, updateInformation(w, r, level, currentPage))
+	}
+}

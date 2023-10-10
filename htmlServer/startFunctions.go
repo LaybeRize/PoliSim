@@ -72,11 +72,5 @@ func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 	startRenderRequest(w, r, database.NotLoggedIn, html)
 }
 
-func startRenderRequest(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node componentHelper.Node) {
-	renderRequest(w, false, groupNodes(updateInformation(w, r, level, htmlComposition.Start),
-		node))
-}
-
-func startOnlySwapMessage(w http.ResponseWriter, r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
-	onlySwapMessage(w, val, updateInformation(w, r, level, htmlComposition.Start))
-}
+var startRenderRequest = genericRenderer(htmlComposition.Start)
+var startOnlySwapMessage = genericMessageSwapper(htmlComposition.Start)

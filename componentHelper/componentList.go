@@ -18,6 +18,7 @@ var (
 	OPTION   = elementWrapper("option")
 	DATALIST = elementWrapper("datalist")
 	LABEL    = elementWrapper("label")
+	SELECT   = elementWrapper("select")
 	TEXTAREA = elementWrapper("textarea")
 	BUTTON   = elementWrapper("button")
 	FORM     = elementWrapper("form")
@@ -65,6 +66,8 @@ var (
 	FOR         = attributeWrapper("for")
 	TYPE        = attributeWrapper("type")
 	LIST        = attributeWrapper("list")
+	DISABLED    = attributeWrapper("disabled")
+	SELECTED    = attributeWrapper("selected")
 )
 
 const (

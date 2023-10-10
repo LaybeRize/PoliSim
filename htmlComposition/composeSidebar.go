@@ -18,13 +18,11 @@ func getSidebar(level database.RoleLevel, specialNode Node) Node {
 		),
 		//here come the inputs
 		getSidebarButton(level, database.NotLoggedIn, Start),
-		getSidebarButton(level, database.HeadAdmin, "test"),
-		// TODO: remove me ^
 		If(database.User <= level, getSidebarBreaker()),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
 		If(database.Admin <= level, getSidebarBreaker()),
 		getSideBarSubMenu(level, database.HeadAdmin, Translation["accountSubMenu"],
-			getSidebarSubMenuButton(level, database.HeadAdmin, "test"),
+			getSidebarSubMenuButton(level, database.HeadAdmin, CreateUser),
 		),
 	)
 }
@@ -56,12 +54,12 @@ func getSideBarSubMenu(userLevel database.RoleLevel, minimumLevel database.RoleL
 			HYPERSCRIPT("on click toggle .hidden on next <div/> from me then toggle .rotate-180 on last <span/> in first <div/> in me"),
 			DIV(CLASS("flex justify-between w-full items-center"),
 				SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(subMenuName)),
-				SPAN(CLASS("text-sm"),
+				SPAN(CLASS("text-sm rotate-180"),
 					I(CLASS("bi bi-chevron-down")),
 				),
 			),
 		),
-		DIV(Group(children...), CLASS("text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold")),
+		DIV(Group(children...), CLASS("text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold hidden")),
 	)
 }
 

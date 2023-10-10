@@ -26,6 +26,8 @@ func main() {
 	createAdminAccount()
 
 	htmlServer.InstallStart()
+	htmlServer.InstallAccountManagment()
+	htmlServer.InstallErrorPage()
 
 	dataValidation.CreateStore()
 

@@ -31,6 +31,17 @@ type AccountLogin struct {
 	Role          database.RoleLevel
 }
 
+type AccountModification struct {
+	ID          int64
+	DisplayName string
+	Username    string
+	Password    string
+	Flair       string
+	Suspended   bool
+	Role        database.RoleLevel
+	Linked      sql.NullInt64
+}
+
 // RootAccountExists checks if the account with the ID 1 exists
 // if so, it returns true and nil. If the DB gives back a gorm.ErrRecordNotFound
 // it will return false and nil.
@@ -88,4 +99,50 @@ func GetAllChildrenDisplayNames(parentID int64) (*AccountDisplayNameList, error)
 	array := &AccountDisplayNameList{}
 	err := database.DB.Model(database.Account{}).Select("display_name").Where("linked=?", parentID).Order("display_name").Find(array).Error
 	return array, err
+}
+
+func (acc *AccountModification) CreateMe() error {
+	return database.DB.Create(&database.Account{
+		DisplayName: acc.DisplayName,
+		Username:    acc.Username,
+		Password:    acc.Password,
+		Flair:       acc.Flair,
+		Suspended:   acc.Suspended,
+		Role:        acc.Role,
+		Linked:      acc.Linked,
+	}).Error
+}
+
+func GetAccountModificationByUsername(username string) (*AccountModification, error) {
+	acc := &AccountModification{}
+	err := database.DB.Model(database.Account{}).Where("username=?", username).First(acc).Error
+	return acc, err
+}
+
+func GetAccountModificationByDisplayName(displayName string) (*AccountModification, error) {
+	acc := &AccountModification{}
+	err := database.DB.Model(database.Account{}).Where("display_name=?", displayName).First(acc).Error
+	return acc, err
+}
+
+func (acc *AccountModification) OnlyUpdateFlair() error {
+	return database.DB.Model(&database.Account{ID: acc.ID}).Update("flair", acc.Flair).Error
+}
+
+// UpdateAllFields updates all allowed fields (flair, suspended, role, linked)
+func (acc *AccountModification) UpdateAllFields() error {
+	return database.DB.Model(&database.Account{ID: acc.ID}).Updates(map[string]interface{}{
+		"flair":     acc.Flair,
+		"suspended": acc.Suspended,
+		"role":      acc.Role,
+		"linked":    acc.Linked,
+	}).Error
+}
+
+func (acc *AccountModification) UpdateEverythingExceptFlair() error {
+	return database.DB.Model(&database.Account{ID: acc.ID}).Updates(map[string]interface{}{
+		"suspended": acc.Suspended,
+		"role":      acc.Role,
+		"linked":    acc.Linked,
+	}).Error
 }

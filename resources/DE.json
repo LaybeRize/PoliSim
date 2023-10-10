@@ -1,10 +1,11 @@
 {
+  "errorPageTitle": "Es ist ein Fehler aufgetreten",
+  "notAllowedToViewThisPage": "Du bist nicht berechtigt diese Seite zu besuchen",
+
   "welcomeMessage": "Herzlich Willkommen im MReichstag",
   "extractionError": "Es ist ein Fehler bei der Verarbeitung des Formulars aufgetreten",
   "pageNotFoundTitle": "404 Seite nicht gefunden",
   "pageNotFoundText": "Seite nicht gefunden",
-
-  "accountSubMenu": "Benutzer verwalten",
 
   "usernameOrPasswordMissing": "Passwort oder Nutzername fehlt",
   "passwordOrUsernameWrong": "Der Nutzername oder das Passwort sind fehlerhaft",
@@ -24,5 +25,25 @@
   "startSidebarText": "Start",
 
   "username": "Nutzername",
-  "password": "Passwort"
+  "password": "Passwort",
+
+  "accountSubMenu": "Benutzer verwalten",
+  "createButton": "Erstellen",
+
+  "createUserTitle": "Nutzer erstellen",
+  "createUserSidebarText": "Nutzer erstellen",
+  "displayName": "Anzeigename",
+  "flair": "Flair",
+  "linked": "Verlinkter Account",
+  "role": "Rolle",
+
+  "missingDisplayName": "Anzeigename fehlt oder ist zu lang (maximal %d Zeichen)",
+  "roleNotAllowed": "Die ausgewählte Rolle existiert nicht",
+  "cantCreateHeadAdmin": "Berechtigung fehlt \"%s\" zu erstellen fehlt",
+  "missingUsernameForNonPressAccounts": "Nutzername fehlt oder ist zu lang (maximal %d Zeichen)",
+  "missingPasswordForNonPressAccounts": "Passwort fehlt oder ist zu lang (maximal %d Zeichen)",
+  "hashingPasswordError": "Es ist ein Fehler beim hashen des Passworts aufgetreten",
+  "creatingUserError": "Es ist ein Fehler beim erstellen des Accounts in der Datenbank aufgetreten",
+  "userSuccessfullyCreated": "Nutzer wurde erfolgreich erstellt"
+
 }

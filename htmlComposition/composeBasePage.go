@@ -40,7 +40,7 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, load
 
 // getBasePageWrapper wraps the children in the MainBodyID div (and now an addition div to fucking standardize the fade in effect).
 func getBasePageWrapper(children ...Node) Node {
-	return DIV(ID(MainBodyID), CLASS("flex items-center flex-col basePadding w-full"),
+	return DIV(ID(MainBodyID), CLASS("flex items-center flex-col basePadding w-full minSizeBase"),
 		DIV(CLASS("flex items-center flex-col h-full fadeMeIn"), Group(children...)),
 	)
 }
@@ -81,4 +81,16 @@ func GetTitleReplacement(url HttpUrl) Node {
 // GetSidebarReplacement gets a new sidebar based on the database.RoleLevel that has the hx-swap-oob parameter
 func GetSidebarReplacement(level database.RoleLevel) Node {
 	return getSidebar(level, HXSWAPOOB("true"))
+}
+
+func GetErrorPage(errorText string) Node {
+	return getBasePageWrapper(DIV(CLASS("h-full flex items-center justify-center"),
+		DIV(STYLE("padding: 0.5em; line-height: 1; justify-content: center; align-items: center;--clr-border: rgb(159 18 57); background-size: 4px 100%, 100% 4px, 4px 100% , 100% 4px;"),
+			CLASS("box box-e flex-col flex"),
+			P(STYLE("font-size: 5em; margin-top: 3px; margin-left: 10px; margin-right: 10px"), CLASS("text-rose-600"),
+				Text(Translation["errorPageTitle"])),
+			P(STYLE("font-size: 2em; margin-top: 8px; margin-bottom: 21px;margin-left: 10px; margin-right: 10px"), CLASS("text-rose-600"),
+				Text(errorText)),
+		),
+	))
 }

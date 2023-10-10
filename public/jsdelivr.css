@@ -40,7 +40,13 @@
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
 }
+
+.minSizeBase {
+  min-width: calc(800px + (2 * 0.75em));
+}
+
 /*orginial*/
+
 @font-face {
   font-family: "bootstrap-icons";
   src: url("./fonts/bootstrap-icons.woff2") format("woff2"),
