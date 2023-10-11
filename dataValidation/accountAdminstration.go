@@ -24,6 +24,31 @@ type AccountModification struct {
 var maxNameLength = 100
 var maxPasswordLength = 50
 
+func (form *AccountModification) RequestAccount() (validate ValidationMessage) {
+	validate = ValidationMessage{Positive: false}
+	var err error
+	acc := &dataExtraction.AccountModification{}
+	if form.SearchByUsername {
+		acc, err = dataExtraction.GetAccountModificationByUsername(form.Username)
+	} else {
+		acc, err = dataExtraction.GetAccountModificationByDisplayName(form.DisplayName)
+	}
+	if err != nil {
+		validate.Message = componentHelper.Translation["accountDoesNotExists"]
+		return
+	}
+	form.Username = acc.Username
+	form.DisplayName = acc.DisplayName
+	form.Flair = acc.Flair
+	form.Suspended = acc.Suspended
+	form.Role = int(acc.Role)
+	form.Linked = acc.Linked.Int64
+
+	validate.Message = componentHelper.Translation["accountFound"]
+	validate.Positive = true
+	return
+}
+
 func (form *AccountModification) ValidateAccountCreation(changer *dataExtraction.AccountAuth) (validate ValidationMessage) {
 	validate = ValidationMessage{Positive: false}
 	switch false {

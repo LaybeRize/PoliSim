@@ -16,6 +16,44 @@ func InstallAccountManagment() {
 	htmlComposition.PageTitleMap[htmlComposition.EditUser] = componentHelper.Translation["editUserTitle"]
 	htmlComposition.SidebarTitleMap[htmlComposition.EditUser] = componentHelper.Translation["editUserSidebarText"]
 	htmlComposition.GetHTMXFunctions[htmlComposition.EditUser] = GetEditUserService
+	htmlComposition.PostHTMXFunctions[htmlComposition.EditUser] = PostEditUserService
+	htmlComposition.PatchHTMXFunctions[htmlComposition.SearchUser] = PatchSearchUserService
+}
+
+func PatchSearchUserService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, componentHelper.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	msg := dataValidation.ValidationMessage{}
+
+	create := &dataValidation.AccountModification{}
+	err := extractFormValuesForFields(create, r, 0)
+	if err != nil {
+		msg.Message = componentHelper.Translation["extractionError"]
+		editUserOnlySwapMessage(w, r, msg, acc.Role)
+		return
+	}
+
+	msg = create.RequestAccount()
+	if !msg.Positive {
+		editUserOnlySwapMessage(w, r, msg, acc.Role)
+		return
+	}
+
+	html := htmlComposition.GetModifyAccount(create, msg)
+	editUserRenderRequest(w, r, acc.Role, html)
+}
+
+func PostEditUserService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, componentHelper.Translation["notAllowedToViewThisPage"])
+		return
+	}
+	//change account
 }
 
 func GetEditUserService(w http.ResponseWriter, r *http.Request) {

@@ -36,6 +36,8 @@
   "flair": "Flair",
   "linked": "Verlinkter Account",
   "role": "Rolle",
+  "suspended": "Suspendiert",
+  "changeFlair": "Flair anpassen",
 
   "missingDisplayName": "Anzeigename fehlt oder ist zu lang (maximal %d Zeichen)",
   "roleNotAllowed": "Die ausgewählte Rolle existiert nicht",
@@ -51,5 +53,7 @@
   "searchByUsername": "Den Nutzer anhand des Nutzername finden",
   "searchAccountButton": "Account suchen",
   "changeAccountButton": "Account verändern",
-  "errorWhileRetrievingNames": "Es ist ein Fehler beim suchen der Account-Namen aufgetreten"
+  "errorWhileRetrievingNames": "Es ist ein Fehler beim suchen der Account-Namen aufgetreten",
+  "accountDoesNotExists": "Konnte keinen Account mit dem angegebenen Namen finden",
+  "accountFound": "Account gefunden"
 }
