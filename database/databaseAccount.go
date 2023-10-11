@@ -34,6 +34,7 @@ const (
 	HeadAdmin
 )
 
+// Roles has to keep PressAccount because of its special status as the first element of the array
 var Roles = []RoleLevel{PressAccount, User, MediaAdmin, Admin, HeadAdmin}
 var RoleTranslation = map[RoleLevel]string{
 	PressAccount: "Presse-Account",

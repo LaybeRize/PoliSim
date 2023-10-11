@@ -13,6 +13,21 @@ func InstallAccountManagment() {
 	htmlComposition.SidebarTitleMap[htmlComposition.CreateUser] = componentHelper.Translation["createUserSidebarText"]
 	htmlComposition.GetHTMXFunctions[htmlComposition.CreateUser] = GetCreateUserService
 	htmlComposition.PostHTMXFunctions[htmlComposition.CreateUser] = PostCreateUserService
+	htmlComposition.PageTitleMap[htmlComposition.EditUser] = componentHelper.Translation["editUserTitle"]
+	htmlComposition.SidebarTitleMap[htmlComposition.EditUser] = componentHelper.Translation["editUserSidebarText"]
+	htmlComposition.GetHTMXFunctions[htmlComposition.EditUser] = GetEditUserService
+}
+
+func GetEditUserService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, componentHelper.Translation["notAllowedToViewThisPage"])
+		return
+	}
+	html := htmlComposition.GetModifyAccount(&dataValidation.AccountModification{
+		Role: int(database.User),
+	}, dataValidation.ValidationMessage{})
+	editUserRenderRequest(w, r, acc.Role, html)
 }
 
 func GetCreateUserService(w http.ResponseWriter, r *http.Request) {
@@ -56,3 +71,5 @@ func PostCreateUserService(w http.ResponseWriter, r *http.Request) {
 
 var createUserRenderRequest = genericRenderer(htmlComposition.CreateUser)
 var createUserOnlySwapMessage = genericMessageSwapper(htmlComposition.CreateUser)
+var editUserRenderRequest = genericRenderer(htmlComposition.EditUser)
+var editUserOnlySwapMessage = genericMessageSwapper(htmlComposition.EditUser)

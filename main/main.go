@@ -61,8 +61,12 @@ func instigateRoutes(router *chi.Mux) {
 	// sets up the 404 routing
 	router.NotFound(htmlServer.GetFullPage(componentHelper.Translation["pageNotFoundTitle"]))
 	htmlComposition.PageTitleMap[htmlComposition.NotFound] = componentHelper.Translation["pageNotFoundTitle"]
-	router.Get("/"+htmlComposition.APIPreRoute+"*", htmlServer.GetNotFoundService)
-	_, _ = fmt.Fprintf(os.Stdout, "Added htmx not found route\n")
+	router.Get("/"+htmlComposition.APIPreRoute+"*", htmlServer.NotFoundService)
+	router.Post("/"+htmlComposition.APIPreRoute+"*", htmlServer.NotFoundService)
+	router.Patch("/"+htmlComposition.APIPreRoute+"*", htmlServer.NotFoundService)
+	router.Delete("/"+htmlComposition.APIPreRoute+"*", htmlServer.NotFoundService)
+	_, _ = fmt.Fprintf(os.Stdout, "Added htmx not found routing\n")
+
 	// sets up the standard routes
 	for httpRoute, pageTitle := range htmlComposition.PageTitleMap {
 		router.Get("/"+string(httpRoute), htmlServer.GetFullPage(pageTitle))

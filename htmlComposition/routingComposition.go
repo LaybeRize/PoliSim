@@ -19,6 +19,8 @@ const (
 	CreateVote         HttpUrl = "create-vote"
 	RequestVotePartial HttpUrl = "request-vote-partial"
 	CreateUser         HttpUrl = "create-user"
+	EditUser           HttpUrl = "edit-user"
+	SearchUser         HttpUrl = "search-user"
 	ErrorPage          HttpUrl = "errorPage"
 
 	// NotFound is only used as a way to keep the PageTitleMap in order

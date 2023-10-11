@@ -5,6 +5,17 @@ import (
 	"fmt"
 )
 
+func getCheckBox(id string, checked bool, hidden bool, value string, name string, labelText string, hyperscript Node) Node {
+	return DIV(IfElse(hidden, CLASS("form-check mt-2 hidden"), CLASS("form-check mt-2")), ID(id),
+		INPUT(CLASS(`form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none
+            transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer`),
+			TYPE("checkbox"), VALUE(value), NAME(name), ID(id+"Input"), hyperscript,
+			If(checked && !hidden, CHECKED())),
+		LABEL(CLASS("form-check-label inline-block"), FOR(id+"Input"),
+			Text(labelText)),
+	)
+}
+
 // getDropDown only works correct if the type t used also has the fmt.Stringer interface implemented.
 func getDropDown[t comparable](name string, id string, labelText string, disable bool, arr []t, m map[t]string, selectedItem t) Node {
 	return DIV(CLASS("mt-2"),
@@ -25,23 +36,6 @@ func getOptions[t comparable](arr []t, m map[t]string, selectedItem t) Node {
 	return Group(nodes...)
 }
 
-/*
-templ DropDownSelectedAccount(name string, list database.AccountList, selectedAccount string, disable bool) {
-    <div class="mt-2">
-        <label for="selectedAccount">{ children... }</label>
-        <select name={ name } id="selectedAccount" class="bg-slate-700 appearance-none w-full py-2 px-3"
-            disabled?={ disable }>
-            @addOptionsForAccounts(list, selectedAccount)
-        </select>
-    </div>
-}
-
-templ addOptionsForAccounts(list database.AccountList, selectedAccount string) {
-    for _, acc := range list {
-        <option value={ acc.DisplayName } selected?={ selectedAccount == acc.DisplayName }>{ acc.DisplayName }</option>
-    }
-}
-*/
 // getDataList creates a <datalist> element containing all items in listItems as <option> tags
 // and the listName as the id.
 func getDataList(listName string, listItems []string) Node {
@@ -71,13 +65,10 @@ func getSimpleTextInput(id string, name string, value string, labelText string) 
 // getInput returns an <input> element filled with the id, name, value, type (here typeStr), the used list for suggestions and
 // addition css parameter with extraClass.
 func getInput(id string, name string, value string, labelText string, typeStr string, list string, extraClass string, others ...Node) Node {
-	if extraClass != "" {
-		extraClass = " " + extraClass
-	}
-	return DIV(CLASS("mt-2"),
+	return DIV(CLASS("mt-2 "+extraClass), ID(id+"Div"),
 		LABEL(FOR(id), Text(labelText)),
 		INPUT(TYPE(typeStr), NAME(name), ID(id), VALUE(value), Group(others...),
-			CLASS("bg-slate-700 appearance-none w-full py-2 px-3"+extraClass),
+			CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
 			If(list != "", LIST(list))),
 	)
 }
@@ -176,18 +167,6 @@ templ AddSpecialSubmitButton(url string, formID string) {
     </button>
 }
 
-templ AddCheckbox(id string, checked bool, hidden bool, value string, name string, hyperscript string) {
-    <div class={SafeCSS("form-check mt-2"), EnableCSS("hidden", hidden)} id={ id }>
-        <input class="form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none
-            transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer"
-            type="checkbox" value={ value } name={ name } id={ id+"Input" }
-            _={ hyperscript }
-            checked?={ checked && !hidden } />
-        <label class="form-check-label inline-block" for={ id+"Input" }>
-            { children... }
-        </label>
-    </div>
-}
 
 templ AddPreviewButton(include string) {
     <button type="button" class="bg-slate-700 text-white p-2 mt-2 mr-2"

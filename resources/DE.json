@@ -44,6 +44,12 @@
   "missingPasswordForNonPressAccounts": "Passwort fehlt oder ist zu lang (maximal %d Zeichen)",
   "hashingPasswordError": "Es ist ein Fehler beim hashen des Passworts aufgetreten",
   "creatingUserError": "Es ist ein Fehler beim erstellen des Accounts in der Datenbank aufgetreten",
-  "userSuccessfullyCreated": "Nutzer wurde erfolgreich erstellt"
+  "userSuccessfullyCreated": "Nutzer wurde erfolgreich erstellt",
 
+  "editUserTitle": "Nutzer bearbeiten",
+  "editUserSidebarText": "Nutzer bearbeiten",
+  "searchByUsername": "Den Nutzer anhand des Nutzername finden",
+  "searchAccountButton": "Account suchen",
+  "changeAccountButton": "Account verändern",
+  "errorWhileRetrievingNames": "Es ist ein Fehler beim suchen der Account-Namen aufgetreten"
 }

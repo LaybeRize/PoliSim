@@ -68,6 +68,7 @@ var (
 	LIST        = attributeWrapper("list")
 	DISABLED    = attributeWrapper("disabled")
 	SELECTED    = attributeWrapper("selected")
+	CHECKED     = attributeWrapper("checked")
 )
 
 const (

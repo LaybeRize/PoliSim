@@ -13,6 +13,11 @@ type (
 	}
 )
 
+type AccountNames struct {
+	DisplayName string
+	Username    string
+}
+
 type AccountAuth struct {
 	ID          int64
 	DisplayName string
@@ -145,4 +150,26 @@ func (acc *AccountModification) UpdateEverythingExceptFlair() error {
 		"role":      acc.Role,
 		"linked":    acc.Linked,
 	}).Error
+}
+
+// ReturnNames returns as the first argument the DisplayNames and as the second Argument the Usernames
+func ReturnNames() ([]string, []string, error) {
+	rows, err := database.DB.Model(&database.Account{}).Rows()
+	defer rows.Close()
+	var names = make([]string, 0, 20)
+	var users = make([]string, 0, 20)
+	if err != nil {
+		return names, users, err
+	}
+	for rows.Next() {
+		var user AccountNames
+		err = database.DB.ScanRows(rows, &user)
+		if err != nil {
+			return names, users, err
+		}
+
+		names = append(names, user.DisplayName)
+		users = append(users, user.Username)
+	}
+	return names, users, nil
 }
