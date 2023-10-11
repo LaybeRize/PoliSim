@@ -21,6 +21,7 @@ const (
 	CreateUser         HttpUrl = "create-user"
 	EditUser           HttpUrl = "edit-user"
 	SearchUser         HttpUrl = "search-user"
+	ViewUser           HttpUrl = "view-user"
 	ErrorPage          HttpUrl = "errorPage"
 
 	// NotFound is only used as a way to keep the PageTitleMap in order

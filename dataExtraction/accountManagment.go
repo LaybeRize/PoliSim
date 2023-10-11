@@ -18,6 +18,19 @@ type AccountNames struct {
 	Username    string
 }
 
+type (
+	AccountList        []AccountListElement
+	AccountListElement struct {
+		ID          int64
+		DisplayName string
+		Username    string
+		Flair       string
+		Suspended   bool
+		Role        database.RoleLevel
+		Linked      sql.NullInt64
+	}
+)
+
 type AccountAuth struct {
 	ID          int64
 	DisplayName string
@@ -172,4 +185,10 @@ func ReturnNames() ([]string, []string, error) {
 		users = append(users, user.Username)
 	}
 	return names, users, nil
+}
+
+func ReturnAccountList(id int64) (AccountList, error) {
+	array := AccountList{}
+	err := database.DB.Model(database.Account{}).Where("id=? OR linked=? OR ?=0", id, id, id).Order("id").Find(&array).Error
+	return array, err
 }

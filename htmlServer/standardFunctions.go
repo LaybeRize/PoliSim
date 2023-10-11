@@ -172,9 +172,10 @@ func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage
 }
 
 type UserInformation struct {
-	RoleLevel int    `input:"personalRoleLevel" json:"personalRoleLevel"`
-	Url       string `input:"currentPageURL" json:"currentPageURL"`
-	PushURL   bool   `input:"pushURL" json:"pushURL"`
+	RoleLevel     int    `input:"personalRoleLevel" json:"personalRoleLevel"`
+	Url           string `input:"currentPageURL" json:"currentPageURL"`
+	PushParameter string `input:"pushParameter" json:"pushParameter"`
+	PushURL       bool   `input:"pushURL" json:"pushURL"`
 }
 
 // updateInformation extracts the current roleLevel and pageURL via submitted form/url and if one of these are different from what
@@ -189,8 +190,9 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 	} else {
 		err = extractFormValuesForFields(fields, r, 0)
 	}
+	addition := extractParameters(r, fields.PushParameter)
 	if fields.PushURL {
-		w.Header().Add("HX-Push-Url", "/"+string(currentPage))
+		w.Header().Add("HX-Push-Url", "/"+string(currentPage)+addition)
 	}
 	switch true {
 	case err != nil || (fields.RoleLevel == int(level) && fields.Url == string(currentPage)):
@@ -207,6 +209,18 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 			htmlComposition.GetInfoDiv(level, currentPage))
 	}
 	return nil
+}
+
+func extractParameters(r *http.Request, str string) string {
+	if str == "" {
+		return ""
+	}
+	split := strings.Split(str, ",")
+	add := "?" + split[0] + "=" + r.URL.Query().Get(split[0])
+	for i := 1; i < len(split); i++ {
+		add += "&" + split[i] + "=" + r.URL.Query().Get(split[i])
+	}
+	return add
 }
 
 func extractAsJson(r *http.Request, fields *UserInformation) error {

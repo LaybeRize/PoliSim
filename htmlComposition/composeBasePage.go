@@ -94,3 +94,11 @@ func GetErrorPage(errorText string) Node {
 		),
 	))
 }
+
+func getClickableLink(link string, parameters string, node Node) Node {
+	return A(HXGET(link), HXTARGET("#"+MainBodyID),
+		HXINCLUDE("#"+InformationID), HXVALS(`{"pushURL": "true", "pushParameter":"`+parameters+`"}`), HXSWAP("outerHTML"),
+		HYPERSCRIPT("on auxclick[button==1] call window.open('/"+link+"', '_blank')"),
+		node,
+	)
+}

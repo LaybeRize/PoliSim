@@ -22,6 +22,10 @@ var (
 	TEXTAREA = elementWrapper("textarea")
 	BUTTON   = elementWrapper("button")
 	FORM     = elementWrapper("form")
+	TABLE    = elementWrapper("table")
+	TH       = elementWrapper("th")
+	TR       = elementWrapper("tr")
+	TD       = elementWrapper("td")
 
 	BASE    = elementWrapper(BaseTag)
 	BR      = elementWrapper(BrTag)
@@ -57,6 +61,7 @@ var (
 	REL         = attributeWrapper("rel")
 	HREF        = attributeWrapper("href")
 	CLASS       = attributeWrapper("class")
+	ROWSPAN     = attributeWrapper("rowspan")
 	STYLE       = attributeWrapper("style")
 	ID          = attributeWrapper("id")
 	HYPERSCRIPT = attributeWrapper("_")

@@ -24,6 +24,7 @@ func getSidebar(level database.RoleLevel, specialNode Node) Node {
 		getSideBarSubMenu(level, database.HeadAdmin, Translation["accountSubMenu"],
 			getSidebarSubMenuButton(level, database.HeadAdmin, CreateUser),
 			getSidebarSubMenuButton(level, database.HeadAdmin, EditUser),
+			getSidebarSubMenuButton(level, database.HeadAdmin, ViewUser),
 		),
 	)
 }

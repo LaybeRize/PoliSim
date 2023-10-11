@@ -1,6 +1,9 @@
 package dataValidation
 
-import "strings"
+import (
+	"PoliSim/database"
+	"strings"
+)
 
 func ArrayContainsString(s []string, str string) bool {
 	for _, v := range s {
@@ -86,4 +89,13 @@ func RemoveEntriesFromList(list []string, toRemove []string) []string {
 type ValidationMessage struct {
 	Message  string
 	Positive bool
+}
+
+// isRoleValid checks if the role not database.NotLoggedIn
+func isRoleValid(level int) bool {
+	return level >= int(database.PressAccount) && level != int(database.NotLoggedIn) && level <= int(database.HeadAdmin)
+}
+
+func isEmptyOrNotInRange(str string, length int) bool {
+	return str == "" || len([]rune(str)) > length
 }

@@ -18,6 +18,19 @@ func InstallAccountManagment() {
 	htmlComposition.GetHTMXFunctions[htmlComposition.EditUser] = GetEditUserService
 	htmlComposition.PostHTMXFunctions[htmlComposition.EditUser] = PostEditUserService
 	htmlComposition.PatchHTMXFunctions[htmlComposition.SearchUser] = PatchSearchUserService
+	htmlComposition.PageTitleMap[htmlComposition.ViewUser] = componentHelper.Translation["viewUserTitle"]
+	htmlComposition.SidebarTitleMap[htmlComposition.ViewUser] = componentHelper.Translation["viewUserSidebarText"]
+	htmlComposition.GetHTMXFunctions[htmlComposition.ViewUser] = GetViewUserService
+}
+
+func GetViewUserService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, componentHelper.Translation["notAllowedToViewThisPage"])
+		return
+	}
+	html := htmlComposition.GetViewAccountList(r.URL.Query().Get("id"))
+	viewUserRenderRequest(w, r, acc.Role, html)
 }
 
 func PatchSearchUserService(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +66,25 @@ func PostEditUserService(w http.ResponseWriter, r *http.Request) {
 		ShowErrorPage(w, r, acc, componentHelper.Translation["notAllowedToViewThisPage"])
 		return
 	}
-	//change account
+
+	msg := dataValidation.ValidationMessage{}
+
+	create := &dataValidation.AccountModification{}
+	err := extractFormValuesForFields(create, r, 0)
+	if err != nil {
+		msg.Message = componentHelper.Translation["extractionError"]
+		editUserOnlySwapMessage(w, r, msg, acc.Role)
+		return
+	}
+
+	msg = create.ValidateAccountModification(acc)
+	if !msg.Positive {
+		editUserOnlySwapMessage(w, r, msg, acc.Role)
+		return
+	}
+
+	html := htmlComposition.GetModifyAccount(create, msg)
+	editUserRenderRequest(w, r, acc.Role, html)
 }
 
 func GetEditUserService(w http.ResponseWriter, r *http.Request) {
@@ -111,3 +142,4 @@ var createUserRenderRequest = genericRenderer(htmlComposition.CreateUser)
 var createUserOnlySwapMessage = genericMessageSwapper(htmlComposition.CreateUser)
 var editUserRenderRequest = genericRenderer(htmlComposition.EditUser)
 var editUserOnlySwapMessage = genericMessageSwapper(htmlComposition.EditUser)
+var viewUserRenderRequest = genericRenderer(htmlComposition.ViewUser)

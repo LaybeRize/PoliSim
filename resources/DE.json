@@ -40,7 +40,7 @@
   "changeFlair": "Flair anpassen",
 
   "missingDisplayName": "Anzeigename fehlt oder ist zu lang (maximal %d Zeichen)",
-  "roleNotAllowed": "Die ausgewählte Rolle existiert nicht",
+  "roleNotAllowed": "Die ausgewählte Rolle ist für den Account nicht erlaubt",
   "cantCreateHeadAdmin": "Berechtigung fehlt \"%s\" zu erstellen fehlt",
   "missingUsernameForNonPressAccounts": "Nutzername fehlt oder ist zu lang (maximal %d Zeichen)",
   "missingPasswordForNonPressAccounts": "Passwort fehlt oder ist zu lang (maximal %d Zeichen)",
@@ -55,5 +55,15 @@
   "changeAccountButton": "Account verändern",
   "errorWhileRetrievingNames": "Es ist ein Fehler beim suchen der Account-Namen aufgetreten",
   "accountDoesNotExists": "Konnte keinen Account mit dem angegebenen Namen finden",
-  "accountFound": "Account gefunden"
+  "accountFound": "Account gefunden",
+
+  "notAllowedToChangeAccount": "Es fehlen die Berechtigungen den ausgewählten Account zu verändern",
+  "changingUserError": "Es ist ein Fehler beim bearbeiten des Nutzers aufgetreten",
+  "changingUserSuccessfully": "Nutzer erfolgreich angepasst",
+  "noChangesMade": "Es wurde nichts verändert",
+
+  "viewUserTitle": "Nutzerübersicht",
+  "viewUserSidebarText": "Nutzerübersicht",
+  "errorWithDatabaseRequest": "Es ist ein Fehler beim Datenbankzugriff aufgetreten",
+  "notLinked": "Nicht verlinkt"
 }
