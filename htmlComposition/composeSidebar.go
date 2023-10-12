@@ -18,6 +18,7 @@ func getSidebar(level database.RoleLevel, specialNode Node) Node {
 		),
 		//here come the inputs
 		getSidebarButton(level, database.NotLoggedIn, Start),
+		getSidebarButton(level, database.NotLoggedIn, ViewTitles),
 		If(database.User <= level, getSidebarBreaker()),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
 		If(database.Admin <= level, getSidebarBreaker()),

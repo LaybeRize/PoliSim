@@ -65,5 +65,13 @@
   "viewUserTitle": "Nutzerübersicht",
   "viewUserSidebarText": "Nutzerübersicht",
   "errorWithDatabaseRequest": "Es ist ein Fehler beim Datenbankzugriff aufgetreten",
-  "notLinked": "Nicht verlinkt"
+  "notLinked": "Nicht verlinkt",
+
+  "errorWhileQueryingTitles": "Es ist ein Fehler bei der Suche der Titel aufgetreten",
+  "titleViewPageTitle": "Titelübersicht",
+  "titleViewSidebarText": "Titelübersicht",
+  "collapseAll": "Alle einklappen",
+  "viewTitleFlairText": "Flairtext: %s",
+  "viewTitleHolderText": "Träger: %s",
+  "viewTitleNoHolderText": "Keine Träger eingetragen"
 }

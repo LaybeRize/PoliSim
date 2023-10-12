@@ -86,6 +86,14 @@ func RemoveEntriesFromList(list []string, toRemove []string) []string {
 	return list
 }
 
+func GetDisplayNameArray(accs *[]database.Account) []string {
+	strs := make([]string, len(*accs))
+	for i, acc := range *accs {
+		strs[i] = acc.DisplayName
+	}
+	return strs
+}
+
 type ValidationMessage struct {
 	Message  string
 	Positive bool
