@@ -40,7 +40,7 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
 	return A(HXGET("/"+APIPreRoute+string(url)), ID(string(url)+SidebarID), HXTARGET("#"+MainBodyID),
-		HXINCLUDE("#"+InformationID), HXVALS(`{"pushURL": "true"}`), HXSWAP("outerHTML"),
+		HXINCLUDE("#"+InformationID), HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"),
 		HYPERSCRIPT(getClickAction(url)), CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),
 	)
@@ -71,7 +71,7 @@ func getSidebarSubMenuButton(userLevel database.RoleLevel, minimumLevel database
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
 	return A(HXGET("/"+APIPreRoute+string(url)), ID(string(url)+SidebarID), HXTARGET("#"+MainBodyID),
-		HXINCLUDE("#"+InformationID), HXVALS(`{"pushURL": "true"}`), HXSWAP("outerHTML"),
+		HXINCLUDE("#"+InformationID), HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"),
 		HYPERSCRIPT(getClickAction(url)),
 		H1(CLASS("cursor-pointer p-2 mt-1 w-full hover:bg-blue-600"), Text(SidebarTitleMap[url])),
 	)

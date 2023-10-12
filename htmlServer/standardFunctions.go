@@ -172,14 +172,13 @@ func onlySwapMessage(w http.ResponseWriter, val dataValidation.ValidationMessage
 }
 
 type UserInformation struct {
-	RoleLevel     int    `input:"personalRoleLevel" json:"personalRoleLevel"`
-	Url           string `input:"currentPageURL" json:"currentPageURL"`
-	PushParameter string `input:"pushParameter" json:"pushParameter"`
-	PushURL       bool   `input:"pushURL" json:"pushURL"`
+	RoleLevel int    `input:"personalRoleLevel" json:"personalRoleLevel"`
+	Url       string `input:"currentPageURL" json:"currentPageURL"`
 }
 
 // updateInformation extracts the current roleLevel and pageURL via submitted form/url and if one of these are different from what
-// is expected of the page it will replace the title/sidebar according to the new page/accountLevel. This is added as extra
+// is expected of the page it will replace the title/sidebar according to the new page/accountLevel. It covers GET request, form requests and json requests
+// It gets all it's information from the UserInformation struct.
 func updateInformation(w http.ResponseWriter, r *http.Request, level database.RoleLevel, currentPage htmlComposition.HttpUrl) componentHelper.Node {
 	fields := &UserInformation{}
 	var err error
@@ -189,10 +188,6 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 		err = extractAsJson(r, fields)
 	} else {
 		err = extractFormValuesForFields(fields, r, 0)
-	}
-	addition := extractParameters(r, fields.PushParameter)
-	if fields.PushURL {
-		w.Header().Add("HX-Push-Url", "/"+string(currentPage)+addition)
 	}
 	switch true {
 	case err != nil || (fields.RoleLevel == int(level) && fields.Url == string(currentPage)):
@@ -211,23 +206,12 @@ func updateInformation(w http.ResponseWriter, r *http.Request, level database.Ro
 	return nil
 }
 
-func extractParameters(r *http.Request, str string) string {
-	if str == "" {
-		return ""
-	}
-	split := strings.Split(str, ",")
-	add := "?" + split[0] + "=" + r.URL.Query().Get(split[0])
-	for i := 1; i < len(split); i++ {
-		add += "&" + split[i] + "=" + r.URL.Query().Get(split[i])
-	}
-	return add
-}
-
+// extractAsJson extracts the needed information from the json request
+// and transforms them to the parsed UserInformation struct.
 func extractAsJson(r *http.Request, fields *UserInformation) error {
 	temp := &struct {
 		RoleLevel string `json:"personalRoleLevel"`
 		Url       string `json:"currentPageURL"`
-		PushURL   string `json:"pushURL"`
 	}{}
 	err := json.NewDecoder(r.Body).Decode(temp)
 	if err != nil {
@@ -241,22 +225,27 @@ func extractAsJson(r *http.Request, fields *UserInformation) error {
 	}
 	fields.RoleLevel = i
 	fields.Url = temp.Url
-	fields.PushURL = temp.PushURL == "true"
 	return nil
 }
 
+// groupNodes returns the render function ofa group of nodes
 func groupNodes(children ...componentHelper.Node) func(io.Writer) error {
 	return componentHelper.Group(children...).Render
 }
 
-func genericRenderer(currentPage htmlComposition.HttpUrl) func(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node componentHelper.Node) {
+// genericRenderer returns a generics render function for a typical urls by parsing the htmlComposition.HttpUrl
+func genericRenderer(currentPage htmlComposition.HttpUrl) func(w http.ResponseWriter,
+	r *http.Request, level database.RoleLevel, node componentHelper.Node) {
 	return func(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node componentHelper.Node) {
 		renderRequest(w, false, groupNodes(updateInformation(w, r, level, currentPage),
 			node))
 	}
 }
 
-func genericMessageSwapper(currentPage htmlComposition.HttpUrl) func(w http.ResponseWriter, r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
+// genericMessageSwapper returns a generics render function that only swaps the message
+// element for a typical urls by parsing the htmlComposition.HttpUrl
+func genericMessageSwapper(currentPage htmlComposition.HttpUrl) func(w http.ResponseWriter,
+	r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
 	return func(w http.ResponseWriter, r *http.Request, val dataValidation.ValidationMessage, level database.RoleLevel) {
 		onlySwapMessage(w, val, updateInformation(w, r, level, currentPage))
 	}

@@ -23,11 +23,13 @@ func main() {
 	componentHelper.ImportTranslation(os.Getenv("LANG"))
 
 	database.ConnectDatabase()
+	dataExtraction.UpdateTitleGroupMap()
 	createAdminAccount()
 
 	htmlServer.InstallStart()
 	htmlServer.InstallAccountManagment()
 	htmlServer.InstallErrorPage()
+	htmlServer.InstallTitlePages()
 
 	dataValidation.CreateStore()
 

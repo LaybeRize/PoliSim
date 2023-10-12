@@ -53,6 +53,7 @@ var (
 	HXSWAPOOB   = attributeWrapper("hx-swap-oob")
 	HXTARGET    = attributeWrapper("hx-target")
 	HXSWAP      = attributeWrapper("hx-swap")
+	HXPUSHURL   = attributeWrapper("hx-push-url")
 	SRC         = attributeWrapper("src")
 	ALT         = attributeWrapper("alt")
 	CHARSET     = attributeWrapper("charset")

@@ -69,11 +69,12 @@ func GetViewAccountList(id string) Node {
 		if item.Suspended {
 			susSpan = SPAN(CLASS("text-sm"), I(CLASS("bi bi-x-lg")))
 		}
+		link := string(ViewUser) + "?id=" + strconv.FormatInt(item.ID, 10)
 		nodes[i] = TR(
 			getTableElement(StartPos, 1, Text(strconv.FormatInt(item.ID, 10))),
 			getTableElement(MiddlePos, 1, IfElse(item.Role == database.PressAccount,
 				Text(item.DisplayName),
-				getClickableLink("/"+APIPreRoute+string(ViewUser)+"?id="+strconv.FormatInt(item.ID, 10), "id",
+				getClickableLink("/"+APIPreRoute+link, "/"+link,
 					Text(item.DisplayName)))),
 			getTableElement(MiddlePos, 1, Text(item.Username)),
 			getTableElement(MiddlePos, 1, Text(item.Flair)),
