@@ -1,12 +1,12 @@
 package main
 
 import (
-	"PoliSim/componentHelper"
-	"PoliSim/dataExtraction"
-	"PoliSim/dataValidation"
-	"PoliSim/database"
-	"PoliSim/htmlComposition"
-	"PoliSim/htmlServer"
+	"PoliSim/data/database"
+	"PoliSim/data/extraction"
+	"PoliSim/data/validation"
+	"PoliSim/html/builder"
+	"PoliSim/html/composition"
+	"PoliSim/html/serving"
 	"fmt"
 	"github.com/go-chi/cors"
 	"golang.org/x/crypto/bcrypt"
@@ -20,18 +20,18 @@ import (
 func main() {
 	_, _ = fmt.Fprintf(os.Stdout, "PoliSim starting up...\n\n")
 
-	componentHelper.ImportTranslation(os.Getenv("LANG"))
+	builder.ImportTranslation(os.Getenv("LANG"))
 
 	database.ConnectDatabase()
-	dataExtraction.UpdateTitleGroupMap()
+	extraction.UpdateTitleGroupMap()
 	createAdminAccount()
 
-	htmlServer.InstallStart()
-	htmlServer.InstallAccountManagment()
-	htmlServer.InstallErrorPage()
-	htmlServer.InstallTitlePages()
+	serving.InstallStart()
+	serving.InstallAccountManagment()
+	serving.InstallErrorPage()
+	serving.InstallTitlePages()
 
-	dataValidation.CreateStore()
+	validation.CreateStore()
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -61,40 +61,40 @@ func main() {
 
 func instigateRoutes(router *chi.Mux) {
 	// sets up the 404 routing
-	router.NotFound(htmlServer.GetFullPage(componentHelper.Translation["pageNotFoundTitle"]))
-	htmlComposition.PageTitleMap[htmlComposition.NotFound] = componentHelper.Translation["pageNotFoundTitle"]
-	router.Get("/"+htmlComposition.APIPreRoute+"*", htmlServer.NotFoundService)
-	router.Post("/"+htmlComposition.APIPreRoute+"*", htmlServer.NotFoundService)
-	router.Patch("/"+htmlComposition.APIPreRoute+"*", htmlServer.NotFoundService)
-	router.Delete("/"+htmlComposition.APIPreRoute+"*", htmlServer.NotFoundService)
+	router.NotFound(serving.GetFullPage(builder.Translation["pageNotFoundTitle"]))
+	composition.PageTitleMap[composition.NotFound] = builder.Translation["pageNotFoundTitle"]
+	router.Get("/"+composition.APIPreRoute+"*", serving.NotFoundService)
+	router.Post("/"+composition.APIPreRoute+"*", serving.NotFoundService)
+	router.Patch("/"+composition.APIPreRoute+"*", serving.NotFoundService)
+	router.Delete("/"+composition.APIPreRoute+"*", serving.NotFoundService)
 	_, _ = fmt.Fprintf(os.Stdout, "Added htmx not found routing\n")
 
 	// sets up the standard routes
-	for httpRoute, pageTitle := range htmlComposition.PageTitleMap {
-		router.Get("/"+string(httpRoute), htmlServer.GetFullPage(pageTitle))
+	for httpRoute, pageTitle := range composition.PageTitleMap {
+		router.Get("/"+string(httpRoute), serving.GetFullPage(pageTitle))
 		_, _ = fmt.Fprintf(os.Stdout, "Added Route for: /"+string(httpRoute)+"\n")
 	}
 
-	for url, function := range htmlComposition.GetHTMXFunctions {
-		router.Get("/"+htmlComposition.APIPreRoute+string(url), function)
+	for url, function := range composition.GetHTMXFunctions {
+		router.Get("/"+composition.APIPreRoute+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Get Routes for htmx backend\n")
-	for url, function := range htmlComposition.PostHTMXFunctions {
-		router.Post("/"+htmlComposition.APIPreRoute+string(url), function)
+	for url, function := range composition.PostHTMXFunctions {
+		router.Post("/"+composition.APIPreRoute+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Post Routes for htmx backend\n")
-	for url, function := range htmlComposition.PatchHTMXFunctions {
-		router.Patch("/"+htmlComposition.APIPreRoute+string(url), function)
+	for url, function := range composition.PatchHTMXFunctions {
+		router.Patch("/"+composition.APIPreRoute+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Patch Routes for htmx backend\n")
-	for url, function := range htmlComposition.DeleteHTMXFunctions {
-		router.Delete("/"+htmlComposition.APIPreRoute+string(url), function)
+	for url, function := range composition.DeleteHTMXFunctions {
+		router.Delete("/"+composition.APIPreRoute+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Delete Routes for htmx backend\n")
 }
 
 func createAdminAccount() {
-	ok, err := dataExtraction.RootAccountExists()
+	ok, err := extraction.RootAccountExists()
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to find root account:\n"+err.Error()+"\n")
 		os.Exit(1)
@@ -109,7 +109,7 @@ func createAdminAccount() {
 		os.Exit(1)
 	}
 
-	adminAccount := dataExtraction.AccountLogin{
+	adminAccount := extraction.AccountLogin{
 		ID:          1,
 		DisplayName: os.Getenv("INIT_NAME"),
 		Username:    os.Getenv("INIT_USERNAME"),

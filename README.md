@@ -45,6 +45,7 @@ DB_PASSWORD=root
 DB_USER=postgres
 DB_ADRESS=DB adress with port
 ADRESS=host adress with port
+COOKIE_KEY=your super secret key here
 INIT_NAME=Root Account Name
 INIT_USERNAME=Root Account Username
 INIT_PASSWORD=Root Account password
