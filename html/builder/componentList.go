@@ -1,7 +1,7 @@
 package builder
 
-type ElementType string
-type AttributeType string
+type elementType string
+type attributeType string
 
 var (
 	DIV      = elementWrapper("div")
@@ -27,21 +27,22 @@ var (
 	TR       = elementWrapper("tr")
 	TD       = elementWrapper("td")
 
-	BASE    = elementWrapper(BaseTag)
-	BR      = elementWrapper(BrTag)
-	COL     = elementWrapper(ColTag)
-	COMMAND = elementWrapper(CommandTag)
-	EMBED   = elementWrapper(EmbedTag)
-	HR      = elementWrapper(HrTag)
-	IMG     = elementWrapper(ImgTag)
-	INPUT   = elementWrapper(InputTag)
-	KEYGEN  = elementWrapper(KeygenTag)
-	LINK    = elementWrapper(LinkTag)
-	META    = elementWrapper(MetaTag)
-	PARAM   = elementWrapper(ParamTag)
-	SOURCE  = elementWrapper(SourceTag)
-	TRACK   = elementWrapper(TrackTag)
-	WBR     = elementWrapper(WbrTag)
+	AREA    = elementWrapper(areaTag)
+	BASE    = elementWrapper(baseTag)
+	BR      = elementWrapper(brTag)
+	COL     = elementWrapper(colTag)
+	COMMAND = elementWrapper(commandTag)
+	EMBED   = elementWrapper(embedTag)
+	HR      = elementWrapper(hrTag)
+	IMG     = elementWrapper(imgTag)
+	INPUT   = elementWrapper(inputTag)
+	KEYGEN  = elementWrapper(keygenTag)
+	LINK    = elementWrapper(linkTag)
+	META    = elementWrapper(metaTag)
+	PARAM   = elementWrapper(paramTag)
+	SOURCE  = elementWrapper(sourceTag)
+	TRACK   = elementWrapper(trackTag)
+	WBR     = elementWrapper(wbrTag)
 
 	HXDELETE    = attributeWrapper("hx-delete")
 	HXPATCH     = attributeWrapper("hx-patch")
@@ -49,7 +50,7 @@ var (
 	HXGET       = attributeWrapper("hx-get")
 	HXTRIGGER   = attributeWrapper("hx-trigger")
 	HXINCLUDE   = attributeWrapper("hx-include")
-	HXVALS      = attributeWrapper(HxValue)
+	HXVALS      = attributeWrapper(hxValue)
 	HXSWAPOOB   = attributeWrapper("hx-swap-oob")
 	HXTARGET    = attributeWrapper("hx-target")
 	HXSWAP      = attributeWrapper("hx-swap")
@@ -78,41 +79,41 @@ var (
 )
 
 const (
-	AreaTag    ElementType = "area"
-	BaseTag    ElementType = "base"
-	BrTag      ElementType = "br"
-	ColTag     ElementType = "col"
-	CommandTag ElementType = "command"
-	EmbedTag   ElementType = "embed"
-	HrTag      ElementType = "hr"
-	ImgTag     ElementType = "img"
-	InputTag   ElementType = "input"
-	KeygenTag  ElementType = "keygen"
-	LinkTag    ElementType = "link"
-	MetaTag    ElementType = "meta"
-	ParamTag   ElementType = "param"
-	SourceTag  ElementType = "source"
-	TrackTag   ElementType = "track"
-	WbrTag     ElementType = "wbr"
+	areaTag    elementType = "area"
+	baseTag    elementType = "base"
+	brTag      elementType = "br"
+	colTag     elementType = "col"
+	commandTag elementType = "command"
+	embedTag   elementType = "embed"
+	hrTag      elementType = "hr"
+	imgTag     elementType = "img"
+	inputTag   elementType = "input"
+	keygenTag  elementType = "keygen"
+	linkTag    elementType = "link"
+	metaTag    elementType = "meta"
+	paramTag   elementType = "param"
+	sourceTag  elementType = "source"
+	trackTag   elementType = "track"
+	wbrTag     elementType = "wbr"
 
-	HxValue AttributeType = "hx-vals"
+	hxValue attributeType = "hx-vals"
 )
 
-var voidElements = map[ElementType]struct{}{
-	AreaTag:    {},
-	BaseTag:    {},
-	BrTag:      {},
-	ColTag:     {},
-	CommandTag: {},
-	EmbedTag:   {},
-	HrTag:      {},
-	ImgTag:     {},
-	InputTag:   {},
-	KeygenTag:  {},
-	LinkTag:    {},
-	MetaTag:    {},
-	ParamTag:   {},
-	SourceTag:  {},
-	TrackTag:   {},
-	WbrTag:     {},
+var voidElements = map[elementType]struct{}{
+	areaTag:    {},
+	baseTag:    {},
+	brTag:      {},
+	colTag:     {},
+	commandTag: {},
+	embedTag:   {},
+	hrTag:      {},
+	imgTag:     {},
+	inputTag:   {},
+	keygenTag:  {},
+	linkTag:    {},
+	metaTag:    {},
+	paramTag:   {},
+	sourceTag:  {},
+	trackTag:   {},
+	wbrTag:     {},
 }

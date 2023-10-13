@@ -11,8 +11,8 @@ COPY ./resources ./resources
 COPY go.mod .
 RUN go mod tidy
 
-RUN go build -o /mbundestag /app/main
+RUN go build -o /mreichstag /app/main
 
 EXPOSE 8080
 
-CMD ["/mbundestag"]
+CMD ["/mreichstag"]

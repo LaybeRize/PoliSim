@@ -23,14 +23,17 @@ func main() {
 	builder.ImportTranslation(os.Getenv("LANG"))
 
 	database.ConnectDatabase()
+	_, _ = fmt.Fprintf(os.Stdout, "Updating title groups\n")
 	extraction.UpdateTitleGroupMap()
 	createAdminAccount()
 
+	_, _ = fmt.Fprintf(os.Stdout, "Installing Router paths\n")
 	serving.InstallStart()
 	serving.InstallAccountManagment()
 	serving.InstallErrorPage()
 	serving.InstallTitlePages()
 
+	_, _ = fmt.Fprintf(os.Stdout, "Creating cookie store\n")
 	validation.CreateStore()
 
 	r := chi.NewRouter()
@@ -101,6 +104,7 @@ func createAdminAccount() {
 	} else if ok {
 		return
 	}
+	_, _ = fmt.Fprintf(os.Stdout, "Creating admin account\n")
 
 	var hashedPassword []byte
 	hashedPassword, err = bcrypt.GenerateFromPassword([]byte(os.Getenv("INIT_PASSWORD")), bcrypt.DefaultCost)
