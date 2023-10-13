@@ -81,10 +81,10 @@ func getSubmitButton(buttonText string) Node {
 		Text(buttonText))
 }
 
-type FormType int
+type formType int
 
 const (
-	GET FormType = iota
+	GET formType = iota
 	POST
 	PATCH
 	DELETE
@@ -92,7 +92,7 @@ const (
 
 // getSubmitButtonOverwriteURL returns a submit button that also overwrites the form hx-get/hx-post/hx-patch/hx-delete attribute
 // with the desired new url and submission type.
-func getSubmitButtonOverwriteURL(buttonText string, submit FormType, url string) Node {
+func getSubmitButtonOverwriteURL(buttonText string, submit formType, url string) Node {
 	hx := Node(nil)
 	switch submit {
 	case GET:
@@ -109,7 +109,7 @@ func getSubmitButtonOverwriteURL(buttonText string, submit FormType, url string)
 }
 
 // getFormStandardForm wraps all children in a <form> element with the needed htmx parameter based on the submit type and the url.
-func getFormStandardForm(id string, submit FormType, url string, children ...Node) Node {
+func getFormStandardForm(id string, submit formType, url string, children ...Node) Node {
 	hx := Node(nil)
 	switch submit {
 	case GET:
@@ -122,6 +122,29 @@ func getFormStandardForm(id string, submit FormType, url string, children ...Nod
 		hx = HXDELETE(url)
 	}
 	return FORM(hx, ID(id), HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"), HXINCLUDE("#"+InformationID), Group(children...))
+}
+
+func getEditableList(content []string, nameSpace string, listName string, addButtonText string, basicDivStyling string) Node {
+	nodes := make([]Node, len(content))
+	for i, str := range content {
+		nodes[i] = getEditDiv(listName, nameSpace, str, "")
+	}
+	return DIV(CLASS(basicDivStyling),
+		BUTTON(CLASS("bg-gray-900 text-white p-2 mt-2"), TYPE("button"),
+			HYPERSCRIPT("on click tell next <div/> from me put you as HTML after you then toggle .hidden on next <div/> from you"), Text(addButtonText)),
+		getEditDiv(listName, nameSpace, "", "hidden"),
+		Group(nodes...),
+	)
+}
+
+func getEditDiv(listName string, nameSpace string, value string, extraClass string) Node {
+	return DIV(CLASS("flex flex-row "+extraClass),
+		INPUT(LIST(listName), CLASS("bg-slate-700 appearance-none w-full py-2 px-3 mt-2"), NAME(nameSpace),
+			VALUE(value)),
+		BUTTON(CLASS("bg-slate-700 text-white p-4 ml-2 mt-2 hover:bg-rose-800"),
+			HYPERSCRIPT("on click tell me.parentElement remove yourself"), Text(Translation["deleteEditableInput"]),
+		),
+	)
 }
 
 /*
@@ -159,7 +182,6 @@ templ editableButtonAndInput(content []string, nameSpace string, listName string
         </div>
     }
 }
-
 
 templ AddSpecialSubmitButton(url string, formID string) {
     <button type="button" hx-post={ url } hx-include={ "#"+formID } class="bg-slate-700 text-white p-2 mt-2 mr-2">

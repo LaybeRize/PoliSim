@@ -2,13 +2,17 @@ package extraction
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/helper"
 	"database/sql"
+	"errors"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
 type (
 	AccountDisplayNameList []AccountDisplayName
 	AccountDisplayName     struct {
+		ID          int64
 		DisplayName string
 	}
 )
@@ -168,7 +172,7 @@ func (acc *AccountModification) UpdateEverythingExceptFlair() error {
 
 // ReturnNames returns as the first argument the DisplayNames and as the second Argument the Usernames
 func ReturnNames() ([]string, []string, error) {
-	rows, err := database.DB.Model(&database.Account{}).Rows()
+	rows, err := database.DB.Model(&database.Account{}).Select("display_name, username").Rows()
 	defer rows.Close()
 	var names = make([]string, 0, 20)
 	var users = make([]string, 0, 20)
@@ -188,8 +192,56 @@ func ReturnNames() ([]string, []string, error) {
 	return names, users, nil
 }
 
+func ReturnListOfDisplayNames() ([]string, error) {
+	rows, err := database.DB.Model(&database.Account{}).Select("display_name").Where("suspended = false").Rows()
+	defer rows.Close()
+	var names = make([]string, 0, 20)
+	if err != nil {
+		return names, err
+	}
+	for rows.Next() {
+		var user AccountNames
+		err = database.DB.ScanRows(rows, &user)
+		if err != nil {
+			return names, err
+		}
+
+		names = append(names, user.DisplayName)
+	}
+	return names, nil
+}
+
 func ReturnAccountList(id int64) (AccountList, error) {
 	array := AccountList{}
 	err := database.DB.Model(database.Account{}).Where("id=? OR linked=? OR ?=0", id, id, id).Order("id").Find(&array).Error
 	return array, err
+}
+
+func (accountList *AccountDisplayNameList) DoAccountsExist(displayNames []string) (b bool, err error) {
+	*accountList = AccountDisplayNameList{}
+
+	err = database.DB.Select("id, display_name").Where("display_name = ANY($1) AND suspended = false", pq.StringArray(displayNames)).Order("display_name").Find(&accountList).Error
+	if len(displayNames) == len(*accountList) {
+		return true, err
+	}
+
+	for _, item := range *accountList {
+		displayNames = helper.RemoveFirstStringOccurrenceFromArray(displayNames, item.DisplayName)
+	}
+
+	*accountList = AccountDisplayNameList{}
+	return false, errors.New(displayNames[0])
+}
+
+func (accountList *AccountDisplayNameList) DoAccountsExistByID(idMap map[int64]struct{}) (bool, error) {
+	idSlice := make([]int64, len(idMap), len(idMap))
+	iterator := 0
+	for id := range idMap {
+		idSlice[iterator] = id
+		iterator++
+	}
+	*accountList = AccountDisplayNameList{}
+
+	err := database.DB.Select("id, display_name").Where("display_name = ANY($1) AND suspended = false", pq.Int64Array(idSlice)).Order("display_name").Find(&accountList).Error
+	return iterator == len(*accountList), err
 }

@@ -4,6 +4,12 @@ import (
 	"PoliSim/data/database"
 )
 
+// Message provides a generic sturct for responding to a request with a message (either as an error or as successful)
+type Message struct {
+	Message  string
+	Positive bool
+}
+
 func GetDisplayNameArray(accs *[]database.Account) []string {
 	strs := make([]string, len(*accs))
 	for i, acc := range *accs {
@@ -12,16 +18,13 @@ func GetDisplayNameArray(accs *[]database.Account) []string {
 	return strs
 }
 
-type Message struct {
-	Message  string
-	Positive bool
-}
-
-// isRoleValid checks if the role not database.NotLoggedIn
+// isRoleValid checks if the role is not database.NotLoggedIn but still one of the existing roles
 func isRoleValid(level int) bool {
 	return level >= int(database.PressAccount) && level != int(database.NotLoggedIn) && level <= int(database.HeadAdmin)
 }
 
-func isEmptyOrNotInRange(str string, length int) bool {
-	return str == "" || len([]rune(str)) > length
+// isValidString checks if the string is empty or has at maximum the specified length.
+// it also returns true on any length that is unequal to 0 if the length is set to -1.
+func isValidString(str string, length int) bool {
+	return str != "" && (length == -1 || len([]rune(str)) <= length)
 }

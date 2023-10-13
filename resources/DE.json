@@ -1,6 +1,7 @@
 {
   "errorPageTitle": "Es ist ein Fehler aufgetreten",
   "notAllowedToViewThisPage": "Du bist nicht berechtigt diese Seite zu besuchen",
+  "deleteEditableInput": "Löschen",
 
   "welcomeMessage": "Herzlich Willkommen im MReichstag",
   "extractionError": "Es ist ein Fehler bei der Verarbeitung des Formulars aufgetreten",
@@ -43,7 +44,7 @@
   "roleNotAllowed": "Die ausgewählte Rolle ist für den Account nicht erlaubt",
   "cantCreateHeadAdmin": "Berechtigung fehlt \"%s\" zu erstellen fehlt",
   "missingUsernameForNonPressAccounts": "Nutzername fehlt oder ist zu lang (maximal %d Zeichen)",
-  "missingPasswordForNonPressAccounts": "Passwort fehlt oder ist zu lang (maximal %d Zeichen)",
+  "missingPasswordForNonPressAccounts": "Passwort fehlt",
   "hashingPasswordError": "Es ist ein Fehler beim hashen des Passworts aufgetreten",
   "creatingUserError": "Es ist ein Fehler beim erstellen des Accounts in der Datenbank aufgetreten",
   "userSuccessfullyCreated": "Nutzer wurde erfolgreich erstellt",
@@ -73,5 +74,6 @@
   "collapseAll": "Alle einklappen",
   "viewTitleFlairText": "Flairtext: %s",
   "viewTitleHolderText": "Träger: %s",
-  "viewTitleNoHolderText": "Keine Träger eingetragen"
+  "viewTitleNoHolderText": "Keine Träger eingetragen",
+  "errorQueryingNames": "Es ist ein Fehler beim suchen der Accountnamen aufgetreten"
 }

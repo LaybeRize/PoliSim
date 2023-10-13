@@ -22,7 +22,6 @@ type AccountModification struct {
 }
 
 var maxNameLength = 100
-var maxPasswordLength = 50
 
 func (form *AccountModification) RequestAccount() (validate Message) {
 	validate = Message{Positive: false}
@@ -52,8 +51,8 @@ func (form *AccountModification) RequestAccount() (validate Message) {
 func (form *AccountModification) ValidateAccountCreation(changer *extraction.AccountAuth) (validate Message) {
 	validate = Message{Positive: false}
 	switch false {
-	case !isEmptyOrNotInRange(form.DisplayName, maxNameLength):
-		// has no display name
+	case isValidString(form.DisplayName, maxNameLength):
+		// has no valid display name
 		validate.Message = fmt.Sprintf(builder.Translation["missingDisplayName"], maxNameLength)
 		return
 	case isRoleValid(form.Role):
@@ -64,13 +63,13 @@ func (form *AccountModification) ValidateAccountCreation(changer *extraction.Acc
 		// non-root account tries to create head admin
 		validate.Message = fmt.Sprintf(builder.Translation["cantCreateHeadAdmin"], database.RoleTranslation[database.HeadAdmin])
 		return
-	case form.Role == int(database.PressAccount) || !isEmptyOrNotInRange(form.Username, maxNameLength):
+	case form.Role == int(database.PressAccount) || isValidString(form.Username, maxNameLength):
 		// non-pressaccount misses username
 		validate.Message = fmt.Sprintf(builder.Translation["missingUsernameForNonPressAccounts"], maxNameLength)
 		return
-	case form.Role == int(database.PressAccount) || !isEmptyOrNotInRange(form.Password, maxPasswordLength):
+	case form.Role == int(database.PressAccount) || isValidString(form.Password, -1):
 		// non-pressaccount is missing password
-		validate.Message = fmt.Sprintf(builder.Translation["missingPasswordForNonPressAccounts"], maxPasswordLength)
+		validate.Message = fmt.Sprintf(builder.Translation["missingPasswordForNonPressAccounts"])
 		return
 	}
 	pass, err := bcrypt.GenerateFromPassword([]byte(form.Password), bcrypt.DefaultCost)
