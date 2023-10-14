@@ -6,11 +6,37 @@ import (
 )
 
 var TitleGroupMap = make(map[string]map[string]struct{})
+var TitleSubGroupNameMap = make(map[string]struct{})
 
 func GetAll() (*database.TitleList, error) {
 	list := &database.TitleList{}
 	err := database.DB.Find(list).Error
 	return list, err
+}
+
+type (
+	TitleNameList []TitleName
+	TitleName     struct {
+		Name string
+	}
+)
+
+func getAllNames() (*TitleNameList, error) {
+	list := &TitleNameList{}
+	err := database.DB.Model(&database.Title{}).Find(list).Error
+	return list, err
+}
+
+func GetAllTitleNames() ([]string, error) {
+	list, err := getAllNames()
+	if err != nil {
+		return []string{}, err
+	}
+	strList := make([]string, len(*list))
+	for i, title := range *list {
+		strList[i] = title.Name
+	}
+	return strList, nil
 }
 
 func GetAllDistinct() (*database.TitleList, error) {
@@ -31,11 +57,13 @@ func UpdateTitleGroupMap() {
 		return
 	}
 	TitleGroupMap = make(map[string]map[string]struct{})
+	TitleSubGroupNameMap = make(map[string]struct{})
 	for _, item := range *list {
 		if _, ok := TitleGroupMap[item.MainGroup]; !ok {
 			TitleGroupMap[item.MainGroup] = make(map[string]struct{})
 		}
 		TitleGroupMap[item.MainGroup][item.SubGroup] = struct{}{}
+		TitleSubGroupNameMap[item.SubGroup] = struct{}{}
 	}
 }
 

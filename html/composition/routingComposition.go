@@ -24,6 +24,7 @@ const (
 	ViewUser           HttpUrl = "account/view"
 	EditTitle          HttpUrl = "title/edit"
 	SearchTitle        HttpUrl = "title/search"
+	DeleteTitle        HttpUrl = "title/delete"
 	CreateTitle        HttpUrl = "title/create"
 	ViewTitles         HttpUrl = "title/view"
 	getTitleSubGroup   HttpUrl = "title/get-sub-group/"

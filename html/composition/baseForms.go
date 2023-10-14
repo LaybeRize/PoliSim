@@ -47,6 +47,19 @@ func getDataList(listName string, listItems []string) Node {
 	return DATALIST(options...)
 }
 
+// getDataListFromMap takes in any map that has a string as it's key and writes every
+// key as an option into the datalist that is returned.
+func getDataListFromMap[t any](listName string, listMap map[string]t) Node {
+	options := make([]Node, len(listMap)+1)
+	options[0] = ID(listName)
+	i := 1
+	for str := range listMap {
+		options[i] = OPTION(VALUE(str))
+		i++
+	}
+	return DATALIST(options...)
+}
+
 // getTextArea returns a styled text area for a form. content is the text filled into the area.
 func getTextArea(id string, name string, content string, labelText string) Node {
 	return DIV(CLASS("mt-2"),

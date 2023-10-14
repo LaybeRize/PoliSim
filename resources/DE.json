@@ -75,5 +75,20 @@
   "viewTitleFlairText": "Flairtext: %s",
   "viewTitleHolderText": "Träger: %s",
   "viewTitleNoHolderText": "Keine Träger eingetragen",
-  "errorQueryingNames": "Es ist ein Fehler beim suchen der Accountnamen aufgetreten"
+  "errorQueryingNames": "Es ist ein Fehler beim suchen der Accountnamen aufgetreten",
+
+  "titleEditPageTitle": "Titel bearbeiten",
+  "titleEditSidebarText":"Titel bearbeiten",
+  "titleCreatePageTitle": "Titel erstellen",
+  "titleCreateSidebarText": "Titel erstellen",
+  "titleSubMenu": "Titel verwalten",
+  "titleName": "Titlename",
+  "mainGroup": "Hauptgruppe",
+  "subGroup": "Untergruppe",
+  "addTitleHolderButtonText": "Halter hinzufügen",
+  "createTitleButton": "Titel erstellen",
+  "searchTitleButton": "Titel suchen",
+  "newTitleName": "Titelnamen ändern zu",
+  "changeTitleButton": "Titel verändern",
+  "deleteTitleButton": "Titel löschen"
 }

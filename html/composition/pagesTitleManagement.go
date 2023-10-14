@@ -15,10 +15,16 @@ func GetCreateTitlePage(title *validation.TitleModification, val validation.Mess
 	}
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
+		getDataListFromMap("mainGroupNames", extraction.TitleGroupMap),
+		getDataListFromMap("subGroupNames", extraction.TitleSubGroupNameMap),
 		getPageHeader(CreateTitle),
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateTitle), CLASS("w-[800px]"),
-			getSimpleTextInput("name", "name", title.Name, Translation["name"]),
+			getSimpleTextInput("name", "name", title.Name, Translation["titleName"]),
+			getSimpleTextInput("flair", "flair", title.Flair, Translation["flair"]),
+			getInput("mainGroup", "mainGroup", title.MainGroup, Translation["mainGroup"], "text", "mainGroupNames", ""),
+			getInput("subGroup", "subGroup", title.SubGroup, Translation["subGroup"], "text", "subGroupNames", ""),
 			getEditableList([]string{}, "holder", "displayNames", Translation["addTitleHolderButtonText"], "w-[800px]"),
+			getSubmitButton(Translation["createTitleButton"]),
 		),
 	)
 }
@@ -28,13 +34,26 @@ func GetModifyTitlePage(title *validation.TitleModification, val validation.Mess
 	if err != nil {
 		val.Message += "\n" + Translation["errorQueryingNames"]
 	}
+	titleNames, err := extraction.GetAllTitleNames()
+	if err != nil {
+		val.Message += "\n" + Translation["errorQueryingTitleNames"]
+	}
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
+		getDataList("titleNames", titleNames),
+		getDataListFromMap("mainGroupNames", extraction.TitleGroupMap),
+		getDataListFromMap("subGroupNames", extraction.TitleSubGroupNameMap),
 		getPageHeader(EditTitle),
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(EditTitle), CLASS("w-[800px]"),
+			getInput("name", "name", title.Name, Translation["titleName"], "text", "titleNames", ""),
 			getSubmitButtonOverwriteURL(Translation["searchTitleButton"], PATCH, "/"+APIPreRoute+string(SearchTitle)),
-			getSimpleTextInput("newName", "newName", title.NewName, Translation["newName"]),
+			getSimpleTextInput("newName", "newName", title.NewName, Translation["newTitleName"]),
+			getInput("mainGroup", "mainGroup", title.MainGroup, Translation["mainGroup"], "text", "mainGroupNames", ""),
+			getInput("subGroup", "subGroup", title.SubGroup, Translation["subGroup"], "text", "subGroupNames", ""),
+			getSimpleTextInput("flair", "flair", title.Flair, Translation["flair"]),
 			getEditableList(title.Holder, "holder", "displayNames", Translation["addTitleHolderButtonText"], "w-[800px]"),
+			getSubmitButton(Translation["changeTitleButton"]),
+			getSubmitButtonOverwriteURL(Translation["deleteTitleButton"], DELETE, "/"+APIPreRoute+string(DeleteTitle)),
 		),
 	)
 }
