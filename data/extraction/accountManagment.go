@@ -15,6 +15,12 @@ type (
 		ID          int64
 		DisplayName string
 	}
+
+	AccountFlairUpdateList []AccountFlairUpdate
+	AccountFlairUpdate     struct {
+		ID    int64
+		Flair string
+	}
 )
 
 type AccountNames struct {
@@ -124,6 +130,8 @@ func GetAllChildrenDisplayNames(parentID int64) (*AccountDisplayNameList, error)
 	return array, err
 }
 
+// CreateMe creates the account in the database based on the display name, username, password, flair, role and linked value
+// theoretically also sets the suspended value, but creating a suspended accounts seems dumb.
 func (acc *AccountModification) CreateMe() error {
 	return database.DB.Create(&database.Account{
 		DisplayName: acc.DisplayName,
@@ -136,18 +144,23 @@ func (acc *AccountModification) CreateMe() error {
 	}).Error
 }
 
+// GetAccountModificationByUsername returns an AccountModification pointer for the given username
+// or an error.
 func GetAccountModificationByUsername(username string) (*AccountModification, error) {
 	acc := &AccountModification{}
 	err := database.DB.Model(database.Account{}).Where("username=?", username).First(acc).Error
 	return acc, err
 }
 
+// GetAccountModificationByDisplayName returns an AccountModification Pointer to the user with the displayname
+// or an error.
 func GetAccountModificationByDisplayName(displayName string) (*AccountModification, error) {
 	acc := &AccountModification{}
 	err := database.DB.Model(database.Account{}).Where("display_name=?", displayName).First(acc).Error
 	return acc, err
 }
 
+// OnlyUpdateFlair updates the given account flair by id
 func (acc *AccountModification) OnlyUpdateFlair() error {
 	return database.DB.Model(&database.Account{ID: acc.ID}).Update("flair", acc.Flair).Error
 }
@@ -162,6 +175,7 @@ func (acc *AccountModification) UpdateAllFields() error {
 	}).Error
 }
 
+// UpdateEverythingExceptFlair updates suspended, role and linked
 func (acc *AccountModification) UpdateEverythingExceptFlair() error {
 	return database.DB.Model(&database.Account{ID: acc.ID}).Updates(map[string]interface{}{
 		"suspended": acc.Suspended,
@@ -192,6 +206,7 @@ func ReturnNames() ([]string, []string, error) {
 	return names, users, nil
 }
 
+// ReturnListOfDisplayNames returns all not suspended accounts display names
 func ReturnListOfDisplayNames() ([]string, error) {
 	rows, err := database.DB.Model(&database.Account{}).Select("display_name").Where("suspended = false").Rows()
 	defer rows.Close()
@@ -211,6 +226,7 @@ func ReturnListOfDisplayNames() ([]string, error) {
 	return names, nil
 }
 
+// ReturnAccountList returns itself and all their press accounts
 func ReturnAccountList(id int64) (AccountList, error) {
 	array := AccountList{}
 	err := database.DB.Model(database.Account{}).Where("id=? OR linked=? OR ?=0", id, id, id).Order("id").Find(&array).Error
@@ -221,6 +237,9 @@ func (accountList *AccountDisplayNameList) DoAccountsExist(displayNames []string
 	*accountList = AccountDisplayNameList{}
 
 	err = database.DB.Select("id, display_name").Where("display_name = ANY($1) AND suspended = false", pq.StringArray(displayNames)).Order("display_name").Find(&accountList).Error
+	if err != nil {
+		return false, err
+	}
 	if len(displayNames) == len(*accountList) {
 		return true, err
 	}
@@ -233,15 +252,33 @@ func (accountList *AccountDisplayNameList) DoAccountsExist(displayNames []string
 	return false, errors.New(displayNames[0])
 }
 
-func (accountList *AccountDisplayNameList) DoAccountsExistByID(idMap map[int64]struct{}) (bool, error) {
-	idSlice := make([]int64, len(idMap), len(idMap))
-	iterator := 0
-	for id := range idMap {
-		idSlice[iterator] = id
-		iterator++
+// GetDifferentAccountGroups returns three arrays. The first containing only the old accounts, the second containing all accounts in both groups, and the last containing only the new accounts.
+// If a query error arises, it gets returned too.
+func GetDifferentAccountGroups(old []string, new []string) (onlyOld *AccountFlairUpdateList, onBoth *AccountFlairUpdateList, onlyNew *AccountFlairUpdateList, err error) {
+	err = database.DB.Select("id, display_name").Where("display_name = ANY($1) AND NOT (display_name = ANY($2))", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(onlyOld).Error
+	if err != nil {
+		return
 	}
-	*accountList = AccountDisplayNameList{}
+	err = database.DB.Select("id, display_name").Where("display_name = ANY($1) AND display_name = ANY($2)", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(onBoth).Error
+	if err != nil {
+		return
+	}
+	err = database.DB.Select("id, display_name").Where("NOT (display_name = ANY($1)) AND display_name = ANY($2)", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(onlyNew).Error
+	return
+}
 
-	err := database.DB.Select("id, display_name").Where("display_name = ANY($1) AND suspended = false", pq.Int64Array(idSlice)).Order("display_name").Find(&accountList).Error
-	return iterator == len(*accountList), err
+// GetFlairAccountList returns the flair account list, for the queried display names or an error if one occurs.
+func GetFlairAccountList(accounts []string) (accList *AccountFlairUpdateList, err error) {
+	err = database.DB.Select("id, display_name").Where("display_name = ANY($1)", pq.StringArray(accounts)).Order("display_name").Find(accList).Error
+	return
+}
+
+func (acc *AccountFlairUpdateList) UpdateFlairs() error {
+	for _, singleAcc := range *acc {
+		err := database.DB.Model(&database.Account{ID: singleAcc.ID}).Update("flair", singleAcc.Flair).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

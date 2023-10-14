@@ -3,10 +3,14 @@ package validation
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/helper"
 	"PoliSim/html/builder"
 	"database/sql"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"regexp"
+	"strings"
+	"sync"
 )
 
 type AccountModification struct {
@@ -274,4 +278,102 @@ func (form *AccountModification) validateChangeToEveryoneElse(acc *extraction.Ac
 	validate.Message = builder.Translation["changingUserSuccessfully"]
 	validate.Positive = true
 	return
+}
+
+var updateFlair = sync.Mutex{}
+
+func updateFlairs(old []string, new []string, oldFlair string, newFlair string) error {
+	updateFlair.Lock()
+	defer updateFlair.Unlock()
+	switch true {
+	case oldFlair == "" && newFlair == "":
+	//do nothing
+	case oldFlair != "" && oldFlair == newFlair:
+		return onlyUpdateUser(old, new, oldFlair)
+	case oldFlair != "" && newFlair != "":
+		return removeFromAllAndAddToNew(old, new, oldFlair, newFlair)
+	case oldFlair != "" && newFlair == "":
+		return justRemoveFlair(old, oldFlair)
+	case oldFlair == "" && newFlair != "":
+		return justAddFlair(new, newFlair)
+	}
+	return nil
+}
+
+func justAddFlair(new []string, flair string) error {
+	toAdd, err := extraction.GetFlairAccountList(new)
+	if err != nil {
+		return err
+	}
+	addFlair(toAdd, flair)
+	return toAdd.UpdateFlairs()
+}
+
+func justRemoveFlair(old []string, flair string) error {
+	toRemove, err := extraction.GetFlairAccountList(old)
+	if err != nil {
+		return err
+	}
+	removeFlair(toRemove, flair)
+	return toRemove.UpdateFlairs()
+}
+
+func removeFromAllAndAddToNew(old []string, new []string, oldFlair string, newFlair string) error {
+	remove, change, add, err := extraction.GetDifferentAccountGroups(old, new)
+	if err != nil {
+		return err
+	}
+	addFlair(add, newFlair)
+	err = add.UpdateFlairs()
+	if err != nil {
+		return err
+	}
+	removeFlair(remove, oldFlair)
+	err = remove.UpdateFlairs()
+	if err != nil {
+		return err
+	}
+	removeFlair(change, oldFlair)
+	addFlair(change, newFlair)
+	return change.UpdateFlairs()
+}
+
+func onlyUpdateUser(old []string, new []string, flair string) error {
+	remove, _, add, err := extraction.GetDifferentAccountGroups(old, new)
+	if err != nil {
+		return err
+	}
+	addFlair(add, flair)
+	err = add.UpdateFlairs()
+	if err != nil {
+		return err
+	}
+	removeFlair(remove, flair)
+	return remove.UpdateFlairs()
+}
+
+func addFlair(update *extraction.AccountFlairUpdateList, flair string) {
+	for i, acc := range *update {
+		if acc.Flair == "" {
+			(*update)[i].Flair = flair
+		} else {
+			(*update)[i].Flair += ", " + flair
+		}
+	}
+}
+
+func removeFlair(update *extraction.AccountFlairUpdateList, flair string) {
+	for i, acc := range *update {
+		if acc.Flair == flair {
+			(*update)[i].Flair = ""
+		} else if strings.HasPrefix(acc.Flair, flair+",") {
+			(*update)[i].Flair = helper.TrimPrefix(acc.Flair, flair+", ")
+		} else if strings.Contains(acc.Flair, ", "+flair+",") {
+			var re = regexp.MustCompile(`(?m), ` + regexp.QuoteMeta(flair) + `,`)
+			var substitution = ","
+			(*update)[i].Flair = re.ReplaceAllString(acc.Flair, substitution)
+		} else if strings.HasSuffix(acc.Flair, ", "+flair) {
+			(*update)[i].Flair = helper.TrimSuffix(acc.Flair, ", "+flair)
+		}
+	}
 }
