@@ -9,12 +9,6 @@ var TitleGroupMap = make(map[string][]string)
 var TitleMainGroupList = make([]string, 0)
 var TitleSubGroupNameMap = make(map[string]struct{})
 
-func GetAll() (*database.TitleList, error) {
-	list := &database.TitleList{}
-	err := database.DB.Find(list).Error
-	return list, err
-}
-
 type (
 	TitleNameList []TitleName
 	TitleName     struct {
@@ -78,7 +72,7 @@ var titleMutex = sync.Mutex{}
 func GetTitle(name string) (title *database.Title, err error) {
 	titleMutex.Lock()
 	defer titleMutex.Unlock()
-	err = database.DB.Where("name = ?", name).First(title).Error
+	err = database.DB.Preload("Holder").Where("name = ?", name).First(&title).Error
 	return
 }
 
@@ -93,10 +87,10 @@ func CreateTitle(title *database.Title) error {
 func UpdateTitle(title *database.Title, oldTitleName string) error {
 	titleMutex.Lock()
 	defer titleMutex.Unlock()
-	err := database.DB.Model(database.Title{}).Where("name = ?", oldTitleName).Updates(title).Error
+	err := database.DB.Model(database.Title{}).Where("name = ?", oldTitleName).Updates(&title).Error
 	UpdateTitleGroupMap()
 	if err != nil {
-		err = database.DB.Model(database.Title{}).Association("Holder").Replace(title.Holder)
+		err = database.DB.Model(database.Title{}).Association("Holder").Replace(&title.Holder)
 	}
 	return err
 }
@@ -104,7 +98,7 @@ func UpdateTitle(title *database.Title, oldTitleName string) error {
 func DeleteTitle(title *database.Title) error {
 	titleMutex.Lock()
 	defer titleMutex.Unlock()
-	err := database.DB.Delete(title).Error
+	err := database.DB.Delete(&title).Error
 	UpdateTitleGroupMap()
 	return err
 }

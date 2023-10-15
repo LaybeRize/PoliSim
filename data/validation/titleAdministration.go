@@ -7,6 +7,7 @@ import (
 	"PoliSim/html/builder"
 	"database/sql"
 	"fmt"
+	"gorm.io/gorm"
 )
 
 type TitleModification struct {
@@ -77,8 +78,29 @@ func (form *TitleModification) CreateTitle() (validate Message) {
 	}
 }
 
-func (form *TitleModification) SearchTitle() Message {
-	return Message{}
+func (form *TitleModification) SearchTitle() (validate Message) {
+	validate = Message{Positive: false}
+	title, err := extraction.GetTitle(form.Name)
+	if err == gorm.ErrRecordNotFound {
+		validate.Message = builder.Translation["titleNotFound"]
+		return
+	} else if err != nil {
+		validate.Message = builder.Translation["databaseErrorTitleSearch"]
+		return
+	}
+	form.Name = title.Name
+	form.NewName = title.Name
+	form.MainGroup = title.MainGroup
+	form.SubGroup = title.SubGroup
+	form.Flair = title.Flair.String
+	form.Holder = make([]string, len(title.Holder))
+	for i, acc := range title.Holder {
+		form.Holder[i] = acc.DisplayName
+	}
+	return Message{
+		Message:  builder.Translation["successfullyFoundTitle"],
+		Positive: true,
+	}
 }
 
 func (form *TitleModification) ModifyTitle() Message {

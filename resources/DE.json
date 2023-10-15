@@ -99,5 +99,8 @@
   "nameCouldNotBeFound": "Der angegebene Nutzer mit dem Namen: \"%s\" konnte nicht gefunden werden",
   "errorWhileCreatingTitle": "Es ist ein Fehler beim erstellen des Titels aufgetreten",
   "successfullyCreatedTitle": "Titel erfolgreich erstellt",
-  "errorWithFlairUpdate": "Es ist ein Fehler beim Update der Nutzerflairs aufgetreten"
+  "errorWithFlairUpdate": "Es ist ein Fehler beim Update der Nutzerflairs aufgetreten",
+  "titleNotFound": "Der Titel scheint nicht zu existieren",
+  "databaseErrorTitleSearch": "Es ist ein Datenbankfehler bei der Suche des Titels aufgetreten",
+  "successfullyFoundTitle": "Titel gefunden"
 }
