@@ -10,10 +10,10 @@ import (
 func GetViewTitelPage() Node {
 	listing := make([]Node, len(extraction.TitleGroupMap))
 	counter := 0
-	for outer, item := range extraction.TitleGroupMap {
+	for _, outer := range extraction.TitleMainGroupList {
 		innerCounter := 0
-		innerListing := make([]Node, len(item))
-		for inner := range item {
+		innerListing := make([]Node, len(extraction.TitleGroupMap[outer]))
+		for _, inner := range extraction.TitleGroupMap[outer] {
 			innerListing[innerCounter] = Group(BUTTON(
 				CLASS("text-2xl mt-2 w-full text-left"), Text(inner),
 				HXGET("/"+APIPreRoute+string(getTitleSubGroup)+outer+"/"+inner),

@@ -15,7 +15,7 @@ func GetCreateTitlePage(title *validation.TitleModification, val validation.Mess
 	}
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
-		getDataListFromMap("mainGroupNames", extraction.TitleGroupMap),
+		getDataList("mainGroupNames", extraction.TitleMainGroupList),
 		getDataListFromMap("subGroupNames", extraction.TitleSubGroupNameMap),
 		getPageHeader(CreateTitle),
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateTitle), CLASS("w-[800px]"),
@@ -23,9 +23,10 @@ func GetCreateTitlePage(title *validation.TitleModification, val validation.Mess
 			getSimpleTextInput("flair", "flair", title.Flair, Translation["flair"]),
 			getInput("mainGroup", "mainGroup", title.MainGroup, Translation["mainGroup"], "text", "mainGroupNames", ""),
 			getInput("subGroup", "subGroup", title.SubGroup, Translation["subGroup"], "text", "subGroupNames", ""),
-			getEditableList([]string{}, "holder", "displayNames", Translation["addTitleHolderButtonText"], "w-[800px]"),
+			getEditableList(title.Holder, "holder", "displayNames", Translation["addTitleHolderButtonText"], "w-[800px]"),
 			getSubmitButton(Translation["createTitleButton"]),
 		),
+		GetMessage(val),
 	)
 }
 
@@ -41,7 +42,7 @@ func GetModifyTitlePage(title *validation.TitleModification, val validation.Mess
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
 		getDataList("titleNames", titleNames),
-		getDataListFromMap("mainGroupNames", extraction.TitleGroupMap),
+		getDataList("mainGroupNames", extraction.TitleMainGroupList),
 		getDataListFromMap("subGroupNames", extraction.TitleSubGroupNameMap),
 		getPageHeader(EditTitle),
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(EditTitle), CLASS("w-[800px]"),
@@ -55,5 +56,6 @@ func GetModifyTitlePage(title *validation.TitleModification, val validation.Mess
 			getSubmitButton(Translation["changeTitleButton"]),
 			getSubmitButtonOverwriteURL(Translation["deleteTitleButton"], DELETE, "/"+APIPreRoute+string(DeleteTitle)),
 		),
+		GetMessage(val),
 	)
 }

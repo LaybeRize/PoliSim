@@ -90,5 +90,14 @@
   "searchTitleButton": "Titel suchen",
   "newTitleName": "Titelnamen ändern zu",
   "changeTitleButton": "Titel verändern",
-  "deleteTitleButton": "Titel löschen"
+  "deleteTitleButton": "Titel löschen",
+
+  "missingOrTooLongTitleName": "Titel ist leer oder überschreitet das Limit von %d Zeichen",
+  "missingOrTooLongMainGroupName": "Hauptgruppenname ist leer oder überschreitet das Limit von %d Zeichen",
+  "missingOrTooLongSubGroupName": "Untergruppenname ist leer oder überschreitet das Limit von %d Zeichen",
+  "TooLongTitleFlair": "Flairtext überschreitet das Limit von %d Zeichen",
+  "nameCouldNotBeFound": "Der angegebene Nutzer mit dem Namen: \"%s\" konnte nicht gefunden werden",
+  "errorWhileCreatingTitle": "Es ist ein Fehler beim erstellen des Titels aufgetreten",
+  "successfullyCreatedTitle": "Titel erfolgreich erstellt",
+  "errorWithFlairUpdate": "Es ist ein Fehler beim Update der Nutzerflairs aufgetreten"
 }

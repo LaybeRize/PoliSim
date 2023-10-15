@@ -8,7 +8,7 @@ type (
 		Name      string `gorm:"primaryKey"`
 		MainGroup string
 		SubGroup  string
-		Flair     sql.NullString
-		Holder    []Account `gorm:"many2many:title_account;foreignKey:name;joinForeignKey:name;References:id;joinReferences:id"`
+		Flair     sql.NullString `gorm:"index:unique"`
+		Holder    []Account      `gorm:"many2many:title_account;foreignKey:name;joinForeignKey:name;References:id;joinReferences:id"`
 	}
 )

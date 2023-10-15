@@ -233,49 +233,49 @@ func ReturnAccountList(id int64) (AccountList, error) {
 	return array, err
 }
 
-func (accountList *AccountDisplayNameList) DoAccountsExist(displayNames []string) (b bool, err error) {
-	*accountList = AccountDisplayNameList{}
+func DoAccountsExist(displayNames []string) (accountList *database.AccountList, b bool, err error) {
+	accountList = &database.AccountList{}
 
-	err = database.DB.Select("id, display_name").Where("display_name = ANY($1) AND suspended = false", pq.StringArray(displayNames)).Order("display_name").Find(&accountList).Error
-	if err != nil {
-		return false, err
-	}
+	err = database.DB.Model(database.Account{}).Select("id, display_name").Where("display_name = ANY($1) AND suspended = false", pq.StringArray(displayNames)).Order("display_name").Find(&accountList).Error
 	if len(displayNames) == len(*accountList) {
-		return true, err
+		b = true
+		return
 	}
 
 	for _, item := range *accountList {
 		displayNames = helper.RemoveFirstStringOccurrenceFromArray(displayNames, item.DisplayName)
 	}
 
-	*accountList = AccountDisplayNameList{}
-	return false, errors.New(displayNames[0])
+	accountList = &database.AccountList{}
+	b = false
+	err = errors.New(displayNames[0])
+	return
 }
 
 // GetDifferentAccountGroups returns three arrays. The first containing only the old accounts, the second containing all accounts in both groups, and the last containing only the new accounts.
 // If a query error arises, it gets returned too.
-func GetDifferentAccountGroups(old []string, new []string) (onlyOld *AccountFlairUpdateList, onBoth *AccountFlairUpdateList, onlyNew *AccountFlairUpdateList, err error) {
-	err = database.DB.Select("id, display_name").Where("display_name = ANY($1) AND NOT (display_name = ANY($2))", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(onlyOld).Error
+func GetDifferentAccountGroups(old []string, new []string) (onlyOld *database.AccountList, onBoth *database.AccountList, onlyNew *database.AccountList, err error) {
+	err = database.DB.Select("id, display_name, flair").Where("display_name = ANY($1) AND NOT (display_name = ANY($2))", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(&onlyOld).Error
 	if err != nil {
 		return
 	}
-	err = database.DB.Select("id, display_name").Where("display_name = ANY($1) AND display_name = ANY($2)", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(onBoth).Error
+	err = database.DB.Select("id, display_name, flair").Where("display_name = ANY($1) AND display_name = ANY($2)", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(&onBoth).Error
 	if err != nil {
 		return
 	}
-	err = database.DB.Select("id, display_name").Where("NOT (display_name = ANY($1)) AND display_name = ANY($2)", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(onlyNew).Error
+	err = database.DB.Select("id, display_name, flair").Where("NOT (display_name = ANY($1)) AND display_name = ANY($2)", pq.StringArray(old), pq.StringArray(new)).Order("display_name").Find(&onlyNew).Error
 	return
 }
 
 // GetFlairAccountList returns the flair account list, for the queried display names or an error if one occurs.
-func GetFlairAccountList(accounts []string) (accList *AccountFlairUpdateList, err error) {
-	err = database.DB.Select("id, display_name").Where("display_name = ANY($1)", pq.StringArray(accounts)).Order("display_name").Find(accList).Error
+func GetFlairAccountList(accounts []string) (accList *database.AccountList, err error) {
+	err = database.DB.Model(database.Account{}).Select("id, display_name, flair").Where("display_name = ANY($1)", pq.StringArray(accounts)).Order("display_name").Find(&accList).Error
 	return
 }
 
-func (acc *AccountFlairUpdateList) UpdateFlairs() error {
+func UpdateFlairs(acc *database.AccountList) error {
 	for _, singleAcc := range *acc {
-		err := database.DB.Model(&database.Account{ID: singleAcc.ID}).Update("flair", singleAcc.Flair).Error
+		err := database.DB.Model(&singleAcc).Update("flair", singleAcc.Flair).Error
 		if err != nil {
 			return err
 		}

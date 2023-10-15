@@ -306,7 +306,7 @@ func justAddFlair(new []string, flair string) error {
 		return err
 	}
 	addFlair(toAdd, flair)
-	return toAdd.UpdateFlairs()
+	return extraction.UpdateFlairs(toAdd)
 }
 
 func justRemoveFlair(old []string, flair string) error {
@@ -315,7 +315,7 @@ func justRemoveFlair(old []string, flair string) error {
 		return err
 	}
 	removeFlair(toRemove, flair)
-	return toRemove.UpdateFlairs()
+	return extraction.UpdateFlairs(toRemove)
 }
 
 func removeFromAllAndAddToNew(old []string, new []string, oldFlair string, newFlair string) error {
@@ -324,18 +324,18 @@ func removeFromAllAndAddToNew(old []string, new []string, oldFlair string, newFl
 		return err
 	}
 	addFlair(add, newFlair)
-	err = add.UpdateFlairs()
+	err = extraction.UpdateFlairs(add)
 	if err != nil {
 		return err
 	}
 	removeFlair(remove, oldFlair)
-	err = remove.UpdateFlairs()
+	err = extraction.UpdateFlairs(remove)
 	if err != nil {
 		return err
 	}
 	removeFlair(change, oldFlair)
 	addFlair(change, newFlair)
-	return change.UpdateFlairs()
+	return extraction.UpdateFlairs(change)
 }
 
 func onlyUpdateUser(old []string, new []string, flair string) error {
@@ -344,15 +344,15 @@ func onlyUpdateUser(old []string, new []string, flair string) error {
 		return err
 	}
 	addFlair(add, flair)
-	err = add.UpdateFlairs()
+	err = extraction.UpdateFlairs(add)
 	if err != nil {
 		return err
 	}
 	removeFlair(remove, flair)
-	return remove.UpdateFlairs()
+	return extraction.UpdateFlairs(remove)
 }
 
-func addFlair(update *extraction.AccountFlairUpdateList, flair string) {
+func addFlair(update *database.AccountList, flair string) {
 	for i, acc := range *update {
 		if acc.Flair == "" {
 			(*update)[i].Flair = flair
@@ -362,7 +362,7 @@ func addFlair(update *extraction.AccountFlairUpdateList, flair string) {
 	}
 }
 
-func removeFlair(update *extraction.AccountFlairUpdateList, flair string) {
+func removeFlair(update *database.AccountList, flair string) {
 	for i, acc := range *update {
 		if acc.Flair == flair {
 			(*update)[i].Flair = ""

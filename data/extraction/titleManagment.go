@@ -5,7 +5,8 @@ import (
 	"sync"
 )
 
-var TitleGroupMap = make(map[string]map[string]struct{})
+var TitleGroupMap = make(map[string][]string)
+var TitleMainGroupList = make([]string, 0)
 var TitleSubGroupNameMap = make(map[string]struct{})
 
 func GetAll() (*database.TitleList, error) {
@@ -56,13 +57,18 @@ func UpdateTitleGroupMap() {
 	if err != nil {
 		return
 	}
-	TitleGroupMap = make(map[string]map[string]struct{})
+	TitleGroupMap = make(map[string][]string)
 	TitleSubGroupNameMap = make(map[string]struct{})
+	index := -1
 	for _, item := range *list {
 		if _, ok := TitleGroupMap[item.MainGroup]; !ok {
-			TitleGroupMap[item.MainGroup] = make(map[string]struct{})
+			TitleGroupMap[item.MainGroup] = make([]string, 0)
 		}
-		TitleGroupMap[item.MainGroup][item.SubGroup] = struct{}{}
+		TitleGroupMap[item.MainGroup] = append(TitleGroupMap[item.MainGroup], item.SubGroup)
+		if index == -1 || TitleMainGroupList[index] != item.MainGroup {
+			TitleMainGroupList = append(TitleMainGroupList, item.MainGroup)
+			index++
+		}
 		TitleSubGroupNameMap[item.SubGroup] = struct{}{}
 	}
 }
