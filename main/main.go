@@ -90,10 +90,6 @@ func instigateRoutes(router *chi.Mux) {
 		router.Patch("/"+composition.APIPreRoute+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Patch Routes for htmx backend\n")
-	for url, function := range composition.DeleteHTMXFunctions {
-		router.Delete("/"+composition.APIPreRoute+string(url), function)
-	}
-	_, _ = fmt.Fprintf(os.Stdout, "Added Delete Routes for htmx backend\n")
 }
 
 func createAdminAccount() {

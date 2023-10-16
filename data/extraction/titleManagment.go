@@ -53,6 +53,7 @@ func UpdateTitleGroupMap() {
 	}
 	TitleGroupMap = make(map[string][]string)
 	TitleSubGroupNameMap = make(map[string]struct{})
+	TitleMainGroupList = make([]string, 0, 20)
 	index := -1
 	for _, item := range *list {
 		if _, ok := TitleGroupMap[item.MainGroup]; !ok {
@@ -89,8 +90,8 @@ func UpdateTitle(title *database.Title, oldTitleName string) error {
 	defer titleMutex.Unlock()
 	err := database.DB.Model(database.Title{}).Where("name = ?", oldTitleName).Updates(&title).Error
 	UpdateTitleGroupMap()
-	if err != nil {
-		err = database.DB.Model(database.Title{}).Association("Holder").Replace(&title.Holder)
+	if err == nil {
+		err = database.DB.Model(&title).Association("Holder").Replace(&title.Holder)
 	}
 	return err
 }
@@ -98,7 +99,10 @@ func UpdateTitle(title *database.Title, oldTitleName string) error {
 func DeleteTitle(title *database.Title) error {
 	titleMutex.Lock()
 	defer titleMutex.Unlock()
-	err := database.DB.Delete(&title).Error
+	err := database.DB.Model(&title).Association("Holder").Replace(&[]database.Account{})
+	if err == nil {
+		err = database.DB.Delete(&title).Error
+	}
 	UpdateTitleGroupMap()
 	return err
 }

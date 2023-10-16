@@ -103,10 +103,100 @@ func (form *TitleModification) SearchTitle() (validate Message) {
 	}
 }
 
-func (form *TitleModification) ModifyTitle() Message {
-	return Message{}
+func (form *TitleModification) ModifyTitle() (validate Message) {
+	validate = Message{Positive: false}
+	title, err := extraction.GetTitle(form.Name)
+	if err == gorm.ErrRecordNotFound {
+		validate.Message = builder.Translation["titleNotFoundForModification"]
+		return
+	}
+	switch false {
+	case err == nil:
+		//error with database access
+		validate.Message = builder.Translation["errorWhileAccessingDatabaseForTitle"]
+		return
+	case isValidString(form.NewName, maxTitleLength):
+		// has no valid name
+		validate.Message = fmt.Sprintf(builder.Translation["missingOrTooLongTitleName"], maxNameLength)
+		return
+	case isValidString(form.MainGroup, maxGroupNameLength):
+		// has no valid main group
+		validate.Message = fmt.Sprintf(builder.Translation["missingOrTooLongMainGroupName"], maxGroupNameLength)
+		return
+	case isValidString(form.SubGroup, maxGroupNameLength):
+		// has no valid subgroup
+		validate.Message = fmt.Sprintf(builder.Translation["missingOrTooLongSubGroupName"], maxGroupNameLength)
+		return
+	case len([]rune(form.Flair)) <= maxFlairLength:
+		// has no valid flair
+		validate.Message = fmt.Sprintf(builder.Translation["TooLongTitleFlair"], maxFlairLength)
+		return
+	}
+	helper.ClearStringArray(&form.Holder)
+	accounts, ok, err := extraction.DoAccountsExist(form.Holder)
+	if !ok {
+		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
+		return
+	}
+	old := make([]string, len(title.Holder))
+	oldFlair := title.Flair.String
+	for i, acc := range title.Holder {
+		old[i] = acc.DisplayName
+	}
+	title.Name = form.NewName
+	title.MainGroup = form.MainGroup
+	title.SubGroup = form.SubGroup
+	title.Flair = sql.NullString{String: form.Flair, Valid: form.Flair != ""}
+	title.Holder = *accounts
+	err = extraction.UpdateTitle(title, form.Name)
+	if err != nil {
+		validate.Message = builder.Translation["errorWhileAccessingDatabaseForTitle"]
+		return
+	}
+	err = updateFlairs(old, form.Holder, oldFlair, form.Flair)
+	if err != nil {
+		return Message{
+			Message: builder.Translation["successfullyModifiedTitle"] + "\n" +
+				builder.Translation["errorWithFlairUpdate"],
+			Positive: true,
+		}
+	}
+	return Message{
+		Message:  builder.Translation["successfullyModifiedTitle"],
+		Positive: true,
+	}
 }
 
-func (form *TitleModification) DeleteTitle() Message {
-	return Message{}
+func (form *TitleModification) DeleteTitle() (validate Message) {
+	validate = Message{Positive: false}
+	title, err := extraction.GetTitle(form.Name)
+	if err == gorm.ErrRecordNotFound {
+		validate.Message = builder.Translation["titleNotFoundForDeletion"]
+		return
+	} else if err != nil {
+		validate.Message = builder.Translation["databaseErrorTitleDeletion"]
+		return
+	}
+	old := make([]string, len(title.Holder))
+	oldFlair := title.Flair.String
+	for i, acc := range title.Holder {
+		old[i] = acc.DisplayName
+	}
+	err = extraction.DeleteTitle(title)
+	if err != nil {
+		validate.Message = builder.Translation["databaseErrorTitleDeletion"]
+		return
+	}
+	err = updateFlairs(old, []string{}, oldFlair, "")
+	if err != nil {
+		return Message{
+			Message: builder.Translation["successfullyDeletedTitle"] + "\n" +
+				builder.Translation["errorWithFlairUpdate"],
+			Positive: true,
+		}
+	}
+	return Message{
+		Message:  builder.Translation["successfullyDeletedTitle"],
+		Positive: true,
+	}
 }

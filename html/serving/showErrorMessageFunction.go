@@ -12,6 +12,6 @@ func InstallErrorPage() {
 }
 
 func ShowErrorPage(w http.ResponseWriter, r *http.Request, acc *extraction.AccountAuth, errorText string) {
-	renderRequest(w, false, groupNodes(updateInformation(w, r, acc.Role, composition.ErrorPage),
+	renderRequest(w, false, groupNodes(updateInformation(r, acc.Role, composition.ErrorPage),
 		composition.GetErrorPage(errorText)))
 }

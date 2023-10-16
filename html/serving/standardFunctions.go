@@ -180,10 +180,10 @@ type UserInformation struct {
 // updateInformation extracts the current roleLevel and pageURL via submitted form/url and if one of these are different from what
 // is expected of the page it will replace the title/sidebar according to the new page/accountLevel. It covers GET request, form requests and json requests
 // It gets all it's information from the UserInformation struct.
-func updateInformation(w http.ResponseWriter, r *http.Request, level database.RoleLevel, currentPage composition.HttpUrl) builder.Node {
+func updateInformation(r *http.Request, level database.RoleLevel, currentPage composition.HttpUrl) builder.Node {
 	fields := &UserInformation{}
 	var err error
-	if r.Method == http.MethodGet {
+	if r.Method == http.MethodGet || r.Method == http.MethodDelete {
 		err = extractUrlValuesForFields(fields, r, 0)
 	} else if r.Header.Get("Content-Type") == "application/json" {
 		err = extractAsJson(r, fields)
@@ -238,7 +238,7 @@ func groupNodes(children ...builder.Node) func(io.Writer) error {
 func genericRenderer(currentPage composition.HttpUrl) func(w http.ResponseWriter,
 	r *http.Request, level database.RoleLevel, node builder.Node) {
 	return func(w http.ResponseWriter, r *http.Request, level database.RoleLevel, node builder.Node) {
-		renderRequest(w, false, groupNodes(updateInformation(w, r, level, currentPage),
+		renderRequest(w, false, groupNodes(updateInformation(r, level, currentPage),
 			node))
 	}
 }
@@ -248,6 +248,6 @@ func genericRenderer(currentPage composition.HttpUrl) func(w http.ResponseWriter
 func genericMessageSwapper(currentPage composition.HttpUrl) func(w http.ResponseWriter,
 	r *http.Request, val validation.Message, level database.RoleLevel) {
 	return func(w http.ResponseWriter, r *http.Request, val validation.Message, level database.RoleLevel) {
-		onlySwapMessage(w, val, updateInformation(w, r, level, currentPage))
+		onlySwapMessage(w, val, updateInformation(r, level, currentPage))
 	}
 }

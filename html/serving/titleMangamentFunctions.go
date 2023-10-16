@@ -20,7 +20,7 @@ func InstallTitlePages() {
 	composition.GetHTMXFunctions[composition.EditTitle] = GetTitleEditService
 	composition.PatchHTMXFunctions[composition.SearchTitle] = PatchSearchTitleService
 	composition.PostHTMXFunctions[composition.EditTitle] = PostEditTitleService
-	composition.DeleteHTMXFunctions[composition.DeleteTitle] = DeleteTitleService
+	composition.PatchHTMXFunctions[composition.DeleteTitle] = DeleteTitleService
 
 	composition.PageTitleMap[composition.CreateTitle] = builder.Translation["titleCreatePageTitle"]
 	composition.SidebarTitleMap[composition.CreateTitle] = builder.Translation["titleCreateSidebarText"]
@@ -167,7 +167,7 @@ func DeleteTitleService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg = create.SearchTitle()
+	msg = create.DeleteTitle()
 	if !msg.Positive {
 		editTitleOnlySwapMessage(w, r, msg, acc.Role)
 		return

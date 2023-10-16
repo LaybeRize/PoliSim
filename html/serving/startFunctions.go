@@ -51,7 +51,7 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 		Role:        loginAccount.Role,
 	}, msg)
 	renderRequest(w, false, builder.Group(
-		updateInformation(w, r, loginAccount.Role, composition.Start),
+		updateInformation(r, loginAccount.Role, composition.Start),
 		html).Render)
 }
 

@@ -364,15 +364,16 @@ func addFlair(update *database.AccountList, flair string) {
 
 func removeFlair(update *database.AccountList, flair string) {
 	for i, acc := range *update {
-		if acc.Flair == flair {
+		switch true {
+		case acc.Flair == flair:
 			(*update)[i].Flair = ""
-		} else if strings.HasPrefix(acc.Flair, flair+",") {
+		case strings.HasPrefix(acc.Flair, flair+","):
 			(*update)[i].Flair = helper.TrimPrefix(acc.Flair, flair+", ")
-		} else if strings.Contains(acc.Flair, ", "+flair+",") {
+		case strings.Contains(acc.Flair, ", "+flair+","):
 			var re = regexp.MustCompile(`(?m), ` + regexp.QuoteMeta(flair) + `,`)
 			var substitution = ","
 			(*update)[i].Flair = re.ReplaceAllString(acc.Flair, substitution)
-		} else if strings.HasSuffix(acc.Flair, ", "+flair) {
+		case strings.HasSuffix(acc.Flair, ", "+flair):
 			(*update)[i].Flair = helper.TrimSuffix(acc.Flair, ", "+flair)
 		}
 	}

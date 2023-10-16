@@ -102,5 +102,11 @@
   "errorWithFlairUpdate": "Es ist ein Fehler beim Update der Nutzerflairs aufgetreten",
   "titleNotFound": "Der Titel scheint nicht zu existieren",
   "databaseErrorTitleSearch": "Es ist ein Datenbankfehler bei der Suche des Titels aufgetreten",
-  "successfullyFoundTitle": "Titel gefunden"
+  "successfullyFoundTitle": "Titel gefunden",
+  "titleNotFoundForModification": "Der zu modifizierende Titel konnte nicht gefunden werden",
+  "errorWhileAccessingDatabaseForTitle": "Es ist ein Datenbankfehler bei der Modifikation des Titels aufgetreten",
+  "successfullyModifiedTitle": "Titel erfolgreich angepasst",
+  "titleNotFoundForDeletion": "Der zu löschende Titel konnte nicht gefunden werden",
+  "databaseErrorTitleDeletion": "Es ist ein Datenbankfehler aufgetreten bei dem Versuch den Titel zu löschen",
+  "successfullyDeletedTitle": "Titel erfolgreich gelöscht"
 }

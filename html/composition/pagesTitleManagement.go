@@ -54,7 +54,7 @@ func GetModifyTitlePage(title *validation.TitleModification, val validation.Mess
 			getSimpleTextInput("flair", "flair", title.Flair, Translation["flair"]),
 			getEditableList(title.Holder, "holder", "displayNames", Translation["addTitleHolderButtonText"], "w-[800px]"),
 			getSubmitButton(Translation["changeTitleButton"]),
-			getSubmitButtonOverwriteURL(Translation["deleteTitleButton"], DELETE, "/"+APIPreRoute+string(DeleteTitle)),
+			getSubmitButtonOverwriteURL(Translation["deleteTitleButton"], PATCH, "/"+APIPreRoute+string(DeleteTitle)),
 		),
 		GetMessage(val),
 	)
