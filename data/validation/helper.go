@@ -28,3 +28,8 @@ func isRoleValid(level int) bool {
 func isValidString(str string, length int) bool {
 	return str != "" && (length == -1 || len([]rune(str)) <= length)
 }
+
+func isOrgStatusValid(str string) bool {
+	_, ok := database.StatusTranslation[database.StatusString(str)]
+	return ok
+}

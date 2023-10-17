@@ -29,6 +29,8 @@ const (
 	ViewTitles         HttpUrl = "title/view"
 	getTitleSubGroup   HttpUrl = "title/get-sub-group/"
 	GetTitleSubGroup   HttpUrl = "title/get-sub-group/{mainGroup}/{subGroup}"
+	CreateOrganisation HttpUrl = "organisation/create"
+	EditOrganisation   HttpUrl = "organisation/edit"
 	ErrorPage          HttpUrl = "errorPage"
 
 	// NotFound is only used as a way to keep the PageTitleMap in order

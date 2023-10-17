@@ -34,15 +34,19 @@ const (
 	HeadAdmin
 )
 
+//TODO: add translation to .json
+
 // Roles has to keep PressAccount because of its special status as the first element of the array
-var Roles = []RoleLevel{PressAccount, User, MediaAdmin, Admin, HeadAdmin}
-var RoleTranslation = map[RoleLevel]string{
-	PressAccount: "Presse-Account",
-	User:         "Nutzer",
-	MediaAdmin:   "Medien-Administrator",
-	Admin:        "Administrator",
-	HeadAdmin:    "Leitender Administrator",
-}
+var (
+	Roles           = []RoleLevel{PressAccount, User, MediaAdmin, Admin, HeadAdmin}
+	RoleTranslation = map[RoleLevel]string{
+		PressAccount: "Presse-Account",
+		User:         "Nutzer",
+		MediaAdmin:   "Medien-Administrator",
+		Admin:        "Administrator",
+		HeadAdmin:    "Leitender Administrator",
+	}
+)
 
 func (t RoleLevel) String() string {
 	return strconv.Itoa(int(t))
