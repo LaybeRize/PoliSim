@@ -108,5 +108,10 @@
   "successfullyModifiedTitle": "Titel erfolgreich angepasst",
   "titleNotFoundForDeletion": "Der zu löschende Titel konnte nicht gefunden werden",
   "databaseErrorTitleDeletion": "Es ist ein Datenbankfehler aufgetreten bei dem Versuch den Titel zu löschen",
-  "successfullyDeletedTitle": "Titel erfolgreich gelöscht"
+  "successfullyDeletedTitle": "Titel erfolgreich gelöscht",
+  "organisationSubMenu": "Organisationen verwalten",
+  "organisationCreatePageTitle": "Organisation erstellen",
+  "organisationCreateSidebarText": "Organisation erstellen",
+  "organisationEditPageTitle": "Organisation verändern",
+  "organisationEditSidebarText": "Organisation verändern"
 }

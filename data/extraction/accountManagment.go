@@ -243,7 +243,7 @@ func DoAccountsExist(displayNames []string) (accountList *database.AccountList, 
 	}
 
 	for _, item := range *accountList {
-		displayNames = helper.RemoveFirstStringOccurrenceFromArray(displayNames, item.DisplayName)
+		helper.RemoveFirstStringOccurrenceFromArray(&displayNames, item.DisplayName)
 	}
 
 	accountList = &database.AccountList{}
@@ -281,4 +281,17 @@ func UpdateFlairs(acc *database.AccountList) error {
 		}
 	}
 	return nil
+}
+
+func GetParentAccounts(names []string) (accounts *database.AccountList, err error) {
+	err = database.DB.Select("id, linked").Where("display_name = ANY($1)", pq.StringArray(names)).Order("display_name").Find(&accounts).Error
+	if err != nil {
+		return
+	}
+	for i, acc := range *accounts {
+		if acc.Linked.Valid {
+			(*accounts)[i] = database.Account{ID: acc.Linked.Int64}
+		}
+	}
+	return
 }

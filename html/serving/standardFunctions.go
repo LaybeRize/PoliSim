@@ -87,7 +87,8 @@ func getText(r *http.Request, fieldName string) string {
 // getSliceAsValue reads in the string slice of the requested PostForm field
 // trims every entry and removes any empty entries and doubled entries.
 func getSliceAsValue(r *http.Request, fieldName string) reflect.Value {
-	slice := helper.DeleteMultiplesAndEmpty(r.PostForm[fieldName])
+	slice := r.PostForm[fieldName]
+	helper.ClearStringArray(&slice)
 	return reflect.ValueOf(slice)
 }
 

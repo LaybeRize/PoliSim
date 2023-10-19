@@ -32,6 +32,7 @@ func main() {
 	serving.InstallAccountManagment()
 	serving.InstallErrorPage()
 	serving.InstallTitlePages()
+	serving.InstallOrganisationPages()
 
 	_, _ = fmt.Fprintf(os.Stdout, "Creating cookie store\n")
 	validation.CreateStore()

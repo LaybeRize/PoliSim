@@ -1,6 +1,8 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type (
 	StatusString     string
@@ -34,3 +36,7 @@ var (
 	}
 	Stati = []StatusString{Public, Private, Secret, Hidden}
 )
+
+func (t StatusString) String() string {
+	return string(t)
+}

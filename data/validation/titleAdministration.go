@@ -3,7 +3,6 @@ package validation
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
-	"PoliSim/helper"
 	"PoliSim/html/builder"
 	"database/sql"
 	"fmt"
@@ -20,6 +19,8 @@ type TitleModification struct {
 }
 
 var maxTitleLength = 200
+
+// both below are also used in organisationAdminstration
 var maxGroupNameLength = 200
 var maxFlairLength = 20
 
@@ -28,7 +29,7 @@ func (form *TitleModification) CreateTitle() (validate Message) {
 	switch false {
 	case isValidString(form.Name, maxTitleLength):
 		// has no valid name
-		validate.Message = fmt.Sprintf(builder.Translation["missingOrTooLongTitleName"], maxNameLength)
+		validate.Message = fmt.Sprintf(builder.Translation["missingOrTooLongTitleName"], maxTitleLength)
 		return
 	case isValidString(form.MainGroup, maxGroupNameLength):
 		// has no valid main group
@@ -43,7 +44,6 @@ func (form *TitleModification) CreateTitle() (validate Message) {
 		validate.Message = fmt.Sprintf(builder.Translation["TooLongTitleFlair"], maxFlairLength)
 		return
 	}
-	helper.ClearStringArray(&form.Holder)
 	accounts, ok, err := extraction.DoAccountsExist(form.Holder)
 	if !ok {
 		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
@@ -132,7 +132,6 @@ func (form *TitleModification) ModifyTitle() (validate Message) {
 		validate.Message = fmt.Sprintf(builder.Translation["TooLongTitleFlair"], maxFlairLength)
 		return
 	}
-	helper.ClearStringArray(&form.Holder)
 	accounts, ok, err := extraction.DoAccountsExist(form.Holder)
 	if !ok {
 		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
