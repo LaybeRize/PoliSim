@@ -2,28 +2,53 @@ package extraction
 
 import "PoliSim/data/database"
 
-func GetAllOrganisationInfo() (orgNames []string, mainGroups map[string]struct{}, subGroups map[string]struct{}, err error) {
+var (
+	OrganisationNamesList  = []string{}
+	OrganisationMainGroups = map[string]struct{}{}
+	OrganisationSubGroups  = map[string]struct{}{}
+)
+
+func StartupUpdateOrganisation() (err error) {
 	orgList := database.OrganisationList{}
 	err = database.DB.Select("name, main_group, sub_group").Find(&orgList).Error
-	orgNames = make([]string, len(orgList))
-	mainGroups = make(map[string]struct{})
-	subGroups = make(map[string]struct{})
+	if err != nil {
+		return
+	}
+	OrganisationNamesList = make([]string, len(orgList))
+	OrganisationMainGroups = make(map[string]struct{})
+	OrganisationSubGroups = make(map[string]struct{})
 	for i, orgs := range orgList {
-		orgNames[i] = orgs.Name
-		mainGroups[orgs.MainGroup] = struct{}{}
-		subGroups[orgs.SubGroup] = struct{}{}
+		OrganisationNamesList[i] = orgs.Name
+		OrganisationMainGroups[orgs.MainGroup] = struct{}{}
+		OrganisationSubGroups[orgs.SubGroup] = struct{}{}
 	}
 	return
 }
 
-func GetMainAndSubOrganisationGroups() (mainGroups map[string]struct{}, subGroups map[string]struct{}, err error) {
+func CreateNewOrganisation(org *database.Organisation) (err error) {
+	err = database.DB.Create(&org).Error
+	if err != nil {
+		return
+	}
+	updateNewOrganisation(org)
+	return
+}
+
+func updateNewOrganisation(organisation *database.Organisation) {
+	OrganisationNamesList = append(OrganisationNamesList, organisation.Name)
+	OrganisationMainGroups[organisation.MainGroup] = struct{}{}
+	OrganisationSubGroups[organisation.SubGroup] = struct{}{}
+}
+
+// updateOrganisationGroupings only updates the maps for main groups and subgroups.
+func updateOrganisationGroupings() (err error) {
 	orgList := database.OrganisationList{}
 	err = database.DB.Select("main_group, sub_group").Distinct("main_group, sub_group").Find(&orgList).Error
-	mainGroups = make(map[string]struct{})
-	subGroups = make(map[string]struct{})
+	OrganisationMainGroups = make(map[string]struct{})
+	OrganisationSubGroups = make(map[string]struct{})
 	for _, orgs := range orgList {
-		mainGroups[orgs.MainGroup] = struct{}{}
-		subGroups[orgs.SubGroup] = struct{}{}
+		OrganisationMainGroups[orgs.MainGroup] = struct{}{}
+		OrganisationSubGroups[orgs.SubGroup] = struct{}{}
 	}
 	return
 }

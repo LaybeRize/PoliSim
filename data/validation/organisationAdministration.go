@@ -72,10 +72,10 @@ func (form *OrganisationModification) CreateOrganisation() (validate Message) {
 		Admins:    *admins,
 		Accounts:  *accounts,
 	}
-	err = database.DB.Create(&org).Error
-
-	//remove me
-	org.Flair = sql.NullString{}
+	err = extraction.CreateNewOrganisation(&org)
+	if err != nil {
+		//handel error
+	}
 
 	return Message{}
 }

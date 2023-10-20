@@ -25,6 +25,10 @@ func main() {
 	database.ConnectDatabase()
 	_, _ = fmt.Fprintf(os.Stdout, "Updating title groups\n")
 	extraction.UpdateTitleGroupMap()
+	err := extraction.StartupUpdateOrganisation()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Organisationlist Update Error:\n"+err.Error())
+	}
 	createAdminAccount()
 
 	_, _ = fmt.Fprintf(os.Stdout, "Installing Router paths\n")
@@ -56,7 +60,7 @@ func main() {
 	instigateRoutes(r)
 
 	_, _ = fmt.Fprintf(os.Stdout, "PoliSim is trying to start the listener...\n")
-	err := http.ListenAndServe(os.Getenv("ADDRESS"), r)
+	err = http.ListenAndServe(os.Getenv("ADDRESS"), r)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to start the Router:\n"+err.Error()+"\n")
 		os.Exit(1)

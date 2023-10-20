@@ -11,7 +11,7 @@ import (
 func GetCreateTitlePage(title *validation.TitleModification, val validation.Message) Node {
 	display, err := extraction.ReturnListOfDisplayNames()
 	if err != nil {
-		val.Message += "\n" + Translation["errorQueryingNames"]
+		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
 	}
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
@@ -33,11 +33,11 @@ func GetCreateTitlePage(title *validation.TitleModification, val validation.Mess
 func GetModifyTitlePage(title *validation.TitleModification, val validation.Message) Node {
 	display, err := extraction.ReturnListOfDisplayNames()
 	if err != nil {
-		val.Message += "\n" + Translation["errorQueryingNames"]
+		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
 	}
 	titleNames, err := extraction.GetAllTitleNames()
 	if err != nil {
-		val.Message += "\n" + Translation["errorQueryingTitleNames"]
+		val.Message = Translation["errorQueryingTitleNames"] + "\n" + val.Message
 	}
 	return getBasePageWrapper(
 		getDataList("displayNames", display),

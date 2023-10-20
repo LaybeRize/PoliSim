@@ -113,5 +113,12 @@
   "organisationCreatePageTitle": "Organisation erstellen",
   "organisationCreateSidebarText": "Organisation erstellen",
   "organisationEditPageTitle": "Organisation verändern",
-  "organisationEditSidebarText": "Organisation verändern"
+  "organisationEditSidebarText": "Organisation verändern",
+  "organisationName": "Organisationsname",
+  "organisationStatus": "Organisationsstatus",
+  "addOrganisationUserButton": "Nutzer hinzufügen",
+  "addOrganisationAdminButton": "Administrator hinzufügen",
+  "createOrganisationButton": "Organisation erstellen",
+  "searchOrganisationButton": "Organisation suche",
+  "changeOrganisationButton": "Organisation verändern"
 }

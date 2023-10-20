@@ -2,12 +2,20 @@ package composition
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 )
 
 func GetCreateOrganisationPage(org *validation.OrganisationModification, val validation.Message) Node {
+	display, err := extraction.ReturnListOfDisplayNames()
+	if err != nil {
+		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
+	}
 	return getBasePageWrapper(
+		getDataList("displayNames", display),
+		getDataListFromMap("mainGroupNames", extraction.OrganisationMainGroups),
+		getDataListFromMap("subGroupNames", extraction.OrganisationSubGroups),
 		getPageHeader(CreateOrganisation),
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateOrganisation), CLASS("w-[800px]"),
 			getSimpleTextInput("name", "name", org.Name, Translation["organisationName"]),
@@ -29,10 +37,18 @@ func GetCreateOrganisationPage(org *validation.OrganisationModification, val val
 }
 
 func GetModifyOrganisationPage(org *validation.OrganisationModification, val validation.Message) Node {
+	display, err := extraction.ReturnListOfDisplayNames()
+	if err != nil {
+		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
+	}
 	return getBasePageWrapper(
+		getDataList("displayNames", display),
+		getDataList("organisationNames", extraction.OrganisationNamesList),
+		getDataListFromMap("mainGroupNames", extraction.OrganisationMainGroups),
+		getDataListFromMap("subGroupNames", extraction.OrganisationSubGroups),
 		getPageHeader(EditOrganisation),
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(EditOrganisation), CLASS("w-[800px]"),
-			getSimpleTextInput("name", "name", org.Name, Translation["organisationName"]),
+			getInput("name", "name", org.Name, Translation["organisationName"], "text", "organisationNames", ""),
 			getSubmitButtonOverwriteURL(Translation["searchOrganisationButton"], PATCH, "/"+APIPreRoute+string(SearchOrganisation)),
 			getSimpleTextInput("flair", "flair", org.Flair, Translation["flair"]),
 			getInput("mainGroup", "mainGroup", org.MainGroup, Translation["mainGroup"], "text", "mainGroupNames", ""),
@@ -45,7 +61,7 @@ func GetModifyOrganisationPage(org *validation.OrganisationModification, val val
 				getEditableList(org.Admins, "admins", "displayNames",
 					Translation["addOrganisationAdminButton"], "w-[400px] ml-2"),
 			),
-			getSubmitButton(Translation["createOrganisationButton"]),
+			getSubmitButton(Translation["changeOrganisationButton"]),
 		),
 		GetMessage(val),
 	)
