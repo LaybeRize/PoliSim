@@ -22,18 +22,18 @@ func InstallOrganisationPages() {
 }
 
 func GetOrganisationCreateService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
 	}
 
 	html := composition.GetCreateOrganisationPage(&validation.OrganisationModification{}, validation.Message{})
-	createOrganisationRenderRequest(w, r, acc.Role, html)
+	createOrganisationRenderRequest(w, r, acc, html)
 }
 
 func PostOrganisationCreateService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -45,36 +45,36 @@ func PostOrganisationCreateService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		createOrganisationOnlySwapMessage(w, r, msg, acc.Role)
+		createOrganisationOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.CreateOrganisation()
 	if !msg.Positive {
-		createOrganisationOnlySwapMessage(w, r, msg, acc.Role)
+		createOrganisationOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetCreateOrganisationPage(create, msg)
-	createOrganisationRenderRequest(w, r, acc.Role, html)
+	createOrganisationRenderRequest(w, r, acc, html)
 }
 
 var createOrganisationRenderRequest = genericRenderer(composition.CreateOrganisation)
 var createOrganisationOnlySwapMessage = genericMessageSwapper(composition.CreateOrganisation)
 
 func GetOrganisationEditService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
 	}
 
 	html := composition.GetModifyOrganisationPage(&validation.OrganisationModification{}, validation.Message{})
-	editOrganisationRenderRequest(w, r, acc.Role, html)
+	editOrganisationRenderRequest(w, r, acc, html)
 }
 
 func PostOrganisationEditService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -86,22 +86,22 @@ func PostOrganisationEditService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		editOrganisationOnlySwapMessage(w, r, msg, acc.Role)
+		editOrganisationOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.ModifyOrganisation()
 	if !msg.Positive {
-		editOrganisationOnlySwapMessage(w, r, msg, acc.Role)
+		editOrganisationOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetModifyOrganisationPage(create, msg)
-	editOrganisationRenderRequest(w, r, acc.Role, html)
+	editOrganisationRenderRequest(w, r, acc, html)
 }
 
 func PatchOrganisationSearchService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -113,18 +113,18 @@ func PatchOrganisationSearchService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		editOrganisationOnlySwapMessage(w, r, msg, acc.Role)
+		editOrganisationOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.SearchOrganisation()
 	if !msg.Positive {
-		editOrganisationOnlySwapMessage(w, r, msg, acc.Role)
+		editOrganisationOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetModifyOrganisationPage(create, msg)
-	editOrganisationRenderRequest(w, r, acc.Role, html)
+	editOrganisationRenderRequest(w, r, acc, html)
 }
 
 var editOrganisationRenderRequest = genericRenderer(composition.EditOrganisation)

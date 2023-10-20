@@ -6,8 +6,8 @@ import (
 )
 
 func NotFoundService(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(w, r)
+	acc, _ := CheckUserPrivileges(r)
 	html := composition.GetNotFoundPage()
-	renderRequest(w, false, groupNodes(updateInformation(r, acc.Role, composition.NotFound),
-		html))
+	renderRequest(w, updateInformation(w, r, acc, composition.NotFound),
+		html)
 }

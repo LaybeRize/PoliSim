@@ -27,12 +27,12 @@ func CreateStore() {
 // ValidateToken returns a *extraction.AccountAuth with the Role database.NotLoggedIn if
 // either no cookie exists on the request, or it is invalid. If the cookie is valid it renews it
 // for the current session by writing it to the response.
-func ValidateToken(w http.ResponseWriter, r *http.Request) (returnAcc *extraction.AccountAuth) {
+func ValidateToken(r *http.Request) (returnAcc *extraction.AccountAuth) {
 	session, err := store.Get(r, "session")
 	temp, ok := session.Values["id"]
 	id, okConvert := temp.(int64)
 
-	returnAcc = &extraction.AccountAuth{Role: database.NotLoggedIn}
+	returnAcc = &extraction.AccountAuth{Role: database.NotLoggedIn, Session: session}
 	if err != nil || !ok || !okConvert {
 		return
 	}
@@ -41,9 +41,13 @@ func ValidateToken(w http.ResponseWriter, r *http.Request) (returnAcc *extractio
 		return
 	}
 
-	_ = sessions.Save(r, w)
 	returnAcc = acc
+	returnAcc.Session = session
 	return
+}
+
+func AddCookie(w http.ResponseWriter, r *http.Request, session *sessions.Session) {
+	_ = store.Save(r, w, session)
 }
 
 // InvalidateAccountToken trys to invalidate the current cookie. ot returns a
@@ -115,6 +119,8 @@ func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate
 	dbError := acc.SaveBack()
 	session, _ := store.Get(r, "session")
 	session.Values["id"] = acc.ID
+	session.Values["role"] = -100
+	session.Values["url"] = ""
 	err = session.Save(r, w)
 	if err != nil || dbError != nil {
 		//do the error handling

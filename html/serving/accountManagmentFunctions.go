@@ -24,17 +24,17 @@ func InstallAccountManagment() {
 }
 
 func GetViewUserService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
 	}
 	html := composition.GetViewAccountList(r.URL.Query().Get("id"))
-	viewUserRenderRequest(w, r, acc.Role, html)
+	viewUserRenderRequest(w, r, acc, html)
 }
 
 func PatchSearchUserService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -46,22 +46,22 @@ func PatchSearchUserService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		editUserOnlySwapMessage(w, r, msg, acc.Role)
+		editUserOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.RequestAccount()
 	if !msg.Positive {
-		editUserOnlySwapMessage(w, r, msg, acc.Role)
+		editUserOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetModifyAccount(create, msg)
-	editUserRenderRequest(w, r, acc.Role, html)
+	editUserRenderRequest(w, r, acc, html)
 }
 
 func PostEditUserService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -73,22 +73,22 @@ func PostEditUserService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		editUserOnlySwapMessage(w, r, msg, acc.Role)
+		editUserOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.ValidateAccountModification(acc)
 	if !msg.Positive {
-		editUserOnlySwapMessage(w, r, msg, acc.Role)
+		editUserOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetModifyAccount(create, msg)
-	editUserRenderRequest(w, r, acc.Role, html)
+	editUserRenderRequest(w, r, acc, html)
 }
 
 func GetEditUserService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -96,11 +96,11 @@ func GetEditUserService(w http.ResponseWriter, r *http.Request) {
 	html := composition.GetModifyAccount(&validation.AccountModification{
 		Role: int(database.User),
 	}, validation.Message{})
-	editUserRenderRequest(w, r, acc.Role, html)
+	editUserRenderRequest(w, r, acc, html)
 }
 
 func GetCreateUserService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -108,11 +108,11 @@ func GetCreateUserService(w http.ResponseWriter, r *http.Request) {
 	html := composition.GetCreateAccountPage(&validation.AccountModification{
 		Role: int(database.User),
 	}, validation.Message{})
-	createUserRenderRequest(w, r, acc.Role, html)
+	createUserRenderRequest(w, r, acc, html)
 }
 
 func PostCreateUserService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -124,18 +124,18 @@ func PostCreateUserService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		createUserOnlySwapMessage(w, r, msg, acc.Role)
+		createUserOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.ValidateAccountCreation(acc)
 	if !msg.Positive {
-		createUserOnlySwapMessage(w, r, msg, acc.Role)
+		createUserOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetCreateAccountPage(create, msg)
-	createUserRenderRequest(w, r, acc.Role, html)
+	createUserRenderRequest(w, r, acc, html)
 }
 
 var createUserRenderRequest = genericRenderer(composition.CreateUser)

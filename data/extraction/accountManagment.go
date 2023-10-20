@@ -5,6 +5,7 @@ import (
 	"PoliSim/helper"
 	"database/sql"
 	"errors"
+	"github.com/gorilla/sessions"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -46,6 +47,7 @@ type AccountAuth struct {
 	DisplayName string
 	Suspended   bool
 	Role        database.RoleLevel
+	Session     *sessions.Session `gorm:"-"`
 }
 
 type AccountLogin struct {

@@ -134,7 +134,7 @@ func getFormStandardForm(id string, submit formType, url string, children ...Nod
 	case DELETE:
 		hx = HXDELETE(url)
 	}
-	return FORM(hx, ID(id), HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"), HXINCLUDE("#"+InformationID), Group(children...))
+	return FORM(hx, ID(id), HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"), Group(children...))
 }
 
 func getEditableList(content []string, nameSpace string, listName string, addButtonText string, basicDivStyling string) Node {

@@ -5,7 +5,6 @@ import (
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -27,13 +26,9 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, load
 			SCRIPT(SRC("/public/htmx_1.9.5.js")),
 		),
 		BODY(CLASS("bg-slate-800 min-h-screen text-slate-200"),
-			DIV(ID(InformationID), HIDDEN(),
-				INPUT(NAME("personalRoleLevel"), VALUE(strconv.Itoa(int(role))), TYPE("hidden")),
-				INPUT(NAME("currentPageURL"), VALUE(loadURL), TYPE("hidden")),
-			),
 			DIV(CLASS("flex flex-row"),
 				getSidebar(role, nil),
-				DIV(ID(MainBodyID), HXGET("/"+APIPreRoute+loadURL+loadURLAddition), HXTRIGGER("load"), HXSWAP("outerHTML"), HXINCLUDE("#"+InformationID)),
+				DIV(ID(MainBodyID), HXGET("/"+APIPreRoute+loadURL+loadURLAddition), HXTRIGGER("load"), HXSWAP("outerHTML")),
 			),
 		))
 }
@@ -53,13 +48,6 @@ func getCustomPageHeader(text string) Node {
 // getPageHeader returns a <h1> element for the header text filled with the PageTitleMap value for the given HttpUrl
 func getPageHeader(url HttpUrl) Node {
 	return getCustomPageHeader(PageTitleMap[url])
-}
-
-// GetInfoDiv returns a hx-swap-oob <div> element containing the role and pageURL as inputs
-func GetInfoDiv(role database.RoleLevel, pageURL HttpUrl) Node {
-	return DIV(ID(InformationID), HXSWAPOOB("true"), HIDDEN(),
-		INPUT(NAME("personalRoleLevel"), VALUE(strconv.Itoa(int(role))), TYPE("hidden")),
-		INPUT(NAME("currentPageURL"), VALUE(string(pageURL)), TYPE("hidden")))
 }
 
 // GetMessage returns the message div, colored and filled correctly based on the parameter. (invisible when
@@ -97,7 +85,7 @@ func GetErrorPage(errorText string) Node {
 
 func getClickableLink(link string, urlToPush string, node Node) Node {
 	return A(HXGET(link), HXTARGET("#"+MainBodyID),
-		HXINCLUDE("#"+InformationID), If(urlToPush != "", HXPUSHURL(urlToPush)), HXSWAP("outerHTML"),
+		If(urlToPush != "", HXPUSHURL(urlToPush)), HXSWAP("outerHTML"),
 		HYPERSCRIPT("on auxclick[button==1] call window.open('/"+link+"', '_blank')"),
 		node,
 	)

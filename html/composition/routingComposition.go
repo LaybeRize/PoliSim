@@ -2,40 +2,38 @@ package composition
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/html/builder"
 	"net/http"
 )
 
-type HttpUrl string
-
 const (
-	MainBodyID    = "mainBody"
-	SidebarID     = "Sidebar"
-	InformationID = "informationDiv"
-	MessageID     = "messageDiv"
+	MainBodyID = "mainBody"
+	SidebarID  = "Sidebar"
+	MessageID  = "messageDiv"
 
-	Start              HttpUrl = "start"
-	Login              HttpUrl = "login"
-	Logout             HttpUrl = "logout"
-	CreateVote         HttpUrl = "vote/create"
-	RequestVotePartial HttpUrl = "vote/request-partial"
-	CreateUser         HttpUrl = "account/create"
-	EditUser           HttpUrl = "account/edit"
-	SearchUser         HttpUrl = "account/search"
-	ViewUser           HttpUrl = "account/view"
-	EditTitle          HttpUrl = "title/edit"
-	SearchTitle        HttpUrl = "title/search"
-	DeleteTitle        HttpUrl = "title/delete"
-	CreateTitle        HttpUrl = "title/create"
-	ViewTitles         HttpUrl = "title/view"
-	getTitleSubGroup   HttpUrl = "title/get-sub-group/"
-	GetTitleSubGroup   HttpUrl = "title/get-sub-group/{mainGroup}/{subGroup}"
-	CreateOrganisation HttpUrl = "organisation/create"
-	EditOrganisation   HttpUrl = "organisation/edit"
-	SearchOrganisation HttpUrl = "organisation/search"
-	ErrorPage          HttpUrl = "errorPage"
+	Start              builder.HttpUrl = "start"
+	Login              builder.HttpUrl = "login"
+	Logout             builder.HttpUrl = "logout"
+	CreateVote         builder.HttpUrl = "vote/create"
+	RequestVotePartial builder.HttpUrl = "vote/request-partial"
+	CreateUser         builder.HttpUrl = "account/create"
+	EditUser           builder.HttpUrl = "account/edit"
+	SearchUser         builder.HttpUrl = "account/search"
+	ViewUser           builder.HttpUrl = "account/view"
+	EditTitle          builder.HttpUrl = "title/edit"
+	SearchTitle        builder.HttpUrl = "title/search"
+	DeleteTitle        builder.HttpUrl = "title/delete"
+	CreateTitle        builder.HttpUrl = "title/create"
+	ViewTitles         builder.HttpUrl = "title/view"
+	getTitleSubGroup   builder.HttpUrl = "title/get-sub-group/"
+	GetTitleSubGroup   builder.HttpUrl = "title/get-sub-group/{mainGroup}/{subGroup}"
+	CreateOrganisation builder.HttpUrl = "organisation/create"
+	EditOrganisation   builder.HttpUrl = "organisation/edit"
+	SearchOrganisation builder.HttpUrl = "organisation/search"
+	ErrorPage          builder.HttpUrl = "errorPage"
 
 	// NotFound is only used as a way to keep the PageTitleMap in order
-	NotFound HttpUrl = "notFound"
+	NotFound builder.HttpUrl = "notFound"
 
 	// APIPreRoute is a subroute for the web application to prepend to any
 	// backend partial replies. It never starts with a / because that is automatically prepend anyway
@@ -51,8 +49,8 @@ type HttpHandling struct {
 	RoleLevel          database.RoleLevel
 }
 
-var PageTitleMap = make(map[HttpUrl]string)
-var SidebarTitleMap = make(map[HttpUrl]string)
-var GetHTMXFunctions = make(map[HttpUrl]http.HandlerFunc)
-var PostHTMXFunctions = make(map[HttpUrl]http.HandlerFunc)
-var PatchHTMXFunctions = make(map[HttpUrl]http.HandlerFunc)
+var PageTitleMap = make(map[builder.HttpUrl]string)
+var SidebarTitleMap = make(map[builder.HttpUrl]string)
+var GetHTMXFunctions = make(map[builder.HttpUrl]http.HandlerFunc)
+var PostHTMXFunctions = make(map[builder.HttpUrl]http.HandlerFunc)
+var PatchHTMXFunctions = make(map[builder.HttpUrl]http.HandlerFunc)

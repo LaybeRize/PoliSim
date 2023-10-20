@@ -20,7 +20,7 @@ func GetStartPage(acc *extraction.AccountAuth, val validation.Message) Node {
 			DIV(CLASS("flex flex-col"),
 				P(CLASS("mt-4"), Text(Translation["loggedInAccountMessage"], acc.DisplayName)),
 				BUTTON(TYPE("submit"), HXPOST("/"+APIPreRoute+string(Logout)),
-					HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"), HXINCLUDE("#"+InformationID),
+					HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"),
 					CLASS(buttonClassAttribute+" mt-2"), Text(Translation["logoutButton"])),
 			)),
 		GetMessage(val),

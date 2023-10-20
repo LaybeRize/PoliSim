@@ -18,7 +18,7 @@ func GetViewTitelPage() Node {
 				CLASS("text-2xl mt-2 w-full text-left"), Text(inner),
 				HXGET("/"+APIPreRoute+string(getTitleSubGroup)+outer+"/"+inner),
 				HXTARGET("#out-"+outer+"-in-"+inner), ID("out-"+outer+"-in-"+inner+"-button"),
-				HXINCLUDE("#"+InformationID), HXSWAP("outerHTML"),
+				HXSWAP("outerHTML"),
 			),
 				DIV(ID("out-"+outer+"-in-"+inner)))
 			innerCounter++

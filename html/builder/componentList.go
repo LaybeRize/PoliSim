@@ -2,6 +2,7 @@ package builder
 
 type elementType string
 type attributeType string
+type HttpUrl string
 
 var (
 	DIV      = elementWrapper("div")

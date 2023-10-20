@@ -29,34 +29,34 @@ func InstallTitlePages() {
 }
 
 func GetTitleViewService(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(w, r)
+	acc, _ := CheckUserPrivileges(r)
 	html := composition.GetViewTitelPage()
-	viewTitleRenderRequest(w, r, acc.Role, html)
+	viewTitleRenderRequest(w, r, acc, html)
 }
 
 func GetSubGroupHTMLElement(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(w, r)
+	acc, _ := CheckUserPrivileges(r)
 	mainGroup := chi.URLParam(r, "mainGroup")
 	subGroup := chi.URLParam(r, "subGroup")
 	html := composition.GetViewSubGroupOfTitles(mainGroup, subGroup)
-	viewTitleRenderRequest(w, r, acc.Role, html)
+	viewTitleRenderRequest(w, r, acc, html)
 }
 
 var viewTitleRenderRequest = genericRenderer(composition.ViewTitles)
 
 func GetTitleCreateService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
 	}
 
 	html := composition.GetCreateTitlePage(&validation.TitleModification{}, validation.Message{})
-	createTitleRenderRequest(w, r, acc.Role, html)
+	createTitleRenderRequest(w, r, acc, html)
 }
 
 func PostTitleCreateService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -68,36 +68,36 @@ func PostTitleCreateService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		createTitleOnlySwapMessage(w, r, msg, acc.Role)
+		createTitleOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.CreateTitle()
 	if !msg.Positive {
-		createTitleOnlySwapMessage(w, r, msg, acc.Role)
+		createTitleOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetCreateTitlePage(create, msg)
-	createTitleRenderRequest(w, r, acc.Role, html)
+	createTitleRenderRequest(w, r, acc, html)
 }
 
 var createTitleRenderRequest = genericRenderer(composition.CreateTitle)
 var createTitleOnlySwapMessage = genericMessageSwapper(composition.CreateTitle)
 
 func GetTitleEditService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
 	}
 
 	html := composition.GetModifyTitlePage(&validation.TitleModification{}, validation.Message{})
-	editTitleRenderRequest(w, r, acc.Role, html)
+	editTitleRenderRequest(w, r, acc, html)
 }
 
 func PatchSearchTitleService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -109,22 +109,22 @@ func PatchSearchTitleService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		editTitleOnlySwapMessage(w, r, msg, acc.Role)
+		editTitleOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.SearchTitle()
 	if !msg.Positive {
-		editTitleOnlySwapMessage(w, r, msg, acc.Role)
+		editTitleOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetModifyTitlePage(create, msg)
-	editTitleRenderRequest(w, r, acc.Role, html)
+	editTitleRenderRequest(w, r, acc, html)
 }
 
 func PostEditTitleService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -136,22 +136,22 @@ func PostEditTitleService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		editTitleOnlySwapMessage(w, r, msg, acc.Role)
+		editTitleOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.ModifyTitle()
 	if !msg.Positive {
-		editTitleOnlySwapMessage(w, r, msg, acc.Role)
+		editTitleOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetModifyTitlePage(create, msg)
-	editTitleRenderRequest(w, r, acc.Role, html)
+	editTitleRenderRequest(w, r, acc, html)
 }
 
 func DeleteTitleService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(w, r, database.HeadAdmin, database.Admin)
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	if !ok {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
@@ -163,18 +163,18 @@ func DeleteTitleService(w http.ResponseWriter, r *http.Request) {
 	err := extractFormValuesForFields(create, r, 0)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
-		editTitleOnlySwapMessage(w, r, msg, acc.Role)
+		editTitleOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	msg = create.DeleteTitle()
 	if !msg.Positive {
-		editTitleOnlySwapMessage(w, r, msg, acc.Role)
+		editTitleOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
 	html := composition.GetModifyTitlePage(create, msg)
-	editTitleRenderRequest(w, r, acc.Role, html)
+	editTitleRenderRequest(w, r, acc, html)
 }
 
 var editTitleRenderRequest = genericRenderer(composition.EditTitle)
