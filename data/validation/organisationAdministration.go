@@ -7,6 +7,7 @@ import (
 	"PoliSim/html/builder"
 	"database/sql"
 	"fmt"
+	"gorm.io/gorm"
 )
 
 type OrganisationModification struct {
@@ -62,6 +63,7 @@ func (form *OrganisationModification) CreateOrganisation() (validate Message) {
 		validate.Message = fmt.Sprintf(builder.Translation["parentAccountError"], err.Error())
 		return
 	}
+
 	org := database.Organisation{
 		Name:      form.Name,
 		MainGroup: form.MainGroup,
@@ -81,9 +83,97 @@ func (form *OrganisationModification) CreateOrganisation() (validate Message) {
 }
 
 func (form *OrganisationModification) SearchOrganisation() (validate Message) {
-	return Message{}
+	validate = Message{Positive: false}
+	org, err := extraction.GetOrganisation(form.Name)
+	if err == gorm.ErrRecordNotFound {
+		validate.Message = builder.Translation["organisationNotFound"]
+		return
+	} else if err != nil {
+		validate.Message = builder.Translation["databaseErrorOrganisationSearch"]
+		return
+	}
+
+	form.Flair = org.Flair.String
+	form.Status = string(org.Status)
+	form.MainGroup = org.MainGroup
+	form.SubGroup = org.SubGroup
+	form.User = make([]string, len(org.Members))
+	for i, acc := range org.Members {
+		form.User[i] = acc.DisplayName
+	}
+	form.Admins = make([]string, len(org.Admins))
+	for i, acc := range org.Admins {
+		form.Admins[i] = acc.DisplayName
+	}
+
+	return Message{
+		Message:  builder.Translation["successfullyFoundOrganisation"],
+		Positive: true,
+	}
 }
 
 func (form *OrganisationModification) ModifyOrganisation() (validate Message) {
+	validate = Message{Positive: false}
+	org, err := extraction.GetOrganisation(form.Name)
+	if err == gorm.ErrRecordNotFound {
+		validate.Message = builder.Translation["organisationDoesNotExist"]
+		return
+	} else if err != nil {
+		validate.Message = builder.Translation["databaseErrorOrganisationModification"]
+		return
+	}
+	switch false {
+	case isValidString(form.MainGroup, maxGroupNameLength):
+		// has no valid main group
+		validate.Message = fmt.Sprintf(builder.Translation["missingOrTooLongMainGroupName"], maxGroupNameLength)
+		return
+	case isValidString(form.SubGroup, maxGroupNameLength):
+		// has no valid subgroup
+		validate.Message = fmt.Sprintf(builder.Translation["missingOrTooLongSubGroupName"], maxGroupNameLength)
+		return
+	case isOrgStatusValid(form.Status):
+		// has no valid status
+		validate.Message = builder.Translation["invalidOrganisationStatus"]
+		return
+	case len([]rune(form.Flair)) <= maxFlairLength:
+		// has no valid flair
+		validate.Message = fmt.Sprintf(builder.Translation["tooLongOrganisationFlair"], maxFlairLength)
+		return
+	}
+	helper.RemoveEntriesFromList(&form.Admins, form.User)
+	user, ok, err := extraction.DoAccountsExist(form.User)
+	if !ok {
+		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
+		return
+	}
+	var admins *database.AccountList
+	admins, ok, err = extraction.DoAccountsExist(form.Admins)
+	if !ok {
+		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
+		return
+	}
+	accounts, err := extraction.GetParentAccounts(append(form.User, form.Admins...))
+	if err != nil {
+		validate.Message = fmt.Sprintf(builder.Translation["parentAccountError"], err.Error())
+		return
+	}
+
+	org.MainGroup = form.MainGroup
+	org.SubGroup = form.SubGroup
+	oldFlair := org.Flair.String
+	org.Flair = sql.NullString{String: form.Flair, Valid: form.Flair != ""}
+	org.Status = database.StatusString(form.Status)
+	org.Members = *user
+	org.Admins = *admins
+	org.Accounts = *accounts
+
+	err = extraction.ModifiyOrganisation(org)
+	if err != nil {
+		validate.Message = builder.Translation["databaseErrorOrganisationModification"]
+		return
+	}
+
+	err = updateFlairs([]string{}, []string{}, oldFlair, org.Flair.String)
+
 	return Message{}
 }

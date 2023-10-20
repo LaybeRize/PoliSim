@@ -1,6 +1,9 @@
 package extraction
 
-import "PoliSim/data/database"
+import (
+	"PoliSim/data/database"
+	"sync"
+)
 
 var (
 	OrganisationNamesList  = []string{}
@@ -22,15 +25,6 @@ func StartupUpdateOrganisation() (err error) {
 		OrganisationMainGroups[orgs.MainGroup] = struct{}{}
 		OrganisationSubGroups[orgs.SubGroup] = struct{}{}
 	}
-	return
-}
-
-func CreateNewOrganisation(org *database.Organisation) (err error) {
-	err = database.DB.Create(&org).Error
-	if err != nil {
-		return
-	}
-	updateNewOrganisation(org)
 	return
 }
 
@@ -60,8 +54,26 @@ func GetHiddenOrganistaions() (data *database.OrganisationList, err error) {
 	return
 }
 
-// TODO: this is shit but somehow we need to update all the organistations a press account is part of, if their linked value changes
-func UpdateOrganisationAccount(oldAccountID int64, newAccountID int64) (err error) {
-	err = database.DB.Raw("UPDATE organisation_account SET id = ? WHERE id = ?;", newAccountID, oldAccountID).Error
+var organisationMutex = sync.Mutex{}
+
+func CreateNewOrganisation(org *database.Organisation) (err error) {
+	organisationMutex.Lock()
+	defer organisationMutex.Unlock()
+	err = database.DB.Create(&org).Error
+	if err != nil {
+		return
+	}
+	updateNewOrganisation(org)
+	return
+}
+
+func GetOrganisation(name string) (org *database.Organisation, err error) {
+	organisationMutex.Lock()
+	defer organisationMutex.Unlock()
+	err = database.DB.Preload("Members").Preload("Admins").Where("name = ?", name).First(&org).Error
+	return
+}
+
+func ModifiyOrganisation(org *database.Organisation) (err error) {
 	return
 }
