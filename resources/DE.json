@@ -120,5 +120,6 @@
   "addOrganisationAdminButton": "Administrator hinzufügen",
   "createOrganisationButton": "Organisation erstellen",
   "searchOrganisationButton": "Organisation suche",
-  "changeOrganisationButton": "Organisation verändern"
+  "changeOrganisationButton": "Organisation verändern",
+  "errorWhileLoadingHiddenOrganisations": "Es ist ein Fehler beim laden der versteckten Organisationen aufgetreten"
 }

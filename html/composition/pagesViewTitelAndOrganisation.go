@@ -68,3 +68,65 @@ func GetViewSubGroupOfTitles(mainGroup string, subGroup string) Node {
 		HYPERSCRIPT("on click toggle .hidden on #out-"+mainGroup+"-in-"+subGroup),
 	), newDiv)
 }
+
+func GetViewOrganisationPage(accountID int64) Node {
+	return getBasePageWrapper()
+}
+
+func GetViewSubGroupOfOrganisations(mainGroup string, subGroup string) Node {
+	return Group(BUTTON())
+}
+
+func GetViewHiddenOrganisationPage() Node {
+	orgs, err := extraction.GetHiddenOrganistaions()
+	if err != nil {
+		return GetErrorPage(Translation["errorWhileLoadingHiddenOrganisations"])
+	}
+	nodes := make([]Node, len(*orgs))
+	counterMainGroups := 0
+	counterSubGroups := 0
+	for i := len(nodes) - 1; i > 0; i-- {
+		if (*orgs)[i].MainGroup != (*orgs)[i-1].MainGroup {
+			nodes[i] = TR(
+				getTableElement(StartPos, counterMainGroups+1, Text((*orgs)[i].MainGroup)),
+				getTableElement(MiddlePos, counterSubGroups+1, Text((*orgs)[i].SubGroup)),
+				getTableElement(EndPos, 1, Text((*orgs)[i].Name)),
+			)
+			counterMainGroups = 0
+			counterSubGroups = 0
+			continue
+		}
+		if (*orgs)[i].SubGroup != (*orgs)[i-1].SubGroup {
+			nodes[i] = TR(
+				getTableElement(MiddlePos, counterSubGroups+1, Text((*orgs)[i].SubGroup)),
+				getTableElement(EndPos, 1, Text((*orgs)[i].Name)),
+			)
+			counterMainGroups++
+			counterSubGroups = 0
+			continue
+		}
+		counterMainGroups++
+		counterSubGroups++
+		nodes[i] = TR(
+			getTableElement(EndPos, 1, Text((*orgs)[i].Name)),
+		)
+	}
+	nodes[0] = TR(
+		getTableElement(StartPos, counterMainGroups+1, Text((*orgs)[0].MainGroup)),
+		getTableElement(MiddlePos, counterSubGroups+1, Text((*orgs)[0].SubGroup)),
+		getTableElement(EndPos, 1, Text((*orgs)[0].Name)),
+	)
+
+	return getBasePageWrapper(
+		tableNode,
+		getPageHeader(ViewUser),
+		getStandardTable("sortTable",
+			TR(
+				getTableHeader(StartPos, -1, "Hauptgruppe"),
+				getTableHeader(MiddlePos, -1, "Untergruppe"),
+				getTableHeader(EndPos, -1, "Name"),
+			),
+			Group(nodes...),
+		),
+	)
+}

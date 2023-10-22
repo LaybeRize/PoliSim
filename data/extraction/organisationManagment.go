@@ -75,5 +75,20 @@ func GetOrganisation(name string) (org *database.Organisation, err error) {
 }
 
 func ModifiyOrganisation(org *database.Organisation) (err error) {
+	organisationMutex.Lock()
+	defer organisationMutex.Unlock()
+	err = database.DB.Model(database.Title{}).Where("name = ?", org.Name).Updates(&org).Error
+	if err == nil {
+		err = database.DB.Model(&org).Association("Members").Replace(&org.Members)
+	}
+	if err == nil {
+		err = database.DB.Model(&org).Association("Admins").Replace(&org.Admins)
+	}
+	if err == nil {
+		err = database.DB.Model(&org).Association("Accounts").Replace(&org.Accounts)
+	}
+	if err != nil {
+		_ = updateOrganisationGroupings()
+	}
 	return
 }

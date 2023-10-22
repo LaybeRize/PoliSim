@@ -5,6 +5,7 @@ import (
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
+	"github.com/go-chi/chi"
 	"net/http"
 )
 
@@ -19,6 +20,15 @@ func InstallOrganisationPages() {
 	composition.GetHTMXFunctions[composition.EditOrganisation] = GetOrganisationEditService
 	composition.PostHTMXFunctions[composition.EditOrganisation] = PostOrganisationEditService
 	composition.PatchHTMXFunctions[composition.SearchOrganisation] = PatchOrganisationSearchService
+
+	composition.PageTitleMap[composition.ViewOrganisations] = builder.Translation["organisationViewPageTitle"]
+	composition.SidebarTitleMap[composition.ViewOrganisations] = builder.Translation["organisationViewSidebarText"]
+	composition.GetHTMXFunctions[composition.ViewOrganisations] = GetOrganisationViewService
+	composition.GetHTMXFunctions[composition.GetOrganisationSubGroup] = GetSubGroupOrganisationHTMLElement
+
+	composition.PageTitleMap[composition.ViewHiddenOrganisations] = builder.Translation["hiddenOrganisationViewPageTitle"]
+	composition.SidebarTitleMap[composition.ViewHiddenOrganisations] = builder.Translation["hiddenOrganisationViewSidebarText"]
+	composition.GetHTMXFunctions[composition.ViewHiddenOrganisations] = GetHiddenOrganisationViewService
 }
 
 func GetOrganisationCreateService(w http.ResponseWriter, r *http.Request) {
@@ -129,3 +139,31 @@ func PatchOrganisationSearchService(w http.ResponseWriter, r *http.Request) {
 
 var editOrganisationRenderRequest = genericRenderer(composition.EditOrganisation)
 var editOrganisationOnlySwapMessage = genericMessageSwapper(composition.EditOrganisation)
+
+func GetOrganisationViewService(w http.ResponseWriter, r *http.Request) {
+	acc, _ := CheckUserPrivileges(r)
+	html := composition.GetViewOrganisationPage(acc.ID)
+	viewOrganisationRenderRequest(w, r, acc, html)
+}
+
+func GetSubGroupOrganisationHTMLElement(w http.ResponseWriter, r *http.Request) {
+	acc, _ := CheckUserPrivileges(r)
+	mainGroup := chi.URLParam(r, "mainGroup")
+	subGroup := chi.URLParam(r, "subGroup")
+	html := composition.GetViewSubGroupOfOrganisations(mainGroup, subGroup)
+	viewOrganisationRenderRequest(w, r, acc, html)
+}
+
+var viewOrganisationRenderRequest = genericRenderer(composition.ViewOrganisations)
+
+func GetHiddenOrganisationViewService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+	html := composition.GetViewHiddenOrganisationPage()
+	viewHiddenOrganisationRenderRequest(w, r, acc, html)
+}
+
+var viewHiddenOrganisationRenderRequest = genericRenderer(composition.ViewTitles)

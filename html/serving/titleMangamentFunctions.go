@@ -13,7 +13,7 @@ func InstallTitlePages() {
 	composition.PageTitleMap[composition.ViewTitles] = builder.Translation["titleViewPageTitle"]
 	composition.SidebarTitleMap[composition.ViewTitles] = builder.Translation["titleViewSidebarText"]
 	composition.GetHTMXFunctions[composition.ViewTitles] = GetTitleViewService
-	composition.GetHTMXFunctions[composition.GetTitleSubGroup] = GetSubGroupHTMLElement
+	composition.GetHTMXFunctions[composition.GetTitleSubGroup] = GetSubGroupTitleHTMLElement
 
 	composition.PageTitleMap[composition.EditTitle] = builder.Translation["titleEditPageTitle"]
 	composition.SidebarTitleMap[composition.EditTitle] = builder.Translation["titleEditSidebarText"]
@@ -34,7 +34,7 @@ func GetTitleViewService(w http.ResponseWriter, r *http.Request) {
 	viewTitleRenderRequest(w, r, acc, html)
 }
 
-func GetSubGroupHTMLElement(w http.ResponseWriter, r *http.Request) {
+func GetSubGroupTitleHTMLElement(w http.ResponseWriter, r *http.Request) {
 	acc, _ := CheckUserPrivileges(r)
 	mainGroup := chi.URLParam(r, "mainGroup")
 	subGroup := chi.URLParam(r, "subGroup")

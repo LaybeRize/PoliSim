@@ -120,7 +120,6 @@ func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate
 	session, _ := store.Get(r, "session")
 	session.Values["id"] = acc.ID
 	session.Values["role"] = -100
-	session.Values["url"] = ""
 	err = session.Save(r, w)
 	if err != nil || dbError != nil {
 		//do the error handling

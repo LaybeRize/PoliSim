@@ -2,6 +2,7 @@ package extraction
 
 import (
 	"PoliSim/data/database"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -42,7 +43,9 @@ func GetAllDistinct() (*database.TitleList, error) {
 
 func GetAllInSubGroup(mainGroup string, subGroup string) (*database.TitleList, error) {
 	list := &database.TitleList{}
-	err := database.DB.Preload("Holder").Where("main_group = ? AND sub_group = ?", mainGroup, subGroup).Order("name").Find(list).Error
+	err := database.DB.Preload("Holder", func(db *gorm.DB) *gorm.DB {
+		return db.Select("display_name")
+	}).Where("main_group = ? AND sub_group = ?", mainGroup, subGroup).Order("name").Find(list).Error
 	return list, err
 }
 

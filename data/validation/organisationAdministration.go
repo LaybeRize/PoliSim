@@ -76,10 +76,21 @@ func (form *OrganisationModification) CreateOrganisation() (validate Message) {
 	}
 	err = extraction.CreateNewOrganisation(&org)
 	if err != nil {
-		//handel error
+		validate.Message = builder.Translation["databaseErrorOrganisationCreation"]
+		return
 	}
 
-	return Message{}
+	err = updateFlairs([]string{}, append(form.User, form.Admins...), "", org.Flair.String)
+	if err != nil {
+		return Message{
+			Message: builder.Translation["successfullyCreatedOrganisation"] + "\n" +
+				builder.Translation["errorWithFlairUpdate"],
+			Positive: true,
+		}
+	}
+
+	return Message{Message: builder.Translation["successfullyCreatedOrganisation"],
+		Positive: true}
 }
 
 func (form *OrganisationModification) SearchOrganisation() (validate Message) {
@@ -158,6 +169,14 @@ func (form *OrganisationModification) ModifyOrganisation() (validate Message) {
 		return
 	}
 
+	oldNames := make([]string, len(org.Members)+len(org.Admins))
+	for i, acc := range org.Members {
+		oldNames[i] = acc.DisplayName
+	}
+	for i, acc := range org.Admins {
+		oldNames[i+len(org.Members)] = acc.DisplayName
+	}
+
 	org.MainGroup = form.MainGroup
 	org.SubGroup = form.SubGroup
 	oldFlair := org.Flair.String
@@ -173,7 +192,15 @@ func (form *OrganisationModification) ModifyOrganisation() (validate Message) {
 		return
 	}
 
-	err = updateFlairs([]string{}, []string{}, oldFlair, org.Flair.String)
+	err = updateFlairs(oldNames, append(form.User, form.Admins...), oldFlair, org.Flair.String)
+	if err != nil {
+		return Message{
+			Message: builder.Translation["successfullyModifiedOrganisation"] + "\n" +
+				builder.Translation["errorWithFlairUpdate"],
+			Positive: true,
+		}
+	}
 
-	return Message{}
+	return Message{Message: builder.Translation["successfullyModifiedOrganisation"],
+		Positive: true}
 }

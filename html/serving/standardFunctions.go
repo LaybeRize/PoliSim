@@ -124,27 +124,16 @@ func updateInformation(w http.ResponseWriter, r *http.Request, acc *extraction.A
 	if !ok {
 		role = -100
 	}
-	url, ok := acc.Session.Values["url"].(string)
-	if !ok {
-		url = ""
-	}
 
 	acc.Session.Values["role"] = int(acc.Role)
-	acc.Session.Values["url"] = string(currentPage)
 	validation.AddCookie(w, r, acc.Session)
 
-	switch true {
-	case role == int(acc.Role) && url == string(currentPage):
-		return nil
-	case role != int(acc.Role) && url != string(currentPage):
+	if role != int(acc.Role) {
 		return builder.Group(composition.GetSidebarReplacement(acc.Role),
 			composition.GetTitleReplacement(currentPage))
-	case role != int(acc.Role):
-		return composition.GetSidebarReplacement(acc.Role)
-	case url != string(currentPage):
-		return composition.GetTitleReplacement(currentPage)
 	}
-	return nil
+
+	return composition.GetTitleReplacement(currentPage)
 }
 
 // genericRenderer returns a generics render function for a typical urls by parsing the htmlComposition.HttpUrl
