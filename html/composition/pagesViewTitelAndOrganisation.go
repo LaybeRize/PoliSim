@@ -42,7 +42,7 @@ func GetViewTitelPage() Node {
 }
 
 func GetViewSubGroupOfTitles(mainGroup string, subGroup string) Node {
-	list, err := extraction.GetAllInSubGroup(mainGroup, subGroup)
+	list, err := extraction.GetAllTitlesInSubGroup(mainGroup, subGroup)
 	var newDiv Node = nil
 	if err != nil {
 		newDiv = DIV(ID("out-"+mainGroup+"-in-"+subGroup), CLASS("border-l-4 border-slate-400 pl-6 mt-2 collapse-all"),
@@ -70,10 +70,43 @@ func GetViewSubGroupOfTitles(mainGroup string, subGroup string) Node {
 }
 
 func GetViewOrganisationPage(accountID int64) Node {
-	return getBasePageWrapper()
+	orgGroupings, err := extraction.GetOrganisationGroupings(accountID)
+	if err != nil {
+		return GetErrorPage(Translation["errorWhileLoadingOrganisations"])
+	}
+	listing := make([]Node, len((*orgGroupings)[0]))
+	for i, outer := range (*orgGroupings)[0] {
+		innerListing := make([]Node, len((*orgGroupings)[i+1]))
+		for pos, inner := range (*orgGroupings)[i+1] {
+			innerListing[pos] = Group(BUTTON(
+				CLASS("text-2xl mt-2 w-full text-left"), Text(inner),
+				HXGET("/"+APIPreRoute+string(getOrganisationSubGroup)+outer+"/"+inner),
+				HXTARGET("#out-"+outer+"-in-"+inner), ID("out-"+outer+"-in-"+inner+"-button"),
+				HXSWAP("outerHTML"),
+			),
+				DIV(ID("out-"+outer+"-in-"+inner)))
+		}
+		listing[i] = Group(BUTTON(CLASS("text-3xl mt-2 w-full text-left"), Text(outer),
+			HYPERSCRIPT("on click toggle .hidden on #outer-"+outer)),
+			DIV(ID("outer-"+outer), CLASS("border-l-4 border-white pl-6 mt-2 collapse-all hidden"),
+				Group(innerListing...)))
+	}
+	return getBasePageWrapper(
+		getPageHeader(ViewOrganisations),
+		DIV(CLASS("flex flex-row w-[600px]"),
+			BUTTON(TYPE("button"), CLASS("bg-slate-700 text-white p-2 m-2"),
+				HYPERSCRIPT("on click add .hidden to .collapse-all"), Text(Translation["collapseAll"])),
+		),
+		DIV(CLASS("mt-4 w-[600px]"),
+			Group(listing...)),
+	)
 }
 
-func GetViewSubGroupOfOrganisations(mainGroup string, subGroup string) Node {
+func GetViewSubGroupOfOrganisations(accountID int64, mainGroup string, subGroup string) Node {
+	orgs, err := extraction.GetAllOrganisationsInSubGroup(accountID, mainGroup, subGroup)
+	if len(*orgs) == 0 || err != nil {
+		//do some error message
+	}
 	return Group(BUTTON())
 }
 
@@ -111,15 +144,17 @@ func GetViewHiddenOrganisationPage() Node {
 			getTableElement(EndPos, 1, Text((*orgs)[i].Name)),
 		)
 	}
-	nodes[0] = TR(
-		getTableElement(StartPos, counterMainGroups+1, Text((*orgs)[0].MainGroup)),
-		getTableElement(MiddlePos, counterSubGroups+1, Text((*orgs)[0].SubGroup)),
-		getTableElement(EndPos, 1, Text((*orgs)[0].Name)),
-	)
+	if len(*orgs) != 0 {
+		nodes[0] = TR(
+			getTableElement(StartPos, counterMainGroups+1, Text((*orgs)[0].MainGroup)),
+			getTableElement(MiddlePos, counterSubGroups+1, Text((*orgs)[0].SubGroup)),
+			getTableElement(EndPos, 1, Text((*orgs)[0].Name)),
+		)
+	}
 
 	return getBasePageWrapper(
 		tableNode,
-		getPageHeader(ViewUser),
+		getPageHeader(ViewHiddenOrganisations),
 		getStandardTable("sortTable",
 			TR(
 				getTableHeader(StartPos, -1, "Hauptgruppe"),

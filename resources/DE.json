@@ -121,5 +121,10 @@
   "createOrganisationButton": "Organisation erstellen",
   "searchOrganisationButton": "Organisation suche",
   "changeOrganisationButton": "Organisation verändern",
-  "errorWhileLoadingHiddenOrganisations": "Es ist ein Fehler beim laden der versteckten Organisationen aufgetreten"
+  "errorWhileLoadingHiddenOrganisations": "Es ist ein Fehler beim laden der versteckten Organisationen aufgetreten",
+  "organisationViewPageTitle": "Organisationsübersicht",
+  "organisationViewSidebarText": "Organisationsübersicht",
+  "hiddenOrganisationViewPageTitle": "Versteckte Organisationen",
+  "hiddenOrganisationViewSidebarText": "Versteckte Organisationen",
+  "errorWhileLoadingOrganisations": "Es ist ein Fehler beim laden der Organisationen aufgetreten"
 }

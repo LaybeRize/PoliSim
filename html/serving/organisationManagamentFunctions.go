@@ -150,7 +150,7 @@ func GetSubGroupOrganisationHTMLElement(w http.ResponseWriter, r *http.Request) 
 	acc, _ := CheckUserPrivileges(r)
 	mainGroup := chi.URLParam(r, "mainGroup")
 	subGroup := chi.URLParam(r, "subGroup")
-	html := composition.GetViewSubGroupOfOrganisations(mainGroup, subGroup)
+	html := composition.GetViewSubGroupOfOrganisations(acc.ID, mainGroup, subGroup)
 	viewOrganisationRenderRequest(w, r, acc, html)
 }
 

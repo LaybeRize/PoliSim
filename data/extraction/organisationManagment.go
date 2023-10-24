@@ -2,6 +2,7 @@ package extraction
 
 import (
 	"PoliSim/data/database"
+	"gorm.io/gorm"
 	"sync"
 )
 
@@ -48,9 +49,8 @@ func updateOrganisationGroupings() (err error) {
 }
 
 func GetHiddenOrganistaions() (data *database.OrganisationList, err error) {
-	*data = database.OrganisationList{}
 	err = database.DB.Select("name, main_group, sub_group").Distinct("main_group, sub_group, name").
-		Where("status = 'hidden'").Find(data).Error
+		Where("status = 'hidden'").Find(&data).Error
 	return
 }
 
@@ -91,4 +91,48 @@ func ModifiyOrganisation(org *database.Organisation) (err error) {
 		_ = updateOrganisationGroupings()
 	}
 	return
+}
+
+func GetAllOrganisationsInSubGroup(accountID int64, mainGroup string, subGroup string) (*database.OrganisationList, error) {
+	list := &database.OrganisationList{}
+	err := database.DB.Joins("LEFT JOIN organisation_account ON organisations.name = organisation_account.name").
+		Where("organisation_account.id = ? OR status = 'public' OR status = 'private'", accountID).Select("organisations.name, main_group, sub_group, flair, status").Table("organisations").Order("organisations.name").
+		Preload("Members", func(db *gorm.DB) *gorm.DB {
+			return db.Select("display_name")
+		}).Preload("Admins", func(db *gorm.DB) *gorm.DB {
+		return db.Select("display_name")
+	}).Where("main_group = ? AND sub_group = ?", mainGroup, subGroup).Find(list).Error
+	return list, err
+}
+
+// GetOrganisationGroupings returns a 2d array. The first array (array[0]) is filled with all the names of the subgroups.
+// The corresponding subgroups to a main group are listed in the array that is one offset of the position in the first array.
+// Meaning that all subgroups for the main group listed at array[0][0] are found in array[1] and all subgroups for array[0][12] are found in array[13].
+// If the query for the subrgoups throws an error it is returned too.
+func GetOrganisationGroupings(accountID int64) (*[][]string, error) {
+	var array = make([][]string, 1, 21)
+	array[0] = make([]string, 0, 20)
+	list := database.OrganisationList{}
+	err := database.DB.Joins("LEFT JOIN organisation_account ON organisations.name = organisation_account.name").
+		Where("organisation_account.id = ? OR status = 'public' OR status = 'private'", accountID).
+		Distinct("main_group, sub_group").Order("main_group, sub_group").Find(&list).Error
+	if len(list) != 0 {
+		array[0] = append(array[0], list[0].MainGroup)
+		currentMainGroup := list[0].MainGroup
+		array = append(array, make([]string, 0, 20))
+		pos := 1
+		array[pos] = append(array[pos], list[0].SubGroup)
+
+		for i := 1; i < len(list); i++ {
+			if list[i].MainGroup != currentMainGroup {
+				currentMainGroup = list[i].MainGroup
+				array = append(array, make([]string, 0, 20))
+				pos++
+				array[pos] = append(array[pos], list[i].SubGroup)
+				continue
+			}
+			array[pos] = append(array[pos], list[i].SubGroup)
+		}
+	}
+	return &array, err
 }
