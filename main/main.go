@@ -4,6 +4,7 @@ import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
+	"PoliSim/helper"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
 	"PoliSim/html/serving"
@@ -21,6 +22,7 @@ func main() {
 	_, _ = fmt.Fprintf(os.Stdout, "PoliSim starting up...\n\n")
 
 	builder.ImportTranslation(os.Getenv("LANG"))
+	helper.UpdateAttributes()
 
 	database.ConnectDatabase()
 	_, _ = fmt.Fprintf(os.Stdout, "Updating title groups\n")

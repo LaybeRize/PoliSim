@@ -2,6 +2,7 @@ package validation
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 )
 
 // Message provides a generic sturct for responding to a request with a message (either as an error or as successful)
@@ -32,4 +33,15 @@ func isValidString(str string, length int) bool {
 func isOrgStatusValid(str string) bool {
 	_, ok := database.StatusTranslation[database.StatusString(str)]
 	return ok
+}
+
+func isAccountValidForUser(userID int64, accountDisplayName string) (*extraction.AccountModification, bool, error) {
+	acc, err := extraction.GetAccountModificationByDisplayName(accountDisplayName)
+	if err != nil || acc.Suspended {
+		return acc, false, err
+	}
+	if (acc.Role == database.PressAccount && acc.Linked.Int64 == userID) || acc.ID == userID {
+		return acc, true, err
+	}
+	return acc, false, err
 }
