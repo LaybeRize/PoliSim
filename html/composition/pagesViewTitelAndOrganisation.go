@@ -1,11 +1,14 @@
 package composition
 
 import (
+	"PoliSim/data/database"
 	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"strings"
 )
+
+const joinSeperator = ", "
 
 func GetViewTitelPage() Node {
 	listing := make([]Node, len(extraction.TitleGroupMap))
@@ -50,7 +53,7 @@ func GetViewSubGroupOfTitles(mainGroup string, subGroup string) Node {
 	} else {
 		nodeList := make([]Node, len(*list))
 		for i, title := range *list {
-			holderText := strings.Join(validation.GetDisplayNameArray(&title.Holder), ", ")
+			holderText := strings.Join(validation.GetDisplayNameArray(&title.Holder), joinSeperator)
 			nodeList[i] = DIV(CLASS("mt-2"),
 				P(CLASS("text-xl"), Text(title.Name)),
 				If(title.Flair.Valid, P(CLASS("text-base mt-2"), Text(Translation["viewTitleFlairText"], title.Flair.String))),
@@ -69,8 +72,15 @@ func GetViewSubGroupOfTitles(mainGroup string, subGroup string) Node {
 	), newDiv)
 }
 
-func GetViewOrganisationPage(accountID int64) Node {
-	orgGroupings, err := extraction.GetOrganisationGroupings(accountID)
+func GetViewOrganisationPage(accountID int64, isAdmin bool) Node {
+	var orgGroupings *[][]string
+	var err error
+	if isAdmin {
+		orgGroupings, err = extraction.GetOrganisationGroupingsForAdmins()
+	} else {
+		orgGroupings, err = extraction.GetOrganisationGroupings(accountID)
+	}
+
 	if err != nil {
 		return GetErrorPage(Translation["errorWhileLoadingOrganisations"])
 	}
@@ -102,12 +112,57 @@ func GetViewOrganisationPage(accountID int64) Node {
 	)
 }
 
-func GetViewSubGroupOfOrganisations(accountID int64, mainGroup string, subGroup string) Node {
-	orgs, err := extraction.GetAllOrganisationsInSubGroup(accountID, mainGroup, subGroup)
-	if len(*orgs) == 0 || err != nil {
-		//do some error message
+func GetViewSubGroupOfOrganisations(accountID int64, isAdmin bool, mainGroup string, subGroup string) Node {
+	var orgs *database.OrganisationList
+	var err error
+	if isAdmin {
+		orgs, err = extraction.GetAllOrganisationsInSubGroupForAdmins(mainGroup, subGroup)
+	} else {
+		orgs, err = extraction.GetAllOrganisationsInSubGroup(accountID, mainGroup, subGroup)
 	}
-	return Group(BUTTON())
+
+	var newDiv Node = nil
+	if len(*orgs) == 0 || err != nil {
+		newDiv = DIV(ID("out-"+mainGroup+"-in-"+subGroup), CLASS("border-l-4 border-slate-400 pl-6 mt-2 collapse-all"),
+			P(STYLE("font-size: 2em;"), CLASS("text-rose-600"), Text(Translation["errorWhileQueryingOrganisations"])))
+	} else {
+		nodeList := make([]Node, len(*orgs))
+		for i, organisation := range *orgs {
+			memberText := strings.Join(validation.GetDisplayNameArray(&organisation.Members), joinSeperator)
+			adminText := strings.Join(validation.GetDisplayNameArray(&organisation.Admins), joinSeperator)
+			//<div class="flex items-center">
+			//            <p class="text-xl">{ org.Name }</p>
+			//    if org.Status == database.Secret {
+			//            <i class="text-xl bi bi-eye-slash px-2"></i>
+			//	} else {
+			//            <i class="text-xl bi bi-eye px-2"></i>
+			//    }
+			//    if org.Status == database.Private {
+			//            <i class="text-xl bi bi-file-lock"></i>
+			//    }
+			//            </div>
+			nodeList[i] = DIV(CLASS("mt-2"),
+				DIV(CLASS("flex items-center"),
+					P(CLASS("text-xl"), Text(organisation.Name)),
+					IfElse(organisation.Status == database.Secret, I(CLASS("text-xl bi bi-eye-slash px-2")),
+						I(CLASS("text-xl bi bi-eye px-2"))),
+					If(organisation.Status == database.Private, I(CLASS("text-xl bi bi-file-lock")))),
+				If(organisation.Flair.Valid, P(CLASS("text-base mt-2"), Text(Translation["viewOrganisationFlairText"], organisation.Flair.String))),
+				P(CLASS(""), IfElse(memberText == "", Text(Translation["viewOrganisationNoMemberText"]),
+					Text(Translation["viewOrganisationMemberText"], memberText))),
+				P(CLASS(""), IfElse(adminText == "", Text(Translation["viewOrganisationNoAdminText"]),
+					Text(Translation["viewOrganisationAdminText"], adminText))))
+
+		}
+		newDiv = DIV(ID("out-"+mainGroup+"-in-"+subGroup), CLASS("border-l-4 border-slate-400 pl-6 mt-2 collapse-all"),
+			Group(nodeList...))
+	}
+	return Group(BUTTON(
+		CLASS("text-2xl mt-2 w-full text-left"), Text(subGroup),
+		ID("out-"+mainGroup+"-in-"+subGroup+"-button"),
+		HXSWAPOOB("true"),
+		HYPERSCRIPT("on click toggle .hidden on #out-"+mainGroup+"-in-"+subGroup),
+	), newDiv)
 }
 
 func GetViewHiddenOrganisationPage() Node {

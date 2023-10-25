@@ -3,6 +3,7 @@ package validation
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/data/logic"
 	"PoliSim/helper"
 	"PoliSim/html/builder"
 	"database/sql"
@@ -211,6 +212,7 @@ func (form *AccountModification) validateChangeHeadAdmin(acc *extraction.Account
 }
 
 func (form *AccountModification) validateChangeToPressAccount(acc *extraction.AccountModification) (validate Message) {
+	oldLinked := acc.Linked.Int64
 	acc.Suspended = form.Suspended
 	acc.Linked.Int64 = form.Linked
 	acc.Linked.Valid = true
@@ -244,6 +246,10 @@ func (form *AccountModification) validateChangeToPressAccount(acc *extraction.Ac
 		return
 	}
 	validate.Message = builder.Translation["changingUserSuccessfully"]
+	err = logic.UpdateOrganisationAccount(acc.ID, oldLinked, acc.Linked.Int64)
+	if err != nil {
+		validate.Message += "\n" + builder.Translation["errorForChangesToOrganisationWithPressAccount"]
+	}
 	validate.Positive = true
 	return
 }
@@ -352,12 +358,17 @@ func onlyUpdateUser(old []string, new []string, flair string) error {
 	return extraction.UpdateFlairs(remove)
 }
 
+const (
+	flairSeperator     = ","
+	longFlairSeperator = flairSeperator + " "
+)
+
 func addFlair(update *database.AccountList, flair string) {
 	for i, acc := range *update {
 		if acc.Flair == "" {
 			(*update)[i].Flair = flair
 		} else {
-			(*update)[i].Flair += ", " + flair
+			(*update)[i].Flair += longFlairSeperator + flair
 		}
 	}
 }
@@ -367,14 +378,13 @@ func removeFlair(update *database.AccountList, flair string) {
 		switch true {
 		case acc.Flair == flair:
 			(*update)[i].Flair = ""
-		case strings.HasPrefix(acc.Flair, flair+","):
-			(*update)[i].Flair = helper.TrimPrefix(acc.Flair, flair+", ")
-		case strings.Contains(acc.Flair, ", "+flair+","):
-			var re = regexp.MustCompile(`(?m), ` + regexp.QuoteMeta(flair) + `,`)
-			var substitution = ","
-			(*update)[i].Flair = re.ReplaceAllString(acc.Flair, substitution)
-		case strings.HasSuffix(acc.Flair, ", "+flair):
-			(*update)[i].Flair = helper.TrimSuffix(acc.Flair, ", "+flair)
+		case strings.HasPrefix(acc.Flair, flair+flairSeperator):
+			(*update)[i].Flair = helper.TrimPrefix(acc.Flair, flair+longFlairSeperator)
+		case strings.Contains(acc.Flair, longFlairSeperator+flair+flairSeperator):
+			var re = regexp.MustCompile(`(?m)` + regexp.QuoteMeta(longFlairSeperator+flair+flairSeperator))
+			(*update)[i].Flair = re.ReplaceAllString(acc.Flair, flairSeperator)
+		case strings.HasSuffix(acc.Flair, longFlairSeperator+flair):
+			(*update)[i].Flair = helper.TrimSuffix(acc.Flair, longFlairSeperator+flair)
 		}
 	}
 }

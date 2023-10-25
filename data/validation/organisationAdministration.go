@@ -151,6 +151,12 @@ func (form *OrganisationModification) ModifyOrganisation() (validate Message) {
 		validate.Message = fmt.Sprintf(builder.Translation["tooLongOrganisationFlair"], maxFlairLength)
 		return
 	}
+	//clear hidden organisation
+	if form.Status == string(database.Hidden) {
+		form.Admins = []string{}
+		form.User = []string{}
+	}
+
 	helper.RemoveEntriesFromList(&form.Admins, form.User)
 	user, ok, err := extraction.DoAccountsExist(form.User)
 	if !ok {

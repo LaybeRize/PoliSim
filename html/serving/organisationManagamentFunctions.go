@@ -141,16 +141,16 @@ var editOrganisationRenderRequest = genericRenderer(composition.EditOrganisation
 var editOrganisationOnlySwapMessage = genericMessageSwapper(composition.EditOrganisation)
 
 func GetOrganisationViewService(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(r)
-	html := composition.GetViewOrganisationPage(acc.ID)
+	acc, isAdmin := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
+	html := composition.GetViewOrganisationPage(acc.ID, isAdmin)
 	viewOrganisationRenderRequest(w, r, acc, html)
 }
 
 func GetSubGroupOrganisationHTMLElement(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(r)
+	acc, isAdmin := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
 	mainGroup := chi.URLParam(r, "mainGroup")
 	subGroup := chi.URLParam(r, "subGroup")
-	html := composition.GetViewSubGroupOfOrganisations(acc.ID, mainGroup, subGroup)
+	html := composition.GetViewSubGroupOfOrganisations(acc.ID, isAdmin, mainGroup, subGroup)
 	viewOrganisationRenderRequest(w, r, acc, html)
 }
 

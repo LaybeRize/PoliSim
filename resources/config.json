@@ -1,4 +1,5 @@
 {
   "logo": "/public/MReichstagLogo.png",
+  "logoType": "image/png",
   "projectName": "MReichstag"
 }

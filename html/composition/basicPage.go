@@ -19,7 +19,7 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, load
 			META(CHARSET("UTF-8")),
 			TITLE(Text(pageTitle)),
 			META(NAME("viewport"), CONTENT("width=device-width, initial-scale=1")),
-			LINK(REL("icon"), HREF(Configuration["logo"])),
+			LINK(REL("icon"), TYPE(Configuration["logoType"]), HREF(Configuration["logo"])),
 			LINK(REL("stylesheet"), HREF("/public/jsdelivr.css")),
 			LINK(REL("stylesheet"), HREF("/public/design.css")),
 			SCRIPT(SRC("/public/_hyperscript_0.9.11.js")),
