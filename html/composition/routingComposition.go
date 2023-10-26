@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	MainBodyID = "mainBody"
-	SidebarID  = "Sidebar"
-	MessageID  = "messageDiv"
+	MainBodyID = "main-body-div"
+	SidebarID  = "sidebar-element"
+	MessageID  = "message-div"
+	DisplayID  = "preview-display-div"
 
 	Start                   builder.HttpUrl = "start"
 	Login                   builder.HttpUrl = "login"

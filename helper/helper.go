@@ -110,29 +110,28 @@ func RemoveEntriesFromList(list *[]string, toRemove []string) {
 func CreateHTML(md string) string {
 	intermediate := markdown.NormalizeNewlines([]byte(md))
 	maybeUnsafeHTML := markdown.ToHTML(intermediate, nil, nil)
-	htmlResult := bluemonday.UGCPolicy().SanitizeBytes(maybeUnsafeHTML)
+	htmlResult := bluemonday.UGCPolicy().Sanitize(string(maybeUnsafeHTML))
 	return updateHtmlResult(htmlResult)
 }
 
-var ReplacerMap map[string]string
+var replacerMap map[string]string
 
-func updateHtmlResult(htmlResult []byte) string {
-	result := string(htmlResult)
-	result = strings.ReplaceAll(result, "<code>\n", "<code>")
-	for key, val := range ReplacerMap {
+func updateHtmlResult(htmlResult string) string {
+	htmlResult = strings.ReplaceAll(htmlResult, "<code>\n", "<code>")
+	for key, val := range replacerMap {
 		var withAttr = regexp.MustCompile(`(?m)(<` + regexp.QuoteMeta(key) + ` )`)
 		var withoutAttr = regexp.MustCompile(`(?m)(<` + regexp.QuoteMeta(key) + `)>`)
 		intermediate := fmt.Sprintf("$1 %s ", val)
-		result = withAttr.ReplaceAllString(result, intermediate)
+		htmlResult = withAttr.ReplaceAllString(htmlResult, intermediate)
 		intermediate = fmt.Sprintf("$1 %s>", val)
-		result = withoutAttr.ReplaceAllString(result, intermediate)
+		htmlResult = withoutAttr.ReplaceAllString(htmlResult, intermediate)
 	}
-	return result
+	return htmlResult
 }
 
 // UpdateAttributes updates the added attributes to the html tags for markdown formatting
 func UpdateAttributes() {
-	ReplacerMap = make(map[string]string)
+	replacerMap = make(map[string]string)
 	var re = regexp.MustCompile(`(?m)<(\w*?) (.*?)>`)
 	var getTemplate = regexp.MustCompile(`(?s)<!-- Test start -->(.*)<!-- Test end -->`)
 	b, err := os.ReadFile("resources/markdown.html")
@@ -141,6 +140,6 @@ func UpdateAttributes() {
 	}
 	b = getTemplate.FindAllSubmatch(b, -1)[0][1]
 	for _, match := range re.FindAllSubmatch(b, -1) {
-		ReplacerMap[string(match[1])] = string(match[2])
+		replacerMap[string(match[1])] = string(match[2])
 	}
 }
