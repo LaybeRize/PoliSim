@@ -36,6 +36,8 @@ const (
 	getOrganisationSubGroup builder.HttpUrl = "organisation/get-sub-group/"
 	GetOrganisationSubGroup                 = getOrganisationSubGroup + "{mainGroup}/{subGroup}"
 	ErrorPage               builder.HttpUrl = "errorPage"
+	MarkdownFormPage        builder.HttpUrl = "render/form/markdown"
+	MarkdownJsonPage        builder.HttpUrl = "render/json/markdown"
 
 	// NotFound is only used as a way to keep the PageTitleMap in order
 	NotFound builder.HttpUrl = "notFound"

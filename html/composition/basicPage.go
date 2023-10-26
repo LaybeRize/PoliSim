@@ -72,6 +72,7 @@ func GetSidebarReplacement(level database.RoleLevel) Node {
 	return getSidebar(level, HXSWAPOOB("true"))
 }
 
+// GetErrorPage returns an error page builder.Node with the errorText in it.
 func GetErrorPage(errorText string) Node {
 	return getBasePageWrapper(DIV(CLASS("h-full flex items-center justify-center"),
 		DIV(STYLE("padding: 0.5em; line-height: 1; justify-content: center; align-items: center;--clr-border: rgb(159 18 57); background-size: 4px 100%, 100% 4px, 4px 100% , 100% 4px;"),
