@@ -10,11 +10,13 @@ func GetCreatePressReleasePage(acc *extraction.AccountAuth, press *validation.Cr
 	return getBasePageWrapper(
 		getPageHeader(CreateUser),
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateUser), CLASS("w-[800px]"),
-			getUserDropdown(acc, press.Account, Translation["role"]),
+			getUserDropdown(acc, press.Account, Translation["accountPressRelease"]),
 			getSimpleTextInput("title", "title", press.Title, Translation["pressTitle"]),
 			getSimpleTextInput("subtitle", "subtitle", press.Subtitle, Translation["pressSubtitle"]),
 			getCheckBox("breakingNews", press.IsBreakingNews, false, "true", "breakingNews", Translation["pressBreakingNews"], nil),
+			getTextArea("content", "content", press.Content, Translation["pressContent"], true),
 			getSubmitButton(Translation["createArticleButton"])),
 		GetMessage(val),
+		getPreviewElement(),
 	)
 }

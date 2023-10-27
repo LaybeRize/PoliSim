@@ -34,4 +34,6 @@ func ConnectDatabase() {
 		os.Exit(1)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Data models migrated\n")
+
+	createEternatityPublicationIfNotExist()
 }

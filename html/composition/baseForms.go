@@ -83,7 +83,7 @@ func getDataListFromMap[t any](listName string, listMap map[string]t) Node {
 }
 
 // getTextArea returns a styled text area for a form. content is the text filled into the area.
-func getTextArea(id string, name string, content string, labelText string) Node {
+func getTextArea(id string, name string, content string, labelText string, sendMarkdownRequest bool) Node {
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR(id), Text(labelText)), BR(),
 		TEXTAREA(NAME(name), ID(id), CLASS("bg-slate-700 appearance-none w-full h-[200px] py-2 px-3"),

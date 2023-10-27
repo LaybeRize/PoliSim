@@ -50,7 +50,7 @@ func (form *CreateArticle) CreateArticle(requestAccountID int64) (validate Messa
 	}
 	article := database.Article{
 		UUID:        uuid.New().String(),
-		Publication: "",
+		Publication: database.EternatityPublicationName,
 		Written:     time.Now(),
 		Author:      account.DisplayName,
 		Flair:       account.Flair,
@@ -59,6 +59,34 @@ func (form *CreateArticle) CreateArticle(requestAccountID int64) (validate Messa
 		Content:     form.Content,
 		HTMLContent: helper.CreateHTML(form.Content),
 	}
+	if form.IsBreakingNews {
+		err = createBreakingNewsPublication(&article)
+		if err != nil {
+			validate.Message = builder.Translation["databaseErrorArticleCreation"]
+			return
+		}
+	}
+
 	err = extraction.CreateArticle(&article)
-	return
+	if err != nil {
+		validate.Message = builder.Translation["databaseErrorArticleCreation"]
+		return
+	}
+
+	return Message{
+		Message:  builder.Translation["createdArticleSuccessfully"],
+		Positive: true,
+	}
+}
+
+func createBreakingNewsPublication(article *database.Article) error {
+	pub := database.Publication{
+		UUID:         uuid.New().String(),
+		CreateTime:   time.Now(),
+		Publicated:   false,
+		BreakingNews: true,
+	}
+	err := extraction.CreatePublication(&pub)
+	article.Publication = pub.UUID
+	return err
 }

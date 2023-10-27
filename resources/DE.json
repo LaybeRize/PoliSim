@@ -2,12 +2,10 @@
   "errorPageTitle": "Es ist ein Fehler aufgetreten",
   "notAllowedToViewThisPage": "Du bist nicht berechtigt diese Seite zu besuchen",
   "deleteEditableInput": "Löschen",
-
   "welcomeMessage": "Herzlich Willkommen im MReichstag",
   "extractionError": "Es ist ein Fehler bei der Verarbeitung des Formulars aufgetreten",
   "pageNotFoundTitle": "404 Seite nicht gefunden",
   "pageNotFoundText": "Seite nicht gefunden",
-
   "usernameOrPasswordMissing": "Passwort oder Nutzername fehlt",
   "passwordOrUsernameWrong": "Der Nutzername oder das Passwort sind fehlerhaft",
   "internalLoginAccountError": "Es ist ein Fehler beim Abfragen des Accounts aufgetreten",
@@ -21,16 +19,12 @@
   "alreadyLoggedIn": "Du bist bereits angemeldet",
   "alreadyLoggedOut": "Du bist bereits abgemeldet",
   "loggedInAccountMessage": "Herzlich Willkommen %s! Du bist jetzt im MReichstag angemeldet.",
-
   "startPageTitle": "Startseite",
   "startSidebarText": "Start",
-
   "username": "Nutzername",
   "password": "Passwort",
-
   "accountSubMenu": "Benutzer verwalten",
   "createButton": "Erstellen",
-
   "createUserTitle": "Nutzer erstellen",
   "createUserSidebarText": "Nutzer erstellen",
   "displayName": "Anzeigename",
@@ -39,7 +33,6 @@
   "role": "Rolle",
   "suspended": "Suspendiert",
   "changeFlair": "Flair anpassen",
-
   "missingDisplayName": "Anzeigename fehlt oder ist zu lang (maximal %d Zeichen)",
   "roleNotAllowed": "Die ausgewählte Rolle ist für den Account nicht erlaubt",
   "cantCreateHeadAdmin": "Berechtigung fehlt \"%s\" zu erstellen fehlt",
@@ -48,7 +41,6 @@
   "hashingPasswordError": "Es ist ein Fehler beim hashen des Passworts aufgetreten",
   "creatingUserError": "Es ist ein Fehler beim erstellen des Accounts in der Datenbank aufgetreten",
   "userSuccessfullyCreated": "Nutzer wurde erfolgreich erstellt",
-
   "editUserTitle": "Nutzer bearbeiten",
   "editUserSidebarText": "Nutzer bearbeiten",
   "searchByUsername": "Den Nutzer anhand des Nutzername finden",
@@ -57,17 +49,14 @@
   "errorWhileRetrievingNames": "Es ist ein Fehler beim suchen der Account-Namen aufgetreten",
   "accountDoesNotExists": "Konnte keinen Account mit dem angegebenen Namen finden",
   "accountFound": "Account gefunden",
-
   "notAllowedToChangeAccount": "Es fehlen die Berechtigungen den ausgewählten Account zu verändern",
   "changingUserError": "Es ist ein Fehler beim bearbeiten des Nutzers aufgetreten",
   "changingUserSuccessfully": "Nutzer erfolgreich angepasst",
   "noChangesMade": "Es wurde nichts verändert",
-
   "viewUserTitle": "Nutzerübersicht",
   "viewUserSidebarText": "Nutzerübersicht",
   "errorWithDatabaseRequest": "Es ist ein Fehler beim Datenbankzugriff aufgetreten",
   "notLinked": "Nicht verlinkt",
-
   "errorWhileQueryingTitles": "Es ist ein Fehler bei der Suche der Titel aufgetreten",
   "titleViewPageTitle": "Titelübersicht",
   "titleViewSidebarText": "Titelübersicht",
@@ -76,9 +65,8 @@
   "viewTitleHolderText": "Träger: %s",
   "viewTitleNoHolderText": "Keine Träger eingetragen",
   "errorQueryingNames": "Es ist ein Fehler beim suchen der Accountnamen aufgetreten",
-
   "titleEditPageTitle": "Titel bearbeiten",
-  "titleEditSidebarText":"Titel bearbeiten",
+  "titleEditSidebarText": "Titel bearbeiten",
   "titleCreatePageTitle": "Titel erstellen",
   "titleCreateSidebarText": "Titel erstellen",
   "titleSubMenu": "Titel verwalten",
@@ -91,7 +79,6 @@
   "newTitleName": "Titelnamen ändern zu",
   "changeTitleButton": "Titel verändern",
   "deleteTitleButton": "Titel löschen",
-
   "missingOrTooLongTitleName": "Titelname ist leer oder überschreitet das Limit von %d Zeichen",
   "missingOrTooLongMainGroupName": "Hauptgruppenname ist leer oder überschreitet das Limit von %d Zeichen",
   "missingOrTooLongSubGroupName": "Untergruppenname ist leer oder überschreitet das Limit von %d Zeichen",
@@ -145,5 +132,20 @@
   "successfullyFoundOrganisation": "Organisation gefunden",
   "organisationDoesNotExist": "Die ausgewählte Organisation existiert nicht",
   "databaseErrorOrganisationModification": "Es ist ein Datenbankfehler bei der Modifikation der Organisation aufgetreten",
-  "successfullyModifiedOrganisation": "Organisation erfolgreich angepasst"
+  "successfullyModifiedOrganisation": "Organisation erfolgreich angepasst",
+  "missingTitleForPress": "Titel fehlt oder ist zu lang (maximal %d Zeichen)",
+  "tooLongSubtitleForPress": "Untertitel ist zu lang (maximal %d Zeichen)",
+  "missingContentForPress": "Inhalt fehlt oder ist zu lang (maximal %d Zeichen)",
+  "databaseErrorWithAuthorAccount": "Es ist ein Fehler bei der Suche des Autors aufgetreten",
+  "notAllowedToUseAccount": "Der ausgewählte Autor steht dem Nutzer nicht zur Verfügung",
+  "pressReleaseCreatePageTitle": "Artikel erstellen",
+  "pressReleaseCreateSidebarText": "Artikel erstellen",
+  "accountPressRelease":"Artikelautor",
+  "pressTitle": "Titel",
+  "pressSubtitle": "Untertitel",
+  "pressBreakingNews": "Eilmeldung",
+  "pressContent": "Artikelinhalt",
+  "createArticleButton": "Artikel erstellen",
+  "createdArticleSuccessfully": "Artikel erfolgreich erstellt",
+  "databaseErrorArticleCreation": "Es ist ein Fehler bei der Erstellung des Artikels aufgetreten"
 }
