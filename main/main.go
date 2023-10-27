@@ -40,6 +40,7 @@ func main() {
 	serving.InstallTitlePages()
 	serving.InstallOrganisationPages()
 	serving.InstallMarkdown()
+	serving.InstallPress()
 
 	_, _ = fmt.Fprintf(os.Stdout, "Creating cookie store\n")
 	validation.CreateStore()

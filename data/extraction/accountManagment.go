@@ -128,7 +128,7 @@ func GetAccountForAuth(id int64) (*AccountAuth, error) {
 // Will return an empty array and a gorm.ErrRecordNotFound on no children found and any other error if there was one.
 func GetAllChildrenDisplayNames(parentID int64) (*AccountDisplayNameList, error) {
 	array := &AccountDisplayNameList{}
-	err := database.DB.Model(database.Account{}).Select("display_name").Where("linked=?", parentID).Order("display_name").Find(array).Error
+	err := database.DB.Model(database.Account{}).Select("display_name").Where("linked=? AND suspended = false", parentID).Order("display_name").Find(array).Error
 	return array, err
 }
 

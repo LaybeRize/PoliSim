@@ -35,6 +35,7 @@ const (
 	ViewHiddenOrganisations builder.HttpUrl = "organisation/hidden/view"
 	getOrganisationSubGroup builder.HttpUrl = "organisation/get-sub-group/"
 	GetOrganisationSubGroup                 = getOrganisationSubGroup + "{mainGroup}/{subGroup}"
+	CreatePressRelease      builder.HttpUrl = "press/release/create"
 	ErrorPage               builder.HttpUrl = "errorPage"
 	MarkdownFormPage        builder.HttpUrl = "render/form/markdown"
 	MarkdownJsonPage        builder.HttpUrl = "render/json/markdown"

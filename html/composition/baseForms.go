@@ -1,6 +1,7 @@
 package composition
 
 import (
+	"PoliSim/data/extraction"
 	. "PoliSim/html/builder"
 	"fmt"
 )
@@ -24,6 +25,27 @@ func getDropDown[t comparable](name string, id string, labelText string, disable
 			getOptions(arr, m, selectedItem),
 		),
 	)
+}
+
+func getUserDropdown(user *extraction.AccountAuth, selectedAccount string, labelText string) Node {
+	return DIV(CLASS("mt-2"),
+		LABEL(FOR("authorAccount"), Text(labelText)),
+		SELECT(If(user.ID == 0, DISABLED()), ID("authorAccount"), NAME("authorAccount"), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
+			getUserOptions(user, selectedAccount),
+		),
+	)
+}
+
+func getUserOptions(user *extraction.AccountAuth, selectedAccount string) Node {
+	children, _ := extraction.GetAllChildrenDisplayNames(user.ID)
+	nodes := make([]Node, len(*children)+1)
+	nodes[0] = OPTION(VALUE(user.DisplayName), If(user.DisplayName == selectedAccount, SELECTED()),
+		Text(user.DisplayName))
+	for i, item := range *children {
+		nodes[i+1] = OPTION(VALUE(item.DisplayName), If(item.DisplayName == selectedAccount, SELECTED()),
+			Text(item.DisplayName))
+	}
+	return Group(nodes...)
 }
 
 func getOptions[t comparable](arr []t, m map[t]string, selectedItem t) Node {

@@ -15,8 +15,8 @@ type CreateArticle struct {
 	Title          string `input:"title"`
 	Subtitle       string `input:"subtitle"`
 	Content        string `input:"content"`
-	isBreakingNews bool   `input:"breakingNews"`
-	Account        string `input:"author"`
+	IsBreakingNews bool   `input:"breakingNews"`
+	Account        string `input:"authorAccount"`
 }
 
 var maxPressTitleLength = 150
