@@ -148,5 +148,8 @@
   "createArticleButton": "Artikel erstellen",
   "createdArticleSuccessfully": "Artikel erfolgreich erstellt",
   "databaseErrorArticleCreation": "Es ist ein Fehler bei der Erstellung des Artikels aufgetreten",
-  "previewTitle": "Vorschau"
+  "previewTitle": "Vorschau",
+  "errorRetrievingPublication": "Es ist ein Datenbankfehler bei der suche der Publikationen aufgetreten",
+  "viewHiddenNewspaperPageTitle": "Unveröffentlichte Zeitungen",
+  "viewHiddenNewspaperSidebarText": "Unveröffentlichte Zeitungen"
 }

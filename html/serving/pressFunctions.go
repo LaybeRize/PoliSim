@@ -5,6 +5,7 @@ import (
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
+	"github.com/go-chi/chi"
 	"net/http"
 )
 
@@ -13,6 +14,11 @@ func InstallPress() {
 	composition.SidebarTitleMap[composition.CreatePressRelease] = builder.Translation["pressReleaseCreateSidebarText"]
 	composition.GetHTMXFunctions[composition.CreatePressRelease] = GetCreatePressCreateService
 	composition.PostHTMXFunctions[composition.CreatePressRelease] = PostCreatePressCreateService
+
+	composition.PageTitleMap[composition.ViewHiddenNewspaperList] = builder.Translation["viewHiddenNewspaperPageTitle"]
+	composition.SidebarTitleMap[composition.ViewHiddenNewspaperList] = builder.Translation["viewHiddenNewspaperSidebarText"]
+	composition.GetHTMXFunctions[composition.ViewHiddenNewspaperList] = GetHiddenNewsPaperListService
+	composition.GetHTMXFunctions[composition.ViewHiddenNewspaper] = GetHiddenNewsPaperService
 }
 
 func GetCreatePressCreateService(w http.ResponseWriter, r *http.Request) {
@@ -55,3 +61,28 @@ func PostCreatePressCreateService(w http.ResponseWriter, r *http.Request) {
 
 var createPressReleaseRenderRequest = genericRenderer(composition.CreatePressRelease)
 var createPressReleaseOnlySwapMessage = genericMessageSwapper(composition.CreatePressRelease)
+
+func GetHiddenNewsPaperListService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	html := composition.GetViewOfHiddenNewspaper()
+	viewHiddenNewspaperRenderRequest(w, r, acc, html)
+}
+
+func GetHiddenNewsPaperService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	uuid := chi.URLParam(r, "uuid")
+	html := composition.GetViewSingleHiddenNewspaper(uuid)
+	viewHiddenNewspaperRenderRequest(w, r, acc, html)
+}
+
+var viewHiddenNewspaperRenderRequest = genericRenderer(composition.ViewHiddenNewspaperList)

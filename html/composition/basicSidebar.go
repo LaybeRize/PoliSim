@@ -23,6 +23,7 @@ func getSidebar(level database.RoleLevel, specialNode Node) Node {
 		If(database.User <= level, getSidebarBreaker()),
 		getSidebarButton(level, database.User, CreatePressRelease),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
+		getSidebarButton(level, database.MediaAdmin, ViewHiddenNewspaperList),
 		If(database.Admin <= level, getSidebarBreaker()),
 		getSideBarSubMenu(level, database.Admin, Translation["organisationSubMenu"],
 			getSidebarSubMenuButton(level, database.Admin, CreateOrganisation),
@@ -52,8 +53,8 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
 	return A(HXGET("/"+APIPreRoute+string(url)), ID(string(url)+SidebarID), HXTARGET("#"+MainBodyID),
-		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"),
-		HYPERSCRIPT(getClickAction(url)), CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
+		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
+		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),
 	)
 }

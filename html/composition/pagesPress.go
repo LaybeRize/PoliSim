@@ -20,3 +20,24 @@ func GetCreatePressReleasePage(acc *extraction.AccountAuth, press *validation.Cr
 		getPreviewElement(),
 	)
 }
+
+func GetViewOfHiddenNewspaper() Node {
+	list, err := extraction.GetHiddenPublication()
+	if err != nil {
+		return GetErrorPage(Translation["errorRetrievingPublication"])
+	}
+	nodes := make([]Node, len(*list))
+	for i, item := range *list {
+		nodes[i] = H1(Text(item.CreateTime.String()))
+	}
+	return getBasePageWrapper(
+		getPageHeader(ViewHiddenNewspaperList),
+		Group(nodes...),
+	)
+}
+
+func GetViewSingleHiddenNewspaper(uuid string) Node {
+	return getBasePageWrapper(
+		DIV(Text(uuid)),
+	)
+}
