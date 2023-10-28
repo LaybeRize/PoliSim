@@ -21,6 +21,7 @@ func getSidebar(level database.RoleLevel, specialNode Node) Node {
 		getSidebarButton(level, database.NotLoggedIn, ViewTitles),
 		getSidebarButton(level, database.NotLoggedIn, ViewOrganisations),
 		If(database.User <= level, getSidebarBreaker()),
+		getSidebarButton(level, database.User, CreatePressRelease),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
 		If(database.Admin <= level, getSidebarBreaker()),
 		getSideBarSubMenu(level, database.Admin, Translation["organisationSubMenu"],

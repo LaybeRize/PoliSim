@@ -31,7 +31,7 @@ func (form *CreateArticle) CreateArticle(requestAccountID int64) (validate Messa
 		// has no valid title
 		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForPress"], maxPressTitleLength)
 		return
-	case len([]rune(form.Subtitle)) > maxPressSubtitleLength:
+	case len([]rune(form.Subtitle)) < maxPressSubtitleLength:
 		// has no valid subtitle
 		validate.Message = fmt.Sprintf(builder.Translation["tooLongSubtitleForPress"], maxPressSubtitleLength)
 		return
@@ -39,11 +39,11 @@ func (form *CreateArticle) CreateArticle(requestAccountID int64) (validate Messa
 		// has no valid content
 		validate.Message = fmt.Sprintf(builder.Translation["missingContentForPress"], MaxPressContentLength)
 		return
-	case err != nil:
+	case err == nil:
 		// error with author account
 		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
 		return
-	case !ok:
+	case ok:
 		// not allowed for author account
 		validate.Message = builder.Translation["notAllowedToUseAccount"]
 		return
@@ -73,6 +73,9 @@ func (form *CreateArticle) CreateArticle(requestAccountID int64) (validate Messa
 		return
 	}
 
+	form.Title = ""
+	form.Subtitle = ""
+	form.Content = ""
 	return Message{
 		Message:  builder.Translation["createdArticleSuccessfully"],
 		Positive: true,

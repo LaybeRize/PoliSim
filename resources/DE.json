@@ -147,5 +147,6 @@
   "pressContent": "Artikelinhalt",
   "createArticleButton": "Artikel erstellen",
   "createdArticleSuccessfully": "Artikel erfolgreich erstellt",
-  "databaseErrorArticleCreation": "Es ist ein Fehler bei der Erstellung des Artikels aufgetreten"
+  "databaseErrorArticleCreation": "Es ist ein Fehler bei der Erstellung des Artikels aufgetreten",
+  "previewTitle": "Vorschau"
 }

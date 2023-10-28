@@ -87,6 +87,10 @@ func getTextArea(id string, name string, content string, labelText string, sendM
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR(id), Text(labelText)), BR(),
 		TEXTAREA(NAME(name), ID(id), CLASS("bg-slate-700 appearance-none w-full h-[200px] py-2 px-3"),
+			If(sendMarkdownRequest, Group(HXPATCH("/"+APIPreRoute+string(MarkdownFormPage)),
+				HXTARGET("#"+DisplayID),
+				HXTRIGGER("keyup changed delay:1s"),
+				HXSWAP("outerHTML"))),
 			Text(content),
 		),
 	)
