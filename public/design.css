@@ -1618,6 +1618,11 @@ video {
   margin-bottom: 0.5rem;
 }
 
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -2006,9 +2011,15 @@ video {
   line-height: 1.75rem;
 }
 
+
 .text-3xl {
   font-size: 1.875rem;
   line-height: 2.25rem;
+}
+
+.text-2\.5xl {
+  font-size: 1.7rem;
+  line-height: 2.15rem;
 }
 
 .text-\[15px\] {

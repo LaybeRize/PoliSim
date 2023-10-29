@@ -52,7 +52,7 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 	if minimumLevel > userLevel {
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
-	return A(HXGET("/"+APIPreRoute+string(url)), ID(string(url)+SidebarID), HXTARGET("#"+MainBodyID),
+	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID), ID(string(url)+SidebarID),
 		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
 		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),

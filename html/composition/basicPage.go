@@ -88,7 +88,7 @@ func GetErrorPage(errorText string) Node {
 func getClickableLink(link string, urlToPush string, node Node) Node {
 	return A(HXGET(link), HXTARGET("#"+MainBodyID),
 		If(urlToPush != "", HXPUSHURL(urlToPush)), HXSWAP("outerHTML"),
-		HYPERSCRIPT("on auxclick[button==1] call window.open('/"+link+"', '_blank')"),
+		HYPERSCRIPT("on auxclick[button==1] call window.open('"+urlToPush+"', '_blank')"),
 		node,
 	)
 }

@@ -149,7 +149,13 @@
   "createdArticleSuccessfully": "Artikel erfolgreich erstellt",
   "databaseErrorArticleCreation": "Es ist ein Fehler bei der Erstellung des Artikels aufgetreten",
   "previewTitle": "Vorschau",
-  "errorRetrievingPublication": "Es ist ein Datenbankfehler bei der suche der Publikationen aufgetreten",
+  "errorRetrievingPublication": "Es ist ein Datenbankfehler bei der suche den Zeitungen aufgetreten",
+  "errorRetrievingSinglePublication": "Es ist ein Fehler bei der Suche nach der gewünschten Zeitung aufgetreten",
   "viewHiddenNewspaperPageTitle": "Unveröffentlichte Zeitungen",
-  "viewHiddenNewspaperSidebarText": "Unveröffentlichte Zeitungen"
+  "viewHiddenNewspaperSidebarText": "Unveröffentlichte Zeitungen",
+  "hiddenStandardNewsPaper": "Unveröffentlichte Zeitung",
+  "hiddenBreakingNews": "Eilmeldung; Eingereicht am 02.01.2006 um 15:04 Uhr",
+  "errorRetrievingArticles": "Es ist ein Fehler bei dem Datenbankzugriff auf die Artikel aufgetreten",
+  "unpublishedNewsletterTitle": "Unveröffentlichte Zeitung mit der UUID: %s",
+  "authorPressRelease": "Verfasst am 02.01.2006 um 15:04 Uhr von %s"
 }

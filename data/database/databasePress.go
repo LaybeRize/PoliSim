@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var EternatityPublicationName = "theFirstOfThemAll"
+var EternatityPublicationName = "rollingNewsletter"
 
 type (
 	PublicationList []Publication
