@@ -24,7 +24,7 @@ func GetCreatePressReleasePage(acc *extraction.AccountAuth, press *validation.Cr
 }
 
 func GetViewOfHiddenNewspaper() Node {
-	list, err := extraction.GetHiddenPublication()
+	list, err := extraction.GetHiddenPublications()
 	if err != nil {
 		return GetErrorPage(Translation["errorRetrievingPublication"])
 	}
@@ -51,14 +51,13 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 	articleList, err := extraction.FindArticlesForPublicationUUID(uuid)
 	nodes := make([]Node, len(*articleList))
 	for i, item := range *articleList {
-		nodes[i] = DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
-			DIV(CLASS("w-full flex items-center flex-col"),
-				H1(CLASS("text-3xl underline decoration-2 underline-offset-2"), Text(item.Headline)),
-				If(item.Subtitle.Valid, H1(CLASS("text-2xl"), STYLE("font-style: italic;"), Text(item.Subtitle.String))),
-			),
-			P(CLASS("mx-2 mb-2"), I(Text(fmt.Sprintf(item.Written.Format(Translation["authorPressRelease"]), item.Author))),
-				If(item.Flair != "", Group(I(Text("; ")), Text(item.Flair)))),
-			Raw(item.HTMLContent))
+		//if i%2 == 1 {
+		//	box = "box-f"
+		//}
+		link := string(rejectArticleLink) + "/" + item.UUID
+		nodes[i] = renderSingleArticle(&item,
+			getClickableLink("/"+APIPreRoute+link, "/"+link, Group(CLASS(buttonClassAttribute+" m-2"),
+				STYLE("display: inline-block;"), Text(Translation["directToRejectArticleButton"]))))
 	}
 	if err != nil {
 		return GetErrorPage(Translation["errorRetrievingArticles"])
@@ -66,5 +65,18 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 	return getBasePageWrapper(
 		getCustomPageHeader(fmt.Sprintf(Translation["unpublishedNewsletterTitle"], uuid)),
 		Group(nodes...),
+	)
+}
+
+func renderSingleArticle(item *database.Article, specialNode Node) Node {
+	return DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+		DIV(CLASS("w-full flex items-center flex-col"),
+			H1(CLASS("text-3xl underline decoration-2 underline-offset-2"), Text(item.Headline)),
+			If(item.Subtitle.Valid, H1(CLASS("text-2xl"), STYLE("font-style: italic;"), Text(item.Subtitle.String))),
+		),
+		P(CLASS("mx-2 mb-2"), I(Text(fmt.Sprintf(item.Written.Format(Translation["authorPressRelease"]), item.Author))),
+			If(item.Flair != "", Group(I(Text("; ")), Text(item.Flair)))),
+		Raw(item.HTMLContent),
+		specialNode,
 	)
 }

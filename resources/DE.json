@@ -157,5 +157,7 @@
   "hiddenBreakingNews": "Eilmeldung; Eingereicht am 02.01.2006 um 15:04 Uhr",
   "errorRetrievingArticles": "Es ist ein Fehler bei dem Datenbankzugriff auf die Artikel aufgetreten",
   "unpublishedNewsletterTitle": "Unveröffentlichte Zeitung mit der UUID: %s",
-  "authorPressRelease": "Verfasst am 02.01.2006 um 15:04 Uhr von %s"
+  "authorPressRelease": "Verfasst am 02.01.2006 um 15:04 Uhr von %s",
+  "directToRejectArticleButton": "Artikel zurückweisen",
+  "rejectArticlePageTitle": "Artikel zurückweisen"
 }

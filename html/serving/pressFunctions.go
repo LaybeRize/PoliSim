@@ -19,6 +19,9 @@ func InstallPress() {
 	composition.SidebarTitleMap[composition.ViewHiddenNewspaperList] = builder.Translation["viewHiddenNewspaperSidebarText"]
 	composition.GetHTMXFunctions[composition.ViewHiddenNewspaperList] = GetHiddenNewsPaperListService
 	composition.GetHTMXFunctions[composition.ViewHiddenNewspaper] = GetHiddenNewsPaperService
+	composition.PageTitleMap[composition.RejectArticle] = builder.Translation["rejectArticlePageTitle"]
+	composition.GetHTMXFunctions[composition.RejectArticle] = GetRejectArticleService
+	composition.PostHTMXFunctions[composition.RejectArticle] = PostRejectArticleService
 }
 
 func GetCreatePressCreateService(w http.ResponseWriter, r *http.Request) {
@@ -86,3 +89,27 @@ func GetHiddenNewsPaperService(w http.ResponseWriter, r *http.Request) {
 }
 
 var viewHiddenNewspaperRenderRequest = genericRenderer(composition.ViewHiddenNewspaperList)
+
+func PostRejectArticleService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	//uuid := chi.URLParam(r, "uuid")
+	rejectArticleRenderRequest(w, r, acc, nil)
+}
+
+func GetRejectArticleService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	//uuid := chi.URLParam(r, "uuid")
+	rejectArticleRenderRequest(w, r, acc, nil)
+}
+
+var rejectArticleRenderRequest = genericRenderer(composition.RejectArticle)

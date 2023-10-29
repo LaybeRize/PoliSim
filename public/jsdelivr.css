@@ -14,6 +14,10 @@
   background-image: linear-gradient(0deg, var(--clr-border), var(--clr-border) 25%, transparent 25%, transparent 75%, var(--clr-border) 75%), linear-gradient(90deg, var(--clr-border), var(--clr-border) 25%, transparent 25%, transparent 75%, var(--clr-border) 75%), linear-gradient(180deg, var(--clr-border), var(--clr-border) 25%, transparent 25%, transparent 75%, var(--clr-border) 75%), linear-gradient(270deg, var(--clr-border), var(--clr-border) 25%, transparent 25%, transparent 75%, var(--clr-border) 75%);
 }
 
+.box-f {
+  background-image: linear-gradient(0deg, transparent 25%, var(--clr-border) 25%, var(--clr-border) 75%, transparent 75%), linear-gradient(90deg, transparent 25%, var(--clr-border) 25%, var(--clr-border) 75%, transparent 75%), linear-gradient(180deg, transparent 25%, var(--clr-border) 25%, var(--clr-border) 75%, transparent 75%), linear-gradient(270deg, transparent 25%, var(--clr-border) 25%, var(--clr-border) 75%, transparent 75%);
+}
+
 .sidebarSize {
   width: 300px;
   min-width: 300px;
