@@ -159,5 +159,19 @@
   "unpublishedNewsletterTitle": "Unveröffentlichte Zeitung mit der UUID: %s",
   "authorPressRelease": "Verfasst am 02.01.2006 um 15:04 Uhr von %s",
   "directToRejectArticleButton": "Artikel zurückweisen",
-  "rejectArticlePageTitle": "Artikel zurückweisen"
+  "rejectArticlePageTitle": "Artikel zurückweisen",
+  "missingTitleForLetter": "Brieftitel fehlt oder ist zu lang (maximal %d Zeichen)",
+  "missingContentForLetter": "Briefinhalt fehlt oder ist zu lang (maximal %d Zeichen)",
+  "noReaderForLetter": "Es ergibt keinen Sinn eine Brief zu verschicken der keinen Empfänger hat",
+  "errorCreatingLetter": "Es ist ein Fehler beim erstellen des Briefes aufgetreten",
+  "successfullyCreatedLetter": "Brief erfolgreich versendet",
+  "accountLetter": "Autor",
+  "letterTitle": "Brieftitel",
+  "letterAllHaveToAgree": "Alle Leser müssen zustimmen",
+  "letterNoSigning": "Unterschreiben untersagen",
+  "letterContent": "Briefinhalt",
+  "createLetterButton": "Brief erstellen",
+  "addLetterReaderButtonText": "Leser hinzufügen",
+  "letterCreatePageTitle": "Brief erstellen",
+  "letterCreateSidebarText":  "Brief erstellen"
 }

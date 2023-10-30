@@ -2,10 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"time"
 )
 
@@ -25,7 +21,7 @@ type (
 		HTMLContent  string
 		Private      bool
 		Blocked      bool
-		Info         DocumentInfo `gorm:"type:jsonb"`
+		Info         DocumentInfo `gorm:"type:jsonb;serializer:json"`
 		Viewer       []Account    `gorm:"many2many:doc_viewer;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
 		Poster       []Account    `gorm:"many2many:doc_poster;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
 		Allowed      []Account    `gorm:"many2many:doc_allowed;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
@@ -54,31 +50,6 @@ type (
 		HTMLContent string    `json:"htmlContent"`
 	}
 )
-
-func (docI *DocumentInfo) Scan(val interface{}) error {
-	switch v := val.(type) {
-	case []byte:
-		err := json.Unmarshal(v, &docI)
-		return err
-	case string:
-		err := json.Unmarshal([]byte(v), &docI)
-		return err
-	default:
-		return errors.New(fmt.Sprintf("Unsupported type: %T", v))
-	}
-}
-
-func (docI *DocumentInfo) Value() driver.Value {
-	l, _ := json.Marshal(&docI)
-	return l
-}
-
-func (docIValue DocumentTypeList) Value() (arr []string) {
-	for _, val := range docIValue {
-		arr = append(arr, string(val))
-	}
-	return
-}
 
 const (
 	LegislativeText    DocumentType = "legislative_text"
