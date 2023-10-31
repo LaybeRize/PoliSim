@@ -69,6 +69,22 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 	)
 }
 
+func GetRejectArticlePage(uuid string, content string, val validation.Message) Node {
+	article, err := extraction.FindArticle(uuid, false)
+	if err != nil {
+		return GetErrorPage(Translation["errorFindingRejectableArticle"])
+	}
+	return getBasePageWrapper(
+		getPageHeader(RejectArticle),
+		renderSingleArticle(article, nil),
+		getFormStandardForm("form", POST, "/"+APIPreRoute+string(rejectArticleLink)+"/"+url.PathEscape(uuid), CLASS("w-[800px]"),
+			getTextArea("content", "content", content, Translation["rejectArticleMessage"], true),
+			getSubmitButton(Translation["rejectArticleButton"])),
+		GetMessage(val),
+		getPreviewElement(),
+	)
+}
+
 func renderSingleArticle(item *database.Article, specialNode Node) Node {
 	return DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
 		DIV(CLASS("w-full flex items-center flex-col"),

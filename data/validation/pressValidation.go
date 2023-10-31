@@ -93,3 +93,53 @@ func createBreakingNewsPublication(article *database.Article) error {
 	article.Publication = pub.UUID
 	return err
 }
+
+var maxCharacterForRejection = 10_000
+
+func RejectArticle(uuidStr string, content string) (validate Message) {
+	validate = Message{Positive: false}
+	if !isValidString(content, maxCharacterForRejection) {
+		validate.Message = fmt.Sprintf(builder.Translation["missingRejectionMessage"], maxCharacterForRejection)
+		return
+	}
+	article, err := extraction.FindArticle(uuidStr, false)
+	if err != nil {
+		validate.Message = builder.Translation["cantRejectArticle"]
+		return
+	}
+	account, err := extraction.GetAccountModificationByDisplayName(article.Author)
+	if err != nil {
+		validate.Message = builder.Translation["cantFindAuthorOfArticle"]
+		return
+	}
+	letter := database.Letter{
+		UUID:    uuid.New().String(),
+		Written: time.Now(),
+		Author:  builder.Translation["authorOfRejections"],
+		Flair:   "",
+		Title:   fmt.Sprintf(builder.Translation["rejectionLetterTitle"], article.Headline),
+		Content: fmt.Sprintf(builder.Translation["rejectionLetterBody"], article.Subtitle, article.Content, content),
+		Info: database.LetterInfo{
+			AllHaveToAgree:     false,
+			NoSigning:          true,
+			PeopleNotYetSigned: []string{},
+			Signed:             []string{},
+			Rejected:           []string{},
+		},
+		Viewer:     []database.Account{{ID: account.ID, DisplayName: account.DisplayName}},
+		Removed:    false,
+		ModMessage: true,
+	}
+	letter.HTMLContent = helper.CreateHTML(letter.Content)
+	err = extraction.CreateLetter(&letter)
+	if err != nil {
+		validate.Message = builder.Translation["errorCreatingRejectionLetter"]
+		return
+	}
+	err = extraction.DeleteArticle(article)
+	if err != nil {
+		validate.Message = builder.Translation["errorWhileDeletingArticle"]
+		return
+	}
+	return Message{Positive: true}
+}

@@ -178,5 +178,16 @@
   "errorLoadingLetters": "Es ist ein Fehler beim Laden der Briefe aufgetreten",
   "letterViewPageTitle": "Briefübersicht",
   "letterViewSidebarText": "Meine Briefe",
-  "selectedReaderLetter": "Briefempfänger"
+  "selectedReaderLetter": "Briefempfänger",
+  "errorFindingRejectableArticle": "Artikel ist entweder schon publiziert oder existiert nicht",
+  "rejectArticleMessage": "Nachricht der Moderation zur Zurückweisung",
+  "rejectArticleButton": "Artikel zurückweisen",
+  "missingRejectionMessage": "Die Zurückweisungsnachricht fehlt oder ist zu lang (maximal %d Zeichen)",
+  "cantRejectArticle": "Artikel kann nicht zurückgewiesen werden, weil er entweder nicht existiert oder bereits publiziert wurde",
+  "cantFindAuthorOfArticle": "Es ist ein Fehler bei der Suche des Autors aufgetreten",
+  "authorOfRejections": "der Zeitungsqualitätskontrolle",
+  "rejectionLetterTitle": "Zurückweisung des Artikels \"%s\"",
+  "rejectionLetterBody": "Unterüberschrift:\n\n%s\n```\n%s\n```\n\n## Kommentar der Moderation\n\n%s",
+  "errorCreatingRejectionLetter": "Es ist ein Fehler aufgetreten bei der Erstellung des Briefes zur Zurückweisung",
+  "errorWhileDeletingArticle": "Es ist ein Fehler beim löschen des Artikels aufgetreten"
 }

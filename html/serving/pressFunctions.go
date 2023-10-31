@@ -97,8 +97,29 @@ func PostRejectArticleService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//uuid := chi.URLParam(r, "uuid")
-	rejectArticleRenderRequest(w, r, acc, nil)
+	msg := validation.Message{Positive: false}
+
+	err := r.ParseForm()
+	content := ""
+	if err == nil {
+		content = r.PostFormValue("content")
+	}
+	if err != nil {
+		msg.Message = builder.Translation["extractionError"]
+		rejectArticleOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+	uuid := chi.URLParam(r, "uuid")
+
+	msg = validation.RejectArticle(uuid, content)
+	if !msg.Positive {
+		rejectArticleOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+	//return to the hidden newspapers
+	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewHiddenNewspaperList))
+	html := composition.GetViewOfHiddenNewspaper()
+	viewHiddenNewspaperRenderRequest(w, r, acc, html)
 }
 
 func GetRejectArticleService(w http.ResponseWriter, r *http.Request) {
@@ -108,8 +129,11 @@ func GetRejectArticleService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//uuid := chi.URLParam(r, "uuid")
-	rejectArticleRenderRequest(w, r, acc, nil)
+	uuid := chi.URLParam(r, "uuid")
+
+	html := composition.GetRejectArticlePage(uuid, "", validation.Message{})
+	rejectArticleRenderRequest(w, r, acc, html)
 }
 
 var rejectArticleRenderRequest = genericRenderer(composition.RejectArticle)
+var rejectArticleOnlySwapMessage = genericMessageSwapper(composition.RejectArticle)
