@@ -123,7 +123,7 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 			AllHaveToAgree:     false,
 			NoSigning:          true,
 			PeopleNotYetSigned: []string{},
-			Signed:             []string{},
+			Signed:             []string{account.DisplayName},
 			Rejected:           []string{},
 		},
 		Viewer:     []database.Account{{ID: account.ID, DisplayName: account.DisplayName}},

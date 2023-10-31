@@ -89,3 +89,50 @@ func (form *CreateLetter) CreateNormalLetter(requestAccountID int64) (validate M
 		Positive: true,
 	}
 }
+
+func SignLetter(acc *extraction.AccountAuth, letterUUID string, accountSigningName string, action string) (account *extraction.AccountModification, validate Message) {
+	validate = Message{Positive: false}
+	var ok bool
+	var err error
+	account, ok, err = IsAccountValidForUser(acc.ID, accountSigningName)
+	switch false {
+	case err == nil:
+		// error with author account
+		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
+		return
+	case ok:
+		// not allowed for author account
+		validate.Message = builder.Translation["notAllowedToUseAccount"]
+		return
+	case action == "reject" || action == "sign":
+		// not allowed to do this action
+		validate.Message = builder.Translation["actionNotAllowed"]
+		return
+	}
+	letter, err := extraction.GetLetterByIDOnlyWithAccount(letterUUID, account.ID, false)
+	if err != nil {
+		validate.Message = builder.Translation["letterCouldNotBeFound"]
+		return
+	}
+	sign := action == "sign"
+	if sign {
+		helper.RemoveFirstStringOccurrenceFromArray(&letter.Info.PeopleNotYetSigned, account.DisplayName)
+		letter.Info.Signed = append(letter.Info.Signed, account.DisplayName)
+	} else {
+		helper.RemoveFirstStringOccurrenceFromArray(&letter.Info.PeopleNotYetSigned, account.DisplayName)
+		letter.Info.Rejected = append(letter.Info.Rejected, account.DisplayName)
+	}
+	err = extraction.UpdateLetter(letter)
+	if err != nil {
+		validate.Message = builder.Translation["errorUpdatingLetter"]
+		return
+	}
+
+	validate = Message{Positive: true}
+	if sign {
+		validate.Message = builder.Translation["successfullyDidSigningAction"]
+	} else {
+		validate.Message = builder.Translation["successfullyDidRejectionAction"]
+	}
+	return
+}

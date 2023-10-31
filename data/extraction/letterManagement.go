@@ -77,3 +77,7 @@ func GetLetterByIDOnlyWithAccount(uuid string, accountID int64, isMod bool) (*da
 		Where("letter_account.id = ? AND letters.uuid = ? OR (? = true AND mod_message = true AND letters.uuid = ?)", accountID, uuid, isMod, uuid).First(letter).Error
 	return letter, err
 }
+
+func UpdateLetter(letter *database.Letter) error {
+	return database.DB.Where("uuid = ?", letter.UUID).Updates(letter).Error
+}

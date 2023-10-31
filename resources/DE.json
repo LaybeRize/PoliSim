@@ -202,5 +202,13 @@
   "everyoneSigned": "Der Brief wurde von allen unterschrieben",
   "noDecisionYet": "Es fehlen noch Unterschriften",
   "beforePage": "Seite zurück",
-  "nextPage": "Nächste Seite"
+  "nextPage": "Nächste Seite",
+  "signLetter": "Brief unterschreiben",
+  "rejectLetter": "Brief ablehnen",
+  "allViewerText": "Der Brief kann gelesen werden von: %s",
+  "actionNotAllowed": "Die gewünschte Aktion kann nicht durchgeführt werden",
+  "successfullyDidSigningAction": "Erfolgreich Brief unterschrieben",
+  "successfullyDidRejectionAction": "Erfolgreich Brief abgelehnt",
+  "letterCouldNotBeFound": "Der gewünschte Brief konnte nicht gefunden werden",
+  "errorUpdatingLetter": "Brief konnte nicht amgepasst werden"
 }

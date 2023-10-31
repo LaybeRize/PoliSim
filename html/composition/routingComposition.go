@@ -44,6 +44,8 @@ const (
 	ViewLetterLink          builder.HttpUrl = "letter/personal/view"
 	ViewLetter                              = ViewLetterLink + "/{account}"
 	ViewSingleLetter                        = ViewLetterLink + "/{account}/{uuid}"
+	updateLetterLink        builder.HttpUrl = "letter/personal"
+	UpdateLetter                            = updateLetterLink + "/{account}/{uuid}/{action}"
 	ChangeViewLetterAccount builder.HttpUrl = "letter/change/account"
 	ErrorPage               builder.HttpUrl = "errorPage"
 	MarkdownFormPage        builder.HttpUrl = "render/form/markdown"

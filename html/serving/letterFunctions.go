@@ -23,6 +23,27 @@ func InstallLetter() {
 	composition.PatchHTMXFunctions[composition.ChangeViewLetterAccount] = PatchViewLetterService
 	composition.PageTitleMap[composition.ViewSingleLetter] = builder.Translation["letterViewSinglePageTitle"]
 	composition.GetHTMXFunctions[composition.ViewSingleLetter] = GetViewSingleLetterService
+	composition.PatchHTMXFunctions[composition.UpdateLetter] = PatchSigningLetterService
+}
+
+func PatchSigningLetterService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	account, msg := validation.SignLetter(acc,
+		chi.URLParam(r, "uuid"),
+		chi.URLParam(r, "account"),
+		chi.URLParam(r, "action"))
+	if !msg.Positive {
+		viewSingleLetterOnlySwapMessage(w, r, msg, acc)
+	}
+
+	html := composition.GetSingLetterView(account, chi.URLParam(r, "uuid"), account.Role != database.User,
+		validation.Message{})
+	viewSingleLetterRenderRequest(w, r, acc, html)
 }
 
 func GetViewSingleLetterService(w http.ResponseWriter, r *http.Request) {
@@ -40,11 +61,13 @@ func GetViewSingleLetterService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := composition.GetSingLetterView(account, uuid, account.Role != database.User)
+	html := composition.GetSingLetterView(account, uuid, account.Role != database.User,
+		validation.Message{})
 	viewSingleLetterRenderRequest(w, r, acc, html)
 }
 
 var viewSingleLetterRenderRequest = genericRenderer(composition.ViewSingleLetter)
+var viewSingleLetterOnlySwapMessage = genericMessageSwapper(composition.ViewSingleLetter)
 
 var standardAmount = 10
 

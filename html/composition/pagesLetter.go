@@ -81,7 +81,7 @@ func getUserDropdownForLetter(user *extraction.AccountAuth, selectedAccount stri
 	)
 }
 
-func GetSingLetterView(account *extraction.AccountModification, letterUUID string, isMod bool) Node {
+func GetSingLetterView(account *extraction.AccountModification, letterUUID string, isMod bool, val validation.Message) Node {
 	letter, err := extraction.GetLetterByIDOnlyWithAccount(letterUUID, account.ID, isMod)
 	if err != nil {
 		return GetErrorPage(Translation["errorWithSpecificLetter"])
@@ -114,6 +114,9 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 		} else {
 			specialNode = DIV(CLASS("w-[800px] mt-2"), P(Text(Translation["everyoneSigned"])))
 		}
+	} else if letter.Info.NoSigning {
+		allViewer := strings.Join(append(letter.Info.Signed, letter.Info.PeopleNotYetSigned...), ", ")
+		specialNode = DIV(CLASS("w-[800px] mt-2"), P(Text(Translation["allViewerText"], allViewer)))
 	}
 	return getBasePageWrapper(
 		getPageHeader(ViewSingleLetter),
@@ -126,7 +129,20 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 			Raw(letter.HTMLContent),
 		),
 		specialNode,
-		If(hasNotSigned && !letter.Info.NoSigning, DIV(Text("you have not signed"))),
-		GetMessage(validation.Message{}),
+		If(hasNotSigned && !letter.Info.NoSigning, DIV(CLASS("w-[800px] flex flex-row"),
+			updateLetterButton("/"+APIPreRoute+string(updateLetterLink)+"/"+
+				url.PathEscape(account.DisplayName)+"/"+
+				letterUUID+"/sign", Translation["signLetter"]),
+			updateLetterButton("/"+APIPreRoute+string(updateLetterLink)+"/"+
+				url.PathEscape(account.DisplayName)+"/"+
+				letterUUID+"/reject", Translation["rejectLetter"]))),
+		GetMessage(val),
+	)
+}
+
+func updateLetterButton(link string, buttonText string) Node {
+	return A(HXPATCH(link), HXTARGET("#"+MainBodyID),
+		HXSWAP("outerHTML"),
+		P(CLASS("bg-slate-700 text-white p-2 mr-4 mt-2"), Text(buttonText)),
 	)
 }
