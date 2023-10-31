@@ -4,9 +4,11 @@ import (
 	"PoliSim/data/extraction"
 	"PoliSim/data/logic"
 	"PoliSim/data/validation"
+	"PoliSim/helper"
 	. "PoliSim/html/builder"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 func GetCreateNormalLetterPage(acc *extraction.AccountAuth, letter *validation.CreateLetter, val validation.Message) Node {
@@ -51,10 +53,10 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 		Group(nodes...),
 		DIV(CLASS("w-[800px] flex justify-between flex-row"),
 			DIV(If(view.BeforeUUID != "", getClickableLink("/"+APIPreRoute+beforeLink, "/"+beforeLink,
-				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text("test")),
+				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["beforePage"])),
 			))),
 			DIV(If(view.NextUUID != "", getClickableLink("/"+APIPreRoute+nextLink, "/"+nextLink,
-				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text("test")),
+				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["nextPage"])),
 			))),
 		),
 	)
@@ -76,5 +78,55 @@ func getUserDropdownForLetter(user *extraction.AccountAuth, selectedAccount stri
 			HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"),
 			getUserOptions(user, selectedAccount),
 		),
+	)
+}
+
+func GetSingLetterView(account *extraction.AccountModification, letterUUID string, isMod bool) Node {
+	letter, err := extraction.GetLetterByIDOnlyWithAccount(letterUUID, account.ID, isMod)
+	if err != nil {
+		return GetErrorPage(Translation["errorWithSpecificLetter"])
+	}
+	infoText := ""
+	if letter.ModMessage {
+		infoText = fmt.Sprintf(letter.Written.Format(Translation["authorModMessage"]), letter.Author)
+	} else {
+		infoText = fmt.Sprintf(letter.Written.Format(Translation["authorNormalLetter"]), letter.Author)
+	}
+	hasNotSigned := helper.GetPositionOfString(&letter.Info.PeopleNotYetSigned, account.DisplayName) != -1
+	var specialNode Node = nil
+	if !letter.Info.NoSigning && !letter.Info.AllHaveToAgree {
+		notYetSigned := strings.Join(letter.Info.PeopleNotYetSigned, ", ")
+		signed := strings.Join(letter.Info.Signed, ", ")
+		rejected := strings.Join(letter.Info.Rejected, ", ")
+		specialNode = DIV(CLASS("w-[800px] mt-2"),
+			P(IfElse(notYetSigned != "", Text(Translation["peopleNotSigned"], notYetSigned),
+				Text(Translation["peopleNotSigned"], Translation["noOne"]))),
+			P(IfElse(signed != "", Text(Translation["peopleSigned"], signed),
+				Text(Translation["peopleSigned"], Translation["noOne"]))),
+			P(IfElse(rejected != "", Text(Translation["peopleRejectedLetter"], rejected),
+				Text(Translation["peopleRejectedLetter"], Translation["noOne"]))),
+		)
+	} else if !letter.Info.NoSigning && letter.Info.AllHaveToAgree {
+		if len(letter.Info.Rejected) != 0 {
+			specialNode = DIV(CLASS("w-[800px] mt-2"), P(Text(Translation["atLeastOneRejection"])))
+		} else if len(letter.Info.PeopleNotYetSigned) != 0 {
+			specialNode = DIV(CLASS("w-[800px] mt-2"), P(Text(Translation["noDecisionYet"])))
+		} else {
+			specialNode = DIV(CLASS("w-[800px] mt-2"), P(Text(Translation["everyoneSigned"])))
+		}
+	}
+	return getBasePageWrapper(
+		getPageHeader(ViewSingleLetter),
+		DIV(CLASS("w-[800px]"),
+			H1(CLASS("text-3xl underline decoration-2 underline-offset-2"), Text(letter.Title)),
+			P(CLASS("my-2"), I(Text(infoText)),
+				If(letter.Flair != "", Group(I(Text("; ")), Text(letter.Flair)))),
+		),
+		DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+			Raw(letter.HTMLContent),
+		),
+		specialNode,
+		If(hasNotSigned && !letter.Info.NoSigning, DIV(Text("you have not signed"))),
+		GetMessage(validation.Message{}),
 	)
 }

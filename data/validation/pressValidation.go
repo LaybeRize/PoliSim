@@ -118,7 +118,7 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 		Author:  builder.Translation["authorOfRejections"],
 		Flair:   "",
 		Title:   fmt.Sprintf(builder.Translation["rejectionLetterTitle"], article.Headline),
-		Content: fmt.Sprintf(builder.Translation["rejectionLetterBody"], article.Subtitle, article.Content, content),
+		Content: fmt.Sprintf(builder.Translation["rejectionLetterBody"], article.Subtitle.String, article.Content, content),
 		Info: database.LetterInfo{
 			AllHaveToAgree:     false,
 			NoSigning:          true,

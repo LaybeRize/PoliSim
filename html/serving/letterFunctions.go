@@ -21,7 +21,30 @@ func InstallLetter() {
 	composition.SidebarTitleMap[composition.ViewLetter] = builder.Translation["letterViewSidebarText"]
 	composition.GetHTMXFunctions[composition.ViewLetter] = GetViewLetterService
 	composition.PatchHTMXFunctions[composition.ChangeViewLetterAccount] = PatchViewLetterService
+	composition.PageTitleMap[composition.ViewSingleLetter] = builder.Translation["letterViewSinglePageTitle"]
+	composition.GetHTMXFunctions[composition.ViewSingleLetter] = GetViewSingleLetterService
 }
+
+func GetViewSingleLetterService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	name := chi.URLParam(r, "account")
+	uuid := chi.URLParam(r, "uuid")
+	account, ok, err := validation.IsAccountValidForUser(acc.ID, name)
+	if !ok || err != nil {
+		ShowErrorPage(w, r, acc, builder.Translation["letterAccountError"])
+		return
+	}
+
+	html := composition.GetSingLetterView(account, uuid, account.Role != database.User)
+	viewSingleLetterRenderRequest(w, r, acc, html)
+}
+
+var viewSingleLetterRenderRequest = genericRenderer(composition.ViewSingleLetter)
 
 var standardAmount = 10
 

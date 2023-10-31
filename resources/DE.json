@@ -187,7 +187,20 @@
   "cantFindAuthorOfArticle": "Es ist ein Fehler bei der Suche des Autors aufgetreten",
   "authorOfRejections": "der Zeitungsqualitätskontrolle",
   "rejectionLetterTitle": "Zurückweisung des Artikels \"%s\"",
-  "rejectionLetterBody": "Unterüberschrift:\n\n%s\n```\n%s\n```\n\n## Kommentar der Moderation\n\n%s",
+  "rejectionLetterBody": "## Unterüberschrift\n\n%s\n\n## Inhalt\n```\n%s\n```\n\n## Kommentar der Moderation\n\n%s",
   "errorCreatingRejectionLetter": "Es ist ein Fehler aufgetreten bei der Erstellung des Briefes zur Zurückweisung",
-  "errorWhileDeletingArticle": "Es ist ein Fehler beim löschen des Artikels aufgetreten"
+  "errorWhileDeletingArticle": "Es ist ein Fehler beim löschen des Artikels aufgetreten",
+  "letterViewSinglePageTitle": "Briefansicht",
+  "errorWithSpecificLetter": "Es ist ein Fehler beim laden des angefragten Briefsaufgetreten",
+  "authorModMessage": "Der Moderationsbrief wurde verfasst am 02.01.2006 um 15:04 Uhr von %s",
+  "authorNormalLetter": "Versandt am 02.01.2006 um 15:04 Uhr von %s",
+  "noOne": "Niemanden",
+  "peopleSigned": "Unterschrieben von: %s",
+  "peopleNotSigned": "Es hat noch keine Unterschrift geleisted: %s",
+  "peopleRejectedLetter": "Es wurde abgelehnt von: %s",
+  "atLeastOneRejection": "Es hat mindestens eine Person den Brief abgelehnt",
+  "everyoneSigned": "Der Brief wurde von allen unterschrieben",
+  "noDecisionYet": "Es fehlen noch Unterschriften",
+  "beforePage": "Seite zurück",
+  "nextPage": "Nächste Seite"
 }

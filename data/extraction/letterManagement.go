@@ -70,3 +70,10 @@ func getBasicLetterQuery(uuid string, amount int, accountID int64) *gorm.DB {
 func getBasicModmailQuery(uuid string, amount int) *gorm.DB {
 	return database.DB.Where("letters.uuid != ? AND mod_message = true", uuid).Limit(amount).Table("letters")
 }
+
+func GetLetterByIDOnlyWithAccount(uuid string, accountID int64, isMod bool) (*database.Letter, error) {
+	letter := &database.Letter{}
+	err := database.DB.Preload("Viewer").Joins("JOIN letter_account ON letters.uuid = letter_account.uuid").
+		Where("letter_account.id = ? AND letters.uuid = ? OR (? = true AND mod_message = true AND letters.uuid = ?)", accountID, uuid, isMod, uuid).First(letter).Error
+	return letter, err
+}
