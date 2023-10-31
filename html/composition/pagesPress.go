@@ -6,6 +6,7 @@ import (
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"fmt"
+	"net/url"
 )
 
 func GetCreatePressReleasePage(acc *extraction.AccountAuth, press *validation.CreateArticle, val validation.Message) Node {
@@ -30,7 +31,7 @@ func GetViewOfHiddenNewspaper() Node {
 	}
 	nodes := make([]Node, len(*list))
 	for i, item := range *list {
-		link := string(ViewHiddenNewspaperList) + "/" + item.UUID
+		link := string(ViewHiddenNewspaperList) + "/" + url.PathEscape(item.UUID)
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
 			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"),

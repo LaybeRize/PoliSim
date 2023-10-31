@@ -27,7 +27,7 @@ const (
 
 func (form *CreateLetter) CreateNormalLetter(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	account, ok, err := isAccountValidForUser(requestAccountID, form.Account)
+	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
 	switch false {
 	case isValidString(form.Title, maxLetterTitleLength):
 		// has no valid title

@@ -2,11 +2,14 @@ package composition
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 	. "PoliSim/html/builder"
+	"net/url"
 )
 
 // getSidebar returns a full <div> with every button needed for navigation
-func getSidebar(level database.RoleLevel, specialNode Node) Node {
+func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
+	level := acc.Role
 	return DIV(specialNode, ID(SidebarID), CLASS("lg:left-0 p-2 sidebarSize min-h-screen text-center bg-gray-900"),
 		DIV(CLASS("text-gray-100 text-xl"),
 			DIV(CLASS("p-2.5 mt-1 flex items-center"),
@@ -23,6 +26,7 @@ func getSidebar(level database.RoleLevel, specialNode Node) Node {
 		If(database.User <= level, getSidebarBreaker()),
 		getSidebarButton(level, database.User, CreatePressRelease),
 		getSidebarButton(level, database.User, CreateLetter),
+		getSidebarButtonDetailed(level, database.User, ViewLetterLink+HttpUrl("/"+url.PathEscape(acc.DisplayName)), SidebarTitleMap[ViewLetter]),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
 		getSidebarButton(level, database.MediaAdmin, ViewHiddenNewspaperList),
 		If(database.Admin <= level, getSidebarBreaker()),
@@ -57,6 +61,17 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
 		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),
+	)
+}
+
+func getSidebarButtonDetailed(userLevel database.RoleLevel, minimumLevel database.RoleLevel, url HttpUrl, buttonText string) Node {
+	if minimumLevel > userLevel {
+		return A(ID(string(url)+SidebarID), HIDDEN())
+	}
+	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID), ID(string(url)+SidebarID),
+		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
+		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
+		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(buttonText)),
 	)
 }
 

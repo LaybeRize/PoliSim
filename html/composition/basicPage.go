@@ -1,7 +1,7 @@
 package composition
 
 import (
-	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"os"
@@ -13,7 +13,7 @@ var language = strings.ToLower(os.Getenv("LANG"))
 // GetBasePage returns the typical <html> frame for the page.
 // it includes the correct sidebar for the parsed role and an element which automatically
 // calls the correct partial for the page content.
-func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, loadURLAddition string) Node {
+func GetBasePage(pageTitle string, acc *extraction.AccountAuth, loadURL string, loadURLAddition string) Node {
 	return HTML(LANG(language),
 		HEAD(
 			META(CHARSET("UTF-8")),
@@ -28,7 +28,7 @@ func GetBasePage(pageTitle string, role database.RoleLevel, loadURL string, load
 		),
 		BODY(CLASS("bg-slate-800 min-h-screen text-slate-200"),
 			DIV(CLASS("flex flex-row"),
-				getSidebar(role, nil),
+				getSidebar(acc, nil),
 				DIV(ID(MainBodyID), HXGET("/"+APIPreRoute+loadURL+loadURLAddition), HXTRIGGER("load"), HXSWAP("outerHTML")),
 			),
 		))
@@ -68,8 +68,8 @@ func GetTitleReplacement(url HttpUrl) Node {
 }
 
 // GetSidebarReplacement gets a new sidebar based on the database.RoleLevel that has the hx-swap-oob parameter
-func GetSidebarReplacement(level database.RoleLevel) Node {
-	return getSidebar(level, HXSWAPOOB("true"))
+func GetSidebarReplacement(acc *extraction.AccountAuth) Node {
+	return getSidebar(acc, HXSWAPOOB("true"))
 }
 
 // GetErrorPage returns an error page builder.Node with the errorText in it.

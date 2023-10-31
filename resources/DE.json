@@ -173,5 +173,10 @@
   "createLetterButton": "Brief erstellen",
   "addLetterReaderButtonText": "Leser hinzufügen",
   "letterCreatePageTitle": "Brief erstellen",
-  "letterCreateSidebarText":  "Brief erstellen"
+  "letterCreateSidebarText":  "Brief erstellen",
+  "letterAccountError": "Der Account steht entweder nicht zur Verfügung oder es ist ein Datenbankfehler aufgetreten",
+  "errorLoadingLetters": "Es ist ein Fehler beim Laden der Briefe aufgetreten",
+  "letterViewPageTitle": "Briefübersicht",
+  "letterViewSidebarText": "Meine Briefe",
+  "selectedReaderLetter": "Briefempfänger"
 }

@@ -35,7 +35,7 @@ func isOrgStatusValid(str string) bool {
 	return ok
 }
 
-func isAccountValidForUser(userID int64, accountDisplayName string) (*extraction.AccountModification, bool, error) {
+func IsAccountValidForUser(userID int64, accountDisplayName string) (*extraction.AccountModification, bool, error) {
 	acc, err := extraction.GetAccountModificationByDisplayName(accountDisplayName)
 	if err != nil || acc.Suspended {
 		return acc, false, err

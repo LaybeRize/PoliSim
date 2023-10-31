@@ -23,7 +23,7 @@ func GetFullPage(pageTitle string) http.HandlerFunc {
 			addition = ""
 		}
 		validation.AddCookie(w, r, acc.Session)
-		html := composition.GetBasePage(pageTitle, acc.Role, r.URL.Path[1:], addition)
+		html := composition.GetBasePage(pageTitle, acc, r.URL.Path[1:], addition)
 		renderRequest(w, builder.RenderHTMLDoc(), html)
 	}
 }
@@ -36,6 +36,35 @@ func renderRequest(w http.ResponseWriter, nodes ...builder.Node) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+}
+
+func extractURLFieldValues(object any, r *http.Request, min int64, standard int64, max int64) {
+	v := reflect.ValueOf(object)
+	iterate := reflect.Indirect(v).NumField()
+	for i := 0; i < iterate; i++ {
+		input, ok := v.Type().Elem().Field(i).Tag.Lookup("input")
+		if !ok {
+			continue
+		}
+		kind := reflect.Indirect(v).Field(i).Kind()
+		switch kind {
+		case reflect.String:
+			v.Elem().Field(i).SetString(r.URL.Query().Get(input))
+		case reflect.Bool:
+			value := r.URL.Query().Get(input) == "true"
+			v.Elem().Field(i).SetBool(value)
+		case reflect.Int, reflect.Int64:
+			num, err := strconv.ParseInt(r.URL.Query().Get(input), 10, 64)
+			if err != nil {
+				num = standard
+			} else if num < min {
+				num = min
+			} else if num > max {
+				num = max
+			}
+			v.Elem().Field(i).SetInt(num)
+		}
 	}
 }
 
@@ -129,7 +158,7 @@ func updateInformation(w http.ResponseWriter, r *http.Request, acc *extraction.A
 	validation.AddCookie(w, r, acc.Session)
 
 	if role != int(acc.Role) {
-		return builder.Group(composition.GetSidebarReplacement(acc.Role),
+		return builder.Group(composition.GetSidebarReplacement(acc),
 			composition.GetTitleReplacement(currentPage))
 	}
 

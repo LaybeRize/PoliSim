@@ -25,7 +25,7 @@ var MaxPressContentLength = 20_000
 
 func (form *CreateArticle) CreateArticle(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	account, ok, err := isAccountValidForUser(requestAccountID, form.Account)
+	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
 	switch false {
 	case isValidString(form.Title, maxPressTitleLength):
 		// has no valid title
