@@ -100,9 +100,53 @@ func renderSingleArticle(item *database.Article, specialNode Node) Node {
 }
 
 func GetNewspaperListPage(extra *logic.ExtraInfo) Node {
-	return getBasePageWrapper()
+	view, err := extra.GetNewspaper()
+	if err != nil {
+		return GetErrorPage(Translation["errorLoadingLetters"])
+	}
+	nodes := make([]Node, len(*view.PaperList))
+	for i, item := range *view.PaperList {
+		link := string(ViewNewspaperList) + "/" + url.PathEscape(item.UUID)
+		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
+			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+			H1(CLASS("text-2xl"), IfElse(item.BreakingNews, Text(item.PublishTime.Format(Translation["breakingNewsFormat"])),
+				Text(item.PublishTime.Format(Translation["normalNewsFormat"]))))))
+	}
+	beforeLink, nextLink := generateNewspaperLink(extra, view)
+	return getBasePageWrapper(
+		getPageHeader(ViewNewspaperList),
+		Group(nodes...),
+		DIV(CLASS("w-[800px] flex justify-between flex-row"),
+			DIV(If(view.BeforeUUID != "", getClickableLink("/"+APIPreRoute+beforeLink, "/"+beforeLink,
+				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["beforePage"])),
+			))),
+			DIV(If(view.NextUUID != "", getClickableLink("/"+APIPreRoute+nextLink, "/"+nextLink,
+				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["nextPage"])),
+			))),
+		),
+	)
+}
+
+func generateNewspaperLink(extra *logic.ExtraInfo, view *logic.ViewNewspaper) (beforeLink string, nextLink string) {
+	beforeLink = fmt.Sprintf("%s?uuid=%s&amount=%d&before=true", string(ViewNewspaperList),
+		url.QueryEscape(view.BeforeUUID), extra.Amount)
+	nextLink = fmt.Sprintf("%s?uuid=%s&amount=%d", string(ViewNewspaperList),
+		url.QueryEscape(view.NextUUID), extra.Amount)
+	return
 }
 
 func GetSingleNewspaperPage(uuid string) Node {
-	return getBasePageWrapper()
+	ok, err := extraction.FindPublication(uuid, "false")
+	if !ok || err != nil {
+		return GetErrorPage(Translation["errorRetrievingSinglePublication"])
+	}
+	articleList, err := extraction.FindArticlesForPublicationUUID(uuid)
+	nodes := make([]Node, len(*articleList))
+	for i, item := range *articleList {
+		nodes[i] = renderSingleArticle(&item, nil)
+	}
+	return getBasePageWrapper(
+		getPageHeader(ViewNewspaper),
+		Group(nodes...),
+	)
 }

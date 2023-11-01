@@ -214,5 +214,7 @@
   "uuidLetterText": "UUID des Brief: %s",
   "viewNewspaperPageTitle": "Zeitungsübersicht",
   "viewNewspaperSidebarText": "Zeitungsarchiv",
-  "viewSingleNewspaperPageTitle": "Zeitung"
+  "viewSingleNewspaperPageTitle": "Zeitung",
+  "normalNewsFormat": "Zeitung vom 02.01.2006",
+  "breakingNewsFormat": "Eilmeldung vom 02.01.2006 um 15:04 Uhr"
 }

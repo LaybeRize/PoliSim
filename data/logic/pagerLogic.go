@@ -57,5 +57,33 @@ func (info *ExtraInfo) GetLetter() (*ViewLetter, error) {
 }
 
 func (info *ExtraInfo) GetNewspaper() (*ViewNewspaper, error) {
-	return nil, nil
+	viewInfo := &ViewNewspaper{NextUUID: "", BeforeUUID: ""}
+	var exists bool
+	var err error
+	if info.Before {
+		viewInfo.PaperList, exists, err = extraction.GetPublicationBefore(info.UUID, info.Amount+1)
+		if err != nil || len(*viewInfo.PaperList) == 0 {
+			return viewInfo, err
+		}
+		if len(*viewInfo.PaperList) == info.Amount+1 {
+			viewInfo.BeforeUUID = (*viewInfo.PaperList)[0].UUID
+			*viewInfo.PaperList = (*viewInfo.PaperList)[1:]
+		}
+		if exists {
+			viewInfo.NextUUID = (*viewInfo.PaperList)[len(*viewInfo.PaperList)-1].UUID
+		}
+	} else {
+		viewInfo.PaperList, exists, err = extraction.GetPublicationAfter(info.UUID, info.Amount+1)
+		if err != nil || len(*viewInfo.PaperList) == 0 {
+			return viewInfo, err
+		}
+		if len(*viewInfo.PaperList) == info.Amount+1 {
+			viewInfo.NextUUID = (*viewInfo.PaperList)[info.Amount-1].UUID
+			*viewInfo.PaperList = (*viewInfo.PaperList)[:info.Amount]
+		}
+		if exists {
+			viewInfo.BeforeUUID = (*viewInfo.PaperList)[0].UUID
+		}
+	}
+	return viewInfo, err
 }
