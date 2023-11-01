@@ -33,16 +33,16 @@ func PatchSigningLetterService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	uuid := chi.URLParam(r, "uuid")
 	account, msg := validation.SignLetter(acc,
-		chi.URLParam(r, "uuid"),
-		chi.URLParam(r, "account"),
+		uuid, chi.URLParam(r, "account"),
 		chi.URLParam(r, "action"))
 	if !msg.Positive {
 		viewSingleLetterOnlySwapMessage(w, r, msg, acc)
 	}
 
-	html := composition.GetSingLetterView(account, chi.URLParam(r, "uuid"), account.Role != database.User,
-		validation.Message{})
+	html := composition.GetSingLetterView(account, uuid,
+		account.Role != database.User, msg)
 	viewSingleLetterRenderRequest(w, r, acc, html)
 }
 
@@ -61,8 +61,8 @@ func GetViewSingleLetterService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := composition.GetSingLetterView(account, uuid, account.Role != database.User,
-		validation.Message{})
+	html := composition.GetSingLetterView(account, uuid,
+		account.Role != database.User, validation.Message{})
 	viewSingleLetterRenderRequest(w, r, acc, html)
 }
 
@@ -88,7 +88,8 @@ func PatchViewLetterService(w http.ResponseWriter, r *http.Request) {
 		ShowErrorPage(w, r, acc, builder.Translation["letterAccountError"])
 		return
 	}
-	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewLetterLink)+"/"+url.PathEscape(account.DisplayName))
+	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewLetterLink)+"/"+
+		url.PathEscape(account.DisplayName))
 
 	extraInfo := &logic.ExtraInfo{
 		UUID:            "",

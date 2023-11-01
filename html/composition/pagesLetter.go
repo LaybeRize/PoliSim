@@ -99,12 +99,9 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 		signed := strings.Join(letter.Info.Signed, ", ")
 		rejected := strings.Join(letter.Info.Rejected, ", ")
 		specialNode = DIV(CLASS("w-[800px] mt-2"),
-			P(IfElse(notYetSigned != "", Text(Translation["peopleNotSigned"], notYetSigned),
-				Text(Translation["peopleNotSigned"], Translation["noOne"]))),
-			P(IfElse(signed != "", Text(Translation["peopleSigned"], signed),
-				Text(Translation["peopleSigned"], Translation["noOne"]))),
-			P(IfElse(rejected != "", Text(Translation["peopleRejectedLetter"], rejected),
-				Text(Translation["peopleRejectedLetter"], Translation["noOne"]))),
+			If(notYetSigned != "", P(Text(Translation["peopleNotSigned"], notYetSigned))),
+			If(signed != "", P(Text(Translation["peopleSigned"], signed))),
+			If(rejected != "", P(Text(Translation["peopleRejectedLetter"], rejected))),
 		)
 	} else if !letter.Info.NoSigning && letter.Info.AllHaveToAgree {
 		if len(letter.Info.Rejected) != 0 {
@@ -114,9 +111,6 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 		} else {
 			specialNode = DIV(CLASS("w-[800px] mt-2"), P(Text(Translation["everyoneSigned"])))
 		}
-	} else if letter.Info.NoSigning {
-		allViewer := strings.Join(append(letter.Info.Signed, letter.Info.PeopleNotYetSigned...), ", ")
-		specialNode = DIV(CLASS("w-[800px] mt-2"), P(Text(Translation["allViewerText"], allViewer)))
 	}
 	return getBasePageWrapper(
 		getPageHeader(ViewSingleLetter),
@@ -127,6 +121,12 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 		),
 		DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
 			Raw(letter.HTMLContent),
+		),
+		DIV(CLASS("w-[800px]"),
+			P(CLASS("mt-2"), Text(Translation["uuidLetterText"], letter.UUID)),
+			P(Text(Translation["allViewerText"], strings.Join(append(append(letter.Info.Signed,
+				letter.Info.PeopleNotYetSigned...),
+				letter.Info.Rejected...), ", "))),
 		),
 		specialNode,
 		If(hasNotSigned && !letter.Info.NoSigning, DIV(CLASS("w-[800px] flex flex-row"),

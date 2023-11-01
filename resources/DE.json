@@ -194,7 +194,6 @@
   "errorWithSpecificLetter": "Es ist ein Fehler beim laden des angefragten Briefsaufgetreten",
   "authorModMessage": "Der Moderationsbrief wurde verfasst am 02.01.2006 um 15:04 Uhr von %s",
   "authorNormalLetter": "Versandt am 02.01.2006 um 15:04 Uhr von %s",
-  "noOne": "Niemanden",
   "peopleSigned": "Unterschrieben von: %s",
   "peopleNotSigned": "Es hat noch keine Unterschrift geleisted: %s",
   "peopleRejectedLetter": "Es wurde abgelehnt von: %s",
@@ -210,5 +209,6 @@
   "successfullyDidSigningAction": "Erfolgreich Brief unterschrieben",
   "successfullyDidRejectionAction": "Erfolgreich Brief abgelehnt",
   "letterCouldNotBeFound": "Der gewünschte Brief konnte nicht gefunden werden",
-  "errorUpdatingLetter": "Brief konnte nicht amgepasst werden"
+  "errorUpdatingLetter": "Brief konnte nicht amgepasst werden",
+  "uuidLetterText": "UUID des Brief: %s"
 }
