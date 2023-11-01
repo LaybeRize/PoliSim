@@ -23,6 +23,7 @@ func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
 		getSidebarButton(level, database.NotLoggedIn, Start),
 		getSidebarButton(level, database.NotLoggedIn, ViewTitles),
 		getSidebarButton(level, database.NotLoggedIn, ViewOrganisations),
+		getSidebarButton(level, database.NotLoggedIn, ViewNewspaperList),
 		If(database.User <= level, getSidebarBreaker()),
 		getSidebarButton(level, database.User, CreatePressRelease),
 		getSidebarButton(level, database.User, CreateLetter),

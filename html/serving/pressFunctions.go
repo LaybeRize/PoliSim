@@ -2,6 +2,7 @@ package serving
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/data/logic"
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
@@ -18,11 +19,38 @@ func InstallPress() {
 	composition.PageTitleMap[composition.ViewHiddenNewspaperList] = builder.Translation["viewHiddenNewspaperPageTitle"]
 	composition.SidebarTitleMap[composition.ViewHiddenNewspaperList] = builder.Translation["viewHiddenNewspaperSidebarText"]
 	composition.GetHTMXFunctions[composition.ViewHiddenNewspaperList] = GetHiddenNewsPaperListService
+	composition.PageTitleMap[composition.ViewHiddenNewspaper] = builder.Translation["viewSingleHiddenNewspaperPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewHiddenNewspaper] = GetHiddenNewsPaperService
 	composition.PageTitleMap[composition.RejectArticle] = builder.Translation["rejectArticlePageTitle"]
 	composition.GetHTMXFunctions[composition.RejectArticle] = GetRejectArticleService
 	composition.PostHTMXFunctions[composition.RejectArticle] = PostRejectArticleService
+
+	composition.PageTitleMap[composition.ViewNewspaperList] = builder.Translation["viewNewspaperPageTitle"]
+	composition.SidebarTitleMap[composition.ViewNewspaperList] = builder.Translation["viewNewspaperSidebarText"]
+	composition.GetHTMXFunctions[composition.ViewNewspaperList] = GetNewsPaperListService
+	composition.PageTitleMap[composition.ViewNewspaper] = builder.Translation["viewSingleNewspaperPageTitle"]
+	composition.GetHTMXFunctions[composition.ViewNewspaper] = GetNewsPaperService
 }
+
+func GetNewsPaperService(w http.ResponseWriter, r *http.Request) {
+	acc, _ := CheckUserPrivileges(r)
+
+	html := composition.GetSingleNewspaperPage(chi.URLParam(r, "uuid"))
+	newspaperRenderRequest(w, r, acc, html)
+}
+
+var newspaperRenderRequest = genericRenderer(composition.ViewNewspaper)
+
+func GetNewsPaperListService(w http.ResponseWriter, r *http.Request) {
+	acc, _ := CheckUserPrivileges(r)
+
+	extraInfo := &logic.ExtraInfo{}
+	extractURLFieldValues(extraInfo, r, 5, 10, 50)
+	html := composition.GetNewspaperListPage(extraInfo)
+	newspaperListRenderRequest(w, r, acc, html)
+}
+
+var newspaperListRenderRequest = genericRenderer(composition.ViewNewspaperList)
 
 func GetCreatePressCreateService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
@@ -76,6 +104,8 @@ func GetHiddenNewsPaperListService(w http.ResponseWriter, r *http.Request) {
 	viewHiddenNewspaperRenderRequest(w, r, acc, html)
 }
 
+var viewHiddenNewspaperRenderRequest = genericRenderer(composition.ViewHiddenNewspaperList)
+
 func GetHiddenNewsPaperService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)
 	if !ok {
@@ -85,10 +115,10 @@ func GetHiddenNewsPaperService(w http.ResponseWriter, r *http.Request) {
 
 	uuid := chi.URLParam(r, "uuid")
 	html := composition.GetViewSingleHiddenNewspaper(uuid)
-	viewHiddenNewspaperRenderRequest(w, r, acc, html)
+	viewSingleHiddenNewspaperRenderRequest(w, r, acc, html)
 }
 
-var viewHiddenNewspaperRenderRequest = genericRenderer(composition.ViewHiddenNewspaperList)
+var viewSingleHiddenNewspaperRenderRequest = genericRenderer(composition.ViewHiddenNewspaper)
 
 func PostRejectArticleService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)

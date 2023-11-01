@@ -38,6 +38,8 @@ const (
 	CreatePressRelease      builder.HttpUrl = "press/release/create"
 	ViewHiddenNewspaperList builder.HttpUrl = "press/view/newspaper/hidden"
 	ViewHiddenNewspaper                     = ViewHiddenNewspaperList + "/{uuid}"
+	ViewNewspaperList       builder.HttpUrl = "press/newspaper"
+	ViewNewspaper                           = ViewNewspaperList + "/{uuid}"
 	rejectArticleLink       builder.HttpUrl = "press/article/reject"
 	RejectArticle                           = rejectArticleLink + "/{uuid}"
 	CreateLetter            builder.HttpUrl = "letter/personal/create"

@@ -3,6 +3,7 @@ package composition
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/data/logic"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"fmt"
@@ -96,4 +97,12 @@ func renderSingleArticle(item *database.Article, specialNode Node) Node {
 		Raw(item.HTMLContent),
 		specialNode,
 	)
+}
+
+func GetNewspaperListPage(extra *logic.ExtraInfo) Node {
+	return getBasePageWrapper()
+}
+
+func GetSingleNewspaperPage(uuid string) Node {
+	return getBasePageWrapper()
 }

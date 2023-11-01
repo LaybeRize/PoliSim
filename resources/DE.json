@@ -153,6 +153,7 @@
   "errorRetrievingSinglePublication": "Es ist ein Fehler bei der Suche nach der gewünschten Zeitung aufgetreten",
   "viewHiddenNewspaperPageTitle": "Unveröffentlichte Zeitungen",
   "viewHiddenNewspaperSidebarText": "Unveröffentlichte Zeitungen",
+  "viewSingleHiddenNewspaperPageTitle": "Unveröffentlichte Zeitung",
   "hiddenStandardNewsPaper": "Unveröffentlichte Zeitung",
   "hiddenBreakingNews": "Eilmeldung; Eingereicht am 02.01.2006 um 15:04 Uhr",
   "errorRetrievingArticles": "Es ist ein Fehler bei dem Datenbankzugriff auf die Artikel aufgetreten",
@@ -210,5 +211,8 @@
   "successfullyDidRejectionAction": "Erfolgreich Brief abgelehnt",
   "letterCouldNotBeFound": "Der gewünschte Brief konnte nicht gefunden werden",
   "errorUpdatingLetter": "Brief konnte nicht amgepasst werden",
-  "uuidLetterText": "UUID des Brief: %s"
+  "uuidLetterText": "UUID des Brief: %s",
+  "viewNewspaperPageTitle": "Zeitungsübersicht",
+  "viewNewspaperSidebarText": "Zeitungsarchiv",
+  "viewSingleNewspaperPageTitle": "Zeitung"
 }
