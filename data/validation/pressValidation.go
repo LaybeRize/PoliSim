@@ -6,8 +6,10 @@ import (
 	"PoliSim/helper"
 	"PoliSim/html/builder"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -142,4 +144,61 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 		return
 	}
 	return Message{Positive: true}
+}
+
+func PublishNewspaper(uuidStr string) (validate Message, newUUID string) {
+	validate = Message{Positive: false}
+	pub, err := extraction.FindPublicationAndReturnIt(uuidStr, "false")
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		validate.Message = builder.Translation["newspaperUUIDNotValid"]
+		return
+	} else if err != nil {
+		validate.Message = builder.Translation["databaseErrorRetrievingNewspaper"]
+		return
+	}
+	if pub.Publicated {
+		validate.Message = builder.Translation["newspaperUUIDNotValid"]
+		return
+	}
+
+	list, err := extraction.FindArticlesForPublicationUUID(pub.UUID)
+	if err != nil {
+		validate.Message = builder.Translation["newspaperUUIDNotValid"]
+		return
+	}
+
+	if len(*list) == 0 {
+		validate.Message = builder.Translation["noArticleToPublish"]
+		return
+	}
+
+	if pub.BreakingNews {
+		pub.PublishTime = time.Now()
+		pub.Publicated = true
+		err = extraction.ChangePublication(pub)
+		newUUID = pub.UUID
+	} else {
+		newPub := database.Publication{
+			UUID:         uuid.New().String(),
+			CreateTime:   time.Now(),
+			PublishTime:  time.Now(),
+			Publicated:   true,
+			BreakingNews: false,
+		}
+		err = extraction.CreatePublication(&newPub)
+		if err != nil {
+			validate.Message = builder.Translation["errorPublishingNewspaper"]
+			return
+		}
+		err = extraction.UpdatePublication(pub.UUID, newPub.UUID)
+		newUUID = newPub.UUID
+	}
+
+	if err != nil {
+		validate.Message = builder.Translation["errorPublishingNewspaper"]
+		return
+	}
+
+	validate = Message{Message: "", Positive: true}
+	return
 }

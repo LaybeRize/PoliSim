@@ -46,28 +46,17 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 			H1(CLASS("text-2xl"), Text(item.Title)),
 			P(Text(item.Author))))
 	}
-	beforeLink, nextLink := generateLetterLink(extra, view)
+
 	return getBasePageWrapper(
 		getPageHeader(ViewLetter),
 		getUserDropdownForLetter(acc, extra.ViewAccountName, Translation["selectedReaderLetter"]),
 		Group(nodes...),
-		DIV(CLASS("w-[800px] flex justify-between flex-row"),
-			DIV(If(view.BeforeUUID != "", getClickableLink("/"+APIPreRoute+beforeLink, "/"+beforeLink,
-				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["beforePage"])),
-			))),
-			DIV(If(view.NextUUID != "", getClickableLink("/"+APIPreRoute+nextLink, "/"+nextLink,
-				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["nextPage"])),
-			))),
-		),
+		pagerFooter(view.BeforeUUID, view.NextUUID,
+			fmt.Sprintf("%s/%s?uuid=%s&amount=%d&before=true", string(ViewLetterLink),
+				url.PathEscape(extra.ViewAccountName), url.QueryEscape(view.BeforeUUID), extra.Amount),
+			fmt.Sprintf("%s/%s?uuid=%s&amount=%d", string(ViewLetterLink), url.PathEscape(extra.ViewAccountName),
+				url.QueryEscape(view.NextUUID), extra.Amount)),
 	)
-}
-
-func generateLetterLink(extra *logic.ExtraInfo, view *logic.ViewLetter) (beforeLink string, nextLink string) {
-	beforeLink = fmt.Sprintf("%s/%s?uuid=%s&amount=%d&before=true", string(ViewLetterLink), url.PathEscape(extra.ViewAccountName),
-		url.QueryEscape(view.BeforeUUID), extra.Amount)
-	nextLink = fmt.Sprintf("%s/%s?uuid=%s&amount=%d", string(ViewLetterLink), url.PathEscape(extra.ViewAccountName),
-		url.QueryEscape(view.NextUUID), extra.Amount)
-	return
 }
 
 func getUserDropdownForLetter(user *extraction.AccountAuth, selectedAccount string, labelText string) Node {

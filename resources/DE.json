@@ -216,5 +216,10 @@
   "viewNewspaperSidebarText": "Zeitungsarchiv",
   "viewSingleNewspaperPageTitle": "Zeitung",
   "normalNewsFormat": "Zeitung vom 02.01.2006",
-  "breakingNewsFormat": "Eilmeldung vom 02.01.2006 um 15:04 Uhr"
+  "breakingNewsFormat": "Eilmeldung vom 02.01.2006 um 15:04 Uhr",
+  "publishNewspaperButton": "Zeitung veröffentlichen",
+  "newspaperUUIDNotValid": "Zeitung existiert nicht oder wurde bereits veröffentlicht",
+  "databaseErrorRetrievingNewspaper": "Fehler beim Suchen der Zeitung aufgetreten",
+  "errorPublishingNewspaper": "Es ist ein Fehler bei der Veröffentlichung aufgetreten",
+  "noArticleToPublish": "Leere Zeitungen können nicht veröffentlicht werden"
 }

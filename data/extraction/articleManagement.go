@@ -33,3 +33,7 @@ func FindArticle(uuid string, visible bool) (*database.Article, error) {
 func DeleteArticle(article *database.Article) error {
 	return database.DB.Delete(article).Error
 }
+
+func UpdatePublication(oldPub string, newPub string) error {
+	return database.DB.Model(&database.Article{}).Select("publication").Where("publication = ?", oldPub).Updates(database.Article{Publication: newPub}).Error
+}

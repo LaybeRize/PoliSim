@@ -34,6 +34,10 @@ func FindPublicationAndReturnIt(uuid string, visible string) (*database.Publicat
 	return pub, err
 }
 
+func ChangePublication(pub *database.Publication) error {
+	return database.DB.Updates(pub).Error
+}
+
 func GetPublicationAfter(publicationUUID string, amount int) (publicationList *database.PublicationList, exists bool, err error) {
 	publicationList = &database.PublicationList{}
 	exists = true

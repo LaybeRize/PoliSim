@@ -24,6 +24,7 @@ func InstallPress() {
 	composition.PageTitleMap[composition.RejectArticle] = builder.Translation["rejectArticlePageTitle"]
 	composition.GetHTMXFunctions[composition.RejectArticle] = GetRejectArticleService
 	composition.PostHTMXFunctions[composition.RejectArticle] = PostRejectArticleService
+	composition.PatchHTMXFunctions[composition.PublishNewspaper] = PatchPublishNewspaperService
 
 	composition.PageTitleMap[composition.ViewNewspaperList] = builder.Translation["viewNewspaperPageTitle"]
 	composition.SidebarTitleMap[composition.ViewNewspaperList] = builder.Translation["viewNewspaperSidebarText"]
@@ -31,6 +32,25 @@ func InstallPress() {
 	composition.PageTitleMap[composition.ViewNewspaper] = builder.Translation["viewSingleNewspaperPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewNewspaper] = GetNewsPaperService
 }
+
+func PatchPublishNewspaperService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+	msg, uuid := validation.PublishNewspaper(chi.URLParam(r, "uuid"))
+	if !msg.Positive {
+		viewSingleHiddenNewspaperOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewNewspaperList)+"/"+uuid)
+	html := composition.GetSingleNewspaperPage(uuid)
+	newspaperRenderRequest(w, r, acc, html)
+}
+
+var viewSingleHiddenNewspaperOnlySwapMessage = genericMessageSwapper(composition.ViewHiddenNewspaper)
 
 func GetNewsPaperService(w http.ResponseWriter, r *http.Request) {
 	acc, _ := CheckUserPrivileges(r)

@@ -64,8 +64,12 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 	if err != nil {
 		return GetErrorPage(Translation["errorRetrievingArticles"])
 	}
+	link := string(publishNewspaperLink) + uuid
 	return getBasePageWrapper(
 		getCustomPageHeader(fmt.Sprintf(Translation["unpublishedNewsletterTitle"], uuid)),
+		getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+link, "",
+			P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["publishNewspaperButton"]))),
+		GetMessage(validation.Message{}),
 		Group(nodes...),
 	)
 }
@@ -112,32 +116,21 @@ func GetNewspaperListPage(extra *logic.ExtraInfo) Node {
 			H1(CLASS("text-2xl"), IfElse(item.BreakingNews, Text(item.PublishTime.Format(Translation["breakingNewsFormat"])),
 				Text(item.PublishTime.Format(Translation["normalNewsFormat"]))))))
 	}
-	beforeLink, nextLink := generateNewspaperLink(extra, view)
+
 	return getBasePageWrapper(
 		getPageHeader(ViewNewspaperList),
 		Group(nodes...),
-		DIV(CLASS("w-[800px] flex justify-between flex-row"),
-			DIV(If(view.BeforeUUID != "", getClickableLink("/"+APIPreRoute+beforeLink, "/"+beforeLink,
-				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["beforePage"])),
-			))),
-			DIV(If(view.NextUUID != "", getClickableLink("/"+APIPreRoute+nextLink, "/"+nextLink,
-				P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["nextPage"])),
-			))),
-		),
+		pagerFooter(view.BeforeUUID, view.NextUUID,
+			fmt.Sprintf("%s?uuid=%s&amount=%d&before=true", string(ViewNewspaperList),
+				url.QueryEscape(view.BeforeUUID), extra.Amount),
+			fmt.Sprintf("%s?uuid=%s&amount=%d", string(ViewNewspaperList),
+				url.QueryEscape(view.NextUUID), extra.Amount)),
 	)
 }
 
-func generateNewspaperLink(extra *logic.ExtraInfo, view *logic.ViewNewspaper) (beforeLink string, nextLink string) {
-	beforeLink = fmt.Sprintf("%s?uuid=%s&amount=%d&before=true", string(ViewNewspaperList),
-		url.QueryEscape(view.BeforeUUID), extra.Amount)
-	nextLink = fmt.Sprintf("%s?uuid=%s&amount=%d", string(ViewNewspaperList),
-		url.QueryEscape(view.NextUUID), extra.Amount)
-	return
-}
-
 func GetSingleNewspaperPage(uuid string) Node {
-	ok, err := extraction.FindPublication(uuid, "false")
-	if !ok || err != nil {
+	pub, err := extraction.FindPublicationAndReturnIt(uuid, "true")
+	if err != nil {
 		return GetErrorPage(Translation["errorRetrievingSinglePublication"])
 	}
 	articleList, err := extraction.FindArticlesForPublicationUUID(uuid)
@@ -146,7 +139,9 @@ func GetSingleNewspaperPage(uuid string) Node {
 		nodes[i] = renderSingleArticle(&item, nil)
 	}
 	return getBasePageWrapper(
-		getPageHeader(ViewNewspaper),
+		IfElse(pub.BreakingNews,
+			getCustomPageHeader(pub.PublishTime.Format(Translation["breakingNewsFormat"])),
+			getCustomPageHeader(pub.PublishTime.Format(Translation["normalNewsFormat"]))),
 		Group(nodes...),
 	)
 }
