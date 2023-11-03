@@ -221,5 +221,8 @@
   "newspaperUUIDNotValid": "Zeitung existiert nicht oder wurde bereits veröffentlicht",
   "databaseErrorRetrievingNewspaper": "Fehler beim Suchen der Zeitung aufgetreten",
   "errorPublishingNewspaper": "Es ist ein Fehler bei der Veröffentlichung aufgetreten",
-  "noArticleToPublish": "Leere Zeitungen können nicht veröffentlicht werden"
+  "noArticleToPublish": "Leere Zeitungen können nicht veröffentlicht werden",
+  "modMailListViewPageTitle": "Moderationsbriefe",
+  "modMailListViewSidebarText": "Moderationsbriefe anschauen",
+  "authorShortFormLetter": "von %s"
 }

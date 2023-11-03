@@ -7,7 +7,7 @@ import (
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 	"net/url"
 )
@@ -24,7 +24,27 @@ func InstallLetter() {
 	composition.PageTitleMap[composition.ViewSingleLetter] = builder.Translation["letterViewSinglePageTitle"]
 	composition.GetHTMXFunctions[composition.ViewSingleLetter] = GetViewSingleLetterService
 	composition.PatchHTMXFunctions[composition.UpdateLetter] = PatchSigningLetterService
+	composition.PageTitleMap[composition.ViewModMails] = builder.Translation["modMailListViewPageTitle"]
+	composition.SidebarTitleMap[composition.ViewModMails] = builder.Translation["modMailListViewSidebarText"]
+	composition.GetHTMXFunctions[composition.ViewModMails] = GetViewModMailListService
 }
+
+var standardAmount = 10
+
+func GetViewModMailListService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+	extraInfo := &logic.ExtraInfo{}
+	extractURLFieldValues(extraInfo, r, 5, int64(standardAmount), 50)
+
+	html := composition.GetViewModmailList(acc, extraInfo)
+	viewModMailListRenderRequest(w, r, acc, html)
+}
+
+var viewModMailListRenderRequest = genericRenderer(composition.ViewModMails)
 
 func PatchSigningLetterService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
@@ -68,8 +88,6 @@ func GetViewSingleLetterService(w http.ResponseWriter, r *http.Request) {
 
 var viewSingleLetterRenderRequest = genericRenderer(composition.ViewSingleLetter)
 var viewSingleLetterOnlySwapMessage = genericMessageSwapper(composition.ViewSingleLetter)
-
-var standardAmount = 10
 
 func PatchViewLetterService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)

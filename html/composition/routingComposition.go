@@ -51,6 +51,7 @@ const (
 	updateLetterLink        builder.HttpUrl = "letter/personal"
 	UpdateLetter                            = updateLetterLink + "/{account}/{uuid}/{action}"
 	ChangeViewLetterAccount builder.HttpUrl = "letter/change/account"
+	ViewModMails            builder.HttpUrl = "letter/modmails/view"
 	ErrorPage               builder.HttpUrl = "errorPage"
 	MarkdownFormPage        builder.HttpUrl = "render/form/markdown"
 	MarkdownJsonPage        builder.HttpUrl = "render/json/markdown"

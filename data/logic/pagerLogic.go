@@ -56,6 +56,38 @@ func (info *ExtraInfo) GetLetter() (*ViewLetter, error) {
 	return viewInfo, err
 }
 
+func (info *ExtraInfo) GetModMails() (*ViewLetter, error) {
+	viewInfo := &ViewLetter{NextUUID: "", BeforeUUID: ""}
+	var exists bool
+	var err error
+	if info.Before {
+		viewInfo.LetterList, exists, err = extraction.GetModMailsBefore(info.UUID, info.Amount+1)
+		if err != nil || len(*viewInfo.LetterList) == 0 {
+			return viewInfo, err
+		}
+		if len(*viewInfo.LetterList) == info.Amount+1 {
+			viewInfo.BeforeUUID = (*viewInfo.LetterList)[0].UUID
+			*viewInfo.LetterList = (*viewInfo.LetterList)[1:]
+		}
+		if exists {
+			viewInfo.NextUUID = (*viewInfo.LetterList)[len(*viewInfo.LetterList)-1].UUID
+		}
+	} else {
+		viewInfo.LetterList, exists, err = extraction.GetModMailsAfter(info.UUID, info.Amount+1)
+		if err != nil || len(*viewInfo.LetterList) == 0 {
+			return viewInfo, err
+		}
+		if len(*viewInfo.LetterList) == info.Amount+1 {
+			viewInfo.NextUUID = (*viewInfo.LetterList)[info.Amount-1].UUID
+			*viewInfo.LetterList = (*viewInfo.LetterList)[:info.Amount]
+		}
+		if exists {
+			viewInfo.BeforeUUID = (*viewInfo.LetterList)[0].UUID
+		}
+	}
+	return viewInfo, err
+}
+
 func (info *ExtraInfo) GetNewspaper() (*ViewNewspaper, error) {
 	viewInfo := &ViewNewspaper{NextUUID: "", BeforeUUID: ""}
 	var exists bool

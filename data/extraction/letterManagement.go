@@ -74,7 +74,7 @@ func getBasicModmailQuery(uuid string, amount int) *gorm.DB {
 func GetLetterByIDOnlyWithAccount(uuid string, accountID int64, isMod bool) (*database.Letter, error) {
 	letter := &database.Letter{}
 	err := database.DB.Preload("Viewer").Joins("JOIN letter_account ON letters.uuid = letter_account.uuid").
-		Where("letter_account.id = ? AND letters.uuid = ? OR (? = true AND mod_message = true AND letters.uuid = ?)", accountID, uuid, isMod, uuid).First(letter).Error
+		Where("(letter_account.id = ? AND letters.uuid = ?) OR (? = true AND mod_message = true AND letters.uuid = ?)", accountID, uuid, isMod, uuid).First(letter).Error
 	return letter, err
 }
 
