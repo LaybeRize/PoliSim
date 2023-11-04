@@ -45,6 +45,7 @@ const (
 	rejectArticleLink       builder.HttpUrl = "press/article/reject"
 	RejectArticle                           = rejectArticleLink + "/{uuid}"
 	CreateLetter            builder.HttpUrl = "letter/personal/create"
+	CreateModmail           builder.HttpUrl = "letter/modmail/create"
 	ViewLetterLink          builder.HttpUrl = "letter/personal/view"
 	ViewLetter                              = ViewLetterLink + "/{account}"
 	ViewSingleLetter                        = ViewLetterLink + "/{account}/{uuid}"

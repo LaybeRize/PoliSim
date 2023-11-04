@@ -17,17 +17,42 @@ func InstallLetter() {
 	composition.SidebarTitleMap[composition.CreateLetter] = builder.Translation["letterCreateSidebarText"]
 	composition.GetHTMXFunctions[composition.CreateLetter] = GetCreateLetterService
 	composition.PostHTMXFunctions[composition.CreateLetter] = PostCreateletterService
+
 	composition.PageTitleMap[composition.ViewLetter] = builder.Translation["letterViewPageTitle"]
 	composition.SidebarTitleMap[composition.ViewLetter] = builder.Translation["letterViewSidebarText"]
 	composition.GetHTMXFunctions[composition.ViewLetter] = GetViewLetterService
 	composition.PatchHTMXFunctions[composition.ChangeViewLetterAccount] = PatchViewLetterService
+
 	composition.PageTitleMap[composition.ViewSingleLetter] = builder.Translation["letterViewSinglePageTitle"]
 	composition.GetHTMXFunctions[composition.ViewSingleLetter] = GetViewSingleLetterService
 	composition.PatchHTMXFunctions[composition.UpdateLetter] = PatchSigningLetterService
+
 	composition.PageTitleMap[composition.ViewModMails] = builder.Translation["modMailListViewPageTitle"]
 	composition.SidebarTitleMap[composition.ViewModMails] = builder.Translation["modMailListViewSidebarText"]
 	composition.GetHTMXFunctions[composition.ViewModMails] = GetViewModMailListService
+
+	composition.PageTitleMap[composition.CreateModmail] = builder.Translation["modMailCreatePageTitle"]
+	composition.SidebarTitleMap[composition.CreateModmail] = builder.Translation["modMailCreateSidebarText"]
+	composition.GetHTMXFunctions[composition.CreateModmail] = GetCreateModMailService
+	composition.PostHTMXFunctions[composition.CreateModmail] = PostCreateModMailService
 }
+
+func PostCreateModMailService(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func GetCreateModMailService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	html := composition.GetCreateModMailPage(&validation.CreateLetter{}, validation.Message{})
+	createModMailRenderRequest(w, r, acc, html)
+}
+
+var createModMailRenderRequest = genericRenderer(composition.CreateModmail)
 
 var standardAmount = 10
 

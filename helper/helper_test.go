@@ -34,20 +34,8 @@ func TestRemoveFromArray(t *testing.T) {
 	assert.Equal(t, []string{"2", "1", "4", "3"}, arr)
 }
 
-func TestGetPositionOfString(t *testing.T) {
-	arr := []string{"1", "2", "3", "4", "3"}
-	assert.Equal(t, 2, GetPositionOfString(&arr, "3"))
-	assert.Equal(t, -1, GetPositionOfString(&arr, "abv"))
-}
-
 func TestRemoveFirstStringOccurrenceFromArray(t *testing.T) {
 	arr := []string{"1", "2", "3", "4", "3"}
 	RemoveFirstStringOccurrenceFromArray(&arr, "3")
 	assert.Equal(t, []string{"2", "1", "4", "3"}, arr)
-}
-
-func TestArrayContainsString(t *testing.T) {
-	arr := []string{"1", "2", "3", "4", "3"}
-	assert.True(t, ArrayContainsString(&arr, "3"))
-	assert.False(t, ArrayContainsString(&arr, "abv"))
 }

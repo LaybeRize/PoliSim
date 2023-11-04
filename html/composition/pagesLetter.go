@@ -4,10 +4,10 @@ import (
 	"PoliSim/data/extraction"
 	"PoliSim/data/logic"
 	"PoliSim/data/validation"
-	"PoliSim/helper"
 	. "PoliSim/html/builder"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 )
 
@@ -28,6 +28,29 @@ func GetCreateNormalLetterPage(acc *extraction.AccountAuth, letter *validation.C
 			getTextArea("content", "content", letter.Content, Translation["letterContent"], true),
 			getEditableList(letter.Reader, "reader", "displayNames", Translation["addLetterReaderButtonText"], "w-[800px]"),
 			getSubmitButton(Translation["createLetterButton"])),
+		GetMessage(val),
+		getPreviewElement(),
+	)
+}
+
+func GetCreateModMailPage(letter *validation.CreateLetter, val validation.Message) Node {
+	display, err := extraction.ReturnListOfDisplayNames()
+	if err != nil {
+		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
+	}
+	return getBasePageWrapper(
+		getDataList("displayNames", display),
+		getPageHeader(CreateModmail),
+		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateModmail), CLASS("w-[800px]"),
+			getSimpleTextInput("authorAccount", "authorAccount", letter.Account, Translation["modMailAccount"]),
+			getSimpleTextInput("flair", "flair", letter.Flair, Translation["modMailFlair"]),
+			getSimpleTextInput("title", "title", letter.Title, Translation["modMailTitle"]),
+			getCheckBox("noSigning", letter.NoSigning, false, "true", "noSigning", Translation["modMailNoSigning"],
+				HYPERSCRIPT("on click toggle .hidden on #allHaveToAgree")),
+			getCheckBox("allHaveToAgree", letter.AllHaveToAgree, false, "true", "allHaveToAgree", Translation["modMailAllHaveToAgree"], nil),
+			getTextArea("content", "content", letter.Content, Translation["modMailContent"], true),
+			getEditableList(letter.Reader, "reader", "displayNames", Translation["addModMailReaderButtonText"], "w-[800px]"),
+			getSubmitButton(Translation["createModMailButton"])),
 		GetMessage(val),
 		getPreviewElement(),
 	)
@@ -106,7 +129,7 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 	} else {
 		infoText = fmt.Sprintf(letter.Written.Format(Translation["authorNormalLetter"]), letter.Author)
 	}
-	hasNotSigned := helper.GetPositionOfString(&letter.Info.PeopleNotYetSigned, account.DisplayName) != -1
+	hasNotSigned := slices.Index(letter.Info.PeopleNotYetSigned, account.DisplayName) != -1
 	var specialNode Node = nil
 	if !letter.Info.NoSigning && !letter.Info.AllHaveToAgree {
 		notYetSigned := strings.Join(letter.Info.PeopleNotYetSigned, ", ")

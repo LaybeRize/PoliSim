@@ -31,6 +31,7 @@ func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
 		getSidebarButton(level, database.MediaAdmin, ViewHiddenNewspaperList),
 		getSidebarButton(level, database.MediaAdmin, ViewModMails),
+		getSidebarButton(level, database.MediaAdmin, CreateModmail),
 		If(database.Admin <= level, getSidebarBreaker()),
 		getSideBarSubMenu(level, database.Admin, Translation["organisationSubMenu"],
 			getSidebarSubMenuButton(level, database.Admin, CreateOrganisation),

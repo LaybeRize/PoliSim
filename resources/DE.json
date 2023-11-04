@@ -224,5 +224,15 @@
   "noArticleToPublish": "Leere Zeitungen können nicht veröffentlicht werden",
   "modMailListViewPageTitle": "Moderationsbriefe",
   "modMailListViewSidebarText": "Moderationsbriefe anschauen",
-  "authorShortFormLetter": "von %s"
+  "authorShortFormLetter": "von %s",
+  "modMailAccount": "Sendername",
+  "modMailFlair": "Senderflair",
+  "modMailTitle": "Titel des Moderationsbrief",
+  "modMailAllHaveToAgree": "Alle Leser müssen zustimmen",
+  "modMailNoSigning": "Unterschreiben untersagen",
+  "modMailContent": "Moderationsbriefinhalt",
+  "addModMailReaderButtonText": "Leser hinzufügen",
+  "createModMailButton": "Moderationsbrief erstellen",
+  "modMailCreatePageTitle": "Moderationsbrief erstellen",
+  "modMailCreateSidebarText": "Moderationsbrief erstellen"
 }

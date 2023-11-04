@@ -7,29 +7,9 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 )
-
-// ArrayContainsString returns true if the string is contained in the array.
-func ArrayContainsString(s *[]string, str string) bool {
-	for _, v := range *s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
-}
-
-// GetPositionOfString returns the position of the first occurrence in the array or -1 if it is not contained within.
-func GetPositionOfString(input *[]string, value string) int {
-	for p, v := range *input {
-		if v == value {
-			return p
-		}
-	}
-	return -1
-}
 
 // RemoveFromArray takes the position of the given the array, writes the value from position
 // zero into it and cuts the first value of the array. It does not change the array when i == -1
@@ -49,9 +29,9 @@ func RemoveFromArray(s *[]string, i int) {
 }
 
 // RemoveFirstStringOccurrenceFromArray removes the first occurrence of the str parameter from the given array.
-// if there is no such string in the array, the array will not be modified. For how the modification is processed view RemoveFromArray and GetPositionOfString.
+// if there is no such string in the array, the array will not be modified. For how the modification is processed view RemoveFromArray and slices.Index.
 func RemoveFirstStringOccurrenceFromArray(s *[]string, str string) {
-	i := GetPositionOfString(s, str)
+	i := slices.Index(*s, str)
 	RemoveFromArray(s, i)
 }
 
