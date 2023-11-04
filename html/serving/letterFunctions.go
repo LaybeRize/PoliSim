@@ -38,7 +38,30 @@ func InstallLetter() {
 }
 
 func PostCreateModMailService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
 
+	msg := validation.Message{Positive: false}
+
+	create := &validation.CreateLetter{}
+	err := extractFormValuesForFields(create, r, 0)
+	if err != nil {
+		msg.Message = builder.Translation["extractionError"]
+		createModMailOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	msg = create.CreateModMail()
+	if !msg.Positive {
+		createModMailOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	html := composition.GetCreateModMailPage(create, msg)
+	createModMailRenderRequest(w, r, acc, html)
 }
 
 func GetCreateModMailService(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +76,7 @@ func GetCreateModMailService(w http.ResponseWriter, r *http.Request) {
 }
 
 var createModMailRenderRequest = genericRenderer(composition.CreateModmail)
+var createModMailOnlySwapMessage = genericMessageSwapper(composition.CreateModmail)
 
 var standardAmount = 10
 

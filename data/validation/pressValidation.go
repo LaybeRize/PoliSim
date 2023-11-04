@@ -21,9 +21,11 @@ type CreateArticle struct {
 	Account        string `input:"authorAccount"`
 }
 
-var maxPressTitleLength = 150
-var maxPressSubtitleLength = 300
-var MaxPressContentLength = 20_000
+const (
+	maxPressTitleLength    = 150
+	maxPressContentLength  = 20_000
+	maxPressSubtitleLength = 300
+)
 
 func (form *CreateArticle) CreateArticle(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
@@ -37,9 +39,9 @@ func (form *CreateArticle) CreateArticle(requestAccountID int64) (validate Messa
 		// has no valid subtitle
 		validate.Message = fmt.Sprintf(builder.Translation["tooLongSubtitleForPress"], maxPressSubtitleLength)
 		return
-	case isValidString(form.Content, MaxPressContentLength):
+	case isValidString(form.Content, maxPressContentLength):
 		// has no valid content
-		validate.Message = fmt.Sprintf(builder.Translation["missingContentForPress"], MaxPressContentLength)
+		validate.Message = fmt.Sprintf(builder.Translation["missingContentForPress"], maxPressContentLength)
 		return
 	case err == nil:
 		// error with author account

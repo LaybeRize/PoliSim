@@ -234,5 +234,9 @@
   "addModMailReaderButtonText": "Leser hinzufügen",
   "createModMailButton": "Moderationsbrief erstellen",
   "modMailCreatePageTitle": "Moderationsbrief erstellen",
-  "modMailCreateSidebarText": "Moderationsbrief erstellen"
+  "modMailCreateSidebarText": "Moderationsbrief erstellen",
+  "missingModMailAuthor": "Briefautor fehlt oder ist zu lang (maximal %d Zeichen)",
+  "modMailFlairTooLong": "Briefautorflair überschreitet das Maximum von %d Zeichen",
+  "successfullyCreatedModMail": "Moderationsbrief erfolgreich erstellt",
+  "errorCreatingModMail":"Es ist ein Fehler bei der Erstellung des Moderationsbriefes aufgetreten"
 }

@@ -31,11 +31,11 @@ func (form *CreateLetter) CreateNormalLetter(requestAccountID int64) (validate M
 	switch false {
 	case isValidString(form.Title, maxLetterTitleLength):
 		// has no valid title
-		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForLetter"], maxPressTitleLength)
+		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForLetter"], maxLetterTitleLength)
 		return
 	case isValidString(form.Content, maxLetterContentLength):
 		// has no valid content
-		validate.Message = fmt.Sprintf(builder.Translation["missingContentForLetter"], MaxPressContentLength)
+		validate.Message = fmt.Sprintf(builder.Translation["missingContentForLetter"], maxLetterContentLength)
 		return
 	case err == nil:
 		// error with author account
@@ -86,6 +86,73 @@ func (form *CreateLetter) CreateNormalLetter(requestAccountID int64) (validate M
 	form.Content = ""
 	return Message{
 		Message:  builder.Translation["successfullyCreatedLetter"],
+		Positive: true,
+	}
+}
+
+const (
+	maxAuthorNameLength         = 200
+	maxModMailAuthorFlairLength = 200
+)
+
+func (form *CreateLetter) CreateModMail() (validate Message) {
+	validate = Message{Positive: false}
+	switch false {
+	case isValidString(form.Title, maxLetterTitleLength):
+		// has no valid title
+		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForLetter"], maxLetterTitleLength)
+		return
+	case isValidString(form.Content, maxLetterContentLength):
+		// has no valid content
+		validate.Message = fmt.Sprintf(builder.Translation["missingContentForLetter"], maxLetterContentLength)
+		return
+	case isValidString(form.Account, maxAuthorNameLength):
+		// has no valid author
+		validate.Message = fmt.Sprintf(builder.Translation["missingModMailAuthor"], maxAuthorNameLength)
+		return
+	case len([]rune(form.Flair)) <= maxModMailAuthorFlairLength:
+		//has no valid flair
+		validate.Message = fmt.Sprintf(builder.Translation["modMailFlairTooLong"], maxModMailAuthorFlairLength)
+		return
+	}
+	reader, ok, err := extraction.DoAccountsExist(form.Reader)
+	if !ok {
+		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
+		return
+	}
+	if len(*reader) == 0 {
+		validate.Message = builder.Translation["noReaderForLetter"]
+		return
+	}
+	letter := database.Letter{
+		UUID:        uuid.New().String(),
+		Written:     time.Now(),
+		Author:      form.Account,
+		Flair:       form.Flair,
+		Title:       form.Title,
+		Content:     form.Content,
+		HTMLContent: helper.CreateHTML(form.Content),
+		Info: database.LetterInfo{
+			AllHaveToAgree:     form.AllHaveToAgree,
+			NoSigning:          form.NoSigning,
+			PeopleNotYetSigned: form.Reader,
+			Signed:             []string{},
+			Rejected:           []string{},
+		},
+		Viewer:     *reader,
+		Removed:    false,
+		ModMessage: true,
+	}
+	err = extraction.CreateLetter(&letter)
+	if err != nil {
+		validate.Message = builder.Translation["errorCreatingModMail"]
+		return
+	}
+
+	form.Title = ""
+	form.Content = ""
+	return Message{
+		Message:  builder.Translation["successfullyCreatedModMail"],
 		Positive: true,
 	}
 }
