@@ -1,30 +1,5 @@
 package database
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-	"fmt"
-)
-
-func (voteI *VoteInfo) Scan(val interface{}) error {
-	switch v := val.(type) {
-	case []byte:
-		err := json.Unmarshal(v, &voteI)
-		return err
-	case string:
-		err := json.Unmarshal([]byte(v), &voteI)
-		return err
-	default:
-		return errors.New(fmt.Sprintf("Unsupported type: %T", v))
-	}
-}
-
-func (voteI *VoteInfo) Value() driver.Value {
-	l, _ := json.Marshal(&voteI)
-	return l
-}
-
 type (
 	VoteType  string
 	VotesList []Votes
@@ -36,7 +11,7 @@ type (
 		ShowNamesWhileVoting   bool
 		ShowNamesAfterVoting   bool
 		Finished               bool
-		Info                   VoteInfo `gorm:"type:jsonb"`
+		Info                   VoteInfo `gorm:"type:jsonb;serializer:json"`
 	}
 	VoteInfo struct {
 		Results     map[string]Results `json:"results"`

@@ -10,29 +10,30 @@ type (
 	DocumentTypeList []DocumentType
 	DocumentList     []Document
 	Document         struct {
-		UUID         string `gorm:"primaryKey"`
-		Written      time.Time
-		Organisation string
-		Type         DocumentType
-		Author       string
-		Flair        string
-		Title        string
-		Subtitle     sql.NullString
-		HTMLContent  string
-		Private      bool
-		Blocked      bool
-		Info         DocumentInfo `gorm:"type:jsonb;serializer:json"`
-		Viewer       []Account    `gorm:"many2many:doc_viewer;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
-		Poster       []Account    `gorm:"many2many:doc_poster;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
-		Allowed      []Account    `gorm:"many2many:doc_allowed;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
+		UUID                      string `gorm:"primaryKey"`
+		Written                   time.Time
+		Organisation              string
+		Type                      DocumentType
+		Author                    string
+		Flair                     string
+		Title                     string
+		Subtitle                  sql.NullString
+		HTMLContent               string
+		Private                   bool
+		Blocked                   bool
+		CurrentPostTag            string       `gorm:"column:current_tag_info"`
+		AnyPosterAllowed          bool         `gorm:"column:allowed_any"`
+		OrganisationPosterAllowed bool         `gorm:"column:allowed_members"`
+		Info                      DocumentInfo `gorm:"type:jsonb;serializer:json"`
+		Viewer                    []Account    `gorm:"many2many:doc_viewer;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
+		Poster                    []Account    `gorm:"many2many:doc_poster;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
+		Allowed                   []Account    `gorm:"many2many:doc_allowed;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
 	}
 	DocumentInfo struct {
-		AnyPosterAllowed          bool          `json:"anyPosterAllowed"`
-		OrganisationPosterAllowed bool          `json:"organisationPosterAllowed"`
-		Finishing                 time.Time     `json:"time"`
-		Post                      []Posts       `json:"post"`
-		Discussion                []Discussions `json:"discussion"`
-		Votes                     []string      `json:"vote"`
+		Finishing  time.Time     `json:"time"`
+		Post       []Posts       `json:"post"`
+		Discussion []Discussions `json:"discussion"`
+		Votes      []string      `json:"vote"`
 	}
 	Posts struct {
 		UUID      string    `json:"uuid"`

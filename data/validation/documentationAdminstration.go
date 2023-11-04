@@ -1,0 +1,88 @@
+package validation
+
+import (
+	"PoliSim/data/database"
+	"PoliSim/helper"
+	"PoliSim/html/builder"
+	"database/sql"
+	"fmt"
+	"github.com/google/uuid"
+	"time"
+)
+
+type CreateDocument struct {
+	Title        string `input:"title"`
+	Subtitle     string `input:"subtitle"`
+	Content      string `input:"content"`
+	TagText      string `input:"tag"`
+	TagColor     string `input:"color"`
+	Account      string `input:"authorAccount"`
+	Organisation string `input:"organisation"`
+}
+
+const (
+	maxDocumentTitleLength    = 200
+	maxDocumentSubtitleLength = 400
+	maxDocumentContentLength  = 100_000
+	maxDocumentInfoTagLength  = 200
+)
+
+func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Message) {
+	validate = Message{Positive: false}
+	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
+	switch false {
+	case isValidString(form.Title, maxDocumentTitleLength):
+		// has no valid title
+		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForDocument"], maxDocumentTitleLength)
+		return
+	case len([]rune(form.Subtitle)) <= maxDocumentSubtitleLength:
+		// has no valid title
+		validate.Message = fmt.Sprintf(builder.Translation["tooLongSubtitleForDocument"], maxDocumentSubtitleLength)
+		return
+	case isValidString(form.Content, maxDocumentContentLength):
+		// has no valid content
+		validate.Message = fmt.Sprintf(builder.Translation["missingContentForDocument"], maxDocumentContentLength)
+		return
+	case isValidString(form.TagText, maxDocumentInfoTagLength):
+		// has no valid content
+		validate.Message = fmt.Sprintf(builder.Translation["missingTagTextForDocument"], maxDocumentInfoTagLength)
+		return
+	case err == nil:
+		// error with author account
+		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
+		return
+	case ok:
+		// not allowed for author account
+		validate.Message = builder.Translation["notAllowedToUseAccount"]
+		return
+	}
+
+	document := database.Document{
+		UUID:         uuid.New().String(),
+		Written:      time.Now(),
+		Organisation: form.Organisation,
+		Type:         database.LegislativeText,
+		Author:       account.DisplayName,
+		Flair:        account.Flair,
+		Title:        form.Title,
+		Subtitle: sql.NullString{
+			String: form.Subtitle,
+			Valid:  form.Subtitle != "",
+		},
+		HTMLContent:    helper.CreateHTML(form.Content),
+		CurrentPostTag: form.TagText,
+		Info: database.DocumentInfo{
+			Finishing: time.Time{},
+			Post: []database.Posts{{
+				UUID:      uuid.New().String(),
+				Submitted: time.Now(),
+				Info:      form.TagText,
+				Color:     form.TagColor,
+			}},
+		},
+	}
+
+	_ = document
+
+	return
+}

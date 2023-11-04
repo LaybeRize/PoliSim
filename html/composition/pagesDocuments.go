@@ -1,0 +1,5 @@
+package composition
+
+func CreateDocumentPage() {
+
+}
