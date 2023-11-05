@@ -4,6 +4,7 @@ import (
 	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
+	"html/template"
 	"os"
 	"strings"
 )
@@ -58,7 +59,8 @@ func GetMessage(val validation.Message) Node {
 		P(If(val.Message == "", HIDDEN()),
 			IfElse(val.Positive, CLASS("text-white p-2 mt-2 bg-emerald-800"),
 				CLASS("text-white p-2 mt-2 bg-rose-800")),
-			Text(val.Message),
+			Raw(strings.ReplaceAll(
+				template.HTMLEscapeString(val.Message), "\n", "<br>")),
 		))
 }
 

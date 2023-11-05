@@ -18,6 +18,7 @@ type CreateDocument struct {
 	TagColor     string `input:"color"`
 	Account      string `input:"authorAccount"`
 	Organisation string `input:"organisation"`
+	UUIDredirect string
 }
 
 const (

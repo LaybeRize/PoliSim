@@ -242,5 +242,13 @@
   "missingTitleForDocument": "Dokumenttitel fehlt oder ist zu lang (maximal %d Zeichen)",
   "missingContentForDocument": "Dokumentinhalt fehlt oder ist zu lang (maximal %d Zeichen)",
   "missingTagTextForDocument": "Dokumentzuordnung fehlt oder ist zu lang (maximal %d Zeichen)",
-  "tooLongSubtitleForDocument": "Dokument untertitel überschreitet das Maximum von %d Zeichen"
+  "tooLongSubtitleForDocument": "Dokument untertitel überschreitet das Maximum von %d Zeichen",
+  "documentTextCreatePageTitle": "Textdokument erstellen",
+  "documentTextCreateSidebarText": "Textdokument erstellen",
+  "documentTextViewPageTitle": "Textdokument",
+  "accountTextDocument": "Textdokumentautor",
+  "titleTextDocument": "Dokumenttitel",
+  "subtitleTextDocument": "Dokumentuntertitel",
+  "contentTextDocument": "Dokumentinhalt",
+  "createTextDocumentButton": "Dokument erstellen"
 }

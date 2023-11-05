@@ -42,6 +42,7 @@ func main() {
 	serving.InstallMarkdown()
 	serving.InstallPress()
 	serving.InstallLetter()
+	serving.InstallDocumentText()
 
 	_, _ = fmt.Fprintf(os.Stdout, "Creating cookie store\n")
 	validation.CreateStore()
