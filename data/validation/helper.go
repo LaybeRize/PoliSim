@@ -45,3 +45,17 @@ func IsAccountValidForUser(userID int64, accountDisplayName string) (*extraction
 	}
 	return acc, false, err
 }
+
+// IsOrganisationValidForAccount returns the organisation and a boolean indicating if the user is an admin or not
+func IsOrganisationValidForAccount(userID int64, organisationName string) (*database.Organisation, bool, error) {
+	org, err := extraction.GetOrganisationForWithUserInIt(userID, organisationName)
+	if err != nil {
+		return org, false, err
+	}
+	for _, account := range org.Admins {
+		if account.ID == userID {
+			return org, true, err
+		}
+	}
+	return org, false, err
+}

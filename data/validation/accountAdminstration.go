@@ -26,7 +26,7 @@ type AccountModification struct {
 	Linked           int64  `input:"linked"`
 }
 
-var maxNameLength = 100
+const maxNameLength = 100
 
 func (form *AccountModification) RequestAccount() (validate Message) {
 	validate = Message{Positive: false}

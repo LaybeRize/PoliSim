@@ -5,6 +5,7 @@ import (
 	"PoliSim/data/extraction"
 	"PoliSim/html/builder"
 	"database/sql"
+	"errors"
 	"fmt"
 	"gorm.io/gorm"
 )
@@ -18,11 +19,12 @@ type TitleModification struct {
 	Holder    []string `input:"holder"`
 }
 
-var maxTitleLength = 200
-
 // both below are also used in organisationAdminstration
-var maxGroupNameLength = 200
-var maxFlairLength = 20
+const (
+	maxTitleLength     = 200
+	maxGroupNameLength = 200
+	maxFlairLength     = 20
+)
 
 func (form *TitleModification) CreateTitle() (validate Message) {
 	validate = Message{Positive: false}
@@ -81,7 +83,7 @@ func (form *TitleModification) CreateTitle() (validate Message) {
 func (form *TitleModification) SearchTitle() (validate Message) {
 	validate = Message{Positive: false}
 	title, err := extraction.GetTitle(form.Name)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		validate.Message = builder.Translation["titleNotFound"]
 		return
 	} else if err != nil {
@@ -106,7 +108,7 @@ func (form *TitleModification) SearchTitle() (validate Message) {
 func (form *TitleModification) ModifyTitle() (validate Message) {
 	validate = Message{Positive: false}
 	title, err := extraction.GetTitle(form.Name)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		validate.Message = builder.Translation["titleNotFoundForModification"]
 		return
 	}
@@ -169,7 +171,7 @@ func (form *TitleModification) ModifyTitle() (validate Message) {
 func (form *TitleModification) DeleteTitle() (validate Message) {
 	validate = Message{Positive: false}
 	title, err := extraction.GetTitle(form.Name)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		validate.Message = builder.Translation["titleNotFoundForDeletion"]
 		return
 	} else if err != nil {

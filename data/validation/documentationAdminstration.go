@@ -2,6 +2,7 @@ package validation
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 	"PoliSim/helper"
 	"PoliSim/html/builder"
 	"database/sql"
@@ -57,11 +58,21 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 		validate.Message = builder.Translation["notAllowedToUseAccount"]
 		return
 	}
+	var org *database.Organisation
+	org, ok, err = IsOrganisationValidForAccount(account.ID, form.Organisation)
+	if err != nil {
+		validate.Message = builder.Translation["databaseErrorWithOrganisationAccount"]
+		return
+	}
+	if !ok {
+		validate.Message = builder.Translation["notAnAdminOfOrganisation"]
+		return
+	}
 
 	document := database.Document{
 		UUID:         uuid.New().String(),
 		Written:      time.Now(),
-		Organisation: form.Organisation,
+		Organisation: org.Name,
 		Type:         database.LegislativeText,
 		Author:       account.DisplayName,
 		Flair:        account.Flair,
@@ -83,7 +94,12 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 		},
 	}
 
-	_ = document
+	err = extraction.CreateDocument(&document)
+	if err != nil {
+		validate.Message = builder.Translation["errorCreatingDocument"]
+		return
+	}
 
-	return
+	form.UUIDredirect = document.UUID
+	return Message{Positive: true}
 }

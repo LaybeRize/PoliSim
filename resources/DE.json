@@ -250,5 +250,8 @@
   "titleTextDocument": "Dokumenttitel",
   "subtitleTextDocument": "Dokumentuntertitel",
   "contentTextDocument": "Dokumentinhalt",
-  "createTextDocumentButton": "Dokument erstellen"
+  "createTextDocumentButton": "Dokument erstellen",
+  "databaseErrorWithOrganisationAccount": "Der ausgewählte Account ist kein Teil der Organisation oder die Organisation existiert nicht",
+  "notAnAdminOfOrganisation": "Der ausgewählte Account ist kein Adminstrator innerhalb der Organisation",
+  "errorCreatingDocument": "Es ist ein Fehler beim erstellen des Dokuments aufgetreten"
 }

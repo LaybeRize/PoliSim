@@ -126,7 +126,7 @@ func GetOrganisationGroupings(accountID int64) (*[][]string, error) {
 	err := database.DB.Joins("LEFT JOIN organisation_account ON organisations.name = organisation_account.name").
 		Where("organisation_account.id = ? OR status = 'public' OR status = 'private'", accountID).
 		Distinct("main_group, sub_group").Order("main_group, sub_group").Find(list).Error
-	return transFormList(list), err
+	return transformList(list), err
 }
 
 func GetOrganisationGroupingsForAdmins() (*[][]string, error) {
@@ -134,10 +134,10 @@ func GetOrganisationGroupingsForAdmins() (*[][]string, error) {
 	err := database.DB.
 		Where("NOT status = 'hidden'").
 		Distinct("main_group, sub_group").Order("main_group, sub_group").Find(list).Error
-	return transFormList(list), err
+	return transformList(list), err
 }
 
-func transFormList(list *database.OrganisationList) *[][]string {
+func transformList(list *database.OrganisationList) *[][]string {
 	var array = make([][]string, 1, 21)
 	array[0] = make([]string, 0, 20)
 	if len(*list) != 0 {
@@ -160,4 +160,16 @@ func transFormList(list *database.OrganisationList) *[][]string {
 		}
 	}
 	return &array
+}
+
+func GetOrganisationForWithUserInIt(userID int64, organisationName string) (*database.Organisation, error) {
+	org := &database.Organisation{}
+	err := database.DB.Joins("LEFT JOIN organisation_member ON organisations.name = organisation_member.name").
+		Joins("LEFT JOIN organisation_admins ON organisations.name = organisation_admins.name").
+		Preload("Admins", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, display_name")
+		}).
+		Where("(organisation_admins.id = ? OR organisation_member.id = ?) AND organisations.name = ?", userID, userID, organisationName).
+		Select("organisations.name, main_group, sub_group, flair, status").First(org).Error
+	return org, err
 }

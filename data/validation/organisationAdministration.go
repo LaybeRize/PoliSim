@@ -20,7 +20,7 @@ type OrganisationModification struct {
 	Admins    []string `input:"admins"`
 }
 
-var maxOrganisationLength = 200
+const maxOrganisationLength = 200
 
 func (form *OrganisationModification) CreateOrganisation() (validate Message) {
 	validate = Message{Positive: false}

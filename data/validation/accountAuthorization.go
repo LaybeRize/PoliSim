@@ -5,6 +5,7 @@ import (
 	"PoliSim/data/extraction"
 	"PoliSim/html/builder"
 	"database/sql"
+	"errors"
 	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -14,7 +15,7 @@ import (
 )
 
 // timeUntilTokenRunsOut defines the time in seconds until a token becomes invalid
-var timeUntilTokenRunsOut = 60 * 60 * 24 * 7
+const timeUntilTokenRunsOut = 60 * 60 * 24 * 7
 
 var store = &sessions.CookieStore{}
 
@@ -76,7 +77,7 @@ func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate
 	//check if user account exists
 	var err error
 	acc, err = extraction.GetAccountForLogin(form.Username)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		validate.Message = builder.Translation["passwordOrUsernameWrong"]
 		return
 	}
