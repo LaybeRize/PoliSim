@@ -23,6 +23,20 @@ type CreateDocument struct {
 	UUIDredirect string
 }
 
+type CreateDiscussion struct {
+	Title             string   `input:"title"`
+	Subtitle          string   `input:"subtitle"`
+	Content           string   `input:"content"`
+	Private           bool     `input:"private"`
+	MembersCanComment bool     `input:"membersCanComment"`
+	AnyoneCanComment  bool     `input:"anyoneCanComment"`
+	Account           string   `input:"authorAccount"`
+	Organisation      string   `input:"organisation"`
+	Reader            []string `input:"reader"`
+	Writer            []string `input:"writer"`
+	UUIDredirect      string
+}
+
 const (
 	maxDocumentTitleLength    = 200
 	maxDocumentSubtitleLength = 400
@@ -108,4 +122,9 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 
 	form.UUIDredirect = document.UUID
 	return Message{Positive: true}
+}
+
+func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate Message) {
+	validate = Message{Positive: false}
+	return
 }

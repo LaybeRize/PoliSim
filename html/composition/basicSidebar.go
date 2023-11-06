@@ -29,6 +29,7 @@ func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
 			getSidebarButton(level, database.User, CreatePressRelease),
 			getSidebarButton(level, database.User, CreateLetter),
 			getSidebarButton(level, database.User, CreateTextDocument),
+			getSidebarButton(level, database.User, CreateDiscussionDocument),
 		),
 		getSidebarButtonDetailed(level, database.User, ViewLetterLink+HttpUrl("/"+url.PathEscape(acc.DisplayName)), SidebarTitleMap[ViewLetter]),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
