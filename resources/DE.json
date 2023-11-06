@@ -10,7 +10,7 @@
   "passwordOrUsernameWrong": "Der Nutzername oder das Passwort sind fehlerhaft",
   "internalLoginAccountError": "Es ist ein Fehler beim Abfragen des Accounts aufgetreten",
   "hasInternalLoginTimer": "Du kannst dich erst wieder am 02.01.2006 um 15:04:05 anmelden",
-  "accountIsSuspended": "Dein Account ist suspendiert",
+  "accountIsSuspended": "Der Account ist suspendiert",
   "errorWhileTryingToLogYouOut": "Es ist ein Fehler aufgetreten bei dem Versuch dich abzumelden",
   "successFullLoggedIn": "Du wurdest angemeldet",
   "successfullyLoggedOut": "Du wurdest erfolgreich abgemeldet",
@@ -246,12 +246,17 @@
   "documentTextCreatePageTitle": "Textdokument erstellen",
   "documentTextCreateSidebarText": "Textdokument erstellen",
   "documentTextViewPageTitle": "Textdokument",
-  "accountTextDocument": "Textdokumentautor",
+  "accountDocument": "Dokumentautor",
+  "organisationDocument": "Organisation für Dokument",
   "titleTextDocument": "Dokumenttitel",
   "subtitleTextDocument": "Dokumentuntertitel",
   "contentTextDocument": "Dokumentinhalt",
   "createTextDocumentButton": "Dokument erstellen",
   "databaseErrorWithOrganisationAccount": "Der ausgewählte Account ist kein Teil der Organisation oder die Organisation existiert nicht",
   "notAnAdminOfOrganisation": "Der ausgewählte Account ist kein Adminstrator innerhalb der Organisation",
-  "errorCreatingDocument": "Es ist ein Fehler beim erstellen des Dokuments aufgetreten"
+  "errorCreatingDocument": "Es ist ein Fehler beim erstellen des Dokuments aufgetreten",
+  "errorRetrievingOrganisationForAccount": "Es ist ein Fehler bei der Suche der Organisation für den Account aufgetreten",
+  "tagTextDocument": "Dokumentstatus",
+  "tagColorTextDocument": "Dokumentstatusfarbe",
+  "invalidHexColor": "Der übergeben Wert für die Dokumentstatusfarbe ist keine valide Hex-Farbe"
 }

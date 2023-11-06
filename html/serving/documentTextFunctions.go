@@ -16,6 +16,37 @@ func InstallDocumentText() {
 	composition.PostHTMXFunctions[composition.CreateTextDocument] = PostDocumentTextCreationService
 	composition.PageTitleMap[composition.ViewTextDocument] = builder.Translation["documentTextViewPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewTextDocument] = GetDocumentTextViewService
+	composition.PatchHTMXFunctions[composition.UpdateUserSelection] = PatchUserSelectionService
+}
+
+func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
+	acc, _ := CheckUserPrivileges(r)
+
+	err := r.ParseForm()
+	name := ""
+	if err == nil {
+		name = r.PostFormValue("authorAccount")
+	}
+	account, ok, err := validation.IsAccountValidForUser(acc.ID, name)
+	if !ok || err != nil {
+		w.Header().Set("HX-Retarget", "#"+composition.MessageID)
+		html := composition.GetMessage(validation.Message{
+			Message:  builder.Translation["notAllowedToUseAccount"],
+			Positive: false,
+		})
+		renderRequest(w, html)
+		return
+	}
+
+	html, err := composition.UpdateUserOrganisations(acc, account, "", chi.URLParam(r, "isAdmin"))
+	var extraNode builder.Node = nil
+	if err != nil {
+		extraNode = composition.GetMessageOOB(validation.Message{
+			Message:  builder.Translation["errorRetrievingOrganisationForAccount"],
+			Positive: false,
+		})
+	}
+	renderRequest(w, builder.Group(html, extraNode))
 }
 
 func GetDocumentTextViewService(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +93,7 @@ func GetDocumentTextCreationService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := composition.CreateDocumentPage(acc, &validation.CreateDocument{}, validation.Message{})
+	html := composition.CreateDocumentPage(acc, &validation.CreateDocument{TagColor: "#008000"}, validation.Message{})
 	createTextDocumentRenderRequest(w, r, acc, html)
 }
 

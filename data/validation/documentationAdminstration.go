@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
+	"regexp"
 	"time"
 )
 
@@ -32,6 +33,7 @@ const (
 func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
 	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
+	var IsColor = regexp.MustCompile(`^#[a-fA-F0-9]{6}$`).MatchString
 	switch false {
 	case isValidString(form.Title, maxDocumentTitleLength):
 		// has no valid title
@@ -56,6 +58,10 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 	case ok:
 		// not allowed for author account
 		validate.Message = builder.Translation["notAllowedToUseAccount"]
+		return
+	case IsColor(form.TagColor):
+		//tag color doesn't fit the format anyway
+		validate.Message = builder.Translation["invalidHexColor"]
 		return
 	}
 	var org *database.Organisation

@@ -7,14 +7,17 @@ import (
 )
 
 const (
-	MainBodyID = "main-body-div"
-	SidebarID  = "sidebar-element"
-	MessageID  = "message-div"
-	DisplayID  = "preview-display-div"
+	MainBodyID      = "main-body-div"
+	UserSelectionID = "user-organisation-select-div"
+	SidebarID       = "sidebar-element"
+	MessageID       = "message-div"
+	DisplayID       = "preview-display-div"
 
 	Start                   builder.HttpUrl = "start"
 	Login                   builder.HttpUrl = "login"
 	Logout                  builder.HttpUrl = "logout"
+	updateUserSelectionLink builder.HttpUrl = "document/update/account/selection/"
+	UpdateUserSelection                     = updateUserSelectionLink + "{isAdmin}"
 	CreateVote              builder.HttpUrl = "document/vote/create"
 	RequestVotePartial      builder.HttpUrl = "document/vote/request-partial"
 	CreateTextDocument      builder.HttpUrl = "document/text/create"

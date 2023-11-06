@@ -173,3 +173,19 @@ func GetOrganisationForWithUserInIt(userID int64, organisationName string) (*dat
 		Select("organisations.name, main_group, sub_group, flair, status").First(org).Error
 	return org, err
 }
+
+func GetOrganisationsForWithUserInIt(userID int64, isAdmin bool) (*database.OrganisationList, error) {
+	org := &database.OrganisationList{}
+	var err error
+	if isAdmin {
+		err = database.DB.Joins("LEFT JOIN organisation_admins ON organisations.name = organisation_admins.name").
+			Where("organisation_admins.id = ?", userID).
+			Select("DISTINCT organisations.name").Order("organisations.name").Find(org).Error
+	} else {
+		err = database.DB.Joins("LEFT JOIN organisation_member ON organisations.name = organisation_member.name").
+			Joins("LEFT JOIN organisation_admins ON organisations.name = organisation_admins.name").
+			Where("organisation_admins.id = ? OR organisation_member.id = ?", userID, userID).
+			Select("DISTINCT organisations.name").Order("organisations.name").Find(org).Error
+	}
+	return org, err
+}
