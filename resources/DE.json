@@ -258,5 +258,6 @@
   "errorRetrievingOrganisationForAccount": "Es ist ein Fehler bei der Suche der Organisation für den Account aufgetreten",
   "tagTextDocument": "Dokumentstatus",
   "tagColorTextDocument": "Dokumentstatusfarbe",
-  "invalidHexColor": "Der übergeben Wert für die Dokumentstatusfarbe ist keine valide Hex-Farbe"
+  "invalidHexColor": "Der übergeben Wert für die Dokumentstatusfarbe ist keine valide Hex-Farbe",
+  "createDocumentSubMenu": "Inhalt erstellen"
 }
