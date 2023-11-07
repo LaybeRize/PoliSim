@@ -81,7 +81,7 @@ func RootAccountExists() (bool, error) {
 	if err == nil {
 		return true, nil
 	}
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
 	}
 	return false, err

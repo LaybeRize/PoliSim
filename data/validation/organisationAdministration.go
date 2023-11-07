@@ -6,6 +6,7 @@ import (
 	"PoliSim/helper"
 	"PoliSim/html/builder"
 	"database/sql"
+	"errors"
 	"fmt"
 	"gorm.io/gorm"
 )
@@ -96,7 +97,7 @@ func (form *OrganisationModification) CreateOrganisation() (validate Message) {
 func (form *OrganisationModification) SearchOrganisation() (validate Message) {
 	validate = Message{Positive: false}
 	org, err := extraction.GetOrganisation(form.Name)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		validate.Message = builder.Translation["organisationNotFound"]
 		return
 	} else if err != nil {
@@ -126,7 +127,7 @@ func (form *OrganisationModification) SearchOrganisation() (validate Message) {
 func (form *OrganisationModification) ModifyOrganisation() (validate Message) {
 	validate = Message{Positive: false}
 	org, err := extraction.GetOrganisation(form.Name)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		validate.Message = builder.Translation["organisationDoesNotExist"]
 		return
 	} else if err != nil {

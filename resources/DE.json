@@ -259,5 +259,14 @@
   "tagTextDocument": "Dokumentstatus",
   "tagColorTextDocument": "Dokumentstatusfarbe",
   "invalidHexColor": "Der übergeben Wert für die Dokumentstatusfarbe ist keine valide Hex-Farbe",
-  "createDocumentSubMenu": "Inhalt erstellen"
+  "createDocumentSubMenu": "Inhalt erstellen",
+  "titleDiscussion": "Diskussiontitel",
+  "subtitleDiscussion": "Diskussionsuntertitel",
+  "contentDiscussion": "Diskussionsinhalt",
+  "privateDiscussion": "Diskussion privat machen",
+  "anyoneCanCommentDiscussion": "Jeder kann an der Diskussion teilnehmen",
+  "membersCanCommentDiscussion": "Mitglieder der Organisation können an der Diskussion teilnehmen",
+  "addDiscussionReaderButton": "Diskussionsbesucher hinzufügen",
+  "addDiscussionWriterButton": "Diskussionteilnehmer hinzufügen",
+  "createDiscussionButton": "Diskussion erstellen"
 }
