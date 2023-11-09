@@ -283,5 +283,9 @@
   "documentDoesNotExistsOrNoPremissions": "Das Dokument existiert nicht oder es fehlen die Berechtigung zum bearbeiten",
   "authorTextDocument": "Veröffentlicht im %s am 02.01.2006 um 15:04 Uhr von %s",
   "postsTimeFormat": "Hinzugefügt am 02.01.2006 um 15:04 Uhr",
-  "addTagButton": "Dokumentstatus hinzufügen"
+  "addTagButton": "Dokumentstatus hinzufügen",
+  "errorAddingTag": "Es ist ein Fehler beim hinzufügen des Status aufgetreten",
+  "hiddenTags": "Versteckte Stati:",
+  "showTagButtonText": "Status wieder anzeigen",
+  "hideTagButtonText": "Status verstecken"
 }

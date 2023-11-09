@@ -11,3 +11,7 @@ func GetDocument(docType database.DocumentType, uuid string) (*database.Document
 	err := database.DB.Where("type = ? AND uuid = ?", string(docType), uuid).First(doc).Error
 	return doc, err
 }
+
+func UpdateDocument(document *database.Document) error {
+	return database.DB.Updates(document).Error
+}

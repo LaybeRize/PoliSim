@@ -9,7 +9,6 @@ import (
 const (
 	MainBodyID         = "main-body-div"
 	DocumentAdminPanel = "text-doc-admin-div"
-	DocumentTagDiv     = "document-tag-div"
 	UserSelectionID    = "user-organisation-select-div"
 	SidebarID          = "sidebar-element"
 	MessageID          = "message-div"
@@ -32,6 +31,8 @@ const (
 	ViewTextDocument                           = ViewTextDocumentLink + "{uuid}"
 	AddTagDocumentLink         builder.HttpUrl = "document/text/add/tag/"
 	AddTagDocument                             = AddTagDocumentLink + "{uuid}"
+	ChangeTagDocumentLink      builder.HttpUrl = "document/text/change/tag/"
+	ChangeTagDocument                          = ChangeTagDocumentLink + "{doc}/{tag}"
 	CreateUser                 builder.HttpUrl = "account/create"
 	EditUser                   builder.HttpUrl = "account/edit"
 	SearchUser                 builder.HttpUrl = "account/search"

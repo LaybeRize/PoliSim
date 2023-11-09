@@ -8,6 +8,7 @@ import (
 	"PoliSim/html/composition"
 	"github.com/go-chi/chi/v5"
 	"net/http"
+	"sync"
 )
 
 func InstallDocumentText() {
@@ -21,11 +22,48 @@ func InstallDocumentText() {
 
 	composition.GetHTMXFunctions[composition.AddTagDocument] = GetAddTagService
 	composition.PatchHTMXFunctions[composition.AddTagDocument] = PatchAddTagService
+	composition.PatchHTMXFunctions[composition.ChangeTagDocument] = PatchChangeTagService
+}
+
+var tagManipulationMutex = sync.Mutex{}
+
+func PatchChangeTagService(w http.ResponseWriter, r *http.Request) {
+	tagManipulationMutex.Lock()
+	defer tagManipulationMutex.Unlock()
+
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	uuidDoc := chi.URLParam(r, "doc")
+	uuidTag := chi.URLParam(r, "tag")
+	doc, err := extraction.GetDocument(database.LegislativeText, uuidDoc)
+	if err != nil {
+		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
+			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
+		}, acc)
+		return
+	}
+	if !ok {
+		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
+			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
+		}, acc)
+		return
+	}
+	msg := validation.FlipTagHidden(uuidTag, doc)
+
+	if !msg.Positive {
+		viewTextDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	html := composition.ViewDocumentPage(uuidDoc)
+	viewTextDocumentRenderRequest(w, r, acc, html)
 }
 
 func PatchAddTagService(w http.ResponseWriter, r *http.Request) {
+	tagManipulationMutex.Lock()
+	defer tagManipulationMutex.Unlock()
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
-	doc, err := extraction.GetDocument(database.LegislativeText, chi.URLParam(r, "uuid"))
+	uuidStr := chi.URLParam(r, "uuid")
+	doc, err := extraction.GetDocument(database.LegislativeText, uuidStr)
 	if err != nil {
 		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
 			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
@@ -38,6 +76,25 @@ func PatchAddTagService(w http.ResponseWriter, r *http.Request) {
 		}, acc)
 		return
 	}
+
+	create := &validation.AddTag{}
+	msg := validation.Message{Positive: false}
+	err = extractFormValuesForFields(create, r, 0)
+	if err != nil {
+		msg.Message = builder.Translation["extractionError"]
+		viewTextDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	msg = create.AddTagToDocument(doc)
+
+	if !msg.Positive {
+		viewTextDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	html := composition.ViewDocumentPage(uuidStr)
+	viewTextDocumentRenderRequest(w, r, acc, html)
 }
 
 func GetAddTagService(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +103,7 @@ func GetAddTagService(w http.ResponseWriter, r *http.Request) {
 		renderRequest(w, builder.DIV())
 		return
 	}
-	renderRequest(w, composition.GetTagAdminPanel(chi.URLParam(r, "uuid")))
+	renderRequest(w, composition.GetTagAdminPanel(chi.URLParam(r, "uuid"), ok))
 }
 
 func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
