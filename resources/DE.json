@@ -242,7 +242,7 @@
   "missingTitleForDocument": "Dokumenttitel fehlt oder ist zu lang (maximal %d Zeichen)",
   "missingContentForDocument": "Dokumentinhalt fehlt oder ist zu lang (maximal %d Zeichen)",
   "missingTagTextForDocument": "Dokumentzuordnung fehlt oder ist zu lang (maximal %d Zeichen)",
-  "tooLongSubtitleForDocument": "Dokument untertitel überschreitet das Maximum von %d Zeichen",
+  "tooLongSubtitleForDocument": "Dokumentuntertitel überschreitet das Maximum von %d Zeichen",
   "documentTextCreatePageTitle": "Textdokument erstellen",
   "documentTextCreateSidebarText": "Textdokument erstellen",
   "documentTextViewPageTitle": "Textdokument",
@@ -268,5 +268,14 @@
   "membersCanCommentDiscussion": "Mitglieder der Organisation können an der Diskussion teilnehmen",
   "addDiscussionReaderButton": "Diskussionsbesucher hinzufügen",
   "addDiscussionWriterButton": "Diskussionteilnehmer hinzufügen",
-  "createDiscussionButton": "Diskussion erstellen"
+  "createDiscussionButton": "Diskussion erstellen",
+  "timeIsInvalidString": "Angegebenens Diskussionende ist keine valide Zeit",
+  "documentDiscussionCreatePageTitle": "Diskussion erstellen",
+  "documentDiscussionCreateSidebarText": "Diskussion erstellen",
+  "documentDiscussionViewPageTitle": "Diskussion",
+  "endTimeDiscussion": "Diskussionsende",
+  "noExternalReaderOrWriterAllowed": "Es sind keine externen Besucher bzw. Teilnehmer an einer Diskussion in einer geheimen Organisation erlaubt",
+  "errorBecauseNotPrivate": "Diskussionen in geheimen Organisationen müssen privat sein",
+  "mutuallyExlusiveSelection": "Eine Diskussion kann nicht gleichzeitig Privat sein und allen Leuten zugange gewähren",
+  "notAllowedToBePrivate": "In einer öffentlichen Organisation kann keine private Diskussion geführt werden"
 }

@@ -172,7 +172,7 @@ func (form *OrganisationModification) ModifyOrganisation() (validate Message) {
 	}
 	accounts, err := extraction.GetParentAccounts(append(form.User, form.Admins...))
 	if err != nil {
-		validate.Message = fmt.Sprintf(builder.Translation["parentAccountError"], err.Error())
+		validate.Message = builder.Translation["parentAccountError"]
 		return
 	}
 

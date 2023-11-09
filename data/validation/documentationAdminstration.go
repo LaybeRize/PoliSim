@@ -27,6 +27,7 @@ type CreateDiscussion struct {
 	Title             string   `input:"title"`
 	Subtitle          string   `input:"subtitle"`
 	Content           string   `input:"content"`
+	EndTime           string   `input:"endTime"`
 	Private           bool     `input:"private"`
 	MembersCanComment bool     `input:"membersCanComment"`
 	AnyoneCanComment  bool     `input:"anyoneCanComment"`
@@ -126,5 +127,120 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 
 func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	return
+	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
+	switch false {
+	case isValidString(form.Title, maxDocumentTitleLength):
+		// has no valid title
+		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForDocument"], maxDocumentTitleLength)
+		return
+	case len([]rune(form.Subtitle)) <= maxDocumentSubtitleLength:
+		// has no valid title
+		validate.Message = fmt.Sprintf(builder.Translation["tooLongSubtitleForDocument"], maxDocumentSubtitleLength)
+		return
+	case isValidString(form.Content, maxDocumentContentLength):
+		// has no valid content
+		validate.Message = fmt.Sprintf(builder.Translation["missingContentForDocument"], maxDocumentContentLength)
+		return
+	case err == nil:
+		// error with author account
+		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
+		return
+	case ok:
+		// not allowed for author account
+		validate.Message = builder.Translation["notAllowedToUseAccount"]
+		return
+	}
+
+	org, isAdmin, err := IsOrganisationValidForAccount(account.ID, form.Organisation)
+	if err != nil {
+		validate.Message = builder.Translation["databaseErrorWithOrganisationAccount"]
+		return
+	}
+
+	//TODO add needed cases for admins and other stuff
+	if org.Status == database.Secret {
+		if ((len(form.Reader) != 0 || len(form.Writer) != 0) && !isAdmin) || form.AnyoneCanComment {
+			validate.Message = builder.Translation["noExternalReaderOrWriterAllowed"]
+			return
+		}
+		if !form.Private {
+			validate.Message = builder.Translation["errorBecauseNotPrivate"]
+			return
+		}
+	} else if org.Status == database.Private {
+		if form.Private && form.AnyoneCanComment {
+			validate.Message = builder.Translation["mutuallyExlusiveSelection"]
+			return
+		}
+	} else if org.Status == database.Public {
+		if form.Private {
+			validate.Message = builder.Translation["notAllowedToBePrivate"]
+			return
+		}
+	}
+
+	var endDiscussion time.Time
+	endDiscussion, err = time.ParseInLocation("2006-01-02T15:04", form.EndTime, time.Local)
+	if err != nil {
+		validate.Message = builder.Translation["timeIsInvalidString"]
+		return
+	}
+
+	helper.RemoveEntriesFromList(&form.Reader, form.Writer)
+	reader, ok, err := extraction.DoAccountsExist(form.Reader)
+	if !ok {
+		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
+		return
+	}
+	writer, ok, err := extraction.DoAccountsExist(form.Writer)
+	if !ok {
+		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
+		return
+	}
+	accounts, err := extraction.GetParentAccounts(append(form.Reader, form.Writer...))
+	if err != nil {
+		validate.Message = builder.Translation["parentAccountError"]
+		return
+	}
+
+	written := time.Now()
+	discType := database.RunningDiscussion
+	if len(form.Reader) == 0 && len(form.Writer) == 0 &&
+		!form.AnyoneCanComment && !form.MembersCanComment {
+		endDiscussion = written
+		discType = database.FinishedDiscussion
+	}
+
+	document := database.Document{
+		UUID:         uuid.New().String(),
+		Written:      written,
+		Organisation: org.Name,
+		Type:         discType,
+		Author:       account.DisplayName,
+		Flair:        account.Flair,
+		Title:        form.Title,
+		Subtitle: sql.NullString{
+			String: form.Subtitle,
+			Valid:  form.Subtitle != "",
+		},
+		HTMLContent:               helper.CreateHTML(form.Content),
+		AnyPosterAllowed:          form.AnyoneCanComment,
+		OrganisationPosterAllowed: form.MembersCanComment,
+		Info: database.DocumentInfo{
+			Finishing:  endDiscussion,
+			Discussion: []database.Discussions{},
+		},
+		Viewer:  *accounts,
+		Poster:  *writer,
+		Allowed: *reader,
+	}
+
+	err = extraction.CreateDocument(&document)
+	if err != nil {
+		validate.Message = builder.Translation["errorCreatingDocument"]
+		return
+	}
+
+	form.UUIDredirect = document.UUID
+	return Message{Positive: true}
 }

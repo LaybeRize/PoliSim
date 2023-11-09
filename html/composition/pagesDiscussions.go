@@ -18,11 +18,12 @@ func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.Crea
 	}
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
-		getPageHeader(CreateTextDocument),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateTextDocument), CLASS("w-[800px]"),
+		getPageHeader(CreateDiscussionDocument),
+		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateDiscussionDocument), CLASS("w-[800px]"),
 			node,
 			getSimpleTextInput("title", "title", document.Title, Translation["titleDiscussion"]),
 			getSimpleTextInput("subtitle", "subtitle", document.Subtitle, Translation["subtitleDiscussion"]),
+			getInput("subtitle", "endTime", document.EndTime, Translation["endTimeDiscussion"], "datetime-local", "", ""),
 			getTextArea("content", "content", document.Content, Translation["contentDiscussion"], true),
 			getCheckBox("private", document.Private, false, "true", "private", Translation["privateDiscussion"],
 				HYPERSCRIPT("on click toggle .hidden on #anyoneCanComment")),

@@ -7,6 +7,7 @@ import (
 	"PoliSim/html/composition"
 	"github.com/go-chi/chi/v5"
 	"net/http"
+	"time"
 )
 
 func InstallDocumentDiscussion() {
@@ -62,7 +63,9 @@ func GetDocumentDiscussionCreationService(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	html := composition.CreateDiscussionPage(acc, &validation.CreateDiscussion{}, validation.Message{})
+	html := composition.CreateDiscussionPage(acc, &validation.CreateDiscussion{
+		EndTime: time.Now().Add(time.Hour * 24).Format("2006-01-02T15:04"),
+	}, validation.Message{})
 	createDiscussionDocumentRenderRequest(w, r, acc, html)
 }
 
