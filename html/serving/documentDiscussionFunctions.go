@@ -17,6 +17,13 @@ func InstallDocumentDiscussion() {
 	composition.PostHTMXFunctions[composition.CreateDiscussionDocument] = PostDocumentDiscussionCreationService
 	composition.PageTitleMap[composition.ViewDiscussionDocument] = builder.Translation["documentDiscussionViewPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewDiscussionDocument] = GetDocumentDiscussionViewService
+	composition.PostHTMXFunctions[composition.CommentDiscussion] = PostCommentDiscussionViewService
+}
+
+func PostCommentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
+	acc, _ := CheckUserPrivileges(r)
+	_ = acc
+	print("funny things")
 }
 
 func GetDocumentDiscussionViewService(w http.ResponseWriter, r *http.Request) {

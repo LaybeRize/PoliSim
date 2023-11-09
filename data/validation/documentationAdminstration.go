@@ -178,6 +178,10 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 			return
 		}
 	}
+	if form.AnyoneCanComment && !isAdmin {
+		validate.Message = builder.Translation["needsToBeAdminForAnyone"]
+		return
+	}
 
 	var endDiscussion time.Time
 	endDiscussion, err = time.ParseInLocation("2006-01-02T15:04", form.EndTime, time.Local)

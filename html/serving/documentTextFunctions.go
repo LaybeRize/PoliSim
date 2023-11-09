@@ -2,6 +2,7 @@ package serving
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
@@ -17,6 +18,35 @@ func InstallDocumentText() {
 	composition.PageTitleMap[composition.ViewTextDocument] = builder.Translation["documentTextViewPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewTextDocument] = GetDocumentTextViewService
 	composition.PatchHTMXFunctions[composition.UpdateUserSelection] = PatchUserSelectionService
+
+	composition.GetHTMXFunctions[composition.AddTagDocument] = GetAddTagService
+	composition.PatchHTMXFunctions[composition.AddTagDocument] = PatchAddTagService
+}
+
+func PatchAddTagService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	doc, err := extraction.GetDocument(database.LegislativeText, chi.URLParam(r, "uuid"))
+	if err != nil {
+		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
+			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
+		}, acc)
+		return
+	}
+	if !ok && extraction.HasAdminAccountInOrganisation(acc.ID, doc.Organisation) != nil {
+		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
+			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
+		}, acc)
+		return
+	}
+}
+
+func GetAddTagService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	if !ok && extraction.HasAdminAccountInOrganisation(acc.ID, r.URL.Query().Get("org")) != nil {
+		renderRequest(w, builder.DIV())
+		return
+	}
+	renderRequest(w, composition.GetTagAdminPanel(chi.URLParam(r, "uuid")))
 }
 
 func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
@@ -52,11 +82,12 @@ func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
 func GetDocumentTextViewService(w http.ResponseWriter, r *http.Request) {
 	acc, _ := CheckUserPrivileges(r)
 
-	html := composition.ViewDocumentPage(acc, chi.URLParam(r, "uuid"))
+	html := composition.ViewDocumentPage(chi.URLParam(r, "uuid"))
 	viewTextDocumentRenderRequest(w, r, acc, html)
 }
 
 var viewTextDocumentRenderRequest = genericRenderer(composition.ViewTextDocument)
+var viewTextDocumentOnlySwapMessage = genericMessageSwapper(composition.ViewTextDocument)
 
 func PostDocumentTextCreationService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
@@ -82,7 +113,7 @@ func PostDocumentTextCreationService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewTextDocumentLink)+create.UUIDredirect)
-	html := composition.ViewDocumentPage(acc, create.UUIDredirect)
+	html := composition.ViewDocumentPage(create.UUIDredirect)
 	viewTextDocumentRenderRequest(w, r, acc, html)
 }
 

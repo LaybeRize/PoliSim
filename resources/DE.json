@@ -266,7 +266,7 @@
   "privateDiscussion": "Diskussion privat machen",
   "anyoneCanCommentDiscussion": "Jeder kann an der Diskussion teilnehmen",
   "membersCanCommentDiscussion": "Mitglieder der Organisation können an der Diskussion teilnehmen",
-  "addDiscussionReaderButton": "Diskussionsbesucher hinzufügen",
+  "addDiscussionReaderButton": "Diskussionszuschauer hinzufügen",
   "addDiscussionWriterButton": "Diskussionteilnehmer hinzufügen",
   "createDiscussionButton": "Diskussion erstellen",
   "timeIsInvalidString": "Angegebenens Diskussionende ist keine valide Zeit",
@@ -277,5 +277,11 @@
   "noExternalReaderOrWriterAllowed": "Es sind keine externen Besucher bzw. Teilnehmer an einer Diskussion in einer geheimen Organisation erlaubt",
   "errorBecauseNotPrivate": "Diskussionen in geheimen Organisationen müssen privat sein",
   "mutuallyExlusiveSelection": "Eine Diskussion kann nicht gleichzeitig Privat sein und allen Leuten zugange gewähren",
-  "notAllowedToBePrivate": "In einer öffentlichen Organisation kann keine private Diskussion geführt werden"
+  "notAllowedToBePrivate": "In einer öffentlichen Organisation kann keine private Diskussion geführt werden",
+  "needsToBeAdminForAnyone": "Der ausgewählte Account kann nicht jeden Teilnehmen lassen, da er kein Administrator der ausgewählten Organisation ist",
+  "documentDoesNotExists": "Das Dokument existiert nicht oder es fehlen die Berechtigung zum anschauen",
+  "documentDoesNotExistsOrNoPremissions": "Das Dokument existiert nicht oder es fehlen die Berechtigung zum bearbeiten",
+  "authorTextDocument": "Veröffentlicht im %s am 02.01.2006 um 15:04 Uhr von %s",
+  "postsTimeFormat": "Hinzugefügt am 02.01.2006 um 15:04 Uhr",
+  "addTagButton": "Dokumentstatus hinzufügen"
 }

@@ -189,3 +189,11 @@ func GetOrganisationsForWithUserInIt(userID int64, isAdmin bool) (*database.Orga
 	}
 	return org, err
 }
+
+func HasAdminAccountInOrganisation(userID int64, organisationName string) error {
+	return database.DB.Joins("LEFT JOIN organisation_admins ON organisations.name = organisation_admins.name").
+		Joins("LEFT JOIN accounts ON organisation_admins.id = accounts.id").
+		Select("organisations.name").
+		Where("(accounts.id = ? OR accounts.linked = ?) AND organisations.name = ?", userID, userID, organisationName).
+		First(&database.Organisation{}).Error
+}
