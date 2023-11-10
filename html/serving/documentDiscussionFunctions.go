@@ -27,9 +27,9 @@ func PostCommentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDocumentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(r)
+	acc, admin := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
 
-	html := composition.ViewDiscussionPage(acc, chi.URLParam(r, "uuid"))
+	html := composition.ViewDiscussionPage(acc, chi.URLParam(r, "uuid"), admin)
 	viewDiscussionDocumentRenderRequest(w, r, acc, html)
 }
 
@@ -59,7 +59,8 @@ func PostDocumentDiscussionCreationService(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewDiscussionDocumentLink)+create.UUIDredirect)
-	html := composition.ViewDiscussionPage(acc, create.UUIDredirect)
+	html := composition.ViewDiscussionPage(acc, create.UUIDredirect,
+		acc.Role == database.Admin || acc.Role == database.HeadAdmin)
 	viewDiscussionDocumentRenderRequest(w, r, acc, html)
 }
 

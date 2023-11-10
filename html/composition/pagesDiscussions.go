@@ -1,9 +1,11 @@
 package composition
 
 import (
+	"PoliSim/data/database"
 	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
+	"fmt"
 )
 
 func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.CreateDiscussion, val validation.Message) Node {
@@ -41,9 +43,39 @@ func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.Crea
 	)
 }
 
-func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string) Node {
+func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
+	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
+	if err != nil {
+		return GetErrorPage(Translation["documentDoesNotExists"])
+	}
 	return getBasePageWrapper(
-		Text(uuidStr),
-		Text(acc.DisplayName),
+		getPageHeader(ViewDiscussionDocument),
+		DIV(CLASS("w-[800px]"),
+			H1(CLASS("text-3xl underline decoration-2 underline-offset-2"), Text(doc.Title)),
+			If(doc.Subtitle.Valid, H1(CLASS("text-2xl"), Text(doc.Subtitle.String))),
+			P(CLASS("my-2"), I(Text(fmt.Sprintf(doc.Written.Format(Translation["authorDiscussionDocument"]), doc.Organisation, doc.Author))),
+				If(doc.Flair != "", Group(I(Text("; ")), Text(doc.Flair)))),
+		),
+		DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+			Raw(doc.HTMLContent),
+		),
+		DIV(CLASS("w-[800px] mt-2"),
+			If(len(doc.Viewer) != 0 && doc.Private,
+				P(Text(Translation["peopleAllowedToView"], reduceAccountsToString(doc.Viewer)))),
+			If(len(doc.Poster) != 0 && !doc.AnyPosterAllowed,
+				P(Text(Translation["peopleAllowedToComment"], reduceAccountsToString(doc.Poster)))),
+			If(doc.AnyPosterAllowed,
+				P(Text(Translation["anyPosterAllowed"]))),
+			If(doc.OrganisationPosterAllowed && !doc.AnyPosterAllowed,
+				P(Text(Translation["onlyOrganisationMemberAllowed"]))),
+		),
 	)
+}
+
+func reduceAccountsToString(accs []database.Account) string {
+	result := accs[0].DisplayName
+	for _, acc := range accs[1:] {
+		result += ", " + acc.DisplayName
+	}
+	return result
 }

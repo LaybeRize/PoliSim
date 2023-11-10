@@ -34,7 +34,7 @@ func PatchChangeTagService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	uuidDoc := chi.URLParam(r, "doc")
 	uuidTag := chi.URLParam(r, "tag")
-	doc, err := extraction.GetDocument(database.LegislativeText, uuidDoc)
+	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidDoc)
 	if err != nil {
 		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
 			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
@@ -63,7 +63,7 @@ func PatchAddTagService(w http.ResponseWriter, r *http.Request) {
 	defer tagManipulationMutex.Unlock()
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	uuidStr := chi.URLParam(r, "uuid")
-	doc, err := extraction.GetDocument(database.LegislativeText, uuidStr)
+	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidStr)
 	if err != nil {
 		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
 			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],

@@ -38,7 +38,7 @@ const (
 )
 
 func ViewDocumentPage(uuidStr string) Node {
-	doc, err := extraction.GetDocument(database.LegislativeText, uuidStr)
+	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidStr)
 	if err != nil {
 		return GetErrorPage(Translation["documentDoesNotExists"])
 	}
@@ -72,7 +72,7 @@ func ViewDocumentPage(uuidStr string) Node {
 }
 
 func GetTagAdminPanel(uuid string, isAdmin bool) Node {
-	doc, _ := extraction.GetDocument(database.LegislativeText, uuid)
+	doc, _ := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuid)
 	if len(doc.Info.Post) == 0 {
 		doc.Info.Post = append(doc.Info.Post, database.Posts{})
 	}

@@ -228,6 +228,7 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 			Valid:  form.Subtitle != "",
 		},
 		HTMLContent:               helper.CreateHTML(form.Content),
+		Private:                   form.Private,
 		AnyPosterAllowed:          form.AnyoneCanComment,
 		OrganisationPosterAllowed: form.MembersCanComment,
 		Info: database.DocumentInfo{

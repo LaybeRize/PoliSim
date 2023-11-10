@@ -287,5 +287,10 @@
   "errorAddingTag": "Es ist ein Fehler beim hinzufügen des Status aufgetreten",
   "hiddenTags": "Versteckte Stati:",
   "showTagButtonText": "Status wieder anzeigen",
-  "hideTagButtonText": "Status verstecken"
+  "hideTagButtonText": "Status verstecken",
+  "authorDiscussionDocument": "Veröffentlicht im %s am 02.01.2006 um 15:04 Uhr von %s",
+  "peopleAllowedToView": "Zugelassene Zuschauer: %s",
+  "peopleAllowedToComment": "Zugelassene Teilnehmer: %s",
+  "anyPosterAllowed": "Jeder darf kommentieren",
+  "onlyOrganisationMemberAllowed": "Mitglieder der Organisation dürfen kommentieren"
 }
