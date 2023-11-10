@@ -235,9 +235,9 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 			Finishing:  endDiscussion,
 			Discussion: []database.Discussions{},
 		},
-		Viewer:  *accounts,
+		Viewer:  *reader,
 		Poster:  *writer,
-		Allowed: *reader,
+		Allowed: *accounts,
 	}
 
 	err = extraction.CreateDocument(&document)
