@@ -292,5 +292,9 @@
   "peopleAllowedToView": "Zugelassene Zuschauer: %s",
   "peopleAllowedToComment": "Zugelassene Teilnehmer: %s",
   "anyPosterAllowed": "Jeder darf kommentieren",
-  "onlyOrganisationMemberAllowed": "Mitglieder der Organisation dürfen kommentieren"
+  "onlyOrganisationMemberAllowed": "Mitglieder der Organisation dürfen kommentieren",
+  "timeUnderMinAmountDays": "Die Diskussion darf nicht kürzer als %d Tage laufen",
+  "timeOverMaxAmountDays": "Die Diskussion darf nicht länger als %d Tage laufen",
+  "discussionRunning": "Die Diskussion endet am 02.01.2006 um 15:04 Uhr",
+  "discussionFinished": "Die Diskussion hat am 02.01.2006 um 15:04 Uhr geendet"
 }

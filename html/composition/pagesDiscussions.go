@@ -60,6 +60,9 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 			Raw(doc.HTMLContent),
 		),
 		DIV(CLASS("w-[800px] mt-2"),
+			IfElse(doc.Type == database.FinishedDiscussion,
+				P(I(Text(doc.Info.Finishing.Format(Translation["discussionFinished"])))),
+				P(I(Text(doc.Info.Finishing.Format(Translation["discussionRunning"]))))),
 			If(len(doc.Viewer) != 0 && doc.Private,
 				P(Text(Translation["peopleAllowedToView"], reduceAccountsToString(doc.Viewer)))),
 			If(len(doc.Poster) != 0 && !doc.AnyPosterAllowed,
@@ -73,6 +76,9 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 }
 
 func reduceAccountsToString(accs []database.Account) string {
+	if len(accs) == 0 {
+		return ""
+	}
 	result := accs[0].DisplayName
 	for _, acc := range accs[1:] {
 		result += ", " + acc.DisplayName

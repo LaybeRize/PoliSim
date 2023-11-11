@@ -43,6 +43,8 @@ const (
 	maxDocumentSubtitleLength = 400
 	maxDocumentContentLength  = 100_000
 	maxDocumentInfoTagLength  = 200
+	minDays                   = 1
+	maxDays                   = 14
 )
 
 func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Message) {
@@ -187,6 +189,15 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 	endDiscussion, err = time.ParseInLocation("2006-01-02T15:04", form.EndTime, time.Local)
 	if err != nil {
 		validate.Message = builder.Translation["timeIsInvalidString"]
+		return
+	}
+
+	if endDiscussion.Before(time.Now().Add(24 * time.Hour * minDays)) {
+		validate.Message = fmt.Sprintf(builder.Translation["timeUnderMinAmountDays"], minDays)
+		return
+	}
+	if endDiscussion.After(time.Now().Add(24 * time.Hour * maxDays)) {
+		validate.Message = fmt.Sprintf(builder.Translation["timeOverMaxAmountDays"], maxDays)
 		return
 	}
 
