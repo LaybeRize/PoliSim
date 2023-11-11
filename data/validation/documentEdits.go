@@ -69,3 +69,8 @@ func FlipTagHidden(tagUUID string, doc *database.Document) (validate Message) {
 
 	return Message{Positive: true}
 }
+
+type AddComment struct {
+	Content string `input:"content"`
+	Account string `input:"authorAccount"`
+}

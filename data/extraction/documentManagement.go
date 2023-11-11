@@ -36,6 +36,12 @@ func GetDocumentForUser(uuid string, userID int64, isAdmin bool, docType ...data
 	return doc, errors.New("is Not One Of the specified Types")
 }
 
+func GetDocument(uuid string) (*database.Document, error) {
+	doc := &database.Document{}
+	err := database.DB.Where("uuid = ?", uuid).First(doc).Error
+	return doc, err
+}
+
 func UpdateDocument(document *database.Document) error {
 	return database.DB.Updates(document).Error
 }

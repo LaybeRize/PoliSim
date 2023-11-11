@@ -296,5 +296,12 @@
   "timeUnderMinAmountDays": "Die Diskussion darf nicht kürzer als %d Tage laufen",
   "timeOverMaxAmountDays": "Die Diskussion darf nicht länger als %d Tage laufen",
   "discussionRunning": "Die Diskussion endet am 02.01.2006 um 15:04 Uhr",
-  "discussionFinished": "Die Diskussion hat am 02.01.2006 um 15:04 Uhr geendet"
+  "discussionFinished": "Die Diskussion hat am 02.01.2006 um 15:04 Uhr geendet",
+  "discussionCommentAuthor": "Kommentarautor",
+  "discussionCommentContent": "Kommentarinhalt",
+  "addCommentButton": "Kommentar erstellen",
+  "discussionIsPrivate": "Diskussion ist privat",
+  "commentWrittenAuthor": "Kommentiert am 02.01.2006 um 15:04 Uhr von %s",
+  "commentHasBeenHidden": "[Der Kommentar wurde von der Moderation entfernt]",
+  "commentCurrentlyHidden": "[Dieser Kommentar ist momentan für Nicht-Adminstratoren versteckt]"
 }
