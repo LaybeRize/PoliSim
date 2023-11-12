@@ -32,14 +32,32 @@ func AddComment(author string, flair string, comment string, uuidStr string) err
 	if err != nil {
 		return err
 	}
-	doc.Info.Discussion = append([]database.Discussions{{
+	doc.Info.Discussion = append(doc.Info.Discussion, database.Discussions{
 		UUID:        uuid.New().String(),
 		Hidden:      false,
 		Written:     time.Now(),
 		Author:      author,
 		Flair:       flair,
 		HTMLContent: comment,
-	}}, doc.Info.Discussion...)
+	})
 	err = extraction.UpdateDocument(doc)
 	return err
+}
+
+func ChangeVisibiltyComment(commentUUID, docUUID string) (bool, error) {
+	discussionMutex.Lock()
+	defer discussionMutex.Unlock()
+	doc, err := extraction.GetDocument(docUUID)
+	if err != nil {
+		return false, err
+	}
+	exists := false
+	for i, disc := range doc.Info.Discussion {
+		if disc.UUID == commentUUID {
+			exists = true
+			doc.Info.Discussion[i].Hidden = !disc.Hidden
+		}
+	}
+	err = extraction.UpdateDocument(doc)
+	return exists, err
 }

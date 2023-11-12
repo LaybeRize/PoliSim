@@ -3,6 +3,7 @@ package validation
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/data/logic"
 	"PoliSim/html/builder"
 	"fmt"
 	"github.com/google/uuid"
@@ -75,8 +76,42 @@ type AddComment struct {
 	Account string `input:"authorAccount"`
 }
 
+const (
+	maxDocumentCommentLength = 5_000
+)
+
 func (form *AddComment) AddComment(uuidStr string, acc *extraction.AccountAuth) (validate Message) {
 	validate = Message{Positive: false}
+	account, ok, err := IsAccountValidForUser(acc.ID, form.Account)
+	switch false {
+	case isValidString(form.Content, maxDocumentCommentLength):
+		// has no valid title
+		validate.Message = fmt.Sprintf(builder.Translation["missingContentForDiscussionComment"], maxDocumentCommentLength)
+		return
+	case err == nil:
+		// error with author account
+		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
+		return
+	case ok:
+		// not allowed for author account
+		validate.Message = builder.Translation["notAllowedToUseAccount"]
+		return
+	}
 
-	return Message{Positive: true}
+	err = extraction.GetDocumentIfCanParticipate(uuidStr, account.ID)
+	if err != nil {
+		validate.Message = builder.Translation["notAllowedToComment"]
+		return
+	}
+
+	err = logic.AddComment(account.DisplayName, account.Flair, form.Content, uuidStr)
+	if err != nil {
+		validate.Message = builder.Translation["errorWhenMakingComment"]
+		return
+	}
+
+	return Message{
+		Message:  builder.Translation["addedComment"],
+		Positive: true,
+	}
 }

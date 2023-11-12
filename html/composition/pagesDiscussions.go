@@ -64,12 +64,12 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 		}
 		comments[i] = DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
 			If(disc.Hidden, P(CLASS("text-rose-600"), Text(Translation["commentCurrentlyHidden"]))),
-			P(CLASS("mb-2"), I(Text(disc.Written.Format(Translation["commentWrittenAuthor"]), disc.Author),
-				If(disc.Flair != "", Group(I(Text("; ")), Text(disc.Flair))))),
+			P(CLASS("mb-2"), I(Text(disc.Written.Format(Translation["commentWrittenAuthor"]), disc.Author)),
+				If(disc.Flair != "", Group(I(Text("; ")), Text(disc.Flair)))),
 			Raw(disc.HTMLContent),
 			If(isAdmin, getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeCommentDocumentLink)+
-				url.PathEscape(doc.UUID)+"/"+url.PathEscape(disc.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2"),
-				STYLE("text-align: center;"), IfElse(disc.Hidden, Text(Translation["hideCommentDiscussion"]),
+				url.PathEscape(doc.UUID)+"/"+url.PathEscape(disc.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2"),
+				STYLE("text-align: center;"), IfElse(!disc.Hidden, Text(Translation["hideCommentDiscussion"]),
 					Text(Translation["showCommentDiscussion"]))),
 			)),
 		)

@@ -2,6 +2,7 @@ package serving
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
@@ -21,9 +22,35 @@ func InstallDocumentDiscussion() {
 }
 
 func PostCommentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(r)
-	_ = acc
-	print("funny things")
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
+
+	isAdmin := acc.Role == database.Admin || acc.Role == database.HeadAdmin
+	uuidStr := chi.URLParam(r, "uuid")
+	_, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
+
+	if !ok || err != nil {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	create := &validation.AddComment{}
+	msg := validation.Message{Positive: false}
+	err = extractFormValuesForFields(create, r, 0)
+	if err != nil {
+		msg.Message = builder.Translation["extractionError"]
+		viewDiscussionDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	msg = create.AddComment(uuidStr, acc)
+
+	if !msg.Positive {
+		viewDiscussionDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	html := composition.ViewDiscussionPage(acc, uuidStr, isAdmin, msg)
+	viewDiscussionDocumentRenderRequest(w, r, acc, html)
 }
 
 func GetDocumentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
@@ -35,6 +62,7 @@ func GetDocumentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
 }
 
 var viewDiscussionDocumentRenderRequest = genericRenderer(composition.ViewDiscussionDocument)
+var viewDiscussionDocumentOnlySwapMessage = genericMessageSwapper(composition.ViewDiscussionDocument)
 
 func PostDocumentDiscussionCreationService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
