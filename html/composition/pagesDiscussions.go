@@ -45,7 +45,7 @@ func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.Crea
 	)
 }
 
-func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
+func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
 	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
 	if err != nil {
 		return GetErrorPage(Translation["documentDoesNotExists"])
@@ -67,6 +67,11 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 			P(CLASS("mb-2"), I(Text(disc.Written.Format(Translation["commentWrittenAuthor"]), disc.Author),
 				If(disc.Flair != "", Group(I(Text("; ")), Text(disc.Flair))))),
 			Raw(disc.HTMLContent),
+			If(isAdmin, getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeCommentDocumentLink)+
+				url.PathEscape(doc.UUID)+"/"+url.PathEscape(disc.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2"),
+				STYLE("text-align: center;"), IfElse(disc.Hidden, Text(Translation["hideCommentDiscussion"]),
+					Text(Translation["showCommentDiscussion"]))),
+			)),
 		)
 	}
 
@@ -96,15 +101,15 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 			If(doc.OrganisationPosterAllowed && !doc.AnyPosterAllowed,
 				P(Text(Translation["onlyOrganisationMemberAllowed"]))),
 		),
+		Group(comments...),
 		If(doc.Type == database.RunningDiscussion && acc.ID != 0, Group(
 			getFormStandardForm("form", POST, "/"+APIPreRoute+string(CommentDiscussionLink)+url.PathEscape(doc.UUID), CLASS("mt-2 w-[800px]"),
 				getUserDropdown(acc, "", Translation["discussionCommentAuthor"]),
 				getTextArea("content", "content", "", Translation["discussionCommentContent"], true),
 				getSubmitButton(Translation["addCommentButton"])),
-			GetMessage(validation.Message{}),
+			GetMessage(val),
 			getPreviewElement(),
 		)),
-		Group(comments...),
 	)
 }
 

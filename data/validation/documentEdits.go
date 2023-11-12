@@ -74,3 +74,9 @@ type AddComment struct {
 	Content string `input:"content"`
 	Account string `input:"authorAccount"`
 }
+
+func (form *AddComment) AddComment(uuidStr string, acc *extraction.AccountAuth) (validate Message) {
+	validate = Message{Positive: false}
+
+	return Message{Positive: true}
+}

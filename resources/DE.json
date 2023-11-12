@@ -303,5 +303,7 @@
   "discussionIsPrivate": "Diskussion ist privat",
   "commentWrittenAuthor": "Kommentiert am 02.01.2006 um 15:04 Uhr von %s",
   "commentHasBeenHidden": "[Der Kommentar wurde von der Moderation entfernt]",
-  "commentCurrentlyHidden": "[Dieser Kommentar ist momentan für Nicht-Adminstratoren versteckt]"
+  "commentCurrentlyHidden": "[Dieser Kommentar ist momentan für Nicht-Adminstratoren versteckt]",
+  "hideCommentDiscussion": "Kommentar verstecken",
+  "showCommentDiscussion": "Kommentar wieder anzeigen"
 }
