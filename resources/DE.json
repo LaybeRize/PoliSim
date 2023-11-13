@@ -312,5 +312,8 @@
   "addedComment": "Kommentar erfolgreich hinzugefügt",
   "changeCommentVisiblitySuccessfull": "Kommentarsichtbarkeit erfolgreich angepasst",
   "errorProcessing": "Es ist ein Fehler bei der Verarbeitung der Anfragen aufgetreten",
-  "commentDoesNotExists": "Es existiert kein Kommentar mit der angebenen UUID"
+  "commentDoesNotExists": "Es existiert kein Kommentar mit der angebenen UUID",
+  "addnewVoteToPost": "Neue Abstimmung hinzufügen",
+  "voteCreatePageTitle": "Abstimmung erstellen",
+  "voteCreateSidebarText": "Abstimmung erstellen"
 }
