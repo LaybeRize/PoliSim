@@ -315,5 +315,11 @@
   "commentDoesNotExists": "Es existiert kein Kommentar mit der angebenen UUID",
   "addnewVoteToPost": "Neue Abstimmung hinzufügen",
   "voteCreatePageTitle": "Abstimmung erstellen",
-  "voteCreateSidebarText": "Abstimmung erstellen"
+  "voteCreateSidebarText": "Abstimmung erstellen",
+  "deleteVote": "Abstimmung entfernen",
+  "createVoteDocument": "Abstimmungsdokument erstellen",
+  "invalidNumber": "Anfrage hatte invalide Nummer für die Abstimmung",
+  "votePartialHeader": "Abstimmung %s",
+  "voteQuestionText": "Abstimmungsfrage",
+  "voteAddAnswersToQuestion": "Mögliche Antwort hinzufügen"
 }

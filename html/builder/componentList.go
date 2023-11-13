@@ -50,7 +50,7 @@ var (
 	HXPOST      = attributeWrapper("hx-post")
 	HXGET       = attributeWrapper("hx-get")
 	HXTRIGGER   = attributeWrapper("hx-trigger")
-	HXINCLUDE   = attributeWrapper("hx-include")
+	HXEXTEND    = attributeWrapper("hx-ext")
 	HXVALS      = attributeWrapper(hxValue)
 	HXSWAPOOB   = attributeWrapper("hx-swap-oob")
 	HXTARGET    = attributeWrapper("hx-target")

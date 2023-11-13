@@ -21,7 +21,8 @@ func CreateDocumentPage(acc *extraction.AccountAuth, document *validation.Create
 			node,
 			getSimpleTextInput("title", "title", document.Title, Translation["titleTextDocument"]),
 			getSimpleTextInput("subtitle", "subtitle", document.Subtitle, Translation["subtitleTextDocument"]),
-			getTextArea("content", "content", document.Content, Translation["contentTextDocument"], true),
+			getTextArea("content", "content", document.Content, Translation["contentTextDocument"],
+				true, false),
 
 			getSimpleTextInput("tag", "tag", document.TagText, Translation["tagTextDocument"]),
 			getInput("color", "color", document.TagColor, Translation["tagColorTextDocument"], "color",
