@@ -3,6 +3,7 @@ package serving
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/data/logic"
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
@@ -19,6 +20,34 @@ func InstallDocumentDiscussion() {
 	composition.PageTitleMap[composition.ViewDiscussionDocument] = builder.Translation["documentDiscussionViewPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewDiscussionDocument] = GetDocumentDiscussionViewService
 	composition.PostHTMXFunctions[composition.CommentDiscussion] = PostCommentDiscussionViewService
+	composition.PatchHTMXFunctions[composition.ChangeCommentDocument] = PatchChangeCommentVisibilityService
+}
+
+func PatchChangeCommentVisibilityService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
+	docUUID := chi.URLParam(r, "doc")
+	msg := validation.Message{Positive: false}
+	exists, err := logic.ChangeVisibiltyComment(chi.URLParam(r, "comment"), docUUID)
+	if err != nil {
+		msg.Message = builder.Translation["errorProcessing"]
+		viewDiscussionDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+	if !exists {
+		msg.Message = builder.Translation["commentDoesNotExists"]
+		viewDiscussionDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	msg.Positive = true
+	msg.Message = builder.Translation["changeCommentVisiblitySuccessfull"]
+	html := composition.ViewDiscussionPage(acc, docUUID, true, msg)
+	viewDiscussionDocumentRenderRequest(w, r, acc, html)
 }
 
 func PostCommentDiscussionViewService(w http.ResponseWriter, r *http.Request) {

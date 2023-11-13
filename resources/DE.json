@@ -303,11 +303,14 @@
   "discussionIsPrivate": "Diskussion ist privat",
   "commentWrittenAuthor": "Kommentiert am 02.01.2006 um 15:04 Uhr von %s",
   "commentHasBeenHidden": "[Der Kommentar wurde von der Moderation entfernt]",
-  "commentCurrentlyHidden": "[Dieser Kommentar ist momentan für Nicht-Adminstratoren versteckt]",
+  "commentCurrentlyHidden": "[Dieser Kommentar ist momentan für Nicht-Administrator als gelöscht markiert]",
   "hideCommentDiscussion": "Kommentar verstecken",
   "showCommentDiscussion": "Kommentar wieder anzeigen",
   "missingContentForDiscussionComment": "Kommentarinhalt fehlt oder ist zu lang (maximal %d Zeichen)",
   "notAllowedToComment": "Der Account ist nicht berechtigt einen Kommentar zu verfassen",
   "errorWhenMakingComment": "Es ist ein Fehler beim erstellen des Kommentars aufgetreten",
-  "addedComment": "Kommentar erfolgreich hinzugefügt"
+  "addedComment": "Kommentar erfolgreich hinzugefügt",
+  "changeCommentVisiblitySuccessfull": "Kommentarsichtbarkeit erfolgreich angepasst",
+  "errorProcessing": "Es ist ein Fehler bei der Verarbeitung der Anfragen aufgetreten",
+  "commentDoesNotExists": "Es existiert kein Kommentar mit der angebenen UUID"
 }
