@@ -16,7 +16,7 @@ func GetCreateVotePage(val validation.Message) Node {
 			getSimpleTextInput("title", "title", "", Translation["titleTextDocument"]),
 			getSimpleTextInput("subtitle", "subtitle", "", Translation["subtitleTextDocument"]),
 			getTextArea("content", "content", "", Translation["contentTextDocument"],
-				true, true),
+				MarkdownJsonPage),
 			DIV(ID(voteContainerDiv),
 				getPartialVote("1")),
 			getPartialButton("2", false), BR(),

@@ -22,7 +22,7 @@ func CreateDocumentPage(acc *extraction.AccountAuth, document *validation.Create
 			getSimpleTextInput("title", "title", document.Title, Translation["titleTextDocument"]),
 			getSimpleTextInput("subtitle", "subtitle", document.Subtitle, Translation["subtitleTextDocument"]),
 			getTextArea("content", "content", document.Content, Translation["contentTextDocument"],
-				true, false),
+				MarkdownFormPage),
 
 			getSimpleTextInput("tag", "tag", document.TagText, Translation["tagTextDocument"]),
 			getInput("color", "color", document.TagColor, Translation["tagColorTextDocument"], "color",
