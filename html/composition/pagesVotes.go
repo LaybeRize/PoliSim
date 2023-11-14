@@ -74,7 +74,7 @@ func getPartialVote(number string) Node {
 		getEditableList([]string{}, "question["+number+"][answers]", "",
 			Translation["voteAddAnswersToQuestion"], "w-full"),
 		BUTTON(CLASS("bg-slate-700 text-white p-2 mt-2 hover:bg-rose-800"), TYPE("button"),
-			HYPERSCRIPT("on click if alert('test') then tell my parentElement remove yourself"), Text(Translation["deleteVote"])),
+			HYPERSCRIPT("on click tell my parentElement remove yourself"), Text(Translation["deleteVote"])),
 	)
 }
 
@@ -84,4 +84,8 @@ func getPartialButton(number string, withSwap bool) Node {
 		P(CLASS("bg-slate-700 text-white p-2 mt-2"), STYLE("text-align: center;"),
 			Text(Translation["addnewVoteToPost"]),
 		))
+}
+
+func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string) Node {
+	return nil
 }

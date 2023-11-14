@@ -40,6 +40,8 @@ type CreateDiscussion struct {
 
 type (
 	CreateVote struct {
+		Account        string      `json:"authorAccount"`
+		Organisation   string      `json:"organisation"`
 		Title          string      `json:"title"`
 		Subtitle       string      `json:"subtitle"`
 		Content        string      `json:"content"`
@@ -50,6 +52,7 @@ type (
 		Attendents     []string    `input:"attendents"`
 		Voter          []string    `input:"voter"`
 		Questions      []*Question `json:"question"`
+		UUIDredirect   string
 	}
 	Question struct {
 		Text         string   `json:"questionText"`
@@ -279,4 +282,34 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 
 	form.UUIDredirect = document.UUID
 	return Message{Positive: true}
+}
+
+func (form *CreateVote) CreateVote(requestAccountID int64) (validate Message) {
+	validate = Message{Positive: false}
+	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
+	switch false {
+	case isValidString(form.Title, maxDocumentTitleLength):
+		// has no valid title
+		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForDocument"], maxDocumentTitleLength)
+		return
+	case len([]rune(form.Subtitle)) <= maxDocumentSubtitleLength:
+		// has no valid title
+		validate.Message = fmt.Sprintf(builder.Translation["tooLongSubtitleForDocument"], maxDocumentSubtitleLength)
+		return
+	case isValidString(form.Content, maxDocumentContentLength):
+		// has no valid content
+		validate.Message = fmt.Sprintf(builder.Translation["missingContentForDocument"], maxDocumentContentLength)
+		return
+	case err == nil:
+		// error with author account
+		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
+		return
+	case ok:
+		// not allowed for author account
+		validate.Message = builder.Translation["notAllowedToUseAccount"]
+		return
+	}
+	//TODO: das auslagern
+	_ = account
+	return Message{}
 }
