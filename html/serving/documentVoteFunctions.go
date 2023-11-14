@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 //TODO fill this with live
@@ -28,12 +29,14 @@ func GetVoteCreationService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := composition.GetCreateVotePage(validation.Message{})
+	html := composition.GetCreateVotePage(acc, &validation.CreateVote{
+		EndTime: time.Now().Add(time.Hour * 25).Format("2006-01-02T15:04"),
+	}, validation.Message{})
 	createVoteDocumentRenderRequest(w, r, acc, html)
 }
 
 func PostCreateVoteInDatabaseService(w http.ResponseWriter, r *http.Request) {
-	var p composition.ProofOfConcept
+	var p validation.CreateVote
 	err := json.NewDecoder(r.Body).Decode(&p)
 	msg := "success"
 	if err != nil {

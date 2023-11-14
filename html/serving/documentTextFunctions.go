@@ -6,6 +6,7 @@ import (
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
+	"encoding/json"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"sync"
@@ -109,10 +110,20 @@ func GetAddTagService(w http.ResponseWriter, r *http.Request) {
 func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
 	acc, _ := CheckUserPrivileges(r)
 
-	err := r.ParseForm()
 	name := ""
-	if err == nil {
-		name = r.PostFormValue("authorAccount")
+	if r.Header.Get("Content-Type") == "application/json" {
+		var naming struct {
+			AuthorAccount string `json:"authorAccount"`
+		}
+		err := json.NewDecoder(r.Body).Decode(&naming)
+		if err == nil {
+			name = naming.AuthorAccount
+		}
+	} else {
+		err := r.ParseForm()
+		if err == nil {
+			name = r.PostFormValue("authorAccount")
+		}
 	}
 	account, ok, err := validation.IsAccountValidForUser(acc.ID, name)
 	if !ok || err != nil {

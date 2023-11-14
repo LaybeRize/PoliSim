@@ -51,3 +51,7 @@ var (
 		ThreeCategoryVoting: "Dafür-Dagegen-Enthaltung-Wahl",
 	}
 )
+
+func (vType VoteType) String() string {
+	return string(vType)
+}

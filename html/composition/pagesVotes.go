@@ -1,6 +1,8 @@
 package composition
 
 import (
+	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"strconv"
@@ -8,15 +10,39 @@ import (
 
 const voteContainerDiv = "vote-container-div"
 
-func GetCreateVotePage(val validation.Message) Node {
+func GetCreateVotePage(acc *extraction.AccountAuth, document *validation.CreateVote, val validation.Message) Node {
+	display, err := extraction.ReturnListOfDisplayNames()
+	if err != nil {
+		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
+	}
+	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{ID: acc.ID,
+		DisplayName: acc.DisplayName}, "", "user")
+	if err != nil {
+		val.Message = Translation["errorRetrievingOrganisationForAccount"] + "\n" + val.Message
+	}
+
 	return getBasePageWrapper(
+		getDataList("displayNames", display),
 		SCRIPT(SRC("/public/json-enc-custom.js")),
+		getPageHeader(CreateVoteDocument),
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateVoteDocument), CLASS("w-[800px]"),
 			HXEXTEND("json-enc-custom"),
-			getSimpleTextInput("title", "title", "", Translation["titleTextDocument"]),
-			getSimpleTextInput("subtitle", "subtitle", "", Translation["subtitleTextDocument"]),
-			getTextArea("content", "content", "", Translation["contentTextDocument"],
+			node,
+			getSimpleTextInput("title", "title", "", Translation["titleVoteDocument"]),
+			getSimpleTextInput("subtitle", "subtitle", "", Translation["subtitleVoteDocument"]),
+			getInput("endTime", "endTime", document.EndTime, Translation["endTimeVote"], "datetime-local", "", ""),
+			getTextArea("content", "content", "", Translation["contentVoteDocument"],
 				MarkdownJsonPage),
+			getCheckBox("private", false, false, "true", "private", Translation["privateVote"],
+				HYPERSCRIPT("on click toggle .hidden on #anyoneCanComment")),
+			getCheckBox("anyoneCanVote", false, false, "true", "anyoneCanVote", Translation["anyoneCanVote"], nil),
+			getCheckBox("membersCanVote", false, false, "true", "membersCanVote", Translation["membersCanVote"], nil),
+			DIV(CLASS("flex flex-row"),
+				getEditableList([]string{}, "attendents", "displayNames",
+					Translation["addVoteAttendentButton"], "w-[400px]"),
+				getEditableList([]string{}, "voter", "displayNames",
+					Translation["addVoteVoterButton"], "w-[400px] ml-2"),
+			),
 			DIV(ID(voteContainerDiv),
 				getPartialVote("1")),
 			getPartialButton("2", false), BR(),
@@ -36,29 +62,19 @@ func GetVotePartial(partialNumber int64) Node {
 	)
 }
 
-type (
-	ProofOfConcept struct {
-		Title     string      `json:"title"`
-		Subtitle  string      `json:"subtitle"`
-		Content   string      `json:"content"`
-		Questions []*Question `json:"question"`
-	}
-	Question struct {
-		Text    string   `json:"questionText"`
-		Answers []string `json:"answers"`
-	}
-)
-
 func getPartialVote(number string) Node {
 	return DIV(CLASS("w-[800px] box box-e p-2 mt-2"),
 		STYLE("--clr-border: rgb(40 51 69);"),
 		P(CLASS("text-xl"), Text(Translation["votePartialHeader"], number)),
 		getSimpleTextInput("question-questionText-"+number, "question["+number+"][questionText]",
 			"", Translation["voteQuestionText"]),
+		getDropDown("question["+number+"][type]", "question-type-"+
+			number, Translation["voteQuestionType"], false,
+			database.VoteTypes, database.VoteTranslation, database.SingleVote),
 		getEditableList([]string{}, "question["+number+"][answers]", "",
 			Translation["voteAddAnswersToQuestion"], "w-full"),
-		BUTTON(CLASS("bg-slate-700 text-white p-2 mt-2 hover:bg-rose-800"),
-			HYPERSCRIPT("on click tell me.parentElement remove yourself"), Text(Translation["deleteVote"])),
+		BUTTON(CLASS("bg-slate-700 text-white p-2 mt-2 hover:bg-rose-800"), TYPE("button"),
+			HYPERSCRIPT("on click if alert('test') then tell my parentElement remove yourself"), Text(Translation["deleteVote"])),
 	)
 }
 

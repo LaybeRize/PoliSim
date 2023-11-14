@@ -27,7 +27,7 @@ func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.Crea
 			node,
 			getSimpleTextInput("title", "title", document.Title, Translation["titleDiscussion"]),
 			getSimpleTextInput("subtitle", "subtitle", document.Subtitle, Translation["subtitleDiscussion"]),
-			getInput("subtitle", "endTime", document.EndTime, Translation["endTimeDiscussion"], "datetime-local", "", ""),
+			getInput("endTime", "endTime", document.EndTime, Translation["endTimeDiscussion"], "datetime-local", "", ""),
 			getTextArea("content", "content", document.Content, Translation["contentDiscussion"],
 				MarkdownFormPage),
 			getCheckBox("private", document.Private, false, "true", "private", Translation["privateDiscussion"],

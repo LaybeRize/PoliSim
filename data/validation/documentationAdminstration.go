@@ -38,6 +38,26 @@ type CreateDiscussion struct {
 	UUIDredirect      string
 }
 
+type (
+	CreateVote struct {
+		Title          string      `json:"title"`
+		Subtitle       string      `json:"subtitle"`
+		Content        string      `json:"content"`
+		EndTime        string      `input:"endTime"`
+		Private        string      `json:"private"`
+		AnyoneCanVote  string      `json:"anyoneCanVote"`
+		MembersCanVote string      `json:"membersCanVote"`
+		Attendents     []string    `input:"attendents"`
+		Voter          []string    `input:"voter"`
+		Questions      []*Question `json:"question"`
+	}
+	Question struct {
+		Text         string   `json:"questionText"`
+		Answers      []string `json:"answers"`
+		QuestionType string   `json:"type"`
+	}
+)
+
 const (
 	maxDocumentTitleLength    = 200
 	maxDocumentSubtitleLength = 400

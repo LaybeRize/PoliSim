@@ -321,5 +321,15 @@
   "invalidNumber": "Anfrage hatte invalide Nummer für die Abstimmung",
   "votePartialHeader": "Abstimmung %s",
   "voteQuestionText": "Abstimmungsfrage",
-  "voteAddAnswersToQuestion": "Mögliche Antwort hinzufügen"
+  "voteAddAnswersToQuestion": "Mögliche Antwort hinzufügen",
+  "voteQuestionType": "Abstimmungsart",
+  "privateVote": "Abstimmung ist privat",
+  "anyoneCanVote": "Jeder darf abstimmen",
+  "membersCanVote": "Mitglieder dürfen abstimmen",
+  "addVoteAttendentButton": "Abstimmungszuschauer hinzufügen",
+  "addVoteVoterButton": "Abstimmungsteilnehmer hinzufügen",
+  "titleVoteDocument": "Abstimmungstitel",
+  "subtitleVoteDocument": "Abstimmungsuntertitel",
+  "contentVoteDocument": "Abstimmungsinhalt",
+  "endTimeVote": "Abstimmungsende"
 }
