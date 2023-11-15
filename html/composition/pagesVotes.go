@@ -86,6 +86,6 @@ func getPartialButton(number string, withSwap bool) Node {
 		))
 }
 
-func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string) Node {
+func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
 	return nil
 }

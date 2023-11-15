@@ -12,47 +12,20 @@ import (
 	"time"
 )
 
-type CreateDocument struct {
-	Title        string `input:"title"`
-	Subtitle     string `input:"subtitle"`
-	Content      string `input:"content"`
-	TagText      string `input:"tag"`
-	TagColor     string `input:"color"`
-	Account      string `input:"authorAccount"`
-	Organisation string `input:"organisation"`
-	UUIDredirect string
-}
-
-type CreateDiscussion struct {
-	Title             string   `input:"title"`
-	Subtitle          string   `input:"subtitle"`
-	Content           string   `input:"content"`
-	EndTime           string   `input:"endTime"`
-	Private           bool     `input:"private"`
-	MembersCanComment bool     `input:"membersCanComment"`
-	AnyoneCanComment  bool     `input:"anyoneCanComment"`
-	Account           string   `input:"authorAccount"`
-	Organisation      string   `input:"organisation"`
-	Reader            []string `input:"reader"`
-	Writer            []string `input:"writer"`
-	UUIDredirect      string
-}
-
 type (
+	CreateDocument struct {
+		BaseDocumentInfo
+		TagText  string `input:"tag"`
+		TagColor string `input:"color"`
+	}
+	CreateDiscussion struct {
+		BaseDocumentInfo
+		PrivateDocumentInfo
+	}
 	CreateVote struct {
-		Account        string      `json:"authorAccount"`
-		Organisation   string      `json:"organisation"`
-		Title          string      `json:"title"`
-		Subtitle       string      `json:"subtitle"`
-		Content        string      `json:"content"`
-		EndTime        string      `input:"endTime"`
-		Private        string      `json:"private"`
-		AnyoneCanVote  string      `json:"anyoneCanVote"`
-		MembersCanVote string      `json:"membersCanVote"`
-		Attendents     []string    `input:"attendents"`
-		Voter          []string    `input:"voter"`
-		Questions      []*Question `json:"question"`
-		UUIDredirect   string
+		BaseDocumentInfo
+		PrivateDocumentInfo
+		Questions []*Question `json:"question"`
 	}
 	Question struct {
 		Text         string   `json:"questionText"`
@@ -68,49 +41,29 @@ const (
 	maxDocumentInfoTagLength  = 200
 	minDays                   = 1
 	maxDays                   = 14
+	maxQuestions              = 10
 )
 
 func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
+	var account *extraction.AccountModification
+	var org *database.Organisation
+	var isAdmin bool
 	var IsColor = regexp.MustCompile(`^#[a-fA-F0-9]{6}$`).MatchString
 	switch false {
-	case isValidString(form.Title, maxDocumentTitleLength):
-		// has no valid title
-		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForDocument"], maxDocumentTitleLength)
-		return
-	case len([]rune(form.Subtitle)) <= maxDocumentSubtitleLength:
-		// has no valid title
-		validate.Message = fmt.Sprintf(builder.Translation["tooLongSubtitleForDocument"], maxDocumentSubtitleLength)
-		return
-	case isValidString(form.Content, maxDocumentContentLength):
-		// has no valid content
-		validate.Message = fmt.Sprintf(builder.Translation["missingContentForDocument"], maxDocumentContentLength)
+	case form.BaseDocumentInfo.validateBaseDocumentInformation(requestAccountID, account, &validate):
 		return
 	case isValidString(form.TagText, maxDocumentInfoTagLength):
 		// has no valid content
 		validate.Message = fmt.Sprintf(builder.Translation["missingTagTextForDocument"], maxDocumentInfoTagLength)
 		return
-	case err == nil:
-		// error with author account
-		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
-		return
-	case ok:
-		// not allowed for author account
-		validate.Message = builder.Translation["notAllowedToUseAccount"]
-		return
 	case IsColor(form.TagColor):
 		//tag color doesn't fit the format anyway
 		validate.Message = builder.Translation["invalidHexColor"]
 		return
-	}
-	var org *database.Organisation
-	org, ok, err = IsOrganisationValidForAccount(account.ID, form.Organisation)
-	if err != nil {
-		validate.Message = builder.Translation["databaseErrorWithOrganisationAccount"]
+	case form.BaseDocumentInfo.validateOrganisation(account, org, &isAdmin, &validate):
 		return
-	}
-	if !ok {
+	case isAdmin:
 		validate.Message = builder.Translation["notAnAdminOfOrganisation"]
 		return
 	}
@@ -140,7 +93,7 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 		},
 	}
 
-	err = extraction.CreateDocument(&document)
+	err := extraction.CreateDocument(&document)
 	if err != nil {
 		validate.Message = builder.Translation["errorCreatingDocument"]
 		return
@@ -152,99 +105,58 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 
 func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
+	var account *extraction.AccountModification
+	var org *database.Organisation
+	var isAdmin bool
+	var endDiscussion time.Time
+	var reader, writer, accounts *database.AccountList
 	switch false {
-	case isValidString(form.Title, maxDocumentTitleLength):
-		// has no valid title
-		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForDocument"], maxDocumentTitleLength)
+	case form.BaseDocumentInfo.validateBaseDocumentInformation(requestAccountID, account, &validate):
 		return
-	case len([]rune(form.Subtitle)) <= maxDocumentSubtitleLength:
-		// has no valid title
-		validate.Message = fmt.Sprintf(builder.Translation["tooLongSubtitleForDocument"], maxDocumentSubtitleLength)
+	case form.BaseDocumentInfo.validateOrganisation(account, org, &isAdmin, &validate):
 		return
-	case isValidString(form.Content, maxDocumentContentLength):
-		// has no valid content
-		validate.Message = fmt.Sprintf(builder.Translation["missingContentForDocument"], maxDocumentContentLength)
+	case form.PrivateDocumentInfo.validateTime(&endDiscussion, &validate, builder.Translation["timeIsInvalidString"]):
 		return
-	case err == nil:
-		// error with author account
-		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
+	case !endDiscussion.Before(time.Now().Add(24 * time.Hour * minDays)):
+		validate.Message = fmt.Sprintf(builder.Translation["timeUnderMinAmountDays"], minDays)
 		return
-	case ok:
-		// not allowed for author account
-		validate.Message = builder.Translation["notAllowedToUseAccount"]
+	case !endDiscussion.After(time.Now().Add(24 * time.Hour * maxDays)):
+		validate.Message = fmt.Sprintf(builder.Translation["timeOverMaxAmountDays"], maxDays)
 		return
-	}
-
-	org, isAdmin, err := IsOrganisationValidForAccount(account.ID, form.Organisation)
-	if err != nil {
-		validate.Message = builder.Translation["databaseErrorWithOrganisationAccount"]
+	case form.PrivateDocumentInfo.validateAccounts(reader, writer, accounts, &validate):
 		return
 	}
 
 	//TODO add needed cases for admins and other stuff
-	if org.Status == database.Secret {
-		if ((len(form.Reader) != 0 || len(form.Writer) != 0) && !isAdmin) || form.AnyoneCanComment {
+	switch org.Status {
+	case database.Secret:
+		if ((len(form.Onlooker) != 0 || len(form.Participants) != 0) && !isAdmin) || form.AnyoneCanParticipate {
 			validate.Message = builder.Translation["noExternalReaderOrWriterAllowed"]
 			return
-		}
-		if !form.Private {
+		} else if !form.Private {
 			validate.Message = builder.Translation["errorBecauseNotPrivate"]
 			return
 		}
-	} else if org.Status == database.Private {
-		if form.Private && form.AnyoneCanComment {
+	case database.Private:
+		if form.Private && form.AnyoneCanParticipate {
 			validate.Message = builder.Translation["mutuallyExlusiveSelection"]
 			return
 		}
-	} else if org.Status == database.Public {
+	case database.Public:
 		if form.Private {
 			validate.Message = builder.Translation["notAllowedToBePrivate"]
 			return
 		}
 	}
-	if form.AnyoneCanComment && !isAdmin {
+	if form.AnyoneCanParticipate && !isAdmin {
 		validate.Message = builder.Translation["needsToBeAdminForAnyone"]
-		return
-	}
-
-	var endDiscussion time.Time
-	endDiscussion, err = time.ParseInLocation("2006-01-02T15:04", form.EndTime, time.Local)
-	if err != nil {
-		validate.Message = builder.Translation["timeIsInvalidString"]
-		return
-	}
-
-	if endDiscussion.Before(time.Now().Add(24 * time.Hour * minDays)) {
-		validate.Message = fmt.Sprintf(builder.Translation["timeUnderMinAmountDays"], minDays)
-		return
-	}
-	if endDiscussion.After(time.Now().Add(24 * time.Hour * maxDays)) {
-		validate.Message = fmt.Sprintf(builder.Translation["timeOverMaxAmountDays"], maxDays)
-		return
-	}
-
-	helper.RemoveEntriesFromList(&form.Reader, form.Writer)
-	reader, ok, err := extraction.DoAccountsExist(form.Reader)
-	if !ok {
-		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
-		return
-	}
-	writer, ok, err := extraction.DoAccountsExist(form.Writer)
-	if !ok {
-		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
-		return
-	}
-	accounts, err := extraction.GetParentAccounts(append(form.Reader, form.Writer...))
-	if err != nil {
-		validate.Message = builder.Translation["parentAccountError"]
 		return
 	}
 
 	written := time.Now()
 	discType := database.RunningDiscussion
-	if len(form.Reader) == 0 && len(form.Writer) == 0 &&
-		!form.AnyoneCanComment && !form.MembersCanComment {
+	if len(form.Onlooker) == 0 && len(form.Participants) == 0 &&
+		!form.AnyoneCanParticipate && !form.MembersCanParticipate {
 		endDiscussion = written
 		discType = database.FinishedDiscussion
 	}
@@ -263,8 +175,8 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 		},
 		HTMLContent:               helper.CreateHTML(form.Content),
 		Private:                   form.Private,
-		AnyPosterAllowed:          form.AnyoneCanComment,
-		OrganisationPosterAllowed: form.MembersCanComment,
+		AnyPosterAllowed:          form.AnyoneCanParticipate,
+		OrganisationPosterAllowed: form.MembersCanParticipate,
 		Info: database.DocumentInfo{
 			Finishing:  endDiscussion,
 			Discussion: []database.Discussions{},
@@ -274,7 +186,7 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 		Allowed: *accounts,
 	}
 
-	err = extraction.CreateDocument(&document)
+	err := extraction.CreateDocument(&document)
 	if err != nil {
 		validate.Message = builder.Translation["errorCreatingDocument"]
 		return
@@ -286,30 +198,47 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 
 func (form *CreateVote) CreateVote(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	account, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
+	var account *extraction.AccountModification
+	var org *database.Organisation
+	var isAdmin bool
+	var endVote time.Time
+	var spectator, voter, accounts *database.AccountList
 	switch false {
-	case isValidString(form.Title, maxDocumentTitleLength):
-		// has no valid title
-		validate.Message = fmt.Sprintf(builder.Translation["missingTitleForDocument"], maxDocumentTitleLength)
+	case form.BaseDocumentInfo.validateBaseDocumentInformation(requestAccountID, account, &validate):
 		return
-	case len([]rune(form.Subtitle)) <= maxDocumentSubtitleLength:
-		// has no valid title
-		validate.Message = fmt.Sprintf(builder.Translation["tooLongSubtitleForDocument"], maxDocumentSubtitleLength)
+	case form.BaseDocumentInfo.validateOrganisation(account, org, &isAdmin, &validate):
 		return
-	case isValidString(form.Content, maxDocumentContentLength):
-		// has no valid content
-		validate.Message = fmt.Sprintf(builder.Translation["missingContentForDocument"], maxDocumentContentLength)
+	case form.PrivateDocumentInfo.validateTime(&endVote, &validate, builder.Translation["timeVoteEndIsInvalidString"]):
 		return
-	case err == nil:
-		// error with author account
-		validate.Message = builder.Translation["databaseErrorWithAuthorAccount"]
+	case !endVote.Before(time.Now().Add(24 * time.Hour * minDays)):
+		validate.Message = fmt.Sprintf(builder.Translation["timeForVoteUnderMinAmountDays"], minDays)
 		return
-	case ok:
-		// not allowed for author account
-		validate.Message = builder.Translation["notAllowedToUseAccount"]
+	case !endVote.After(time.Now().Add(24 * time.Hour * maxDays)):
+		validate.Message = fmt.Sprintf(builder.Translation["timeForVoteOverMaxAmountDays"], maxDays)
+		return
+	case form.PrivateDocumentInfo.validateAccounts(spectator, voter, accounts, &validate):
+		return
+	case checkQuestions(&form.Questions):
+		validate.Message = fmt.Sprintf(builder.Translation["questionLimit"], maxQuestions)
 		return
 	}
-	//TODO: das auslagern
-	_ = account
+
 	return Message{}
+}
+
+func checkQuestions(questions *[]*Question) bool {
+	newQuestions := make([]*Question, 0, len(*questions))
+	counter := 0
+	for _, item := range *questions {
+		if item == nil {
+			continue
+		}
+		counter++
+		newQuestions = append(newQuestions, item)
+	}
+	if counter == 0 || counter > maxQuestions {
+		return false
+	}
+	questions = &newQuestions
+	return true
 }

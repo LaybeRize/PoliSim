@@ -27,6 +27,8 @@ const (
 	CommentDiscussion                          = CommentDiscussionLink + "{uuid}"
 	ViewDiscussionDocumentLink builder.HttpUrl = "document/discussion/view/"
 	ViewDiscussionDocument                     = ViewDiscussionDocumentLink + "{uuid}"
+	ViewVoteDocumentLink       builder.HttpUrl = "document/discussion/view/"
+	ViewVoteDocument                           = ViewVoteDocumentLink + "{uuid}"
 	ChangeCommentDocumentLink  builder.HttpUrl = "document/discussion/change/comment/"
 	ChangeCommentDocument                      = ChangeCommentDocumentLink + "{doc}/{comment}"
 	CreateTextDocument         builder.HttpUrl = "document/text/create"

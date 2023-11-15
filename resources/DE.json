@@ -331,5 +331,10 @@
   "titleVoteDocument": "Abstimmungstitel",
   "subtitleVoteDocument": "Abstimmungsuntertitel",
   "contentVoteDocument": "Abstimmungsinhalt",
-  "endTimeVote": "Abstimmungsende"
+  "endTimeVote": "Abstimmungsende",
+  "timeVoteEndIsInvalidString": "Angegebenens Abstimmungsende ist keine valide Zeit",
+  "timeForVoteUnderMinAmountDays": "Die Abstimmung darf nicht kürzer als %d Tage laufen",
+  "timeForVoteOverMaxAmountDays": "Die Abstimmung darf nicht länger als %d Tage laufen",
+  "voteViewPageTitle": "Abstimmung",
+  "questionLimit": "Abstimmungensanzahl darf nicht weniger als 1 und mehr als %d sein"
 }

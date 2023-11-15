@@ -130,9 +130,9 @@ func GetDocumentDiscussionCreationService(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	html := composition.CreateDiscussionPage(acc, &validation.CreateDiscussion{
+	html := composition.CreateDiscussionPage(acc, &validation.CreateDiscussion{PrivateDocumentInfo: validation.PrivateDocumentInfo{
 		EndTime: time.Now().Add(time.Hour * 25).Format("2006-01-02T15:04"),
-	}, validation.Message{})
+	}}, validation.Message{})
 	createDiscussionDocumentRenderRequest(w, r, acc, html)
 }
 
