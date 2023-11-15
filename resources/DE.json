@@ -319,7 +319,7 @@
   "deleteVote": "Abstimmung entfernen",
   "createVoteDocument": "Abstimmungsdokument erstellen",
   "invalidNumber": "Anfrage hatte invalide Nummer für die Abstimmung",
-  "votePartialHeader": "Abstimmung %s",
+  "votePartialHeader": "Abstimmung Nr. %s",
   "voteQuestionText": "Abstimmungsfrage",
   "voteAddAnswersToQuestion": "Mögliche Antwort hinzufügen",
   "voteQuestionType": "Abstimmungsart",
@@ -336,5 +336,9 @@
   "timeForVoteUnderMinAmountDays": "Die Abstimmung darf nicht kürzer als %d Tage laufen",
   "timeForVoteOverMaxAmountDays": "Die Abstimmung darf nicht länger als %d Tage laufen",
   "voteViewPageTitle": "Abstimmung",
-  "questionLimit": "Abstimmungensanzahl darf nicht weniger als 1 und mehr als %d sein"
+  "questionLimit": "Abstimmungensanzahl darf nicht weniger als 1 und mehr als %d sein",
+  "missingVoteQuestion": "Die Frage in Abstimmung Nr. %d fehlt oder ist zu lang (maximal %d Zeichen)",
+  "wrongVoteQuestionType": "Die angegebene Abstimmungsart in Abstimmung Nr. %d existiert nicht",
+  "needsAnswersForVote": "Die Abstimmung Nr. %d braucht mindestens eine Antwortmöglichkeit",
+  "tooManyAnswersForVote": "Die Abstimmung Nr. %d hat mehr als die erlaubte Anzahl von %d Antwortmöglichkeiten"
 }

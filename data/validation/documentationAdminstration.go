@@ -42,6 +42,8 @@ const (
 	minDays                   = 1
 	maxDays                   = 14
 	maxQuestions              = 10
+	maxVoteQuestionLength     = 200
+	maxVoteAnswers            = 50
 )
 
 func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Message) {
@@ -218,26 +220,57 @@ func (form *CreateVote) CreateVote(requestAccountID int64) (validate Message) {
 		return
 	case form.PrivateDocumentInfo.validateAccounts(spectator, voter, accounts, &validate):
 		return
-	case checkQuestions(&form.Questions):
-		validate.Message = fmt.Sprintf(builder.Translation["questionLimit"], maxQuestions)
+	case checkQuestions(&form.Questions, &validate):
 		return
 	}
 
 	return Message{}
 }
 
-func checkQuestions(questions *[]*Question) bool {
+func checkIfQuestionIsValid(pos int, item *Question, validate *Message) (result bool) {
+	result = false
+	switch false {
+	case isValidString(item.Text, maxVoteQuestionLength):
+		// has no valid question
+		validate.Message = fmt.Sprintf(builder.Translation["missingVoteQuestion"], pos, maxVoteQuestionLength)
+		return
+	case database.VoteTranslation[database.VoteType(item.QuestionType)] != "":
+		validate.Message = fmt.Sprintf(builder.Translation["wrongVoteQuestionType"], pos)
+		return
+	case len(item.Answers) == 0:
+		validate.Message = fmt.Sprintf(builder.Translation["needsAnswersForVote"], pos)
+		return
+	case len(item.Answers) > maxVoteAnswers:
+		validate.Message = fmt.Sprintf(builder.Translation["tooManyAnswersForVote"], pos, maxVoteAnswers)
+		return
+	}
+	return true
+}
+
+func checkQuestions(questions *[]*Question, validate *Message) (result bool) {
+	result = false
 	newQuestions := make([]*Question, 0, len(*questions))
 	counter := 0
-	for _, item := range *questions {
+	for pos, item := range *questions {
 		if item == nil {
 			continue
 		}
+
+		if item.Answers == nil {
+			validate.Message = fmt.Sprintf(builder.Translation["needsAnswersForVote"], pos)
+			return
+		}
+		helper.ClearStringArray(&item.Answers)
+		if !checkIfQuestionIsValid(pos, item, validate) {
+			return
+		}
+
 		counter++
 		newQuestions = append(newQuestions, item)
 	}
 	if counter == 0 || counter > maxQuestions {
-		return false
+		validate.Message = fmt.Sprintf(builder.Translation["questionLimit"], maxQuestions)
+		return
 	}
 	questions = &newQuestions
 	return true
