@@ -21,8 +21,8 @@ type (
 	PrivateDocumentInfo struct {
 		EndTime               string   `input:"endTime" json:"endTime"`
 		Private               bool     `input:"private" json:"private"`
-		MembersCanParticipate bool     `input:"membersCanComment" json:"anyoneCanVote"`
-		AnyoneCanParticipate  bool     `input:"anyoneCanComment" json:"membersCanVote"`
+		MembersCanParticipate bool     `input:"membersCanComment" json:"membersCanVote"`
+		AnyoneCanParticipate  bool     `input:"anyoneCanComment" json:"anyoneCanVote"`
 		Onlooker              []string `input:"reader" json:"attendents"`
 		Participants          []string `input:"writer" json:"voter"`
 	}

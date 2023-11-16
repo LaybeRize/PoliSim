@@ -33,10 +33,11 @@ func GetCreateVotePage(acc *extraction.AccountAuth, document *validation.CreateV
 			getInput("endTime", "endTime", document.EndTime, Translation["endTimeVote"], "datetime-local", "", ""),
 			getTextArea("content", "content", "", Translation["contentVoteDocument"],
 				MarkdownJsonPage),
-			getCheckBox("private", false, false, "true", "private", Translation["privateVote"],
+			getCheckBox("private", false, false, "", "private", Translation["privateVote"],
 				HYPERSCRIPT("on click toggle .hidden on #anyoneCanComment")),
-			getCheckBox("anyoneCanVote", false, false, "true", "anyoneCanVote", Translation["anyoneCanVote"], nil),
-			getCheckBox("membersCanVote", false, false, "true", "membersCanVote", Translation["membersCanVote"], nil),
+			getCheckBox("anyoneCanVote", false, false, "", "anyoneCanVote", Translation["anyoneCanVote"], nil),
+			getCheckBox("membersCanVote", false, false, "", "membersCanVote", Translation["membersCanVote"], nil),
+			getHiddenEmptyInput("attendents"), getHiddenEmptyInput("voter"),
 			DIV(CLASS("flex flex-row"),
 				getEditableList([]string{}, "attendents", "displayNames",
 					Translation["addVoteAttendentButton"], "w-[400px]"),
@@ -53,6 +54,10 @@ func GetCreateVotePage(acc *extraction.AccountAuth, document *validation.CreateV
 	)
 }
 
+func getHiddenEmptyInput(name string) Node {
+	return INPUT(TYPE("text"), NAME(name), VALUE(""), HIDDEN())
+}
+
 const votePartialButtonID = "vote-partial-button"
 
 func GetVotePartial(partialNumber int64) Node {
@@ -63,18 +68,29 @@ func GetVotePartial(partialNumber int64) Node {
 }
 
 func getPartialVote(number string) Node {
-	return DIV(CLASS("w-[800px] box box-e p-2 mt-2"),
+	return DIV(CLASS("w-[800px] box box-e p-2 mt-2"), ID("vote-partial-"+number),
 		STYLE("--clr-border: rgb(40 51 69);"),
-		P(CLASS("text-xl"), Text(Translation["votePartialHeader"], number)),
+		DIV(CLASS("w-full flex justify-between flex-row"),
+			P(CLASS("text-xl"), Text(Translation["votePartialHeader"], number)),
+			BUTTON(CLASS("bg-slate-700 text-white p-2 mt-2 hover:bg-rose-800"), TYPE("button"),
+				ID("deleteVoteButton"), TEST("deleteVoteButton-"+number),
+				HYPERSCRIPT("on click tell #vote-partial-"+number+" remove yourself"), Text(Translation["deleteVote"])),
+		),
 		getSimpleTextInput("question-questionText-"+number, "question["+number+"][questionText]",
 			"", Translation["voteQuestionText"]),
 		getDropDown("question["+number+"][type]", "question-type-"+
 			number, Translation["voteQuestionType"], false,
 			database.VoteTypes, database.VoteTranslation, database.SingleVote),
+		getCheckBox("viewCountsWhileRunning-"+number, false, false, "",
+			"question["+number+"][viewCountsWhileRunning]", Translation["viewCountsWhileRunning"], nil),
+		getCheckBox("viewNamesWhileRunning-"+number, false, false, "",
+			"question["+number+"][viewNamesWhileRunning]", Translation["viewNamesWhileRunning"],
+			HYPERSCRIPT("on click toggle .hidden on #viewNamesAfterFinished-"+number)),
+		getCheckBox("viewNamesAfterFinished-"+number, false, false, "",
+			"question["+number+"][viewNamesAfterFinished]", Translation["viewNamesAfterFinished"], nil),
+		getHiddenEmptyInput("question["+number+"][answers]"),
 		getEditableList([]string{}, "question["+number+"][answers]", "",
 			Translation["voteAddAnswersToQuestion"], "w-full"),
-		BUTTON(CLASS("bg-slate-700 text-white p-2 mt-2 hover:bg-rose-800"), TYPE("button"),
-			HYPERSCRIPT("on click tell my parentElement remove yourself"), Text(Translation["deleteVote"])),
 	)
 }
 

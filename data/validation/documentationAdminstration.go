@@ -28,9 +28,12 @@ type (
 		Questions []*Question `json:"question"`
 	}
 	Question struct {
-		Text         string   `json:"questionText"`
-		Answers      []string `json:"answers"`
-		QuestionType string   `json:"type"`
+		Text                   string   `json:"questionText"`
+		Answers                []string `json:"answers"`
+		QuestionType           string   `json:"type"`
+		ViewCountsWhileRunning bool     `json:"viewCountsWhileRunning"`
+		ViewNamesWhileRunning  bool     `json:"viewNamesWhileRunning"`
+		ViewNamesAfterFinished bool     `json:"viewNamesAfterFinished"`
 	}
 )
 

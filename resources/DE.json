@@ -340,5 +340,8 @@
   "missingVoteQuestion": "Die Frage in Abstimmung Nr. %d fehlt oder ist zu lang (maximal %d Zeichen)",
   "wrongVoteQuestionType": "Die angegebene Abstimmungsart in Abstimmung Nr. %d existiert nicht",
   "needsAnswersForVote": "Die Abstimmung Nr. %d braucht mindestens eine Antwortmöglichkeit",
-  "tooManyAnswersForVote": "Die Abstimmung Nr. %d hat mehr als die erlaubte Anzahl von %d Antwortmöglichkeiten"
+  "tooManyAnswersForVote": "Die Abstimmung Nr. %d hat mehr als die erlaubte Anzahl von %d Antwortmöglichkeiten",
+  "viewCountsWhileRunning": "Abstimmungsverhalten während der Abstimmung zeigen",
+  "viewNamesWhileRunning": "Namen zum Abstimmungsverhalten während der Abstimmung anzeigen",
+  "viewNamesAfterFinished": "Namen zum Abstimmungsverhalten nach der Wahl anzeigen"
 }

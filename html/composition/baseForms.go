@@ -10,7 +10,7 @@ func getCheckBox(id string, checked bool, hidden bool, value string, name string
 	return DIV(IfElse(hidden, CLASS("form-check mt-2 hidden"), CLASS("form-check mt-2")), ID(id),
 		INPUT(CLASS(`form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none
             transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer`),
-			TYPE("checkbox"), VALUE(value), NAME(name), ID(id+"Input"), TEST(id+"Input"), hyperscript,
+			TYPE("checkbox"), If(value != "", VALUE(value)), NAME(name), ID(id+"Input"), TEST(id+"Input"), hyperscript,
 			If(checked && !hidden, CHECKED())),
 		LABEL(CLASS("form-check-label inline-block"), FOR(id+"Input"),
 			Text(labelText)),
