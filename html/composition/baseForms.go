@@ -10,7 +10,7 @@ func getCheckBox(id string, checked bool, hidden bool, value string, name string
 	return DIV(IfElse(hidden, CLASS("form-check mt-2 hidden"), CLASS("form-check mt-2")), ID(id),
 		INPUT(CLASS(`form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none
             transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer`),
-			TYPE("checkbox"), VALUE(value), NAME(name), ID(id+"Input"), hyperscript,
+			TYPE("checkbox"), VALUE(value), NAME(name), ID(id+"Input"), TEST(id+"Input"), hyperscript,
 			If(checked && !hidden, CHECKED())),
 		LABEL(CLASS("form-check-label inline-block"), FOR(id+"Input"),
 			Text(labelText)),
@@ -21,16 +21,19 @@ func getCheckBox(id string, checked bool, hidden bool, value string, name string
 func getDropDown[t comparable](name string, id string, labelText string, disable bool, arr []t, m map[t]string, selectedItem t) Node {
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR(id), Text(labelText)),
-		SELECT(If(disable, DISABLED()), ID(id), NAME(name), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
+		SELECT(If(disable, DISABLED()), ID(id), TEST(id), NAME(name), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
 			getOptions(arr, m, selectedItem),
 		),
 	)
 }
 
+const userDropDownID = "authorAccount"
+
 func getUserDropdown(user *extraction.AccountAuth, selectedAccount string, labelText string) Node {
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR("authorAccount"), Text(labelText)),
-		SELECT(If(user.ID == 0, DISABLED()), ID("authorAccount"), NAME("authorAccount"), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
+		SELECT(If(user.ID == 0, DISABLED()), ID(userDropDownID), TEST(userDropDownID),
+			NAME(userDropDownID), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
 			getUserOptions(user, selectedAccount),
 		),
 	)
@@ -86,7 +89,7 @@ func getDataListFromMap[t any](listName string, listMap map[string]t) Node {
 func getTextArea(id string, name string, content string, labelText string, patchURL HttpUrl) Node {
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR(id), Text(labelText)), BR(),
-		TEXTAREA(NAME(name), ID(id), CLASS("bg-slate-700 appearance-none w-full h-[200px] py-2 px-3"),
+		TEXTAREA(NAME(name), ID(id), TEST(id), CLASS("bg-slate-700 appearance-none w-full h-[200px] py-2 px-3"),
 			If(patchURL != "", Group(
 				HXPATCH("/"+APIPreRoute+string(patchURL)),
 				HXTARGET("#"+DisplayID),
@@ -107,7 +110,7 @@ func getSimpleTextInput(id string, name string, value string, labelText string) 
 func getInput(id string, name string, value string, labelText string, typeStr string, list string, extraClass string, others ...Node) Node {
 	return DIV(CLASS("mt-2 "+extraClass), ID(id+"Div"),
 		LABEL(FOR(id), Text(labelText)),
-		INPUT(TYPE(typeStr), NAME(name), ID(id), VALUE(value), Group(others...),
+		INPUT(TYPE(typeStr), NAME(name), ID(id), TEST(id), VALUE(value), Group(others...),
 			CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
 			If(list != "", LIST(list))),
 	)
@@ -116,9 +119,9 @@ func getInput(id string, name string, value string, labelText string, typeStr st
 var buttonClassAttribute = "bg-slate-700 text-white p-2"
 
 // getSubmitButton returns the standard form submit button
-func getSubmitButton(buttonText string) Node {
+func getSubmitButton(id string, buttonText string) Node {
 	return BUTTON(TYPE("submit"), CLASS(buttonClassAttribute+" mt-2 mr-2"),
-		Text(buttonText))
+		ID(id), TEST(id), Text(buttonText))
 }
 
 type formType int

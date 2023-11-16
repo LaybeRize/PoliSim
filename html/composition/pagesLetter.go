@@ -28,7 +28,7 @@ func GetCreateNormalLetterPage(acc *extraction.AccountAuth, letter *validation.C
 			getTextArea("content", "content", letter.Content, Translation["letterContent"],
 				MarkdownFormPage),
 			getEditableList(letter.Reader, "reader", "displayNames", Translation["addLetterReaderButtonText"], "w-[800px]"),
-			getSubmitButton(Translation["createLetterButton"])),
+			getSubmitButton("createLetterButton", Translation["createLetterButton"])),
 		GetMessage(val),
 		getPreviewElement(),
 	)
@@ -52,7 +52,7 @@ func GetCreateModMailPage(letter *validation.CreateLetter, val validation.Messag
 			getTextArea("content", "content", letter.Content, Translation["modMailContent"],
 				MarkdownFormPage),
 			getEditableList(letter.Reader, "reader", "displayNames", Translation["addModMailReaderButtonText"], "w-[800px]"),
-			getSubmitButton(Translation["createModMailButton"])),
+			getSubmitButton("createModMailButton", Translation["createModMailButton"])),
 		GetMessage(val),
 		getPreviewElement(),
 	)

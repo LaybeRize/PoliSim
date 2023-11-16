@@ -20,7 +20,7 @@ func GetCreatePressReleasePage(acc *extraction.AccountAuth, press *validation.Cr
 			getCheckBox("breakingNews", press.IsBreakingNews, false, "true", "breakingNews", Translation["pressBreakingNews"], nil),
 			getTextArea("content", "content", press.Content, Translation["pressContent"],
 				MarkdownFormPage),
-			getSubmitButton(Translation["createArticleButton"])),
+			getSubmitButton("createArticleButton", Translation["createArticleButton"])),
 		GetMessage(val),
 		getPreviewElement(),
 	)
@@ -86,7 +86,7 @@ func GetRejectArticlePage(uuid string, content string, val validation.Message) N
 		getFormStandardForm("form", POST, "/"+APIPreRoute+string(rejectArticleLink)+"/"+url.PathEscape(uuid), CLASS("w-[800px]"),
 			getTextArea("content", "content", content, Translation["rejectArticleMessage"],
 				MarkdownFormPage),
-			getSubmitButton(Translation["rejectArticleButton"])),
+			getSubmitButton("rejectArticleButton", Translation["rejectArticleButton"])),
 		GetMessage(val),
 		getPreviewElement(),
 	)

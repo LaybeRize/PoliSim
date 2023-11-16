@@ -46,7 +46,7 @@ func GetCreateVotePage(acc *extraction.AccountAuth, document *validation.CreateV
 			DIV(ID(voteContainerDiv),
 				getPartialVote("1")),
 			getPartialButton("2", false), BR(),
-			getSubmitButton(Translation["createVoteDocument"]),
+			getSubmitButton("createVoteButton", Translation["createVoteDocument"]),
 		),
 		GetMessage(val),
 		getPreviewElement(),

@@ -27,7 +27,7 @@ func CreateDocumentPage(acc *extraction.AccountAuth, document *validation.Create
 			getSimpleTextInput("tag", "tag", document.TagText, Translation["tagTextDocument"]),
 			getInput("color", "color", document.TagColor, Translation["tagColorTextDocument"], "color",
 				"", "", STYLE("min-height: 20px;")),
-			getSubmitButton(Translation["createTextDocumentButton"])),
+			getSubmitButton("createTextDocumentButton", Translation["createTextDocumentButton"])),
 		GetMessage(val),
 		getPreviewElement(),
 	)
@@ -99,7 +99,7 @@ func GetTagAdminPanel(uuid string, isAdmin bool) Node {
 			getSimpleTextInput("tag", "tag", "", Translation["tagTextDocument"]),
 			getInput("color", "color", "", Translation["tagColorTextDocument"], "color",
 				"", "", STYLE("min-height: 20px;")),
-			getSubmitButton(Translation["addTagButton"])),
+			getSubmitButton("changeTagVisiblityButton", Translation["addTagButton"])),
 	),
 		If(isAdmin, DIV(HXSWAPOOB("true"), ID(currentTagDiv), CLASS("w-[800px]"),
 			If(len(nodes) != 0, nodes[0]))),

@@ -30,7 +30,7 @@ func GetCreateOrganisationPage(org *validation.OrganisationModification, val val
 				getEditableList(org.Admins, "admins", "displayNames",
 					Translation["addOrganisationAdminButton"], "w-[400px] ml-2"),
 			),
-			getSubmitButton(Translation["createOrganisationButton"]),
+			getSubmitButton("createOrganisationButton", Translation["createOrganisationButton"]),
 		),
 		GetMessage(val),
 	)
@@ -61,7 +61,7 @@ func GetModifyOrganisationPage(org *validation.OrganisationModification, val val
 				getEditableList(org.Admins, "admins", "displayNames",
 					Translation["addOrganisationAdminButton"], "w-[400px] ml-2"),
 			),
-			getSubmitButton(Translation["changeOrganisationButton"]),
+			getSubmitButton("modifyOrganisationButton", Translation["changeOrganisationButton"]),
 		),
 		GetMessage(val),
 	)

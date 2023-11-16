@@ -19,7 +19,7 @@ func GetCreateAccountPage(acc *validation.AccountModification, val validation.Me
 			getDropDown("role", "role", Translation["role"], false,
 				database.Roles, database.RoleTranslation, database.RoleLevel(acc.Role)),
 			getInput("linked", "linked", strconv.Itoa(int(acc.Linked)), Translation["linked"], "number", "", ""),
-			getSubmitButton(Translation["createButton"])),
+			getSubmitButton("createAccountButton", Translation["createButton"])),
 		GetMessage(val),
 	)
 }
@@ -49,7 +49,7 @@ func GetModifyAccount(acc *validation.AccountModification, val validation.Messag
 			getDropDown("role", "role", Translation["role"], acc.Role == int(database.PressAccount),
 				database.Roles, database.RoleTranslation, database.RoleLevel(acc.Role)),
 			getInput("linked", "linked", strconv.Itoa(int(acc.Linked)), Translation["linked"], "number", "", hideLinked),
-			getSubmitButton(Translation["changeAccountButton"])),
+			getSubmitButton("modifyAccountButton", Translation["changeAccountButton"])),
 		GetMessage(val),
 	)
 }

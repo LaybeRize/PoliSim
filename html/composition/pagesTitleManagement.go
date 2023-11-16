@@ -24,7 +24,7 @@ func GetCreateTitlePage(title *validation.TitleModification, val validation.Mess
 			getInput("mainGroup", "mainGroup", title.MainGroup, Translation["mainGroup"], "text", "mainGroupNames", ""),
 			getInput("subGroup", "subGroup", title.SubGroup, Translation["subGroup"], "text", "subGroupNames", ""),
 			getEditableList(title.Holder, "holder", "displayNames", Translation["addTitleHolderButtonText"], "w-[800px]"),
-			getSubmitButton(Translation["createTitleButton"]),
+			getSubmitButton("createTitleButton", Translation["createTitleButton"]),
 		),
 		GetMessage(val),
 	)
@@ -53,7 +53,7 @@ func GetModifyTitlePage(title *validation.TitleModification, val validation.Mess
 			getInput("subGroup", "subGroup", title.SubGroup, Translation["subGroup"], "text", "subGroupNames", ""),
 			getSimpleTextInput("flair", "flair", title.Flair, Translation["flair"]),
 			getEditableList(title.Holder, "holder", "displayNames", Translation["addTitleHolderButtonText"], "w-[800px]"),
-			getSubmitButton(Translation["changeTitleButton"]),
+			getSubmitButton("modifyTitleButton", Translation["changeTitleButton"]),
 			getSubmitButtonOverwriteURL(Translation["deleteTitleButton"], PATCH, "/"+APIPreRoute+string(DeleteTitle)),
 		),
 		GetMessage(val),

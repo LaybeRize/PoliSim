@@ -51,7 +51,7 @@ var (
 	HXGET       = attributeWrapper("hx-get")
 	HXTRIGGER   = attributeWrapper("hx-trigger")
 	HXEXTEND    = attributeWrapper("hx-ext")
-	HXVALS      = attributeWrapper(hxValue)
+	TEST        = attributeWrapper("data-testid")
 	HXSWAPOOB   = attributeWrapper("hx-swap-oob")
 	HXTARGET    = attributeWrapper("hx-target")
 	HXSWAP      = attributeWrapper("hx-swap")

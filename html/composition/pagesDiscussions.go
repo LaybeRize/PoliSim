@@ -40,7 +40,7 @@ func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.Crea
 				getEditableList(document.Participants, "writer", "displayNames",
 					Translation["addDiscussionWriterButton"], "w-[400px] ml-2"),
 			),
-			getSubmitButton(Translation["createDiscussionButton"])),
+			getSubmitButton("createDiscussionButton", Translation["createDiscussionButton"])),
 		GetMessage(val),
 		getPreviewElement(),
 	)
@@ -108,7 +108,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 				getUserDropdown(acc, "", Translation["discussionCommentAuthor"]),
 				getTextArea("content", "content", "", Translation["discussionCommentContent"],
 					MarkdownFormPage),
-				getSubmitButton(Translation["addCommentButton"])),
+				getSubmitButton("submitCommentButton", Translation["addCommentButton"])),
 			GetMessage(val),
 			getPreviewElement(),
 		)),

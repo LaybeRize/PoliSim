@@ -15,7 +15,7 @@ func GetStartPage(acc *extraction.AccountAuth, val validation.Message) Node {
 			getFormStandardForm("form", POST, "/"+APIPreRoute+string(Login),
 				getSimpleTextInput("username", "username", "", Translation["username"]),
 				getInput("password", "password", "", Translation["password"], "password", "", ""),
-				getSubmitButton(Translation["loginButton"])),
+				getSubmitButton("loginButton", Translation["loginButton"])),
 			// otherwise display his name and a button to log out
 			DIV(CLASS("flex flex-col"),
 				P(CLASS("mt-4"), Text(Translation["loggedInAccountMessage"], acc.DisplayName)),

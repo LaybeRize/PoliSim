@@ -65,7 +65,8 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 	if minimumLevel > userLevel {
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
-	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID), ID(string(url)+SidebarID),
+	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID),
+		ID(string(url)+SidebarID), TEST(string(url)+SidebarID),
 		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
 		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),
@@ -76,7 +77,8 @@ func getSidebarButtonDetailed(userLevel database.RoleLevel, minimumLevel databas
 	if minimumLevel > userLevel {
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
-	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID), ID(string(url)+SidebarID),
+	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID),
+		ID(string(url)+SidebarID), TEST(string(url)+SidebarID),
 		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
 		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(buttonText)),
@@ -88,7 +90,7 @@ func getSideBarSubMenu(userLevel database.RoleLevel, minimumLevel database.RoleL
 	if minimumLevel > userLevel {
 		return DIV(ID(subMenuName+SidebarID), HIDDEN())
 	}
-	return DIV(ID(subMenuName+SidebarID),
+	return DIV(ID(subMenuName+SidebarID), TEST(subMenuName+SidebarID),
 		DIV(CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
 			HYPERSCRIPT("on click toggle .hidden on next <div/> from me then toggle .rotate-180 on last <span/> in first <div/> in me"),
 			DIV(CLASS("flex justify-between w-full items-center"),
@@ -107,7 +109,8 @@ func getSidebarSubMenuButton(userLevel database.RoleLevel, minimumLevel database
 	if minimumLevel > userLevel {
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
-	return A(HXGET("/"+APIPreRoute+string(url)), ID(string(url)+SidebarID), HXTARGET("#"+MainBodyID),
+	return A(HXGET("/"+APIPreRoute+string(url)), ID(string(url)+SidebarID),
+		TEST(string(url)+SidebarID), HXTARGET("#"+MainBodyID),
 		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
 		H1(CLASS("cursor-pointer p-2 mt-1 w-full hover:bg-blue-600"), Text(SidebarTitleMap[url])),
 	)
