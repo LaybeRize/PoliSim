@@ -65,6 +65,7 @@ func PostCreateVoteInDatabaseService(w http.ResponseWriter, r *http.Request) {
 	}
 	helper.ClearStringArray(&create.Onlooker)
 	helper.ClearStringArray(&create.Participants)
+	msg = create.CreateVote(acc.ID)
 	if !msg.Positive {
 		createVoteDocumentOnlySwapMessage(w, r, msg, acc)
 		return

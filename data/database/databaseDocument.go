@@ -33,7 +33,6 @@ type (
 		Finishing  time.Time     `json:"time"`
 		Post       []Posts       `json:"post"`
 		Discussion []Discussions `json:"discussion"`
-		Votes      []string      `json:"vote"`
 	}
 	Posts struct {
 		UUID      string    `json:"uuid"`

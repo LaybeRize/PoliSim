@@ -160,8 +160,7 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 
 	written := time.Now()
 	discType := database.RunningDiscussion
-	if len(form.Onlooker) == 0 && len(form.Participants) == 0 &&
-		!form.AnyoneCanParticipate && !form.MembersCanParticipate {
+	if len(form.Participants) == 0 && !form.AnyoneCanParticipate && !form.MembersCanParticipate {
 		endDiscussion = written
 		discType = database.FinishedDiscussion
 	}
@@ -227,7 +226,92 @@ func (form *CreateVote) CreateVote(requestAccountID int64) (validate Message) {
 		return
 	}
 
-	return Message{}
+	switch org.Status {
+	case database.Secret:
+		if ((len(form.Onlooker) != 0 || len(form.Participants) != 0) && !isAdmin) || form.AnyoneCanParticipate {
+			validate.Message = builder.Translation["noExternalReaderOrWriterAllowedVote"]
+			return
+		} else if !form.Private {
+			validate.Message = builder.Translation["errorBecauseNotPrivateVote"]
+			return
+		}
+	case database.Private:
+		if form.Private && form.AnyoneCanParticipate {
+			validate.Message = builder.Translation["mutuallyExlusiveSelectionVote"]
+			return
+		}
+	case database.Public:
+		if form.Private {
+			validate.Message = builder.Translation["notAllowedToBePrivateVote"]
+			return
+		}
+	}
+	if form.AnyoneCanParticipate && !isAdmin {
+		validate.Message = builder.Translation["needsToBeAdminForAnyoneVote"]
+		return
+	}
+
+	if !form.AnyoneCanParticipate && !form.MembersCanParticipate && len(form.Participants) == 0 {
+		validate.Message = builder.Translation["voteNeedsParticipants"]
+		return
+	}
+
+	parentID := uuid.New().String()
+	for _, item := range form.Questions {
+		newVote := &database.Votes{
+			UUID:                   uuid.New().String(),
+			Parent:                 parentID,
+			Question:               item.Text,
+			ShowNumbersWhileVoting: item.ViewCountsWhileRunning,
+			ShowNamesWhileVoting:   item.ViewNamesWhileRunning,
+			ShowNamesAfterVoting:   item.ViewNamesAfterFinished,
+			Finished:               false,
+			Info: database.VoteInfo{
+				Results:    map[string]database.Results{},
+				Summary:    database.Summary{},
+				VoteMethod: database.VoteType(item.QuestionType),
+				Options:    item.Answers,
+			},
+		}
+		err := extraction.CreateVote(newVote)
+		if err != nil {
+			validate.Message = builder.Translation["errorCreatingDocument"]
+			return
+		}
+	}
+
+	document := database.Document{
+		UUID:         parentID,
+		Written:      time.Now(),
+		Organisation: org.Name,
+		Type:         database.RunningVote,
+		Author:       account.DisplayName,
+		Flair:        account.Flair,
+		Title:        form.Title,
+		Subtitle: sql.NullString{
+			String: form.Subtitle,
+			Valid:  form.Subtitle != "",
+		},
+		HTMLContent:               helper.CreateHTML(form.Content),
+		Private:                   form.Private,
+		AnyPosterAllowed:          form.AnyoneCanParticipate,
+		OrganisationPosterAllowed: form.MembersCanParticipate,
+		Info: database.DocumentInfo{
+			Finishing: endVote,
+		},
+		Viewer:  *spectator,
+		Poster:  *voter,
+		Allowed: *accounts,
+	}
+
+	err := extraction.CreateDocument(&document)
+	if err != nil {
+		validate.Message = builder.Translation["errorCreatingDocument"]
+		return
+	}
+
+	form.UUIDredirect = parentID
+	return Message{Positive: true}
 }
 
 func checkIfQuestionIsValid(pos int, item *Question, validate *Message) (result bool) {

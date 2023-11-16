@@ -278,7 +278,7 @@
   "errorBecauseNotPrivate": "Diskussionen in geheimen Organisationen müssen privat sein",
   "mutuallyExlusiveSelection": "Eine Diskussion kann nicht gleichzeitig Privat sein und allen Leuten zugange gewähren",
   "notAllowedToBePrivate": "In einer öffentlichen Organisation kann keine private Diskussion geführt werden",
-  "needsToBeAdminForAnyone": "Der ausgewählte Account kann nicht jeden Teilnehmen lassen, da er kein Administrator der ausgewählten Organisation ist",
+  "needsToBeAdminForAnyone": "Der ausgewählte Account kann nicht jeden teilnehmen lassen, da er kein Administrator der ausgewählten Organisation ist",
   "documentDoesNotExists": "Das Dokument existiert nicht oder es fehlen die Berechtigung zum anschauen",
   "documentDoesNotExistsOrNoPremissions": "Das Dokument existiert nicht oder es fehlen die Berechtigung zum bearbeiten",
   "authorTextDocument": "Veröffentlicht im %s am 02.01.2006 um 15:04 Uhr von %s",
@@ -343,5 +343,11 @@
   "tooManyAnswersForVote": "Die Abstimmung Nr. %d hat mehr als die erlaubte Anzahl von %d Antwortmöglichkeiten",
   "viewCountsWhileRunning": "Abstimmungsverhalten während der Abstimmung zeigen",
   "viewNamesWhileRunning": "Namen zum Abstimmungsverhalten während der Abstimmung anzeigen",
-  "viewNamesAfterFinished": "Namen zum Abstimmungsverhalten nach der Wahl anzeigen"
+  "viewNamesAfterFinished": "Namen zum Abstimmungsverhalten nach der Wahl anzeigen",
+  "noExternalReaderOrWriterAllowedVote": "Es sind keine externen Besucher bzw. Teilnehmer an einer Abstimmung in einer geheimen Organisation erlaubt",
+  "errorBecauseNotPrivateVote": "Abstimmungen in geheimen Organisationen müssen privat sein",
+  "mutuallyExlusiveSelectionVote": "Eine Abstimmung kann nicht gleichzeitig Privat sein und allen Leuten die Teilnahme gewähren",
+  "notAllowedToBePrivateVote": "In einer öffentlichen Organisation kann keine private Abstimmung geführt werden",
+  "needsToBeAdminForAnyoneVote": "Der ausgewählte Account kann nicht jeden abstimmen lassen, da er kein Administrator der ausgewählten Organisation ist",
+  "voteNeedsParticipants": "Abstimmungen können nicht ohne Teilnehmer erstellt werden"
 }
