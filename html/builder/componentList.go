@@ -1,7 +1,5 @@
 package builder
 
-type elementType string
-type attributeType string
 type HttpUrl string
 
 var (
@@ -28,22 +26,22 @@ var (
 	TR       = elementWrapper("tr")
 	TD       = elementWrapper("td")
 
-	AREA    = elementWrapper(areaTag)
-	BASE    = elementWrapper(baseTag)
-	BR      = elementWrapper(brTag)
-	COL     = elementWrapper(colTag)
-	COMMAND = elementWrapper(commandTag)
-	EMBED   = elementWrapper(embedTag)
-	HR      = elementWrapper(hrTag)
-	IMG     = elementWrapper(imgTag)
-	INPUT   = elementWrapper(inputTag)
-	KEYGEN  = elementWrapper(keygenTag)
-	LINK    = elementWrapper(linkTag)
-	META    = elementWrapper(metaTag)
-	PARAM   = elementWrapper(paramTag)
-	SOURCE  = elementWrapper(sourceTag)
-	TRACK   = elementWrapper(trackTag)
-	WBR     = elementWrapper(wbrTag)
+	BR    = elementWrapper(brTag)
+	IMG   = elementWrapper(imgTag)
+	INPUT = elementWrapper(inputTag)
+	LINK  = elementWrapper(linkTag)
+	META  = elementWrapper(metaTag)
+	//AREA    = elementWrapper(areaTag)
+	//BASE    = elementWrapper(baseTag)
+	//COL     = elementWrapper(colTag)
+	//COMMAND = elementWrapper(commandTag)
+	//EMBED   = elementWrapper(embedTag)
+	//HR      = elementWrapper(hrTag)
+	//KEYGEN  = elementWrapper(keygenTag)
+	//PARAM   = elementWrapper(paramTag)
+	//SOURCE  = elementWrapper(sourceTag)
+	//TRACK   = elementWrapper(trackTag)
+	//WBR     = elementWrapper(wbrTag)
 
 	HXDELETE    = attributeWrapper("hx-delete")
 	HXPATCH     = attributeWrapper("hx-patch")
@@ -80,27 +78,25 @@ var (
 )
 
 const (
-	areaTag    elementType = "area"
-	baseTag    elementType = "base"
-	brTag      elementType = "br"
-	colTag     elementType = "col"
-	commandTag elementType = "command"
-	embedTag   elementType = "embed"
-	hrTag      elementType = "hr"
-	imgTag     elementType = "img"
-	inputTag   elementType = "input"
-	keygenTag  elementType = "keygen"
-	linkTag    elementType = "link"
-	metaTag    elementType = "meta"
-	paramTag   elementType = "param"
-	sourceTag  elementType = "source"
-	trackTag   elementType = "track"
-	wbrTag     elementType = "wbr"
-
-	hxValue attributeType = "hx-vals"
+	areaTag    = "area"
+	baseTag    = "base"
+	brTag      = "br"
+	colTag     = "col"
+	commandTag = "command"
+	embedTag   = "embed"
+	hrTag      = "hr"
+	imgTag     = "img"
+	inputTag   = "input"
+	keygenTag  = "keygen"
+	linkTag    = "link"
+	metaTag    = "meta"
+	paramTag   = "param"
+	sourceTag  = "source"
+	trackTag   = "track"
+	wbrTag     = "wbr"
 )
 
-var voidElements = map[elementType]struct{}{
+var voidElements = map[string]struct{}{
 	areaTag:    {},
 	baseTag:    {},
 	brTag:      {},

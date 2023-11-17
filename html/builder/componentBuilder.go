@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"strings"
 )
 
 // RenderHTMLDoc returns a Node that writes the html doctype to the io.Writer
@@ -23,17 +24,13 @@ type elementFunc func(io.Writer) error
 // attribute on the parent element.
 type attributeFunc func(io.Writer) error
 
-type elementReturn func(nodes ...Node) Node
-
-func elementWrapper(str elementType) elementReturn {
+func elementWrapper(str string) func(nodes ...Node) Node {
 	return func(nodes ...Node) Node {
 		return el(str, nodes...)
 	}
 }
 
-type attributeReturn func(str ...string) Node
-
-func attributeWrapper(name attributeType) attributeReturn {
+func attributeWrapper(name string) func(str ...string) Node {
 	return func(str ...string) Node {
 		return attr(name, str...)
 	}
@@ -82,7 +79,7 @@ func Group(children ...Node) Node {
 // No tags are ever omitted from normal tags, even though it's allowed for elements given at
 // https://dev.w3.org/html5/spec-LC/syntax.html#optional-tags
 // if an element is a void element, non-attribute children nodes are ignored.
-func el(name elementType, children ...Node) Node {
+func el(name string, children ...Node) Node {
 	return elementFunc(func(w io.Writer) (err error) {
 
 		_, err = w.Write([]byte("<" + name))
@@ -122,7 +119,7 @@ func el(name elementType, children ...Node) Node {
 // If only a name is passed, it's a name-only (boolean) attribute (like "required").
 // If a name and value are passed, it's a name-value attribute (like `class="header"`).
 // attr ignores more than the first provided parameter.
-func attr(name attributeType, str ...string) Node {
+func attr(name string, str ...string) Node {
 	return attributeFunc(func(w io.Writer) (err error) {
 		_, err = w.Write([]byte(" " + name))
 		if err != nil {
@@ -130,7 +127,7 @@ func attr(name attributeType, str ...string) Node {
 		}
 		if len(str) > 0 {
 			// special case for hx-vals because it uses json as input text
-			if name == hxValue {
+			if strings.ContainsRune(str[0], '"') {
 				_, err = w.Write([]byte("='" + str[0] + "'"))
 				return
 			}
@@ -179,10 +176,8 @@ func IfElse(statement bool, whenTrue Node, whenFalse Node) Node {
 // renderElementChild renders the child only if it is a elementFunc or if it is a elementFunc in a groupFunc.
 func renderElementChild(w io.Writer, c Node) error {
 	switch c.(type) {
-	case elementFunc:
+	case elementFunc, groupFunc:
 		return c.Render(w)
-	case groupFunc:
-		return c.(groupFunc).Render(w)
 	}
 	return nil
 }
