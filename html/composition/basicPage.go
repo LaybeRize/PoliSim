@@ -37,7 +37,7 @@ func GetBasePage(pageTitle string, acc *extraction.AccountAuth, loadURL string, 
 
 // getBasePageWrapper wraps the children in the MainBodyID div (and now an addition div to fucking standardize the fade in effect).
 func getBasePageWrapper(children ...Node) Node {
-	return DIV(ID(MainBodyID), CLASS("flex items-center flex-col basePadding w-full minSizeBase"),
+	return DIV(ID(MainBodyID), CLASS("flex items-center flex-col basePadding w-full minSizeBase mb-4"),
 		DIV(CLASS("flex items-center flex-col h-full fadeMeIn"), Group(children...)),
 	)
 }

@@ -45,6 +45,7 @@ func createSummaryForAllVotes(uuidStr string) {
 
 func createSummaryForVote(vote *database.Votes) {
 	//TODO: add the logic
+	vote.Finished = true
 	err := extraction.UpdateVote(vote)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error updating vote with the UUID "+vote.UUID+": "+err.Error())

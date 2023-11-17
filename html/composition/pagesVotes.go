@@ -6,6 +6,7 @@ import (
 	"PoliSim/data/logic"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
+	"fmt"
 	"strconv"
 )
 
@@ -118,16 +119,75 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 	}
 	votesDivs := make([]Node, len(votes))
 	for i, item := range votes {
+		items := []Node{}
 		switch item.Info.VoteMethod {
 		case database.SingleVote:
+			items = getSingleVote(&item, doc.UUID)
 		case database.MultipleVotes:
+			items = getMultipleVote(&item, doc.UUID)
 		case database.RankedVotes:
+			items = getRankedVote(&item, doc.UUID)
 		case database.ThreeCategoryVoting:
+			items = getThreeCategoryVote(&item, doc.UUID)
 		}
-		votesDivs[i] = DIV(Text(item.UUID))
+		votesDivs[i] = compactVoteView("vote-"+item.UUID,
+			fmt.Sprintf(Translation["votingPartialHeader"], i+1), items)
 	}
 
 	return getBasePageWrapper(
+		getPageHeader(ViewVoteDocument),
+		DIV(CLASS("w-[800px]"),
+			H1(CLASS("text-3xl underline decoration-2 underline-offset-2"), Text(doc.Title)),
+			If(doc.Subtitle.Valid, H1(CLASS("text-2xl"), Text(doc.Subtitle.String))),
+			P(CLASS("my-2"), I(Text(fmt.Sprintf(doc.Written.Format(Translation["authorDiscussionDocument"]), doc.Organisation, doc.Author))),
+				If(doc.Flair != "", Group(I(Text("; ")), Text(doc.Flair)))),
+		),
+		DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+			Raw(doc.HTMLContent),
+		),
+		DIV(CLASS("w-[800px] mt-2"),
+			P(I(CLASS("bi bi-calendar")), IfElse(doc.Type == database.FinishedVote,
+				I(Text(" "+doc.Info.Finishing.Format(Translation["voteFinished"]))),
+				I(Text(" "+doc.Info.Finishing.Format(Translation["voteRunning"]))))),
+			If(doc.Private,
+				P(I(CLASS("bi bi-person-fill-lock")), Text(" "+Translation["voteIsPrivate"]))),
+			If(doc.AnyPosterAllowed,
+				P(I(CLASS("bi bi-people-fill")), Text(" "+Translation["anyVoterAllowed"]))),
+			If(doc.OrganisationPosterAllowed && !doc.AnyPosterAllowed,
+				P(I(CLASS("bi bi-people-fill")), Text(" "+Translation["onlyOrganisationMemberAllowedToVote"]))),
+			If(len(doc.Viewer) != 0 && doc.Private,
+				P(Text(Translation["peopleAllowedToView"], reduceAccountsToString(doc.Viewer)))),
+			If(len(doc.Poster) != 0 && !doc.AnyPosterAllowed,
+				P(Text(Translation["peopleAllowedToComment"], reduceAccountsToString(doc.Poster)))),
+		),
 		Group(votesDivs...),
 	)
+}
+
+func compactVoteView(id string, text string, children []Node) Node {
+	return DIV(ID(id), TEST(id),
+		DIV(CLASS("p-2.5 mt-3 w-[800px] flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
+			HYPERSCRIPT("on click toggle .hidden on next <div/> from me then toggle .rotate-180 on last <span/> in first <div/> in me"),
+			DIV(CLASS("flex justify-between items-center"),
+				SPAN(CLASS("text-[15px] mr-4 text-gray-200 font-bold"), Text(text)),
+				SPAN(CLASS("text-sm rotate-180"),
+					I(CLASS("bi bi-chevron-down")),
+				),
+			),
+		),
+		DIV(ID(id+"-content"), Group(children...), CLASS("text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold hidden")),
+	)
+}
+
+func getSingleVote(item *database.Votes, docUUID string) []Node {
+	return []Node{}
+}
+func getMultipleVote(item *database.Votes, docUUID string) []Node {
+	return []Node{}
+}
+func getRankedVote(item *database.Votes, docUUID string) []Node {
+	return []Node{}
+}
+func getThreeCategoryVote(item *database.Votes, docUUID string) []Node {
+	return []Node{}
 }

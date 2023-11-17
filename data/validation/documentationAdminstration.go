@@ -51,8 +51,8 @@ const (
 
 func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	var account *extraction.AccountModification
-	var org *database.Organisation
+	account := &extraction.AccountModification{}
+	org := &database.Organisation{}
 	var isAdmin bool
 	var IsColor = regexp.MustCompile(`^#[a-fA-F0-9]{6}$`).MatchString
 	switch false {
@@ -110,11 +110,13 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 
 func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	var account *extraction.AccountModification
-	var org *database.Organisation
+	account := &extraction.AccountModification{}
+	org := &database.Organisation{}
 	var isAdmin bool
 	var endDiscussion time.Time
-	var reader, writer, accounts *database.AccountList
+	reader := &database.AccountList{}
+	writer := &database.AccountList{}
+	accounts := &database.AccountList{}
 	switch false {
 	case form.BaseDocumentInfo.validateBaseDocumentInformation(requestAccountID, account, &validate):
 		return
@@ -202,11 +204,13 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 
 func (form *CreateVote) CreateVote(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	var account *extraction.AccountModification
-	var org *database.Organisation
+	account := &extraction.AccountModification{}
+	org := &database.Organisation{}
 	var isAdmin bool
 	var endVote time.Time
-	var spectator, voter, accounts *database.AccountList
+	spectator := &database.AccountList{}
+	voter := &database.AccountList{}
+	accounts := &database.AccountList{}
 	switch false {
 	case form.BaseDocumentInfo.validateBaseDocumentInformation(requestAccountID, account, &validate):
 		return
@@ -267,8 +271,13 @@ func (form *CreateVote) CreateVote(requestAccountID int64) (validate Message) {
 			ShowNamesAfterVoting:   item.ViewNamesAfterFinished,
 			Finished:               false,
 			Info: database.VoteInfo{
-				Results:    map[string]database.Results{},
-				Summary:    database.Summary{},
+				Results: map[string]database.Results{},
+				Summary: database.Summary{
+					Sums:         map[string]int{},
+					VoteMap:      make(map[string]map[string]int),
+					InvalidVotes: []string{},
+					CSV:          "",
+				},
 				VoteMethod: database.VoteType(item.QuestionType),
 				Options:    item.Answers,
 			},
@@ -324,10 +333,10 @@ func checkIfQuestionIsValid(pos int, item *Question, validate *Message) (result 
 	case database.VoteTranslation[database.VoteType(item.QuestionType)] != "":
 		validate.Message = fmt.Sprintf(builder.Translation["wrongVoteQuestionType"], pos)
 		return
-	case len(item.Answers) == 0:
+	case !(len(item.Answers) == 0):
 		validate.Message = fmt.Sprintf(builder.Translation["needsAnswersForVote"], pos)
 		return
-	case len(item.Answers) > maxVoteAnswers:
+	case !(len(item.Answers) > maxVoteAnswers):
 		validate.Message = fmt.Sprintf(builder.Translation["tooManyAnswersForVote"], pos, maxVoteAnswers)
 		return
 	}
@@ -359,6 +368,6 @@ func checkQuestions(questions *[]*Question, validate *Message) (result bool) {
 		validate.Message = fmt.Sprintf(builder.Translation["questionLimit"], maxQuestions)
 		return
 	}
-	questions = &newQuestions
+	*questions = newQuestions
 	return true
 }

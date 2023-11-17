@@ -320,6 +320,7 @@
   "createVoteDocument": "Abstimmungsdokument erstellen",
   "invalidNumber": "Anfrage hatte invalide Nummer für die Abstimmung",
   "votePartialHeader": "Abstimmung Nr. %s",
+  "votingPartialHeader": "Abstimmung Nr. %d",
   "voteQuestionText": "Abstimmungsfrage",
   "voteAddAnswersToQuestion": "Mögliche Antwort hinzufügen",
   "voteQuestionType": "Abstimmungsart",
@@ -350,5 +351,10 @@
   "notAllowedToBePrivateVote": "In einer öffentlichen Organisation kann keine private Abstimmung geführt werden",
   "needsToBeAdminForAnyoneVote": "Der ausgewählte Account kann nicht jeden abstimmen lassen, da er kein Administrator der ausgewählten Organisation ist",
   "voteNeedsParticipants": "Abstimmungen können nicht ohne Teilnehmer erstellt werden",
-  "errorLoadingVotesForDocument": "Es ist ein Fehler beim Laden der Abstimmungen für das Dokument aufgetreten"
+  "errorLoadingVotesForDocument": "Es ist ein Fehler beim Laden der Abstimmungen für das Dokument aufgetreten",
+  "voteRunning": "Die Abstimmung endet am 02.01.2006 um 15:04 Uhr",
+  "voteFinished": "Die Abstimmung hat am 02.01.2006 um 15:04 Uhr geendet",
+  "voteIsPrivate": "Abstimmung ist privat",
+  "anyVoterAllowed": "Jeder darf abstimmen",
+  "onlyOrganisationMemberAllowedToVote": "Mitglieder der Organisation dürfen abstimmen"
 }

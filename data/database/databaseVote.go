@@ -24,11 +24,10 @@ type (
 		Votes       map[string]int `json:"votes"`
 	}
 	Summary struct {
-		Sums         map[string]int            `json:"sums"`
-		RankedMap    map[string]map[string]int `json:"rankedMap"`
-		Person       map[string]string         `json:"person"` //the option the person voted for
-		InvalidVotes []string                  `json:"invalidVotes"`
-		CSV          string                    `json:"csv"` //saves the data as a CSV for the ranked Map
+		Sums         map[string]int            `json:"sums"`         //scores of every answer
+		VoteMap      map[string]map[string]int `json:"voteMap"`      //the first key is the person, the second is the answer followed by the vote
+		InvalidVotes []string                  `json:"invalidVotes"` //list of all people that gave an invalid vote
+		CSV          string                    `json:"csv"`          //saves the data as a CSV for the ranked Map
 	}
 )
 

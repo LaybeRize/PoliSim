@@ -30,9 +30,8 @@ type (
 
 func (form *BaseDocumentInfo) validateBaseDocumentInformation(requestAccountID int64, account *extraction.AccountModification, validate *Message) (result bool) {
 	result = false
-	var ok bool
-	var err error
-	account, ok, err = IsAccountValidForUser(requestAccountID, form.Account)
+	temp, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
+	*account = *temp
 	switch false {
 	case isValidString(form.Title, maxDocumentTitleLength):
 		// has no valid title
@@ -60,8 +59,9 @@ func (form *BaseDocumentInfo) validateBaseDocumentInformation(requestAccountID i
 
 func (form *BaseDocumentInfo) validateOrganisation(account *extraction.AccountModification, org *database.Organisation, isAdmin *bool, validate *Message) (result bool) {
 	result = false
-	var err error
-	org, *isAdmin, err = IsOrganisationValidForAccount(account.ID, form.Organisation)
+	temp, value, err := IsOrganisationValidForAccount(account.ID, form.Organisation)
+	*org = *temp
+	*isAdmin = value
 	if err != nil {
 		validate.Message = builder.Translation["databaseErrorWithOrganisationAccount"]
 		return
@@ -83,19 +83,20 @@ func (form *PrivateDocumentInfo) validateTime(endDiscussion *time.Time, validate
 func (form *PrivateDocumentInfo) validateAccounts(onlooker *database.AccountList, participants *database.AccountList, accounts *database.AccountList, validate *Message) (result bool) {
 	result = false
 	helper.RemoveEntriesFromList(&form.Onlooker, form.Participants)
-	var ok bool
-	var err error
-	onlooker, ok, err = extraction.DoAccountsExist(form.Onlooker)
+	temp, ok, err := extraction.DoAccountsExist(form.Onlooker)
+	*onlooker = *temp
 	if !ok {
 		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
 		return
 	}
-	participants, ok, err = extraction.DoAccountsExist(form.Participants)
+	temp, ok, err = extraction.DoAccountsExist(form.Participants)
+	*participants = *temp
 	if !ok {
 		validate.Message = fmt.Sprintf(builder.Translation["nameCouldNotBeFound"], err.Error())
 		return
 	}
-	accounts, err = extraction.GetParentAccounts(append(form.Onlooker, form.Participants...))
+	temp, err = extraction.GetParentAccounts(append(form.Onlooker, form.Participants...))
+	*accounts = *temp
 	if err != nil {
 		validate.Message = builder.Translation["parentAccountError"]
 		return
