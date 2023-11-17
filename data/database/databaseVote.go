@@ -14,13 +14,12 @@ type (
 		Info                   VoteInfo `gorm:"type:jsonb;serializer:json"`
 	}
 	VoteInfo struct {
-		Results    map[string]Results `json:"results"`
+		Results    map[string]Results `json:"results"` //the key is the voter name
 		Summary    Summary            `json:"summary"`
 		VoteMethod VoteType           `json:"voteMethod"`
 		Options    []string           `json:"options"`
 	}
 	Results struct {
-		Voter       string         `json:"voter"`
 		InvalidVote bool           `json:"invalid"`
 		Votes       map[string]int `json:"votes"`
 	}

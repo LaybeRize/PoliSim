@@ -349,5 +349,6 @@
   "mutuallyExlusiveSelectionVote": "Eine Abstimmung kann nicht gleichzeitig Privat sein und allen Leuten die Teilnahme gewähren",
   "notAllowedToBePrivateVote": "In einer öffentlichen Organisation kann keine private Abstimmung geführt werden",
   "needsToBeAdminForAnyoneVote": "Der ausgewählte Account kann nicht jeden abstimmen lassen, da er kein Administrator der ausgewählten Organisation ist",
-  "voteNeedsParticipants": "Abstimmungen können nicht ohne Teilnehmer erstellt werden"
+  "voteNeedsParticipants": "Abstimmungen können nicht ohne Teilnehmer erstellt werden",
+  "errorLoadingVotesForDocument": "Es ist ein Fehler beim Laden der Abstimmungen für das Dokument aufgetreten"
 }

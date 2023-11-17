@@ -3,6 +3,7 @@ package composition
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/data/logic"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"strconv"
@@ -103,5 +104,30 @@ func getPartialButton(number string, withSwap bool) Node {
 }
 
 func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
-	return nil
+	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedVote, database.RunningVote)
+	if err != nil {
+		return GetErrorPage(Translation["documentDoesNotExists"])
+	}
+
+	if doc.Type == database.RunningVote {
+		go logic.CloseVoteIfTimeIsUp(doc.Info.Finishing, doc.UUID)
+	}
+	votes, err := extraction.GetVotesForDocument(doc.UUID)
+	if err != nil {
+		return GetErrorPage(Translation["errorLoadingVotesForDocument"])
+	}
+	votesDivs := make([]Node, len(votes))
+	for i, item := range votes {
+		switch item.Info.VoteMethod {
+		case database.SingleVote:
+		case database.MultipleVotes:
+		case database.RankedVotes:
+		case database.ThreeCategoryVoting:
+		}
+		votesDivs[i] = DIV(Text(item.UUID))
+	}
+
+	return getBasePageWrapper(
+		Group(votesDivs...),
+	)
 }

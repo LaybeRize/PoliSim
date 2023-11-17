@@ -3,7 +3,9 @@ package logic
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"fmt"
 	"github.com/google/uuid"
+	"os"
 	"sync"
 	"time"
 )
@@ -19,10 +21,14 @@ func CloseDiscussionIfTimeIsUp(ending time.Time, uuidStr string) {
 
 	doc, err := extraction.GetDocument(uuidStr)
 	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Error finding discussion: "+err.Error())
 		return
 	}
 	doc.Type = database.FinishedDiscussion
-	_ = extraction.UpdateDocument(doc)
+	err = extraction.UpdateDocument(doc)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stdout, "Error updating discussion: "+err.Error())
+	}
 }
 
 func AddComment(author string, flair string, comment string, uuidStr string) error {
