@@ -97,5 +97,5 @@ This repo accepts pull requests for any new language support. We as the maintain
 
 # Thanks
 
-Special Thanks to hypermedia to bring me back to writing a good server side application and https://github.com/Emtyloc/json-enc-custom for 
+Special Thanks to hypermedia to bring me back to writing a good server side application and [a certain JSON extension](https://github.com/Emtyloc/json-enc-custom) for 
 letting me create an easier voting backend. Also thanks to gomponents (mentioned above) for the inspiration to writing html in go itself.

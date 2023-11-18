@@ -419,5 +419,10 @@
   "newPasswordAgainNotTheSame": "Die Bestätigung des neuen Passworts stimmt nicht überein",
   "errorGeneratingNewPassword": "Es ist ein Fehler beim erstellen des neuen Passwort-Hashes aufgetreten",
   "errorSavingNewPassword": "Es ist ein Fehler beim speichern des neuen Passworts aufgetreten",
-  "successfullyChangePassword": "Passwort erfolgreich angepasst"
+  "successfullyChangePassword": "Passwort erfolgreich angepasst",
+  "errorAccountData": "Es ist ein Fehler bei der Suche der Profildaten aufgetreten",
+  "selfTableDisplayName": "Account",
+  "selfTableFlair": "Flair",
+  "selfTableOrganisations": "Organisationen",
+  "selfTableTitles": "Titel"
 }

@@ -207,3 +207,12 @@ func GetOrganisations(userID int64) (org *database.OrganisationList, err error) 
 		Where("organisation_admins.id = ? OR organisation_member.id = ?", userID, userID).Find(&org).Error
 	return
 }
+
+func GetOrganisationsForUser(userID int64) (org *database.OrganisationList, err error) {
+	org = &database.OrganisationList{}
+	err = database.DB.Joins("LEFT JOIN organisation_member ON organisations.name = organisation_member.name").
+		Joins("LEFT JOIN organisation_admins ON organisations.name = organisation_admins.name").
+		Select("DISTINCT organisations.name").
+		Where("organisation_admins.id = ? OR organisation_member.id = ?", userID, userID).Find(&org).Error
+	return
+}

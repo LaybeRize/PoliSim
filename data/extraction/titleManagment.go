@@ -109,3 +109,11 @@ func DeleteTitle(title *database.Title) error {
 	UpdateTitleGroupMap()
 	return err
 }
+
+func GetTitlesForUser(userID int64) (titleList *database.TitleList, err error) {
+	titleList = &database.TitleList{}
+	err = database.DB.Joins("LEFT JOIN title_account ON titles.name = title_account.name").
+		Select("DISTINCT titles.name").
+		Where("title_account.id = ?", userID).Find(&titleList).Error
+	return
+}
