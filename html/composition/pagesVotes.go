@@ -7,6 +7,7 @@ import (
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"fmt"
+	"net/url"
 	"strconv"
 )
 
@@ -119,16 +120,16 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 	}
 	votesDivs := make([]Node, len(votes))
 	for i, item := range votes {
-		items := []Node{}
+		var items []Node
 		switch item.Info.VoteMethod {
 		case database.SingleVote:
-			items = getSingleVote(&item, doc.UUID)
+			items = getSingleVote(acc, &item, doc.UUID)
 		case database.MultipleVotes:
-			items = getMultipleVote(&item, doc.UUID)
+			items = getMultipleVote(acc, &item, doc.UUID)
 		case database.RankedVotes:
-			items = getRankedVote(&item, doc.UUID)
+			items = getRankedVote(acc, &item, doc.UUID)
 		case database.ThreeCategoryVoting:
-			items = getThreeCategoryVote(&item, doc.UUID)
+			items = getThreeCategoryVote(acc, &item, doc.UUID)
 		}
 		votesDivs[i] = compactVoteView("vote-"+item.UUID,
 			fmt.Sprintf(Translation["votingPartialHeader"], i+1), items)
@@ -136,15 +137,8 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 
 	return getBasePageWrapper(
 		getPageHeader(ViewVoteDocument),
-		DIV(CLASS("w-[800px]"),
-			H1(CLASS("text-3xl underline decoration-2 underline-offset-2"), Text(doc.Title)),
-			If(doc.Subtitle.Valid, H1(CLASS("text-2xl"), Text(doc.Subtitle.String))),
-			P(CLASS("my-2"), I(Text(fmt.Sprintf(doc.Written.Format(Translation["authorDiscussionDocument"]), doc.Organisation, doc.Author))),
-				If(doc.Flair != "", Group(I(Text("; ")), Text(doc.Flair)))),
-		),
-		DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
-			Raw(doc.HTMLContent),
-		),
+		getDocumentHead(doc),
+		getDocumentBody(doc),
 		DIV(CLASS("w-[800px] mt-2"),
 			P(I(CLASS("bi bi-calendar")), IfElse(doc.Type == database.FinishedVote,
 				I(Text(" "+doc.Info.Finishing.Format(Translation["voteFinished"]))),
@@ -160,6 +154,7 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 			If(len(doc.Poster) != 0 && !doc.AnyPosterAllowed,
 				P(Text(Translation["peopleAllowedToComment"], reduceAccountsToString(doc.Poster)))),
 		),
+		GetMessage(val),
 		Group(votesDivs...),
 	)
 }
@@ -179,15 +174,39 @@ func compactVoteView(id string, text string, children []Node) Node {
 	)
 }
 
-func getSingleVote(item *database.Votes, docUUID string) []Node {
-	return []Node{}
+func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
+	return []Node{If(acc.Role != database.NotLoggedIn,
+		getFormStandardForm("form", POST, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+			url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.SingleVote)), CLASS("w-[800px]"),
+			HXEXTEND("json-enc-custom"),
+			getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+		)),
+	}
 }
-func getMultipleVote(item *database.Votes, docUUID string) []Node {
-	return []Node{}
+func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
+	return []Node{If(acc.Role != database.NotLoggedIn,
+		getFormStandardForm("form", POST, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+			url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.MultipleVotes)), CLASS("w-[800px]"),
+			HXEXTEND("json-enc-custom"),
+			getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+		)),
+	}
 }
-func getRankedVote(item *database.Votes, docUUID string) []Node {
-	return []Node{}
+func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
+	return []Node{If(acc.Role != database.NotLoggedIn,
+		getFormStandardForm("form", POST, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+			url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.RankedVotes)), CLASS("w-[800px]"),
+			HXEXTEND("json-enc-custom"),
+			getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+		)),
+	}
 }
-func getThreeCategoryVote(item *database.Votes, docUUID string) []Node {
-	return []Node{}
+func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
+	return []Node{If(acc.Role != database.NotLoggedIn,
+		getFormStandardForm("form", POST, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+			url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.ThreeCategoryVoting)), CLASS("w-[800px]"),
+			HXEXTEND("json-enc-custom"),
+			getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+		)),
+	}
 }

@@ -10,9 +10,9 @@ func CreateDocument(doc *database.Document) error {
 	return database.DB.Create(&doc).Error
 }
 
-func GetDocumentIfNotPrivate(docType database.DocumentType, uuid string) (*database.Document, error) {
+func GetDocumentIfNotPrivate(docType database.DocumentType, uuid string, admin bool) (*database.Document, error) {
 	doc := &database.Document{}
-	err := database.DB.Where("type = ? AND uuid = ? AND private = false AND blocked = false", string(docType), uuid).First(doc).Error
+	err := database.DB.Where("type = ? AND uuid = ? AND private = false AND (blocked = false OR true = ?)", string(docType), uuid, admin).First(doc).Error
 	return doc, err
 }
 

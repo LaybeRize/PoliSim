@@ -115,3 +115,43 @@ func (form *AddComment) AddComment(uuidStr string, acc *extraction.AccountAuth) 
 		Positive: true,
 	}
 }
+
+type (
+	CastVote interface {
+		CastVote(acc *extraction.AccountAuth, isAdmin bool, docUUID string, voteUUID string, voteType database.VoteType) (validate Message)
+	}
+
+	AddSingleVote struct {
+		InvalidateVote bool   `json:"invalidateVote"`
+		Answer         string `json:"answer"`
+		Account        string `json:"authorAccount"`
+	}
+	AddMultipleVote struct {
+		InvalidateVote bool     `json:"invalidateVote"`
+		Answer         []string `json:"answer"`
+		Account        string   `json:"authorAccount"`
+	}
+	AddRankedVote struct {
+		InvalidateVote bool     `json:"invalidateVote"`
+		Answers        []string `json:"answer"`
+		Account        string   `json:"authorAccount"`
+	}
+	AddThreeChoice struct {
+		InvalidateVote bool     `json:"invalidateVote"`
+		Answers        []string `json:"answer"`
+		Account        string   `json:"authorAccount"`
+	}
+)
+
+func (form *AddSingleVote) CastVote(acc *extraction.AccountAuth, isAdmin bool, docUUID string, voteUUID string, voteType database.VoteType) (validate Message) {
+	return Message{}
+}
+func (form *AddMultipleVote) CastVote(acc *extraction.AccountAuth, isAdmin bool, docUUID string, voteUUID string, voteType database.VoteType) (validate Message) {
+	return Message{}
+}
+func (form *AddRankedVote) CastVote(acc *extraction.AccountAuth, isAdmin bool, docUUID string, voteUUID string, voteType database.VoteType) (validate Message) {
+	return Message{}
+}
+func (form *AddThreeChoice) CastVote(acc *extraction.AccountAuth, isAdmin bool, docUUID string, voteUUID string, voteType database.VoteType) (validate Message) {
+	return Message{}
+}

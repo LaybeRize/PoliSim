@@ -281,14 +281,13 @@
   "needsToBeAdminForAnyone": "Der ausgewählte Account kann nicht jeden teilnehmen lassen, da er kein Administrator der ausgewählten Organisation ist",
   "documentDoesNotExists": "Das Dokument existiert nicht oder es fehlen die Berechtigung zum anschauen",
   "documentDoesNotExistsOrNoPremissions": "Das Dokument existiert nicht oder es fehlen die Berechtigung zum bearbeiten",
-  "authorTextDocument": "Veröffentlicht im %s am 02.01.2006 um 15:04 Uhr von %s",
   "postsTimeFormat": "Hinzugefügt am 02.01.2006 um 15:04 Uhr",
   "addTagButton": "Dokumentstatus hinzufügen",
   "errorAddingTag": "Es ist ein Fehler beim hinzufügen des Status aufgetreten",
   "hiddenTags": "Versteckte Stati:",
   "showTagButtonText": "Status wieder anzeigen",
   "hideTagButtonText": "Status verstecken",
-  "authorDiscussionDocument": "Veröffentlicht im %s am 02.01.2006 um 15:04 Uhr von %s",
+  "authorSummaryDocument": "Veröffentlicht im %s am 02.01.2006 um 15:04 Uhr von %s",
   "peopleAllowedToView": "Zugelassene Zuschauer: %s",
   "peopleAllowedToComment": "Zugelassene Teilnehmer: %s",
   "anyPosterAllowed": "Jeder darf kommentieren",
@@ -356,5 +355,8 @@
   "voteFinished": "Die Abstimmung hat am 02.01.2006 um 15:04 Uhr geendet",
   "voteIsPrivate": "Abstimmung ist privat",
   "anyVoterAllowed": "Jeder darf abstimmen",
-  "onlyOrganisationMemberAllowedToVote": "Mitglieder der Organisation dürfen abstimmen"
+  "onlyOrganisationMemberAllowedToVote": "Mitglieder der Organisation dürfen abstimmen",
+  "documentBlockedText": "[Dokument wurde entfernt] ",
+  "giveVoteAuthorText": "Abstimmungsteilnehmer",
+  "invalidVoteType": "Die Stimmabgabe wurde mit einem invaliden Abstimmungstypen getätigt"
 }

@@ -53,7 +53,7 @@ func PatchChangeCommentVisibilityService(w http.ResponseWriter, r *http.Request)
 func PostCommentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
 
-	isAdmin := acc.Role == database.Admin || acc.Role == database.HeadAdmin
+	isAdmin := CheckIfHasRole(acc, database.HeadAdmin, database.Admin)
 	uuidStr := chi.URLParam(r, "uuid")
 	_, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
 
@@ -118,7 +118,7 @@ func PostDocumentDiscussionCreationService(w http.ResponseWriter, r *http.Reques
 
 	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewDiscussionDocumentLink)+create.UUIDredirect)
 	html := composition.ViewDiscussionPage(acc, create.UUIDredirect,
-		acc.Role == database.Admin || acc.Role == database.HeadAdmin,
+		CheckIfHasRole(acc, database.HeadAdmin, database.Admin),
 		validation.Message{})
 	viewDiscussionDocumentRenderRequest(w, r, acc, html)
 }

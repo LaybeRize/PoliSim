@@ -32,17 +32,17 @@ func PatchChangeTagService(w http.ResponseWriter, r *http.Request) {
 	tagManipulationMutex.Lock()
 	defer tagManipulationMutex.Unlock()
 
-	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	uuidDoc := chi.URLParam(r, "doc")
 	uuidTag := chi.URLParam(r, "tag")
-	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidDoc)
+	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidDoc, isAdmin)
 	if err != nil {
 		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
 			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
 		}, acc)
 		return
 	}
-	if !ok {
+	if !isAdmin {
 		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
 			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
 		}, acc)
@@ -55,23 +55,23 @@ func PatchChangeTagService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := composition.ViewDocumentPage(uuidDoc)
+	html := composition.ViewDocumentPage(uuidDoc, isAdmin)
 	viewTextDocumentRenderRequest(w, r, acc, html)
 }
 
 func PatchAddTagService(w http.ResponseWriter, r *http.Request) {
 	tagManipulationMutex.Lock()
 	defer tagManipulationMutex.Unlock()
-	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	uuidStr := chi.URLParam(r, "uuid")
-	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidStr)
+	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidStr, isAdmin)
 	if err != nil {
 		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
 			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
 		}, acc)
 		return
 	}
-	if !ok && extraction.HasAdminAccountInOrganisation(acc.ID, doc.Organisation) != nil {
+	if !isAdmin && extraction.HasAdminAccountInOrganisation(acc.ID, doc.Organisation) != nil {
 		viewTextDocumentOnlySwapMessage(w, r, validation.Message{
 			Message: builder.Translation["documentDoesNotExistsOrNoPremissions"],
 		}, acc)
@@ -94,17 +94,17 @@ func PatchAddTagService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := composition.ViewDocumentPage(uuidStr)
+	html := composition.ViewDocumentPage(uuidStr, isAdmin)
 	viewTextDocumentRenderRequest(w, r, acc, html)
 }
 
 func GetAddTagService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
-	if !ok && extraction.HasAdminAccountInOrganisation(acc.ID, r.URL.Query().Get("org")) != nil {
+	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	if !isAdmin && extraction.HasAdminAccountInOrganisation(acc.ID, r.URL.Query().Get("org")) != nil {
 		renderRequest(w, builder.DIV())
 		return
 	}
-	renderRequest(w, composition.GetTagAdminPanel(chi.URLParam(r, "uuid"), ok))
+	renderRequest(w, composition.GetTagAdminPanel(chi.URLParam(r, "uuid"), isAdmin))
 }
 
 func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
@@ -148,9 +148,9 @@ func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDocumentTextViewService(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(r)
+	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 
-	html := composition.ViewDocumentPage(chi.URLParam(r, "uuid"))
+	html := composition.ViewDocumentPage(chi.URLParam(r, "uuid"), isAdmin)
 	viewTextDocumentRenderRequest(w, r, acc, html)
 }
 
@@ -181,7 +181,7 @@ func PostDocumentTextCreationService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewTextDocumentLink)+create.UUIDredirect)
-	html := composition.ViewDocumentPage(create.UUIDredirect)
+	html := composition.ViewDocumentPage(create.UUIDredirect, CheckIfHasRole(acc, database.HeadAdmin, database.Admin))
 	viewTextDocumentRenderRequest(w, r, acc, html)
 }
 

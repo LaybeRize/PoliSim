@@ -23,6 +23,43 @@ func InstallVoteCreation() {
 	composition.PatchHTMXFunctions[composition.RequestVotePartial] = PatchGetVotePartial
 	composition.PageTitleMap[composition.ViewVoteDocument] = builder.Translation["voteViewPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewVoteDocument] = GetVoteViewService
+	composition.PatchHTMXFunctions[composition.MakeVote] = PatchMakeVoteService
+}
+
+func PatchMakeVoteService(w http.ResponseWriter, r *http.Request) {
+	acc, admin := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
+	docUUID := chi.URLParam(r, "doc")
+	voteUUID := chi.URLParam(r, "vote")
+	voteType := database.VoteType(chi.URLParam(r, "type"))
+	msg := validation.Message{
+		Message:  builder.Translation["invalidVoteType"],
+		Positive: false,
+	}
+	if _, ok := database.VoteTranslation[voteType]; !ok {
+		viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
+	}
+
+	var create validation.CastVote
+	switch voteType {
+	case database.SingleVote:
+		create = &validation.AddSingleVote{}
+	case database.MultipleVotes:
+		create = &validation.AddMultipleVote{}
+	case database.RankedVotes:
+		create = &validation.AddRankedVote{}
+	case database.ThreeCategoryVoting:
+		create = &validation.AddThreeChoice{}
+	}
+
+	err := json.NewDecoder(r.Body).Decode(create)
+	if err != nil {
+		msg.Message = builder.Translation["extractionError"]
+		viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	msg = create.CastVote(acc, admin, docUUID, voteUUID, voteType)
+	viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
 }
 
 func GetVoteViewService(w http.ResponseWriter, r *http.Request) {
@@ -34,6 +71,7 @@ func GetVoteViewService(w http.ResponseWriter, r *http.Request) {
 }
 
 var viewVoteDocumentRenderRequest = genericRenderer(composition.ViewVoteDocument)
+var viewVoteDocumentOnlySwapMessage = genericMessageSwapper(composition.ViewVoteDocument)
 
 func GetVoteCreationService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
@@ -74,7 +112,7 @@ func PostCreateVoteInDatabaseService(w http.ResponseWriter, r *http.Request) {
 	//TODO change this to the appropirate way
 	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewVoteDocumentLink)+create.UUIDredirect)
 	html := composition.GetVoteViewPage(acc, create.UUIDredirect,
-		acc.Role == database.Admin || acc.Role == database.HeadAdmin,
+		CheckIfHasRole(acc, database.HeadAdmin, database.Admin),
 		validation.Message{})
 	viewVoteDocumentRenderRequest(w, r, acc, html)
 }

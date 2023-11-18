@@ -5,7 +5,6 @@ import (
 	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
-	"fmt"
 	"net/url"
 )
 
@@ -38,7 +37,7 @@ const (
 	currentTagDiv  = "current-document-tag-div"
 )
 
-func ViewDocumentPage(uuidStr string) Node {
+func ViewDocumentPage(uuidStr string, admin bool) Node {
 	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidStr)
 	if err != nil {
 		return GetErrorPage(Translation["documentDoesNotExists"])
@@ -53,18 +52,11 @@ func ViewDocumentPage(uuidStr string) Node {
 	}
 	return getBasePageWrapper(
 		getPageHeader(ViewTextDocument),
-		DIV(CLASS("w-[800px]"),
-			H1(CLASS("text-3xl underline decoration-2 underline-offset-2"), Text(doc.Title)),
-			If(doc.Subtitle.Valid, H1(CLASS("text-2xl"), Text(doc.Subtitle.String))),
-			P(CLASS("my-2"), I(Text(fmt.Sprintf(doc.Written.Format(Translation["authorTextDocument"]), doc.Organisation, doc.Author))),
-				If(doc.Flair != "", Group(I(Text("; ")), Text(doc.Flair)))),
+		getDocumentHead(doc,
 			DIV(ID(currentTagDiv),
 				If(len(nodes) != 0, nodes[0]),
-			),
-		),
-		DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
-			Raw(doc.HTMLContent),
-		),
+			)),
+		getDocumentBody(doc),
 		DIV(ID(DocumentAdminPanel), HXGET("/"+APIPreRoute+string(AddTagDocumentLink)+url.PathEscape(doc.UUID)+"?org="+
 			url.QueryEscape(doc.Organisation)), HXTRIGGER("load"), HXSWAP("outerHTML"), HXTARGET("#"+DocumentAdminPanel)),
 		GetMessage(validation.Message{}),
