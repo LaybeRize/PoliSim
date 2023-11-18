@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-//TODO fill this with live
-
 func InstallVoteCreation() {
 	composition.PageTitleMap[composition.CreateVoteDocument] = builder.Translation["voteCreatePageTitle"]
 	composition.SidebarTitleMap[composition.CreateVoteDocument] = builder.Translation["voteCreateSidebarText"]
@@ -134,7 +132,6 @@ func PostCreateVoteInDatabaseService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//TODO change this to the appropirate way
 	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewVoteDocumentLink)+create.UUIDredirect)
 	html := composition.GetVoteViewPage(acc, create.UUIDredirect,
 		CheckIfHasRole(acc, database.HeadAdmin, database.Admin),

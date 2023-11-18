@@ -26,13 +26,12 @@ const (
 	Hidden  StatusString = "hidden"
 )
 
-// TODO: add translation to .json
 var (
 	StatusTranslation = map[StatusString]string{
-		Public:  "Öffentlich",
-		Private: "Privat",
-		Secret:  "Geheim",
-		Hidden:  "Versteckt",
+		Public:  "!placeholder!",
+		Private: "!placeholder!",
+		Secret:  "!placeholder!",
+		Hidden:  "!placeholder!",
 	}
 	Stati = []StatusString{Public, Private, Secret, Hidden}
 )

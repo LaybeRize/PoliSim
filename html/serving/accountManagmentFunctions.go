@@ -21,7 +21,28 @@ func InstallAccountManagment() {
 	composition.PageTitleMap[composition.ViewUser] = builder.Translation["viewUserTitle"]
 	composition.SidebarTitleMap[composition.ViewUser] = builder.Translation["viewUserSidebarText"]
 	composition.GetHTMXFunctions[composition.ViewUser] = GetViewUserService
+	composition.PageTitleMap[composition.ViewSelf] = builder.Translation["viewSelfTitle"]
+	composition.SidebarTitleMap[composition.ViewSelf] = builder.Translation["viewSelfSidebarText"]
+	composition.GetHTMXFunctions[composition.ViewSelf] = GetViewSelfService
+	composition.PatchHTMXFunctions[composition.ChangePassword] = ChangePasswordSelfService
 }
+
+func ChangePasswordSelfService(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func GetViewSelfService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.HeadAdmin, database.User)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+	html := composition.GetPersonalProfil(acc)
+	viewSelfRenderRequest(w, r, acc, html)
+}
+
+var viewSelfRenderRequest = genericRenderer(composition.ViewSelf)
+var viewSelfOnlySwapMessage = genericMessageSwapper(composition.ViewSelf)
 
 func GetViewUserService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin)

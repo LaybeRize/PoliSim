@@ -45,6 +45,8 @@ const (
 	EditUser                   builder.HttpUrl = "account/edit"
 	SearchUser                 builder.HttpUrl = "account/search"
 	ViewUser                   builder.HttpUrl = "account/view"
+	ViewSelf                   builder.HttpUrl = "self/view"
+	ChangePassword             builder.HttpUrl = "self/password/change"
 	EditTitle                  builder.HttpUrl = "title/edit"
 	SearchTitle                builder.HttpUrl = "title/search"
 	DeleteTitle                builder.HttpUrl = "title/delete"

@@ -38,14 +38,13 @@ const (
 	ThreeCategoryVoting VoteType = "three_category_voting" // for/against/neutral
 )
 
-// TODO: add translation to .json
 var (
 	VoteTypes       = []VoteType{SingleVote, MultipleVotes, RankedVotes, ThreeCategoryVoting}
 	VoteTranslation = map[VoteType]string{
-		SingleVote:          "Einzelstimmenwahl",
-		MultipleVotes:       "Mehrstimmenwahl",
-		RankedVotes:         "Präferenzwahl",
-		ThreeCategoryVoting: "Dafür-Dagegen-Enthaltung-Wahl",
+		SingleVote:          "!placeholder!",
+		MultipleVotes:       "!placeholder!",
+		RankedVotes:         "!placeholder!",
+		ThreeCategoryVoting: "!placeholder!",
 	}
 )
 

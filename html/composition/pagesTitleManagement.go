@@ -6,8 +6,6 @@ import (
 	. "PoliSim/html/builder"
 )
 
-//TODO add all the new Translation to the DE.json
-
 func GetCreateTitlePage(title *validation.TitleModification, val validation.Message) Node {
 	display, err := extraction.ReturnListOfDisplayNames()
 	if err != nil {

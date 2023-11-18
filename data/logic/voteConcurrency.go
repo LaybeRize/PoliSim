@@ -3,9 +3,12 @@ package logic
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/html/builder"
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -39,12 +42,44 @@ func createSummaryForAllVotes(uuidStr string) {
 		return
 	}
 	for _, item := range list {
-		createSummaryForVote(&item)
+		createCSVForVote(&item)
 	}
 }
 
-func createSummaryForVote(vote *database.Votes) {
-	//TODO: add the logic
+const seperator = ","
+
+func createCSVForVote(vote *database.Votes) {
+	csvStr := builder.Translation["csvVoterColumnName"] + "," + builder.Translation["csvVoterMadeInvalidVote"]
+	for _, opt := range vote.Info.Options {
+		opt = strings.ReplaceAll(opt, "\"", "\"\"")
+		csvStr += seperator + opt
+	}
+	csvStr += "\n"
+	for _, person := range vote.Info.VoteOrder {
+		addition := ""
+		for _, opt := range vote.Info.Options {
+			val := vote.Info.Results[person].Votes[opt]
+			addition += seperator + strconv.FormatInt(val, 10)
+		}
+		if !vote.ShowNamesAfterVoting {
+			person = builder.Translation["csvVoterNameObscure"]
+		}
+		addition = person + seperator + "true" + addition + "\n"
+		csvStr += addition
+	}
+	addition := strings.Repeat(seperator, len(vote.Info.Options))
+	for _, person := range vote.Info.Summary.InvalidVotes {
+		if !vote.ShowNamesAfterVoting {
+			person = builder.Translation["csvVoterNameObscure"]
+		}
+		csvStr += person + seperator + "false" + addition + "\n"
+	}
+	csvStr += builder.Translation["csvSumVoterName"] + seperator
+	for _, opt := range vote.Info.Options {
+		val := vote.Info.Summary.Sums[opt]
+		addition += seperator + strconv.FormatInt(val, 10)
+	}
+	vote.Info.Summary.CSV = csvStr
 	vote.Finished = true
 	err := extraction.UpdateVote(vote)
 	if err != nil {

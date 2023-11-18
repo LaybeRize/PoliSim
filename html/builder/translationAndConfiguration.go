@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"PoliSim/data/database"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -25,6 +26,25 @@ func ImportTranslation(lang string) {
 	_, _ = fmt.Fprintf(os.Stdout, "Imported language localisation\n")
 	importConfiguration()
 	importRawHTMLForStartPage()
+	setTranslationsForDatabase()
+}
+
+func setTranslationsForDatabase() {
+	database.VoteTranslation[database.SingleVote] = Translation["translationSingleVote"]
+	database.VoteTranslation[database.MultipleVotes] = Translation["translationMultipleVotes"]
+	database.VoteTranslation[database.RankedVotes] = Translation["translationRankedVotes"]
+	database.VoteTranslation[database.ThreeCategoryVoting] = Translation["translationThreeCategoryVoting"]
+
+	database.StatusTranslation[database.Public] = Translation["translationPublic"]
+	database.StatusTranslation[database.Private] = Translation["translationPrivate"]
+	database.StatusTranslation[database.Secret] = Translation["translationSecret"]
+	database.StatusTranslation[database.Hidden] = Translation["translationHidden"]
+
+	database.RoleTranslation[database.PressAccount] = Translation["translationPressAccount"]
+	database.RoleTranslation[database.User] = Translation["translationUser"]
+	database.RoleTranslation[database.MediaAdmin] = Translation["translationMediaAdmin"]
+	database.RoleTranslation[database.Admin] = Translation["translationAdmin"]
+	database.RoleTranslation[database.HeadAdmin] = Translation["translationHeadAdmin"]
 }
 
 func importConfiguration() {
