@@ -11,8 +11,8 @@ COPY ./resources ./resources
 COPY go.mod .
 RUN go mod tidy
 
-RUN go build -o /mreichstag /app/main
+RUN go build -o /poliSim /app/main
 
 EXPOSE 8080
 
-CMD ["/mreichstag"]
+CMD ["/poliSim"]
