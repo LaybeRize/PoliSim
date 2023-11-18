@@ -16,17 +16,27 @@ func GetDocumentPage(isAdmin bool, extra *logic.ExtraInfo) Node {
 	nodes := make([]Node, len(*view.DocumentList))
 	for i, item := range *view.DocumentList {
 		link := url.PathEscape(item.UUID)
+		var classification Node
 		switch item.Type {
 		case database.LegislativeText:
 			link = string(ViewTextDocumentLink) + link
-		case database.FinishedDiscussion, database.RunningDiscussion:
+			classification = I(CLASS("bi bi-card-text"))
+		case database.FinishedDiscussion:
 			link = string(ViewDiscussionDocumentLink) + link
-		case database.FinishedVote, database.RunningVote:
+			classification = I(CLASS("bi bi-chat-fill"))
+		case database.RunningDiscussion:
+			link = string(ViewDiscussionDocumentLink) + link
+			classification = Group(I(CLASS("bi bi-chat-fill")), Text(" "), I(CLASS("bi bi-hourglass-split")))
+		case database.FinishedVote:
 			link = string(ViewVoteDocumentLink) + link
+			classification = I(CLASS("bi bi-check2-square"))
+		case database.RunningVote:
+			link = string(ViewVoteDocumentLink) + link
+			classification = Group(I(CLASS("bi bi-check2-square")), Text(" "), I(CLASS("bi bi-hourglass-split")))
 		}
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
 			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
-			H1(CLASS("text-2xl"), Text(item.Title)),
+			H1(CLASS("text-2xl"), classification, Text(" "+item.Title)),
 			P(Text(Translation["authorOrganisationShortFormDocument"], item.Author, item.Organisation))))
 	}
 

@@ -20,7 +20,7 @@ func ConnectDatabase() {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_ADDRESS"),
 		os.Getenv("DB_NAME"))), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while connecting to postgres DB:\n"+err.Error()+"\n")
