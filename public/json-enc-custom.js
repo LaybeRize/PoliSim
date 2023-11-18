@@ -23,6 +23,8 @@ function encodingAlgorithm(parameters) {
         if (document.querySelectorAll("input[type=checkbox][name='"+name+"']").length === 1 &&
             document.querySelectorAll("input[type=checkbox][name='"+name+"']").item(0).attributes.getNamedItem("value") === null) {
             value = value === "on";
+        } else if (document.querySelectorAll("input[data-convert=number][name='"+name+"']").length !== 0) {
+            value = parseInt(value)
         }
         let steps = JSONEncodingPath(name);
         let context = resultingObject;

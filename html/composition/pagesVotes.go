@@ -136,8 +136,9 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 	}
 
 	return getBasePageWrapper(
+		SCRIPT(SRC("/public/json-enc-custom.js")),
 		getPageHeader(ViewVoteDocument),
-		getDocumentHead(doc),
+		getDocumentHead(doc, isAdmin),
 		getDocumentBody(doc),
 		DIV(CLASS("w-[800px] mt-2"),
 			P(I(CLASS("bi bi-calendar")), IfElse(doc.Type == database.FinishedVote,
@@ -170,43 +171,103 @@ func compactVoteView(id string, text string, children []Node) Node {
 				),
 			),
 		),
-		DIV(ID(id+"-content"), Group(children...), CLASS("text-left text-sm mt-2 w-4/5 mx-auto text-gray-200 font-bold hidden")),
+		DIV(ID(id+"-content"), Group(children...), CLASS("text-left text-sm mt-2 w-auto mx-auto text-gray-200 font-bold hidden")),
 	)
 }
 
 func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
-	return []Node{If(acc.Role != database.NotLoggedIn,
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
-			url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.SingleVote)), CLASS("w-[800px]"),
-			HXEXTEND("json-enc-custom"),
-			getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-		)),
+	RadioButtons := make([]Node, len(item.Info.Options))
+	for i, str := range item.Info.Options {
+		RadioButtons[i] = getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10),
+			i == 0, false, strconv.FormatInt(int64(i), 10), "answerSingle", str, CONVERTTO("number"))
+	}
+	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
+		If(acc.Role != database.NotLoggedIn && !item.Finished,
+			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+				url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.SingleVote)), CLASS("w-[800px]"),
+				HXEXTEND("json-enc-custom"),
+				getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+				getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+					HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
+				DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
+					Group(RadioButtons...)),
+				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
+			)),
 	}
 }
 func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
-	return []Node{If(acc.Role != database.NotLoggedIn,
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
-			url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.MultipleVotes)), CLASS("w-[800px]"),
-			HXEXTEND("json-enc-custom"),
-			getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-		)),
+	checkBoxes := make([]Node, len(item.Info.Options))
+	for i, str := range item.Info.Options {
+		checkBoxes[i] = getCheckBox("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10),
+			false, false, "", "answerMultiple["+strconv.FormatInt(int64(i), 10)+"]", str, nil)
+	}
+	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
+		If(acc.Role != database.NotLoggedIn && !item.Finished,
+			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+				url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.MultipleVotes)), CLASS("w-[800px]"),
+				HXEXTEND("json-enc-custom"),
+				getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+				getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+					HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
+				DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
+					Group(checkBoxes...),
+				),
+				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
+			)),
 	}
 }
+
 func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
-	return []Node{If(acc.Role != database.NotLoggedIn,
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
-			url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.RankedVotes)), CLASS("w-[800px]"),
-			HXEXTEND("json-enc-custom"),
-			getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-		)),
+	rankings := make([]Node, len(item.Info.Options))
+	for i, str := range item.Info.Options {
+		rankings[i] = getInput("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10),
+			"answerRanked["+strconv.FormatInt(int64(i), 10)+"]", "0", str, "number",
+			"", "", MIN("0"), MAX(strconv.FormatInt(int64(len(item.Info.Options)), 10)),
+			CONVERTTO("number"))
+	}
+	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
+		If(acc.Role != database.NotLoggedIn && !item.Finished,
+			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+				url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.RankedVotes)), CLASS("w-[800px]"),
+				HXEXTEND("json-enc-custom"),
+				getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+				getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+					HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
+				DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
+					Group(rankings...)),
+				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
+			)),
 	}
 }
+
 func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
-	return []Node{If(acc.Role != database.NotLoggedIn,
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
-			url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.ThreeCategoryVoting)), CLASS("w-[800px]"),
-			HXEXTEND("json-enc-custom"),
-			getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-		)),
+	threeCategory := make([]Node, len(item.Info.Options))
+	for i, str := range item.Info.Options {
+		threeCategory[i] = Group(P(CLASS("mt-2"), Text(str)),
+			DIV(CLASS("w-full grid grid-flow-col grid-cols-3 justify-stretch"),
+				getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10)+"-for",
+					false, false, "1", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
+					Translation["voteFor"], CONVERTTO("number")),
+				getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10)+"-neutral",
+					true, false, "0", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
+					Translation["voteNeutral"], CONVERTTO("number")),
+				getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10)+"-against",
+					false, false, "-1", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
+					Translation["voteAgainst"], CONVERTTO("number")),
+			))
+	}
+	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
+		If(acc.Role != database.NotLoggedIn && !item.Finished,
+			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+				url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.ThreeCategoryVoting)), CLASS("w-[800px]"),
+				HXEXTEND("json-enc-custom"),
+				getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+				getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+					HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
+				DIV(CLASS("my-2")),
+				DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
+					Group(threeCategory...)),
+				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
+			)),
 	}
 }

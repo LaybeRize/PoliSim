@@ -37,8 +37,8 @@ const (
 	currentTagDiv  = "current-document-tag-div"
 )
 
-func ViewDocumentPage(uuidStr string, admin bool) Node {
-	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidStr)
+func ViewDocumentPage(uuidStr string, isAdmin bool) Node {
+	doc, err := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuidStr, isAdmin)
 	if err != nil {
 		return GetErrorPage(Translation["documentDoesNotExists"])
 	}
@@ -52,7 +52,7 @@ func ViewDocumentPage(uuidStr string, admin bool) Node {
 	}
 	return getBasePageWrapper(
 		getPageHeader(ViewTextDocument),
-		getDocumentHead(doc,
+		getDocumentHead(doc, isAdmin,
 			DIV(ID(currentTagDiv),
 				If(len(nodes) != 0, nodes[0]),
 			)),
@@ -65,7 +65,7 @@ func ViewDocumentPage(uuidStr string, admin bool) Node {
 }
 
 func GetTagAdminPanel(uuid string, isAdmin bool) Node {
-	doc, _ := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuid)
+	doc, _ := extraction.GetDocumentIfNotPrivate(database.LegislativeText, uuid, isAdmin)
 	if len(doc.Info.Post) == 0 {
 		doc.Info.Post = append(doc.Info.Post, database.Posts{})
 	}

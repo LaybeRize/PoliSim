@@ -77,7 +77,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 
 	return getBasePageWrapper(
 		getPageHeader(ViewDiscussionDocument),
-		getDocumentHead(doc),
+		getDocumentHead(doc, isAdmin),
 		getDocumentBody(doc),
 		DIV(CLASS("w-[800px] mt-2"),
 			P(I(CLASS("bi bi-calendar")), IfElse(doc.Type == database.FinishedDiscussion,

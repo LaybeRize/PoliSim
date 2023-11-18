@@ -358,5 +358,10 @@
   "onlyOrganisationMemberAllowedToVote": "Mitglieder der Organisation dürfen abstimmen",
   "documentBlockedText": "[Dokument wurde entfernt] ",
   "giveVoteAuthorText": "Abstimmungsteilnehmer",
-  "invalidVoteType": "Die Stimmabgabe wurde mit einem invaliden Abstimmungstypen getätigt"
+  "invalidVoteType": "Die Stimmabgabe wurde mit einem invaliden Abstimmungstypen getätigt",
+  "invalidateVoteCheckbox": "Ungültige Stimme abgeben",
+  "sendVote": "Stimme abgeben",
+  "voteFor": "Dafür",
+  "voteNeutral": "Neutral",
+  "voteAgainst": "Dagegen"
 }

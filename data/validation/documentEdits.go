@@ -123,23 +123,23 @@ type (
 
 	AddSingleVote struct {
 		InvalidateVote bool   `json:"invalidateVote"`
-		Answer         string `json:"answer"`
+		Answer         int    `json:"answerSingle"`
 		Account        string `json:"authorAccount"`
 	}
 	AddMultipleVote struct {
-		InvalidateVote bool     `json:"invalidateVote"`
-		Answer         []string `json:"answer"`
-		Account        string   `json:"authorAccount"`
+		InvalidateVote bool   `json:"invalidateVote"`
+		Answer         []bool `json:"answerMultiple"`
+		Account        string `json:"authorAccount"`
 	}
 	AddRankedVote struct {
-		InvalidateVote bool     `json:"invalidateVote"`
-		Answers        []string `json:"answer"`
-		Account        string   `json:"authorAccount"`
+		InvalidateVote bool   `json:"invalidateVote"`
+		Answers        []int  `json:"answerRanked"`
+		Account        string `json:"authorAccount"`
 	}
 	AddThreeChoice struct {
-		InvalidateVote bool     `json:"invalidateVote"`
-		Answers        []string `json:"answer"`
-		Account        string   `json:"authorAccount"`
+		InvalidateVote bool   `json:"invalidateVote"`
+		Answers        []int  `json:"answerThree"`
+		Account        string `json:"authorAccount"`
 	}
 )
 

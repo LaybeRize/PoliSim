@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func getDocumentHead(doc *database.Document, extra ...Node) Node {
+func getDocumentHead(doc *database.Document, isAdmin bool, extra ...Node) Node {
 	addition := ""
 	if doc.Blocked {
 		addition = " text-rose-600"
