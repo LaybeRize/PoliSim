@@ -17,6 +17,7 @@ const (
 	Start                      builder.HttpUrl = "start"
 	Login                      builder.HttpUrl = "login"
 	Logout                     builder.HttpUrl = "logout"
+	ViewDocument               builder.HttpUrl = "document/view"
 	updateUserSelectionLink    builder.HttpUrl = "document/update/account/selection/"
 	UpdateUserSelection                        = updateUserSelectionLink + "{isAdmin}"
 	CreateVoteDocument         builder.HttpUrl = "document/vote/create"

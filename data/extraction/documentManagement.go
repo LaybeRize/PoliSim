@@ -4,6 +4,7 @@ import (
 	"PoliSim/data/database"
 	"errors"
 	"gorm.io/gorm"
+	"time"
 )
 
 func CreateDocument(doc *database.Document) error {
@@ -28,6 +29,9 @@ func GetDocumentForUser(uuid string, userID int64, isAdmin bool, docType ...data
 		", html_content, private, blocked, info, allowed_any, allowed_members").
 		Where("documents.uuid = ? AND (blocked = false Or true = ?) AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?)",
 			uuid, isAdmin, userID, userID, isAdmin).First(doc).Error
+	if len(docType) == 0 {
+		return doc, err
+	}
 	for _, singleType := range docType {
 		if doc.Type == singleType {
 			return doc, err
@@ -59,4 +63,42 @@ func GetDocumentIfCanParticipate(uuid string, accountId int64) (*database.Docume
 		"(doc_poster.id = ? OR (allowed_members = true AND (organisation_admins.id = ? OR organisation_member.id = ?)) OR allowed_any = true)",
 		uuid, accountId, accountId, accountId).First(doc).Error
 	return doc, err
+}
+
+func GetDocumentsAfter(docUUID string, amount int, userID int64, isAdmin bool) (documentList *database.DocumentList, exists bool, err error) {
+	documentList = &database.DocumentList{}
+	exists = true
+	var doc *database.Document
+	doc, err = GetDocumentForUser(docUUID, userID, isAdmin)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		exists = false
+		doc.Written = time.Now()
+	} else if err != nil {
+		return
+	}
+	err = getBasicDocumentQuery(docUUID, amount, userID, isAdmin).Where("written < ?", doc.Written).Order("written desc").Find(documentList).Error
+	return
+}
+
+func GetDocumentsBefore(docUUID string, amount int, userID int64, isAdmin bool) (documentList *database.DocumentList, exists bool, err error) {
+	documentList = &database.DocumentList{}
+	exists = true
+	var doc *database.Document
+	doc, err = GetDocumentForUser(docUUID, userID, isAdmin)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		exists = false
+		doc.Written = time.Now()
+	} else if err != nil {
+		return
+	}
+	err = database.DB.Select("*").Table("(?) as X", getBasicDocumentQuery(docUUID, amount, userID, isAdmin).Order("written").Where("written > ?", doc.Written)).Order("X.written desc").Find(documentList).Error
+	return
+}
+
+func getBasicDocumentQuery(uuid string, amount int, userID int64, isAdmin bool) *gorm.DB {
+	return database.DB.Joins("LEFT JOIN organisation_account ON documents.organisation = organisation_account.name").
+		Joins("LEFT JOIN doc_allowed ON doc_allowed.uuid = documents.uuid").
+		Select("DISTINCT documents.uuid, title, type, author, organisation, written").
+		Where("documents.uuid != ? AND (blocked = false Or true = ?) AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?)",
+			uuid, isAdmin, userID, userID, isAdmin).Limit(amount).Table("documents")
 }

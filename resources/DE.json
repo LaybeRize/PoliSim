@@ -385,5 +385,9 @@
   "voteDoesNotExistsInThatForm": "Eine Abstimmung mit den gegeben Parametern existiert nicht",
   "voteInvalidWrongParameter": "Die Stimme konnte nicht verarbeiten weil sie fehlerhafte Parameter enthält",
   "voteAlreadyAssignedRank": "Der Rang %d wurde mehr als einmal zugeordnet. Die Stimme wäre invalide",
-  "replaceNameWithNumber": "Teilnehmer Nr. %d"
+  "replaceNameWithNumber": "Teilnehmer Nr. %d",
+  "documentViewListPageTitle": "Dokumentübersicht",
+  "documentViewListSidebarText": "Dokumentübersicht",
+  "errorLoadingDocuments": "Es ist ein Fehler beim Laden der Dokumente aufgetreten",
+  "authorOrganisationShortFormDocument": "von %s in %s veröffentlicht"
 }

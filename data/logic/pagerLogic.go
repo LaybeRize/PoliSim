@@ -24,6 +24,12 @@ type ViewNewspaper struct {
 	BeforeUUID string
 }
 
+type ViewDocuments struct {
+	DocumentList *database.DocumentList
+	NextUUID     string
+	BeforeUUID   string
+}
+
 func (info *ExtraInfo) GetLetter() (*ViewLetter, error) {
 	viewInfo := &ViewLetter{NextUUID: "", BeforeUUID: ""}
 	var exists bool
@@ -115,6 +121,38 @@ func (info *ExtraInfo) GetNewspaper() (*ViewNewspaper, error) {
 		}
 		if exists {
 			viewInfo.BeforeUUID = (*viewInfo.PaperList)[0].UUID
+		}
+	}
+	return viewInfo, err
+}
+
+func (info *ExtraInfo) GetDocuments(isAdmin bool) (*ViewDocuments, error) {
+	viewInfo := &ViewDocuments{NextUUID: "", BeforeUUID: ""}
+	var exists bool
+	var err error
+	if info.Before {
+		viewInfo.DocumentList, exists, err = extraction.GetDocumentsBefore(info.UUID, info.Amount+1, info.ViewAccountID, isAdmin)
+		if err != nil || len(*viewInfo.DocumentList) == 0 {
+			return viewInfo, err
+		}
+		if len(*viewInfo.DocumentList) == info.Amount+1 {
+			viewInfo.BeforeUUID = (*viewInfo.DocumentList)[0].UUID
+			*viewInfo.DocumentList = (*viewInfo.DocumentList)[1:]
+		}
+		if exists {
+			viewInfo.NextUUID = (*viewInfo.DocumentList)[len(*viewInfo.DocumentList)-1].UUID
+		}
+	} else {
+		viewInfo.DocumentList, exists, err = extraction.GetDocumentsAfter(info.UUID, info.Amount+1, info.ViewAccountID, isAdmin)
+		if err != nil || len(*viewInfo.DocumentList) == 0 {
+			return viewInfo, err
+		}
+		if len(*viewInfo.DocumentList) == info.Amount+1 {
+			viewInfo.NextUUID = (*viewInfo.DocumentList)[info.Amount-1].UUID
+			*viewInfo.DocumentList = (*viewInfo.DocumentList)[:info.Amount]
+		}
+		if exists {
+			viewInfo.BeforeUUID = (*viewInfo.DocumentList)[0].UUID
 		}
 	}
 	return viewInfo, err
