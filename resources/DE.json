@@ -408,5 +408,16 @@
   "translationUser": "Nutzer",
   "translationMediaAdmin": "Medien-Administrator",
   "translationAdmin": "Administrator",
-  "translationHeadAdmin": "Leitender Administrator"
+  "translationHeadAdmin": "Leitender Administrator",
+  "ordPassword": "Altes Passwort",
+  "newPassword": "Neues Passwort",
+  "newPasswordAgain": "Neues Passwort bestätigen",
+  "changePasswordButton": "Passwort ändern",
+  "couldNotFindAccount": "Der Account konnte nicht gefunden werden",
+  "oldPasswordIsWrong": "Das alte Password ist inkorrekt",
+  "newPasswordWrongLength": "Das neue Passwort ist entweder kürzer als %d Zeichen oder länger als %d Zeichen",
+  "newPasswordAgainNotTheSame": "Die Bestätigung des neuen Passworts stimmt nicht überein",
+  "errorGeneratingNewPassword": "Es ist ein Fehler beim erstellen des neuen Passwort-Hashes aufgetreten",
+  "errorSavingNewPassword": "Es ist ein Fehler beim speichern des neuen Passworts aufgetreten",
+  "successfullyChangePassword": "Passwort erfolgreich angepasst"
 }

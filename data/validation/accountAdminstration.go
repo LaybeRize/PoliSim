@@ -387,3 +387,49 @@ func removeFlair(update *database.AccountList, flair string) {
 		}
 	}
 }
+
+type ChangePassword struct {
+	OldPassword      string `input:"ordPassword"`
+	NewPassword      string `input:"newPassword"`
+	NewPasswordAgain string `input:"newPasswordAgain"`
+}
+
+const (
+	maxPasswordLength = 50
+	minPasswordLength = 10
+)
+
+func (form *ChangePassword) ChangePassword(acc *extraction.AccountAuth) (validate Message) {
+	validate.Positive = false
+	account, err := extraction.GetAccountForPasswordChange(acc.ID)
+	if err != nil {
+		validate.Message = builder.Translation["couldNotFindAccount"]
+		return
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(form.OldPassword))
+	if err != nil {
+		validate.Message = builder.Translation["oldPasswordIsWrong"]
+		return
+	}
+	length := len([]rune(form.NewPassword))
+	if length > maxPasswordLength || length < minPasswordLength {
+		validate.Message = fmt.Sprintf(builder.Translation["newPasswordWrongLength"], minPasswordLength, maxPasswordLength)
+		return
+	}
+	if form.NewPassword != form.NewPasswordAgain {
+		validate.Message = builder.Translation["newPasswordAgainNotTheSame"]
+		return
+	}
+	var pass []byte
+	pass, err = bcrypt.GenerateFromPassword([]byte(form.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		validate.Message = builder.Translation["errorGeneratingNewPassword"]
+		return
+	}
+	err = extraction.ChangePassword(account.ID, string(pass))
+	if err != nil {
+		validate.Message = builder.Translation["errorSavingNewPassword"]
+		return
+	}
+	return Message{Positive: true, Message: builder.Translation["successfullyChangePassword"]}
+}

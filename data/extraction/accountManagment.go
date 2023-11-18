@@ -95,6 +95,20 @@ func GetAccountForLogin(username string) (*AccountLogin, error) {
 	return accountLogin, err
 }
 
+// GetAccountForPasswordChange returns a filled *AccountLogin on successfully locating
+// an account with that id. Otherwise, return an empty struct and the error.
+func GetAccountForPasswordChange(id int64) (*AccountLogin, error) {
+	accountLogin := &AccountLogin{}
+	err := database.DB.Model(database.Account{}).Where("id=?", id).First(accountLogin).Error
+	return accountLogin, err
+}
+
+func ChangePassword(id int64, newPassword string) error {
+	return database.DB.Model(&database.Account{ID: id}).Updates(map[string]interface{}{
+		"password": newPassword,
+	}).Error
+}
+
 // SaveBack updates the given account in the DB by id.
 func (acc *AccountLogin) SaveBack() error {
 	return database.DB.Model(database.Account{}).Where("id=?", acc.ID).Updates(acc).Error

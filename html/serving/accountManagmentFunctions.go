@@ -28,7 +28,32 @@ func InstallAccountManagment() {
 }
 
 func ChangePasswordSelfService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
 
+	msg := validation.Message{}
+
+	create := &validation.ChangePassword{}
+	err := extractFormValuesForFields(create, r, 0)
+	if err != nil {
+		msg.Message = builder.Translation["extractionError"]
+		viewSelfOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	msg = create.ChangePassword(acc)
+	if !msg.Positive {
+		viewSelfOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	w.Header().Set("HX-Retarget", "#"+composition.MessageID)
+	html := composition.GetMessage(msg)
+	swap := composition.GetLoginThing(true)
+	renderRequest(w, updateInformation(w, r, acc, composition.ViewSelf), html, swap)
 }
 
 func GetViewSelfService(w http.ResponseWriter, r *http.Request) {
