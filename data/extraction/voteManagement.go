@@ -18,6 +18,6 @@ func GetSingleVote(voteUUID string) (*database.Votes, error) {
 
 func GetVotesForDocument(docID string) (database.VotesList, error) {
 	list := database.VotesList{}
-	err := database.DB.Where("parent = ?", docID).Find(&list).Error
+	err := database.DB.Where("parent = ?", docID).Order("uuid").Find(&list).Error
 	return list, err
 }

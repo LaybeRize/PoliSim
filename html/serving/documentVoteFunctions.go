@@ -2,6 +2,7 @@ package serving
 
 import (
 	"PoliSim/data/database"
+	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	"PoliSim/helper"
 	"PoliSim/html/builder"
@@ -27,15 +28,24 @@ func InstallVoteCreation() {
 }
 
 func PatchMakeVoteService(w http.ResponseWriter, r *http.Request) {
-	acc, admin := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
+	isAdmin := CheckIfHasRole(acc, database.HeadAdmin, database.Admin)
 	docUUID := chi.URLParam(r, "doc")
 	voteUUID := chi.URLParam(r, "vote")
 	voteType := database.VoteType(chi.URLParam(r, "type"))
+
+	_, err := extraction.GetDocumentForUser(docUUID, acc.ID, isAdmin, database.FinishedVote, database.RunningVote)
+
+	if !ok || err != nil {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+
 	msg := validation.Message{
 		Message:  builder.Translation["invalidVoteType"],
 		Positive: false,
 	}
-	if _, ok := database.VoteTranslation[voteType]; !ok {
+	if _, validType := database.VoteTranslation[voteType]; !validType {
 		viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
 	}
 
@@ -51,15 +61,30 @@ func PatchMakeVoteService(w http.ResponseWriter, r *http.Request) {
 		create = &validation.AddThreeChoice{}
 	}
 
-	err := json.NewDecoder(r.Body).Decode(create)
+	err = json.NewDecoder(r.Body).Decode(create)
 	if err != nil {
 		msg.Message = builder.Translation["extractionError"]
 		viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
 		return
 	}
 
-	msg = create.CastVote(acc, admin, docUUID, voteUUID, voteType)
-	viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
+	var vote *database.Votes
+	msg, vote = create.CastVote(acc, docUUID, voteUUID, voteType)
+	if !msg.Positive {
+		viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
+		return
+	}
+
+	w.Header().Set("HX-Retarget", "#"+composition.MessageID)
+	html := composition.GetMessage(msg)
+	var swapInfo builder.Node
+	switch vote.Info.VoteMethod {
+	case database.SingleVote, database.MultipleVotes, database.ThreeCategoryVoting:
+		swapInfo = composition.GetInfoStandardView(vote, true)
+	case database.RankedVotes:
+		swapInfo = composition.GetInfoRankedView(vote, true)
+	}
+	renderRequest(w, updateInformation(w, r, acc, composition.ViewVoteDocument), html, swapInfo)
 }
 
 func GetVoteViewService(w http.ResponseWriter, r *http.Request) {

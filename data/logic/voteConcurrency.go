@@ -52,23 +52,30 @@ func createSummaryForVote(vote *database.Votes) {
 	}
 }
 
-func AddNewResultToVote(uuid string, resultKey string, result database.Results) error {
+const ResultExistsErrorText = "results for key already exists"
+
+func AddNewResultToVote(uuid string, resultKey string, result database.Results) (*database.Votes, error) {
 	voteMutex.Lock()
 	defer voteMutex.Unlock()
 	vote, err := extraction.GetSingleVote(uuid)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if _, ok := vote.Info.Results[resultKey]; ok {
-		return errors.New("results for key already exists")
+		return nil, errors.New(ResultExistsErrorText)
 	}
 	vote.Info.Results[resultKey] = result
-	updateInfo(vote, resultKey)
-	err = extraction.UpdateVote(vote)
-	return err
-}
+	if result.InvalidVote {
+		vote.Info.Summary.InvalidVotes = append(vote.Info.Summary.InvalidVotes, resultKey)
+	} else {
+		vote.Info.VoteOrder = append(vote.Info.VoteOrder, resultKey)
+	}
 
-func updateInfo(vote *database.Votes, key string) {
-	//add values to summary
+	for option, value := range vote.Info.Results[resultKey].Votes {
+		vote.Info.Summary.Sums[option] += value
+	}
+
+	err = extraction.UpdateVote(vote)
+	return vote, err
 }

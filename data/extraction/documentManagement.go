@@ -46,7 +46,7 @@ func UpdateDocument(document *database.Document) error {
 	return database.DB.Updates(document).Error
 }
 
-func GetDocumentIfCanParticipate(uuid string, accountId int64) error {
+func GetDocumentIfCanParticipate(uuid string, accountId int64) (*database.Document, error) {
 	doc := &database.Document{}
 	err := database.DB.Joins("LEFT JOIN organisation_admins ON documents.organisation = organisation_admins.name").
 		Joins("LEFT JOIN organisation_member ON documents.organisation = organisation_member.name").
@@ -55,8 +55,8 @@ func GetDocumentIfCanParticipate(uuid string, accountId int64) error {
 			return db.Select("id, display_name")
 		}).Preload("Poster", func(db *gorm.DB) *gorm.DB {
 		return db.Select("id, display_name")
-	}).Select("documents.uuid").Where("documents.uuid = ? AND blocked = false AND "+
+	}).Select("documents.uuid, type").Where("documents.uuid = ? AND blocked = false AND "+
 		"(doc_poster.id = ? OR (allowed_members = true AND (organisation_admins.id = ? OR organisation_member.id = ?)) OR allowed_any = true)",
 		uuid, accountId, accountId, accountId).First(doc).Error
-	return err
+	return doc, err
 }

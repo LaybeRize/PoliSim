@@ -14,20 +14,20 @@ type (
 		Info                   VoteInfo `gorm:"type:jsonb;serializer:json"`
 	}
 	VoteInfo struct {
-		Results    map[string]Results `json:"results"` //the key is the voter name
+		VoteOrder  []string           `json:"voteOrder"` //order in which people voted
+		Results    map[string]Results `json:"results"`   //the key is the voter name
 		Summary    Summary            `json:"summary"`
 		VoteMethod VoteType           `json:"voteMethod"`
 		Options    []string           `json:"options"`
 	}
 	Results struct {
-		InvalidVote bool           `json:"invalid"`
-		Votes       map[string]int `json:"votes"`
+		InvalidVote bool             `json:"invalid"`
+		Votes       map[string]int64 `json:"votes"`
 	}
 	Summary struct {
-		Sums         map[string]int            `json:"sums"`         //scores of every answer
-		VoteMap      map[string]map[string]int `json:"voteMap"`      //the first key is the person, the second is the answer followed by the vote
-		InvalidVotes []string                  `json:"invalidVotes"` //list of all people that gave an invalid vote
-		CSV          string                    `json:"csv"`          //saves the data as a CSV for the ranked Map
+		Sums         map[string]int64 `json:"sums"`         //scores of every answer
+		InvalidVotes []string         `json:"invalidVotes"` //list of all people that gave an invalid vote
+		CSV          string           `json:"csv"`          //saves the data as a CSV for the ranked Map
 	}
 )
 

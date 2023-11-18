@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 const voteContainerDiv = "vote-container-div"
@@ -193,6 +194,7 @@ func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 					Group(RadioButtons...)),
 				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 			)),
+		GetInfoStandardView(item, false),
 	}
 }
 func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
@@ -214,6 +216,7 @@ func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID 
 				),
 				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 			)),
+		GetInfoStandardView(item, false),
 	}
 }
 
@@ -237,6 +240,7 @@ func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 					Group(rankings...)),
 				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 			)),
+		GetInfoRankedView(item, false),
 	}
 }
 
@@ -269,5 +273,108 @@ func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, doc
 					Group(threeCategory...)),
 				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 			)),
+		GetInfoStandardView(item, false),
 	}
+}
+
+func GetInfoStandardView(item *database.Votes, oobSwap bool) Node {
+	children := make([]Node, len(item.Info.Options)+1)
+	for i, str := range item.Info.Options {
+		children[i] = TR(
+			getTableElement(StartPos, 1, Text(str)),
+			getTableElement(EndPos, 1, Text(strconv.FormatInt(item.Info.Summary.Sums[str], 10))),
+		)
+	}
+	children[len(children)-1] = TR(
+		getTableElement(StartPos, 1, Text(Translation["validVoteVotes"])),
+		getTableElement(EndPos, 1, Text(strconv.FormatInt(int64(len(item.Info.Summary.InvalidVotes)), 10))),
+	)
+	moreInfo := []Node{nil}
+	generateMoreInfo := (item.ShowNamesAfterVoting && item.Finished) || (item.ShowNamesWhileVoting && !item.Finished)
+	if generateMoreInfo && len(item.Info.VoteOrder) != 0 {
+		moreInfo = make([]Node, len(item.Info.VoteOrder)+1)
+
+		row := make([]Node, len(item.Info.Options)+1)
+		row[0] = getTableHeader(StartPos, -1, Translation["questionExtensionName"])
+		for i, str := range item.Info.Options {
+			if i == len(item.Info.Options)-1 {
+				row[i+1] = getTableHeader(EndPos, -1, str)
+				continue
+			}
+			row[i+1] = getTableHeader(MiddlePos, -1, str)
+		}
+		moreInfo[0] = TR(Group(clone(row)...))
+		for j, str := range item.Info.VoteOrder {
+			row[0] = getTableElement(StartPos, 1, Text(str))
+			for i, strOpt := range item.Info.Options {
+				if i == len(item.Info.Options)-1 {
+					row[i+1] = getTableElement(EndPos, 1, Text(strconv.FormatInt(item.Info.Results[str].Votes[strOpt], 10)))
+					continue
+				}
+				row[i+1] = getTableElement(MiddlePos, 1, Text(strconv.FormatInt(item.Info.Results[str].Votes[strOpt], 10)))
+			}
+			moreInfo[j+1] = TR(Group(clone(row)...))
+		}
+	}
+	return DIV(ID("vote-info-for-"+item.UUID), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
+		If((item.ShowNumbersWhileVoting && !item.Finished) || item.Finished,
+			TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4"),
+				TR(
+					getTableHeader(StartPos, -1, Translation["questionColumnSummary"]),
+					getTableHeader(EndPos, -1, Translation["numbersColumnSummary"]),
+				),
+				Group(children...))),
+		If(generateMoreInfo && len(item.Info.Summary.InvalidVotes) != 0, P(Text(Translation["invalidateVoteNames"], strings.Join(item.Info.Summary.InvalidVotes, ", ")))),
+		If(generateMoreInfo && len(item.Info.VoteOrder) != 0, TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4"),
+			Group(moreInfo...))))
+}
+
+func GetInfoRankedView(item *database.Votes, oobSwap bool) Node {
+	moreInfo := []Node{nil}
+	generateMoreInfo := item.Finished || item.ShowNumbersWhileVoting
+	if generateMoreInfo && len(item.Info.VoteOrder) != 0 {
+		showName := (item.Finished && item.ShowNamesAfterVoting) || (!item.Finished && item.ShowNamesWhileVoting)
+		moreInfo = make([]Node, len(item.Info.VoteOrder)+1)
+
+		row := make([]Node, len(item.Info.Options)+1)
+		row[0] = getTableHeader(StartPos, -1, Translation["questionExtensionName"])
+		for i, str := range item.Info.Options {
+			if i == len(item.Info.Options)-1 {
+				row[i+1] = getTableHeader(EndPos, -1, str)
+				continue
+			}
+			row[i+1] = getTableHeader(MiddlePos, -1, str)
+		}
+		moreInfo[0] = TR(Group(clone(row)...))
+		for j, str := range item.Info.VoteOrder {
+			voter := str
+			if !showName {
+				voter = fmt.Sprintf(Translation["replaceNameWithNumber"], j+1)
+			}
+			row[0] = getTableElement(StartPos, 1, Text(voter))
+			for i, strOpt := range item.Info.Options {
+				if i == len(item.Info.Options)-1 {
+					row[i+1] = getTableElement(EndPos, 1, Text(strconv.FormatInt(item.Info.Results[str].Votes[strOpt], 10)))
+					continue
+				}
+				row[i+1] = getTableElement(MiddlePos, 1, Text(strconv.FormatInt(item.Info.Results[str].Votes[strOpt], 10)))
+			}
+			moreInfo[j+1] = TR(Group(clone(row)...))
+		}
+	}
+
+	return DIV(ID("vote-info-for-"+item.UUID), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
+		If((item.ShowNumbersWhileVoting && !item.Finished) || item.Finished, Group(
+			P(CLASS("mt-4"), Text(Translation["invalidateVoteRankedText"], len(item.Info.Summary.InvalidVotes))),
+			If(((item.ShowNamesAfterVoting && item.Finished) || (item.ShowNamesWhileVoting && !item.Finished)) && len(item.Info.Summary.InvalidVotes) != 0,
+				P(Text(Translation["invalidateVoteNames"], strings.Join(item.Info.Summary.InvalidVotes, ", ")))),
+			If(generateMoreInfo && len(item.Info.VoteOrder) != 0, TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4"),
+				Group(moreInfo...))),
+		)))
+}
+
+func clone(n []Node) []Node {
+	newNodes := make([]Node, len(n))
+	copy(newNodes, n)
+	return newNodes
 }

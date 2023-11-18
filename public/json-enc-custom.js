@@ -20,7 +20,7 @@ function encodingAlgorithm(parameters) {
     for (let param_index = 0; param_index < PARAM_LENGHT; param_index++) {
         let name = PARAM_NAMES[param_index];
         let value = PARAM_VALUES[param_index];
-        if (document.querySelectorAll("input[type=checkbox][name='"+name+"']").length === 1 &&
+        if (document.querySelectorAll("input[type=checkbox][name='"+name+"']").length !== 0 &&
             document.querySelectorAll("input[type=checkbox][name='"+name+"']").item(0).attributes.getNamedItem("value") === null) {
             value = value === "on";
         } else if (document.querySelectorAll("input[data-convert=number][name='"+name+"']").length !== 0) {

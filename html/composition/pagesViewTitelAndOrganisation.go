@@ -212,9 +212,9 @@ func GetViewHiddenOrganisationPage() Node {
 		getPageHeader(ViewHiddenOrganisations),
 		getStandardTable("sortTable",
 			TR(
-				getTableHeader(StartPos, -1, "Hauptgruppe"),
-				getTableHeader(MiddlePos, -1, "Untergruppe"),
-				getTableHeader(EndPos, -1, "Name"),
+				getTableHeader(StartPos, -1, Translation["organisationTableMainGroup"]),
+				getTableHeader(MiddlePos, -1, Translation["organisationTableSubGroup"]),
+				getTableHeader(EndPos, -1, Translation["organisationTableName"]),
 			),
 			Group(nodes...),
 		),

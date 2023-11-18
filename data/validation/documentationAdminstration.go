@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -261,23 +262,23 @@ func (form *CreateVote) CreateVote(requestAccountID int64) (validate Message) {
 	}
 
 	parentID := uuid.New().String()
-	for _, item := range form.Questions {
+	for i, item := range form.Questions {
 		newVote := &database.Votes{
-			UUID:                   uuid.New().String(),
+			UUID:                   strconv.FormatInt(int64(i), 10) + "-" + uuid.New().String(),
 			Parent:                 parentID,
 			Question:               item.Text,
-			ShowNumbersWhileVoting: item.ViewCountsWhileRunning,
+			ShowNumbersWhileVoting: item.ViewCountsWhileRunning || item.ViewNamesWhileRunning,
 			ShowNamesWhileVoting:   item.ViewNamesWhileRunning,
-			ShowNamesAfterVoting:   item.ViewNamesAfterFinished,
+			ShowNamesAfterVoting:   item.ViewNamesAfterFinished || item.ViewNamesWhileRunning,
 			Finished:               false,
 			Info: database.VoteInfo{
 				Results: map[string]database.Results{},
 				Summary: database.Summary{
-					Sums:         map[string]int{},
-					VoteMap:      make(map[string]map[string]int),
+					Sums:         map[string]int64{},
 					InvalidVotes: []string{},
 					CSV:          "",
 				},
+				VoteOrder:  []string{},
 				VoteMethod: database.VoteType(item.QuestionType),
 				Options:    item.Answers,
 			},
