@@ -3,6 +3,7 @@ package validation
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/data/logic"
 	"PoliSim/helper"
 	"PoliSim/html/builder"
 	"database/sql"
@@ -125,6 +126,8 @@ func (form *OrganisationModification) SearchOrganisation() (validate Message) {
 }
 
 func (form *OrganisationModification) ModifyOrganisation() (validate Message) {
+	logic.OrganisationModifyMutex.Lock()
+	defer logic.OrganisationModifyMutex.Unlock()
 	validate = Message{Positive: false}
 	org, err := extraction.GetOrganisation(form.Name)
 	if errors.Is(err, gorm.ErrRecordNotFound) {

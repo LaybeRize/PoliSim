@@ -212,7 +212,6 @@ func (form *AccountModification) validateChangeHeadAdmin(acc *extraction.Account
 }
 
 func (form *AccountModification) validateChangeToPressAccount(acc *extraction.AccountModification) (validate Message) {
-	oldLinked := acc.Linked.Int64
 	acc.Suspended = form.Suspended
 	acc.Linked.Int64 = form.Linked
 	acc.Linked.Valid = true
@@ -246,7 +245,7 @@ func (form *AccountModification) validateChangeToPressAccount(acc *extraction.Ac
 		return
 	}
 	validate.Message = builder.Translation["changingUserSuccessfully"]
-	err = logic.UpdateOrganisationAccount(acc.ID, oldLinked, acc.Linked.Int64)
+	err = logic.UpdateOrganisationAccount(acc.ID)
 	if err != nil {
 		validate.Message += "\n" + builder.Translation["errorForChangesToOrganisationWithPressAccount"]
 	}

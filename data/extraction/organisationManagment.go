@@ -197,3 +197,13 @@ func HasAdminAccountInOrganisation(userID int64, organisationName string) error 
 		Where("(accounts.id = ? OR accounts.linked = ?) AND organisations.name = ?", userID, userID, organisationName).
 		First(&database.Organisation{}).Error
 }
+
+func GetOrganisations(userID int64) (org *database.OrganisationList, err error) {
+	organisationMutex.Lock()
+	defer organisationMutex.Unlock()
+	err = database.DB.Preload("Members").Preload("Admins").Joins("LEFT JOIN organisation_member ON organisations.name = organisation_member.name").
+		Joins("LEFT JOIN organisation_admins ON organisations.name = organisation_admins.name").
+		Select("DISTINCT organisations.name, main_group, sub_group, flair, status").
+		Where("organisation_admins.id = ? OR organisation_member.id = ?", userID, userID).Find(&org).Error
+	return
+}
