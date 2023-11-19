@@ -1709,6 +1709,10 @@ video {
   height: 3px;
 }
 
+.h-\[100px\] {
+  height: 100px;
+}
+
 .h-\[40px\] {
   height: 40px;
 }
@@ -1731,6 +1735,10 @@ video {
 
 .min-h-screen {
   min-height: 100vh;
+}
+
+.w-max-\[800px\] {
+  max-width: 800px;
 }
 
 .w-\[800px\] {

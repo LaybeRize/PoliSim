@@ -25,6 +25,8 @@ var (
 	TH       = elementWrapper("th")
 	TR       = elementWrapper("tr")
 	TD       = elementWrapper("td")
+	CODE     = elementWrapper("code")
+	PRE      = elementWrapper("pre")
 
 	BR    = elementWrapper(brTag)
 	IMG   = elementWrapper(imgTag)

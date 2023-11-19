@@ -1,5 +1,9 @@
 # PoliSim - A Political Simulation Website
 
+[![Version](https://img.shields.io/badge/release-vAlpha.0.1-blue)](https://github.com/LaybeRize/PoliSim)
+![Test](https://img.shields.io/badge/codecov-4%25-red)
+
+
 **PoliSim** is a Project aiming to deliver a website that can be used with any and all political simulations.
 It provides the user and admins, with organisations, titles, documents and other forms of interactive ways to
 communicate specifics of the political situation in the simulation.

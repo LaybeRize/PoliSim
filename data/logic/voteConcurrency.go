@@ -51,8 +51,7 @@ const seperator = ","
 func createCSVForVote(vote *database.Votes) {
 	csvStr := builder.Translation["csvVoterColumnName"] + "," + builder.Translation["csvVoterMadeInvalidVote"]
 	for _, opt := range vote.Info.Options {
-		opt = strings.ReplaceAll(opt, "\"", "\"\"")
-		csvStr += seperator + opt
+		csvStr += seperator + "\"" + strings.ReplaceAll(opt, "\"", "\"\"") + "\""
 	}
 	csvStr += "\n"
 	for _, person := range vote.Info.VoteOrder {
@@ -63,8 +62,10 @@ func createCSVForVote(vote *database.Votes) {
 		}
 		if !vote.ShowNamesAfterVoting {
 			person = builder.Translation["csvVoterNameObscure"]
+		} else {
+			person = "\"" + strings.ReplaceAll(person, "\"", "\"\"") + "\""
 		}
-		addition = person + seperator + "true" + addition + "\n"
+		addition = person + seperator + "false" + addition + "\n"
 		csvStr += addition
 	}
 	addition := strings.Repeat(seperator, len(vote.Info.Options))
@@ -72,13 +73,15 @@ func createCSVForVote(vote *database.Votes) {
 		if !vote.ShowNamesAfterVoting {
 			person = builder.Translation["csvVoterNameObscure"]
 		}
-		csvStr += person + seperator + "false" + addition + "\n"
+		csvStr += person + seperator + "true" + addition + "\n"
 	}
 	csvStr += builder.Translation["csvSumVoterName"] + seperator
+	addition = ""
 	for _, opt := range vote.Info.Options {
 		val := vote.Info.Summary.Sums[opt]
 		addition += seperator + strconv.FormatInt(val, 10)
 	}
+	csvStr += addition
 	vote.Info.Summary.CSV = csvStr
 	vote.Finished = true
 	err := extraction.UpdateVote(vote)

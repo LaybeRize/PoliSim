@@ -318,15 +318,17 @@ func GetInfoStandardView(item *database.Votes, oobSwap bool) Node {
 	}
 	return DIV(ID("vote-info-for-"+item.UUID), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
 		If((item.ShowNumbersWhileVoting && !item.Finished) || item.Finished,
-			TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4"),
+			TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4 w-max-[800px]"),
 				TR(
 					getTableHeader(StartPos, -1, Translation["questionColumnSummary"]),
 					getTableHeader(EndPos, -1, Translation["numbersColumnSummary"]),
 				),
 				Group(children...))),
 		If(generateMoreInfo && len(item.Info.Summary.InvalidVotes) != 0, P(Text(Translation["invalidateVoteNames"], strings.Join(item.Info.Summary.InvalidVotes, ", ")))),
-		If(generateMoreInfo && len(item.Info.VoteOrder) != 0, TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4"),
-			Group(moreInfo...))))
+		If(generateMoreInfo && len(item.Info.VoteOrder) != 0, TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4 w-max-[800px]"),
+			Group(moreInfo...))),
+		If(item.Info.Summary.CSV != "", PRE(CLASS("w-[800px] h-[100px] mt-4 bg-slate-700 overflow-scroll"),
+			CODE(CLASS("inline-block bg-slate-700 break-words px-2"), Raw(item.Info.Summary.CSV)))))
 }
 
 func GetInfoRankedView(item *database.Votes, oobSwap bool) Node {
@@ -368,9 +370,11 @@ func GetInfoRankedView(item *database.Votes, oobSwap bool) Node {
 			P(CLASS("mt-4"), Text(Translation["invalidateVoteRankedText"], len(item.Info.Summary.InvalidVotes))),
 			If(((item.ShowNamesAfterVoting && item.Finished) || (item.ShowNamesWhileVoting && !item.Finished)) && len(item.Info.Summary.InvalidVotes) != 0,
 				P(Text(Translation["invalidateVoteNames"], strings.Join(item.Info.Summary.InvalidVotes, ", ")))),
-			If(generateMoreInfo && len(item.Info.VoteOrder) != 0, TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4"),
+			If(generateMoreInfo && len(item.Info.VoteOrder) != 0, TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4 w-max-[800px]"),
 				Group(moreInfo...))),
-		)))
+		)),
+		If(item.Info.Summary.CSV != "", PRE(CLASS("w-[800px] h-[100px] mt-4 bg-slate-700 overflow-scroll"),
+			CODE(CLASS("inline-block bg-slate-700 break-words px-2"), Raw(item.Info.Summary.CSV)))))
 }
 
 func clone(n []Node) []Node {
