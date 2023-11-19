@@ -58,8 +58,8 @@ func GetViewSubGroupOfTitles(mainGroup string, subGroup string) Node {
 			nodeList[i] = DIV(CLASS("mt-2"),
 				P(CLASS("text-xl"), Text(title.Name)),
 				If(title.Flair.Valid, P(CLASS("text-base mt-2"), Text(Translation["viewTitleFlairText"], title.Flair.String))),
-				P(CLASS(""), IfElse(holderText == "", Text(Translation["viewTitleNoHolderText"]),
-					Text(Translation["viewTitleHolderText"], holderText))))
+				P(If(!title.Flair.Valid, CLASS("mt-2")), I(CLASS("bi bi-people-fill")), IfElse(holderText == "", Text(" "+Translation["viewTitleNoHolderText"]),
+					Text(" "+Translation["viewTitleHolderText"], holderText))))
 
 		}
 		newDiv = DIV(ID("out-"+mainGroup+"-in-"+subGroup), CLASS("border-l-4 border-slate-400 pl-6 mt-2 collapse-all"),
@@ -149,10 +149,10 @@ func GetViewSubGroupOfOrganisations(accountID int64, isAdmin bool, mainGroup str
 						I(CLASS("text-xl bi bi-eye px-2"))),
 					If(organisation.Status == database.Private, I(CLASS("text-xl bi bi-file-lock")))),
 				If(organisation.Flair.Valid, P(CLASS("text-base mt-2"), Text(Translation["viewOrganisationFlairText"], organisation.Flair.String))),
-				P(CLASS(""), IfElse(memberText == "", Text(Translation["viewOrganisationNoMemberText"]),
-					Text(Translation["viewOrganisationMemberText"], memberText))),
-				P(CLASS(""), IfElse(adminText == "", Text(Translation["viewOrganisationNoAdminText"]),
-					Text(Translation["viewOrganisationAdminText"], adminText))))
+				P(If(!organisation.Flair.Valid, CLASS("mt-2")), I(CLASS("bi bi-people-fill")), IfElse(memberText == "", Text(" "+Translation["viewOrganisationNoMemberText"]),
+					Text(" "+Translation["viewOrganisationMemberText"], memberText))),
+				P(I(CLASS("bi bi-person-fill-gear")), IfElse(adminText == "", Text(" "+Translation["viewOrganisationNoAdminText"]),
+					Text(" "+Translation["viewOrganisationAdminText"], adminText))))
 
 		}
 		newDiv = DIV(ID("out-"+mainGroup+"-in-"+subGroup), CLASS("border-l-4 border-slate-400 pl-6 mt-2 collapse-all"),

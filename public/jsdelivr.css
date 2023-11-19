@@ -1066,6 +1066,7 @@ url("./fonts/bootstrap-icons.woff") format("woff");
 .bi-person-x-fill::before { content: "\f4df"; }
 .bi-person-x::before { content: "\f4e0"; }
 .bi-person::before { content: "\f4e1"; }
+.bi-person-fill-gear::before { content: "\f8a2"; }
 .bi-phone-fill::before { content: "\f4e2"; }
 .bi-phone-landscape-fill::before { content: "\f4e3"; }
 .bi-phone-landscape::before { content: "\f4e4"; }
