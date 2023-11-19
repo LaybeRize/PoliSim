@@ -116,13 +116,17 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 		validate.Message = builder.Translation["cantFindAuthorOfArticle"]
 		return
 	}
+	subtitle := article.Subtitle.String
+	if subtitle == "" {
+		subtitle = builder.Translation["emptySubtitleForRejection"]
+	}
 	letter := database.Letter{
 		UUID:    uuid.New().String(),
 		Written: time.Now(),
 		Author:  builder.Translation["authorOfRejections"],
 		Flair:   "",
 		Title:   fmt.Sprintf(builder.Translation["rejectionLetterTitle"], article.Headline),
-		Content: fmt.Sprintf(builder.Translation["rejectionLetterBody"], article.Subtitle.String, article.Content, content),
+		Content: fmt.Sprintf(builder.Translation["rejectionLetterBody"], subtitle, article.Content, content),
 		Info: database.LetterInfo{
 			AllHaveToAgree:     false,
 			NoSigning:          true,

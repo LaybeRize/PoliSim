@@ -44,7 +44,7 @@ func GetAllDistinct() (*database.TitleList, error) {
 func GetAllTitlesInSubGroup(mainGroup string, subGroup string) (*database.TitleList, error) {
 	list := &database.TitleList{}
 	err := database.DB.Preload("Holder", func(db *gorm.DB) *gorm.DB {
-		return db.Select("display_name")
+		return db.Select("id, display_name")
 	}).Where("main_group = ? AND sub_group = ?", mainGroup, subGroup).Order("name").Find(list).Error
 	return list, err
 }

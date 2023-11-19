@@ -33,7 +33,7 @@ func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
 			getSidebarButton(level, database.User, CreateDiscussionDocument),
 			getSidebarButton(level, database.User, CreateVoteDocument),
 		),
-		getSidebarButtonDetailed(level, database.User, ViewLetterLink+HttpUrl("/"+url.PathEscape(acc.DisplayName)), SidebarTitleMap[ViewLetter]),
+		getSidebarButtonDetailed(level, database.User, ViewLetterLink+HttpUrl(url.PathEscape(acc.DisplayName)), SidebarTitleMap[ViewLetter]),
 		getSidebarButton(level, database.User, ViewSelf),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
 		getSidebarButton(level, database.MediaAdmin, ViewHiddenNewspaperList),

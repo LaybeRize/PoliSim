@@ -3,6 +3,7 @@ package builder
 import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
+	"net/url"
 	"testing"
 )
 
@@ -46,4 +47,9 @@ func TestMixing(t *testing.T) {
 		el("other"))).Render(&buf)
 	assert.Nil(t, err)
 	assert.Equal(t, "<abc hxValue='val\"'><test></test><other></other></abc>", buf.String())
+}
+
+func TestPathEscape(t *testing.T) {
+	testStr := "\""
+	assert.Equal(t, "%22", url.PathEscape(testStr))
 }

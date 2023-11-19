@@ -1,6 +1,6 @@
 # PoliSim - A Political Simulation Website
 
-[![Version](https://img.shields.io/badge/release-vAlpha.0.1-blue)](https://github.com/LaybeRize/PoliSim)
+[![Version](https://img.shields.io/badge/release-vAlpha.1.0-blue)](https://github.com/LaybeRize/PoliSim)
 ![Test](https://img.shields.io/badge/codecov-4%25-red)
 
 

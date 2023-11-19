@@ -424,5 +424,6 @@
   "selfTableDisplayName": "Account",
   "selfTableFlair": "Flair",
   "selfTableOrganisations": "Organisationen",
-  "selfTableTitles": "Titel"
+  "selfTableTitles": "Titel",
+  "emptySubtitleForRejection": "[Der Artikel hat keinen Untertitel]"
 }

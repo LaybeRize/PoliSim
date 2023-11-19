@@ -57,7 +57,7 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 		//if i%2 == 1 {
 		//	box = "box-f"
 		//}
-		link := string(rejectArticleLink) + "/" + item.UUID
+		link := string(rejectArticleLink) + item.UUID
 		nodes[i] = renderSingleArticle(&item,
 			getClickableLink("/"+APIPreRoute+link, "/"+link, Group(CLASS(buttonClassAttribute+" m-2"),
 				STYLE("display: inline-block;"), Text(Translation["directToRejectArticleButton"]))))
@@ -83,7 +83,7 @@ func GetRejectArticlePage(uuid string, content string, val validation.Message) N
 	return getBasePageWrapper(
 		getPageHeader(RejectArticle),
 		renderSingleArticle(article, nil),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(rejectArticleLink)+"/"+url.PathEscape(uuid), CLASS("w-[800px]"),
+		getFormStandardForm("form", POST, "/"+APIPreRoute+string(rejectArticleLink)+url.PathEscape(uuid), CLASS("w-[800px]"),
 			getTextArea("content", "content", content, Translation["rejectArticleMessage"],
 				MarkdownFormPage),
 			getSubmitButton("rejectArticleButton", Translation["rejectArticleButton"])),

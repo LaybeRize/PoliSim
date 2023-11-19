@@ -126,8 +126,10 @@ func attr(name string, str ...string) Node {
 			return
 		}
 		if len(str) > 0 {
-			// special case for hx-vals because it uses json as input text
 			if strings.ContainsRune(str[0], '"') {
+				if strings.ContainsRune(str[0], '\'') {
+					str[0] = strings.ReplaceAll(str[0], "'", "\"")
+				}
 				_, err = w.Write([]byte("='" + str[0] + "'"))
 				return
 			}

@@ -11,9 +11,9 @@ services:
       - POSTGRES_DB=${DB_NAME}
     volumes:
       - postgres-db:/var/lib/postgresql/data
-    links:
-      - web
   web:
+    depends_on:
+      - db
     env_file:
       - .env
     image:

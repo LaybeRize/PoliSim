@@ -65,7 +65,7 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 	}
 	nodes := make([]Node, len(*view.LetterList))
 	for i, item := range *view.LetterList {
-		link := string(ViewLetterLink) + "/" + url.PathEscape(extra.ViewAccountName) + "/" + url.PathEscape(item.UUID)
+		link := string(ViewLetterLink) + url.PathEscape(extra.ViewAccountName) + "/" + url.PathEscape(item.UUID)
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
 			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"), Text(item.Title)),
@@ -77,9 +77,9 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 		getUserDropdownForLetter(acc, extra.ViewAccountName, Translation["selectedReaderLetter"]),
 		Group(nodes...),
 		pagerFooter(view.BeforeUUID, view.NextUUID,
-			fmt.Sprintf("%s/%s?uuid=%s&amount=%d&before=true", string(ViewLetterLink),
+			fmt.Sprintf("%s%s?uuid=%s&amount=%d&before=true", string(ViewLetterLink),
 				url.PathEscape(extra.ViewAccountName), url.QueryEscape(view.BeforeUUID), extra.Amount),
-			fmt.Sprintf("%s/%s?uuid=%s&amount=%d", string(ViewLetterLink), url.PathEscape(extra.ViewAccountName),
+			fmt.Sprintf("%s%s?uuid=%s&amount=%d", string(ViewLetterLink), url.PathEscape(extra.ViewAccountName),
 				url.QueryEscape(view.NextUUID), extra.Amount)),
 	)
 }
@@ -91,7 +91,7 @@ func GetViewModmailList(acc *extraction.AccountAuth, extra *logic.ExtraInfo) Nod
 	}
 	nodes := make([]Node, len(*view.LetterList))
 	for i, item := range *view.LetterList {
-		link := string(ViewLetterLink) + "/" + url.PathEscape(acc.DisplayName) + "/" + url.PathEscape(item.UUID)
+		link := string(ViewLetterLink) + url.PathEscape(acc.DisplayName) + "/" + url.PathEscape(item.UUID)
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
 			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"), Text(item.Title)),
@@ -169,10 +169,10 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 		),
 		specialNode,
 		If(hasNotSigned && !letter.Info.NoSigning, DIV(CLASS("w-[800px] flex flex-row"),
-			updateLetterButton("/"+APIPreRoute+string(updateLetterLink)+"/"+
+			updateLetterButton("/"+APIPreRoute+string(updateLetterLink)+
 				url.PathEscape(account.DisplayName)+"/"+
 				letterUUID+"/sign", Translation["signLetter"]),
-			updateLetterButton("/"+APIPreRoute+string(updateLetterLink)+"/"+
+			updateLetterButton("/"+APIPreRoute+string(updateLetterLink)+
 				url.PathEscape(account.DisplayName)+"/"+
 				letterUUID+"/reject", Translation["rejectLetter"]))),
 		GetMessage(val),

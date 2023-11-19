@@ -155,7 +155,7 @@ func PatchViewLetterService(w http.ResponseWriter, r *http.Request) {
 		ShowErrorPage(w, r, acc, builder.Translation["letterAccountError"])
 		return
 	}
-	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewLetterLink)+"/"+
+	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewLetterLink)+
 		url.PathEscape(account.DisplayName))
 
 	extraInfo := &logic.ExtraInfo{
