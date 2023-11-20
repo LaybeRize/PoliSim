@@ -19,16 +19,18 @@ LANG=your language (most likely DE or EN)
 
 ## Architecture
 
-**PoliSim** is build on 4 layers:
+**PoliSim** is build on 5 layers:
 1. Database Layer
 2. Data Abstraction Layer
-3. Data Validation Layer
-4. HTML Serving Layer
+3. Data Validation/Processing Layer
+4. HTML Composition Layer
+5. HTML Serving Layer
 
 **PoliSim** realises the first Layer with GORM. The second layer uses the GORM modells and queries to extract only the needed
-data for the request, thereby minimizing the data flow between database and program. The third layer takes in the data from
-the HTML-Request, process it, requests the needed complimentary data from the abstraction layer and gives back the state
-of validity of the request to the HTML layer to serve an appropriate response.
+data for the request, thereby minimizing the data flow between database and program. This layer is completely encapsulated in the 
+extraction package. The third layer takes in the data from the HTML-Request, process it, requests the needed complimentary 
+data from the Data Abstraction Layer and gives back the state of validity of the request to the HTML Serving Layer which 
+then makes a request to the HTML Composition Layer to generate the appropiate HTML to serve back to the client.
 
 The HTML requests and responses are received and served with go-chi. The HTML is extended with Hyperscript and HTMX to
 minimize the needed HTML send back to the client.
@@ -38,26 +40,24 @@ minimize the needed HTML send back to the client.
 HTML is build with the component builder which is inspired by [gomponents](https://github.com/maragudk/gomponents).
 It uses the idea, but simplifies it down to only four functions, which makes shortens the code
 quite significantly. It also uses a different approach when validating if the function is an attribute or not.
-The HTML snippet builder is seperated from both the validation and serving package.
-
-## Sidebar Handling
-
-Because the website should save the status the sidebar is in, when the user tries to open another site, the sidebar
-handling is getting extended by providing the server with necessary information on what to swap and when.
-How exactly the system will look is still in the planing phase.
-
-A few key points are the visibility of certain sidebar elements based on ones account role. And also swapping elements
-on theoretical redirects. As well as storing this information somehow on the website. Also, a way of informing the server
-that the sidebar has already been modified by the user and doesn't need any server side modification.
+The HTML Composition Layer uses this builder to compose the HTML snipptes for the 
+HTML Serving Layer.
 
 ## Language and Configuration
 
-For most parameter, which should be easily adaptable to a new simulation, there exists a field in the config.json in the resources folder.
+For most parameter, which should be easily adaptable to a new simulation, there exists a field in the config.json in the "resources" folder.
 If you want to support a different language, you have to add a file with your language named
 {your two letter shorthand for your language}.json in the resources folder and change your LANG env variable to that shorthand.
 Theoretically any name can be chosen for the new file, but because the LANG env variable is used for the html lang attribute too, it
 is advisable to use the official shorthand.
 This repo accepts pull requests for any new language support. We as the maintainer will inform you of any new translations needed.
+
+## Language error checking
+
+As there is only currently support for german, anyone how speaks german is welcome to check the DE.json file for spelling or grammatical 
+errors.  
+Support for english is coming, and Spanish/French would be nice, but for these we would need someone that would be willing to open a 
+pull request.
 
 # Thanks
 

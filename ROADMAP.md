@@ -12,6 +12,7 @@ These are the goals which have to be reached to transfer the project from the Al
 - basic general-purpose API for JSON
 - updates discussion and vote on end
 - advanced search for documents
+- english localisation
 
 ### Tests
 
@@ -56,3 +57,9 @@ Votes and Discussion should automatically request an update when the run time ex
 
 Documents should not be only be available as sorted list by time, but also be able to search documents only 
 from a specific organisation/person/type and also only documents before a specified date.
+
+### English localisation
+
+- [ ] finished
+
+translation for all strings in DE.json into an appropriate english equivalent.
