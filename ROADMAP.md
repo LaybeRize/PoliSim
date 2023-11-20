@@ -71,6 +71,12 @@ fix bug with paging occuring with three pages and more. (turns out this is prett
 
 translation for all strings in DE.json into an appropriate english equivalent.
 
+### Add special css rule for buttons
+
+- [ ] finished
+
+add "user-select: none;" to all buttons.
+
 ## Features for versions beyond the next
 
 - notification information for letter and comments the account recevied.

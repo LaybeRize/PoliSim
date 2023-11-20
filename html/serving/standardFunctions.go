@@ -77,11 +77,18 @@ func extractFormValuesForFields(object any, r *http.Request, onError int64) erro
 		return err
 	}
 	v := reflect.ValueOf(object)
+	recursiveCall(r, v, onError)
+	return nil
+}
+
+func recursiveCall(r *http.Request, v reflect.Value, onError int64) {
 	iterate := reflect.Indirect(v).NumField()
 	for i := 0; i < iterate; i++ {
 		input, ok := v.Type().Elem().Field(i).Tag.Lookup("input")
 		if !ok {
 			continue
+		} else if input == "_struct_" {
+			recursiveCall(r, v.Elem().Field(i).Addr(), onError)
 		}
 		kind := reflect.Indirect(v).Field(i).Kind()
 		switch kind {
@@ -95,7 +102,6 @@ func extractFormValuesForFields(object any, r *http.Request, onError int64) erro
 			v.Elem().Field(i).SetInt(getInt(r, input, onError))
 		}
 	}
-	return nil
 }
 
 // getText extracts the first string in http.Request PostForm field

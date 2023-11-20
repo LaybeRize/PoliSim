@@ -15,13 +15,13 @@ import (
 
 type (
 	CreateDocument struct {
-		BaseDocumentInfo
-		TagText  string `input:"tag"`
-		TagColor string `input:"color"`
+		BaseDocumentInfo `input:"_struct_"`
+		TagText          string `input:"tag"`
+		TagColor         string `input:"color"`
 	}
 	CreateDiscussion struct {
-		BaseDocumentInfo
-		PrivateDocumentInfo
+		BaseDocumentInfo    `input:"_struct_"`
+		PrivateDocumentInfo `input:"_struct_"`
 	}
 	CreateVote struct {
 		BaseDocumentInfo
