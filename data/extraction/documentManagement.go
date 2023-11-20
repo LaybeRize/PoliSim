@@ -72,6 +72,21 @@ func GetDocumentIfCanParticipate(uuid string, accountId int64) (*database.Docume
 	return doc, err
 }
 
+func GetFirstDocumentBeforeTime(t time.Time, userID int64, isAdmin bool) (*database.Document, error) {
+	doc := &database.Document{}
+	err := database.DB.Joins("LEFT JOIN organisation_account ON documents.organisation = organisation_account.name").
+		Joins("LEFT JOIN doc_allowed ON doc_allowed.uuid = documents.uuid").
+		Preload("Viewer", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, display_name")
+		}).Preload("Poster", func(db *gorm.DB) *gorm.DB {
+		return db.Select("id, display_name")
+	}).Select("documents.uuid, written, documents.organisation, type, author, flair, title, subtitle"+
+		", html_content, private, blocked, info, allowed_any, allowed_members").
+		Where("(blocked = false Or true = ?) AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?) AND written > ?",
+			isAdmin, userID, userID, isAdmin, t).Order("written").First(doc).Error
+	return doc, err
+}
+
 type ExtraInfo struct {
 	UUID          string `input:"uuid"`
 	Before        bool   `input:"before"`
@@ -81,6 +96,8 @@ type ExtraInfo struct {
 	Discussion    bool   `input:"discussion"`
 	Votes         bool   `input:"votes"`
 	Written       string `input:"written"`
+	Organisation  string `input:"organisation"`
+	Author        string `input:"author"`
 	ViewAccountID int64
 }
 
@@ -88,7 +105,12 @@ func (extra *ExtraInfo) GetDocumentsAfter(isAdmin bool) (documentList *database.
 	documentList = &database.DocumentList{}
 	exists = true
 	var doc *database.Document
-	doc, err = GetDocumentForUser(extra.UUID, extra.ViewAccountID, isAdmin)
+	t, err := time.Parse("2006-01-02", extra.Written)
+	if err == nil {
+		doc, err = GetFirstDocumentBeforeTime(t, extra.ViewAccountID, isAdmin)
+	} else {
+		doc, err = GetDocumentForUser(extra.UUID, extra.ViewAccountID, isAdmin)
+	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		exists = false
 		doc.Written = time.Now()
@@ -139,12 +161,13 @@ func (extra *ExtraInfo) getBasicDocumentQuery(isAdmin bool) *gorm.DB {
 		}
 		query += strings.Join(types, " OR ") + ") "
 	}
-	if extra.Written != "" {
-		t, err := time.Parse("2006-01-02", extra.Written)
-		if err == nil {
-			query += "AND written < ? "
-			params = append(params, t)
-		}
+	if extra.Organisation != "" {
+		query += "AND organisation LIKE ? "
+		params = append(params, "%"+extra.Organisation+"%")
+	}
+	if extra.Author != "" {
+		query += "AND author LIKE ? "
+		params = append(params, "%"+extra.Author+"%")
 	}
 	return database.DB.Joins("LEFT JOIN organisation_account ON documents.organisation = organisation_account.name").
 		Joins("LEFT JOIN doc_allowed ON doc_allowed.uuid = documents.uuid").

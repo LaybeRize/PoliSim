@@ -41,7 +41,7 @@ func (info *ExtraInfo) GetLetter() (*ViewLetter, error) {
 			return viewInfo, err
 		}
 		if len(*viewInfo.LetterList) == info.Amount+1 {
-			viewInfo.BeforeUUID = (*viewInfo.LetterList)[0].UUID
+			viewInfo.BeforeUUID = (*viewInfo.LetterList)[1].UUID
 			*viewInfo.LetterList = (*viewInfo.LetterList)[1:]
 		}
 		if exists {
@@ -73,7 +73,7 @@ func (info *ExtraInfo) GetModMails() (*ViewLetter, error) {
 			return viewInfo, err
 		}
 		if len(*viewInfo.LetterList) == info.Amount+1 {
-			viewInfo.BeforeUUID = (*viewInfo.LetterList)[0].UUID
+			viewInfo.BeforeUUID = (*viewInfo.LetterList)[1].UUID
 			*viewInfo.LetterList = (*viewInfo.LetterList)[1:]
 		}
 		if exists {
@@ -105,7 +105,7 @@ func (info *ExtraInfo) GetNewspaper() (*ViewNewspaper, error) {
 			return viewInfo, err
 		}
 		if len(*viewInfo.PaperList) == info.Amount+1 {
-			viewInfo.BeforeUUID = (*viewInfo.PaperList)[0].UUID
+			viewInfo.BeforeUUID = (*viewInfo.PaperList)[1].UUID
 			*viewInfo.PaperList = (*viewInfo.PaperList)[1:]
 		}
 		if exists {
@@ -137,7 +137,7 @@ func GetDocuments(isAdmin bool, info *extraction.ExtraInfo) (*ViewDocuments, err
 			return viewInfo, err
 		}
 		if len(*viewInfo.DocumentList) == info.Amount+1 {
-			viewInfo.BeforeUUID = (*viewInfo.DocumentList)[0].UUID
+			viewInfo.BeforeUUID = (*viewInfo.DocumentList)[1].UUID
 			*viewInfo.DocumentList = (*viewInfo.DocumentList)[1:]
 		}
 		if exists {

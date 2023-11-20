@@ -437,5 +437,16 @@
   "successfullyBlockedDocument": "Dokument erfolgreich blockiert",
   "successfullyUnblockedDocument": "Dokument erfolgreich freigegeben",
   "unblockDocument": "Dokument freigeben",
-  "blockDocument": "Dokument blockieren"
+  "blockDocument": "Dokument blockieren",
+  "advancedDocumentSearch": "Erweiterte Suche",
+  "makeAdvancedSearch": "Suchen",
+  "documentSearchAmount": "Dokumente pro Seite",
+  "documentSearchHideBlock": "Blockierte Dokumente verstecken",
+  "documentSearchText": "Textdokumente anzeigen",
+  "documentSearchDiscussion": "Diskussionen anzeigen",
+  "documentSearchVotes": "Abstimmungen anzeigen",
+  "documentSearchAddWritten": "Nur Dokumente veröffentlicht vor dem Datum anzeigen",
+  "documentSearchWritten": "Datum",
+  "documentSearchOrganisation": "Organisationsname muss enthalten",
+  "documentSearchAuthor": "Autorname muss enthalten"
 }

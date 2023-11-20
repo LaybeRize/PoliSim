@@ -53,11 +53,17 @@ Votes and Discussion should automatically request an update when the run time ex
 
 ### Advanced Search for documents
 
-- [ ] finished
+- [x] finished
 
 Documents should not be only be available as sorted list by time, but also be able to search documents only 
 from a specific organisation/person/type and also only documents before a specified date.  
 Needs implementing being able to block documents too.
+
+### Paging bug
+
+- [x] finished
+
+fix bug with paging occuring with three pages and more. (turns out this is pretty simple. You just stop being stupid and use the correct number.)
 
 ### English localisation
 
