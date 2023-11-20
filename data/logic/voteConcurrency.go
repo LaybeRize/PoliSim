@@ -78,7 +78,7 @@ func createCSVForVote(vote *database.Votes) {
 		}
 		csvStr += person + seperator + "true" + addition + "\n"
 	}
-	csvStr += builder.Translation["csvSumVoterName"] + seperator
+	csvStr += builder.Translation["csvSumVoterName"] + seperator + strconv.FormatInt(int64(len(vote.Info.Summary.InvalidVotes)), 10)
 	addition = ""
 	for _, opt := range vote.Info.Options {
 		val := vote.Info.Summary.Sums[opt]

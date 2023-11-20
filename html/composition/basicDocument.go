@@ -39,7 +39,10 @@ func scriptForUpdateOnEnd(doc *database.Document, httpUrl HttpUrl) Node {
 		var timeEnd = new Date("`+doc.Info.Finishing.Format(time.RFC3339)+`").getTime();
 		var currentTime = new Date().getTime();
 		var subtractMilliSecondsValue = timeEnd - currentTime;
-		if (subtractMilliSecondsValue < 0) {subtractMilliSecondsValue = 0;}
-		setTimeout(timeForRefresh, subtractMilliSecondsValue);
+		if (subtractMilliSecondsValue < 0) {
+			timeForRefresh();
+		} else {
+			setTimeout(timeForRefresh, subtractMilliSecondsValue);
+		}
 `)))
 }

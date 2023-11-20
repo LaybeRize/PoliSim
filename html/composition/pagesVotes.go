@@ -124,11 +124,13 @@ func GetVoteViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin 
 		return GetMessage(validation.Message{Message: Translation["errorLoadingVotesForDocument"]})
 	}
 	lenVotes := len(votes)
-	votesDivs := make([]Node, lenVotes*2+1)
+	votesDivs := make([]Node, lenVotes*2+2)
 	votesDivs[0] = GetMessage(validation.Message{Message: Translation["voteClosedJustNow"], Positive: true})
+	doc.Type = database.FinishedVote
+	votesDivs[1] = getTimeVoteInfo(doc, HXSWAPOOB("true"))
 	for i, item := range votes {
-		votesDivs[i+1] = swapForVoteForm(&item)
-		votesDivs[i+1+lenVotes] = GetInfoStandardView(&item, true)
+		votesDivs[i+2] = swapForVoteForm(&item)
+		votesDivs[i+2+lenVotes] = GetInfoStandardView(&item, true)
 	}
 	return Group(votesDivs...)
 }
@@ -169,9 +171,7 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 		getDocumentHead(doc, isAdmin),
 		getDocumentBody(doc),
 		DIV(CLASS("w-[800px] mt-2"),
-			P(I(CLASS("bi bi-calendar")), IfElse(doc.Type == database.FinishedVote,
-				I(Text(" "+doc.Info.Finishing.Format(Translation["voteFinished"]))),
-				I(Text(" "+doc.Info.Finishing.Format(Translation["voteRunning"]))))),
+			getTimeVoteInfo(doc, nil),
 			If(doc.Private,
 				P(I(CLASS("bi bi-person-fill-lock")), Text(" "+Translation["voteIsPrivate"]))),
 			If(doc.AnyPosterAllowed,
@@ -187,6 +187,12 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 		Group(votesDivs...),
 		If(doc.Type == database.RunningVote, scriptForUpdateOnEnd(doc, VoteUpdateDocumentLink)),
 	)
+}
+
+func getTimeVoteInfo(doc *database.Document, extra Node) Node {
+	return P(ID("timer-p-element"), extra, I(CLASS("bi bi-calendar")), IfElse(doc.Type == database.FinishedVote,
+		I(Text(" "+doc.Info.Finishing.Format(Translation["voteFinished"]))),
+		I(Text(" "+doc.Info.Finishing.Format(Translation["voteRunning"])))))
 }
 
 func compactVoteView(id string, text string, children []Node) Node {

@@ -81,9 +81,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 		getDocumentHead(doc, isAdmin),
 		getDocumentBody(doc),
 		DIV(CLASS("w-[800px] mt-2"),
-			P(I(CLASS("bi bi-calendar")), IfElse(doc.Type == database.FinishedDiscussion,
-				I(Text(" "+doc.Info.Finishing.Format(Translation["discussionFinished"]))),
-				I(Text(" "+doc.Info.Finishing.Format(Translation["discussionRunning"]))))),
+			getTimeDiscussionInfo(doc, nil),
 			If(doc.Private,
 				P(I(CLASS("bi bi-person-fill-lock")), Text(" "+Translation["discussionIsPrivate"]))),
 			If(doc.AnyPosterAllowed,
@@ -106,7 +104,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 					getSubmitButton("submitCommentButton", Translation["addCommentButton"])),
 				getPreviewElement(),
 			)),
-		scriptForUpdateOnEnd(doc, DiscussionUpdateDocumentLink),
+		If(doc.Type == database.RunningDiscussion, scriptForUpdateOnEnd(doc, DiscussionUpdateDocumentLink)),
 	)
 }
 
@@ -123,8 +121,15 @@ func GetDiscussionViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, is
 			return GetMessage(validation.Message{Message: Translation["discussionIsStillRunning"]})
 		}
 	}
+	doc.Type = database.FinishedDiscussion
 	return Group(GetMessage(validation.Message{Message: Translation["discussionClosedJustNow"], Positive: true}),
-		DIV(ID("discussion-comment-div"), HXSWAPOOB("true")))
+		DIV(ID("discussion-comment-div"), HXSWAPOOB("true")), getTimeDiscussionInfo(doc, HXSWAPOOB("true")))
+}
+
+func getTimeDiscussionInfo(doc *database.Document, extra Node) Node {
+	return P(ID("timer-p-element"), extra, I(CLASS("bi bi-calendar")), IfElse(doc.Type == database.FinishedDiscussion,
+		I(Text(" "+doc.Info.Finishing.Format(Translation["discussionFinished"]))),
+		I(Text(" "+doc.Info.Finishing.Format(Translation["discussionRunning"])))))
 }
 
 func reduceAccountsToString(accs []database.Account) string {

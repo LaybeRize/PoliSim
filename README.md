@@ -3,12 +3,13 @@
 [![Version](https://img.shields.io/badge/release-vAlpha.2.0-blue)](https://github.com/LaybeRize/PoliSim)
 ![Test](https://img.shields.io/badge/codecov-4%25-red)
 
-<img src="https://github.com/LaybeRize/PoliSim/blob/main/Logo.png?raw=true" align="left" style="margin-right: 10px; width: 400px;">
+<img src="https://github.com/LaybeRize/PoliSim/blob/main/Logo.png?raw=true" alt="PoliSim Logo" style="float:left; margin-right: 10px; width: 400px;">
+
 
 **PoliSim** is a Project aiming to deliver a website that can be used with any and all political simulations.
 It provides the user and admins, with organisations, titles, documents and other forms of interactive ways to
 communicate specifics of the political situation in the simulation.
-<br clear="left"/>
+<br style="clear: both" />
 
 # Product Information
 
