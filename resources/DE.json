@@ -352,6 +352,7 @@
   "voteNeedsParticipants": "Abstimmungen können nicht ohne Teilnehmer erstellt werden",
   "errorLoadingVotesForDocument": "Es ist ein Fehler beim Laden der Abstimmungen für das Dokument aufgetreten",
   "voteRunning": "Die Abstimmung endet am 02.01.2006 um 15:04 Uhr",
+  "documentWrittenDate": "02.01.2006, 15:04",
   "voteFinished": "Die Abstimmung hat am 02.01.2006 um 15:04 Uhr geendet",
   "voteIsPrivate": "Abstimmung ist privat",
   "anyVoterAllowed": "Jeder darf abstimmen",
@@ -429,5 +430,12 @@
   "voteIsStillRunning": "Abstimmung läuft noch",
   "voteClosedJustNow": "Abstimmung hat geendet",
   "discussionIsStillRunning": "Diskussion läuft noch",
-  "discussionClosedJustNow": "Diskussion hat geendet"
+  "discussionClosedJustNow": "Diskussion hat geendet",
+  "noDocumentsFound": "Die Suche hat keine Dokumente gefunden",
+  "notAllowedToBlockDocuments": "Dem Account fehlt die Berechtigung Dokumente zu blockieren",
+  "errorChangingBlock": "Es ist ein Fehler beim blockieren des Dokumentes aufgetreten",
+  "successfullyBlockedDocument": "Dokument erfolgreich blockiert",
+  "successfullyUnblockedDocument": "Dokument erfolgreich freigegeben",
+  "unblockDocument": "Dokument freigeben",
+  "blockDocument": "Dokument blockieren"
 }

@@ -12,6 +12,7 @@ type ExtraInfo struct {
 	ViewAccountID   int64
 	ViewAccountName string
 }
+
 type ViewLetter struct {
 	LetterList *database.LetterList
 	NextUUID   string
@@ -126,12 +127,12 @@ func (info *ExtraInfo) GetNewspaper() (*ViewNewspaper, error) {
 	return viewInfo, err
 }
 
-func (info *ExtraInfo) GetDocuments(isAdmin bool) (*ViewDocuments, error) {
+func GetDocuments(isAdmin bool, info *extraction.ExtraInfo) (*ViewDocuments, error) {
 	viewInfo := &ViewDocuments{NextUUID: "", BeforeUUID: ""}
 	var exists bool
 	var err error
 	if info.Before {
-		viewInfo.DocumentList, exists, err = extraction.GetDocumentsBefore(info.UUID, info.Amount+1, info.ViewAccountID, isAdmin)
+		viewInfo.DocumentList, exists, err = info.GetDocumentsBefore(isAdmin)
 		if err != nil || len(*viewInfo.DocumentList) == 0 {
 			return viewInfo, err
 		}
@@ -143,7 +144,7 @@ func (info *ExtraInfo) GetDocuments(isAdmin bool) (*ViewDocuments, error) {
 			viewInfo.NextUUID = (*viewInfo.DocumentList)[len(*viewInfo.DocumentList)-1].UUID
 		}
 	} else {
-		viewInfo.DocumentList, exists, err = extraction.GetDocumentsAfter(info.UUID, info.Amount+1, info.ViewAccountID, isAdmin)
+		viewInfo.DocumentList, exists, err = info.GetDocumentsAfter(isAdmin)
 		if err != nil || len(*viewInfo.DocumentList) == 0 {
 			return viewInfo, err
 		}

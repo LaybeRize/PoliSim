@@ -18,6 +18,8 @@ const (
 	Login                        builder.HttpUrl = "login"
 	Logout                       builder.HttpUrl = "logout"
 	ViewDocument                 builder.HttpUrl = "document/view"
+	BlockDocumentLink            builder.HttpUrl = "document/block/"
+	BlockDocument                                = BlockDocumentLink + "{uuid}"
 	updateUserSelectionLink      builder.HttpUrl = "document/update/account/selection/"
 	UpdateUserSelection                          = updateUserSelectionLink + "{isAdmin}"
 	CreateVoteDocument           builder.HttpUrl = "document/vote/create"

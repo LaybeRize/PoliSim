@@ -4,6 +4,7 @@ import (
 	"PoliSim/data/database"
 	"errors"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 )
 
@@ -50,6 +51,12 @@ func UpdateDocument(document *database.Document) error {
 	return database.DB.Updates(document).Error
 }
 
+func UpdateBlock(document *database.Document) error {
+	return database.DB.Model(&database.Document{UUID: document.UUID}).Updates(map[string]interface{}{
+		"blocked": document.Blocked,
+	}).Error
+}
+
 func GetDocumentIfCanParticipate(uuid string, accountId int64) (*database.Document, error) {
 	doc := &database.Document{}
 	err := database.DB.Joins("LEFT JOIN organisation_admins ON documents.organisation = organisation_admins.name").
@@ -65,40 +72,82 @@ func GetDocumentIfCanParticipate(uuid string, accountId int64) (*database.Docume
 	return doc, err
 }
 
-func GetDocumentsAfter(docUUID string, amount int, userID int64, isAdmin bool) (documentList *database.DocumentList, exists bool, err error) {
+type ExtraInfo struct {
+	UUID          string `input:"uuid"`
+	Before        bool   `input:"before"`
+	Amount        int    `input:"amount"`
+	HideBlock     bool   `input:"hideblock"`
+	Text          bool   `input:"text"`
+	Discussion    bool   `input:"discussion"`
+	Votes         bool   `input:"votes"`
+	Written       string `input:"written"`
+	ViewAccountID int64
+}
+
+func (extra *ExtraInfo) GetDocumentsAfter(isAdmin bool) (documentList *database.DocumentList, exists bool, err error) {
 	documentList = &database.DocumentList{}
 	exists = true
 	var doc *database.Document
-	doc, err = GetDocumentForUser(docUUID, userID, isAdmin)
+	doc, err = GetDocumentForUser(extra.UUID, extra.ViewAccountID, isAdmin)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		exists = false
 		doc.Written = time.Now()
 	} else if err != nil {
 		return
 	}
-	err = getBasicDocumentQuery(docUUID, amount, userID, isAdmin).Where("written < ?", doc.Written).Order("written desc").Find(documentList).Error
+	err = extra.getBasicDocumentQuery(isAdmin).Where("written < ?", doc.Written).Order("written desc").Find(documentList).Error
 	return
 }
 
-func GetDocumentsBefore(docUUID string, amount int, userID int64, isAdmin bool) (documentList *database.DocumentList, exists bool, err error) {
+func (extra *ExtraInfo) GetDocumentsBefore(isAdmin bool) (documentList *database.DocumentList, exists bool, err error) {
 	documentList = &database.DocumentList{}
 	exists = true
 	var doc *database.Document
-	doc, err = GetDocumentForUser(docUUID, userID, isAdmin)
+	doc, err = GetDocumentForUser(extra.UUID, extra.ViewAccountID, isAdmin)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		exists = false
 		doc.Written = time.Now()
 	} else if err != nil {
 		return
 	}
-	err = database.DB.Select("*").Table("(?) as X", getBasicDocumentQuery(docUUID, amount, userID, isAdmin).Order("written").Where("written > ?", doc.Written)).Order("X.written desc").Find(documentList).Error
+	err = database.DB.Select("*").Table("(?) as X", extra.getBasicDocumentQuery(isAdmin).Order("written").Where("written > ?", doc.Written)).Order("X.written desc").Find(documentList).Error
 	return
 }
 
-func getBasicDocumentQuery(uuid string, amount int, userID int64, isAdmin bool) *gorm.DB {
+func (extra *ExtraInfo) getBasicDocumentQuery(isAdmin bool) *gorm.DB {
+	query := "documents.uuid != ? AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?) "
+	params := []interface{}{extra.UUID, extra.ViewAccountID, extra.ViewAccountID, isAdmin}
+	if extra.HideBlock {
+		query += "AND blocked = false "
+	} else {
+		query += "AND (blocked = false Or true = ?) "
+		params = append(params, isAdmin)
+	}
+	if extra.Text || extra.Discussion || extra.Votes {
+		query += "AND ("
+		types := make([]string, 0, 5)
+		if extra.Text {
+			types = append(types, "type='"+string(database.LegislativeText)+"'")
+		}
+		if extra.Discussion {
+			types = append(types, "type='"+string(database.RunningDiscussion)+"'",
+				"type='"+string(database.FinishedDiscussion)+"'")
+		}
+		if extra.Votes {
+			types = append(types, "type='"+string(database.RunningVote)+"'",
+				"type='"+string(database.FinishedVote)+"'")
+		}
+		query += strings.Join(types, " OR ") + ") "
+	}
+	if extra.Written != "" {
+		t, err := time.Parse("2006-01-02", extra.Written)
+		if err == nil {
+			query += "AND written < ? "
+			params = append(params, t)
+		}
+	}
 	return database.DB.Joins("LEFT JOIN organisation_account ON documents.organisation = organisation_account.name").
 		Joins("LEFT JOIN doc_allowed ON doc_allowed.uuid = documents.uuid").
 		Select("DISTINCT documents.uuid, title, type, author, organisation, written").
-		Where("documents.uuid != ? AND (blocked = false Or true = ?) AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?)",
-			uuid, isAdmin, userID, userID, isAdmin).Limit(amount).Table("documents")
+		Where(query, params...).Limit(extra.Amount + 1).Table("documents")
 }

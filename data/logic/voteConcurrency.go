@@ -9,18 +9,15 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
-
-var voteMutex = sync.Mutex{}
 
 func CloseVoteIfTimeIsUp(ending time.Time, uuidStr string) {
 	if ending.After(time.Now()) {
 		return
 	}
-	voteMutex.Lock()
-	defer voteMutex.Unlock()
+	documentMutex.Lock()
+	defer documentMutex.Unlock()
 
 	doc, err := extraction.GetDocument(uuidStr)
 	if err != nil {
@@ -96,8 +93,8 @@ func createCSVForVote(vote *database.Votes) {
 const ResultExistsErrorText = "results for key already exists"
 
 func AddNewResultToVote(uuid string, resultKey string, result database.Results) (*database.Votes, error) {
-	voteMutex.Lock()
-	defer voteMutex.Unlock()
+	documentMutex.Lock()
+	defer documentMutex.Unlock()
 	vote, err := extraction.GetSingleVote(uuid)
 
 	if err != nil {

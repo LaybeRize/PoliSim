@@ -6,18 +6,15 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"os"
-	"sync"
 	"time"
 )
-
-var discussionMutex = sync.Mutex{}
 
 func CloseDiscussionIfTimeIsUp(ending time.Time, uuidStr string) {
 	if ending.After(time.Now()) {
 		return
 	}
-	discussionMutex.Lock()
-	defer discussionMutex.Unlock()
+	documentMutex.Lock()
+	defer documentMutex.Unlock()
 
 	doc, err := extraction.GetDocument(uuidStr)
 	if err != nil {
@@ -35,8 +32,8 @@ func CloseDiscussionIfTimeIsUp(ending time.Time, uuidStr string) {
 }
 
 func AddComment(author string, flair string, comment string, uuidStr string) error {
-	discussionMutex.Lock()
-	defer discussionMutex.Unlock()
+	documentMutex.Lock()
+	defer documentMutex.Unlock()
 	doc, err := extraction.GetDocument(uuidStr)
 	if err != nil {
 		return err
@@ -54,8 +51,8 @@ func AddComment(author string, flair string, comment string, uuidStr string) err
 }
 
 func ChangeVisibiltyComment(commentUUID, docUUID string) (bool, error) {
-	discussionMutex.Lock()
-	defer discussionMutex.Unlock()
+	documentMutex.Lock()
+	defer documentMutex.Unlock()
 	doc, err := extraction.GetDocument(docUUID)
 	if err != nil {
 		return false, err
