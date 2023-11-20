@@ -128,7 +128,7 @@ func attr(name string, str ...string) Node {
 		if len(str) > 0 {
 			if strings.ContainsRune(str[0], '"') {
 				if strings.ContainsRune(str[0], '\'') {
-					str[0] = strings.ReplaceAll(str[0], "'", "\"")
+					str[0] = strings.ReplaceAll(str[0], "'", "&#39;")
 				}
 				_, err = w.Write([]byte("='" + str[0] + "'"))
 				return

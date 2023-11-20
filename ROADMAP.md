@@ -10,8 +10,12 @@ These are the goals which have to be reached to transfer the project from the Al
 - bug testing with users
 - implementation of the Zwitscher-System
 - basic general-purpose API for JSON
+- updates discussion and vote on end
+- advanced search for documents
 
 ### Tests
+
+- [ ] finished
 
 The 60% testcov are not project wide but inside the data folder for now. There the tests should cover most non-database
 dependent logic. For that reason the project should decouple database-reliant and database-indendent validation/processing 
@@ -19,4 +23,36 @@ logic. If possible all database-independet logic should be covered.
 
 ### Bug testing
 
-No specifics can be made currently to indicate when this phase is sufficently 
+- [ ] finished
+
+No specifics can be made currently to indicate when this phase is sufficently finished. But the general gist is, that 
+if the product has been tested for a month, no obvious bugs should be floating around.
+
+### Zwitscher System
+
+- [ ] finished
+
+The Zwitscher System should allow user to write short text messages on a public forum and let people comment under 
+these short messages.   
+These messages should be able to be viewed in general just in order of occurence and by user.  
+In addition the user comments should be able to be seperated by general comments and answers to general comments.
+
+### Basic JSON API
+
+- [ ] finished
+
+the website should have a rate limited JSON API for the most general things like list of organisations, titles
+documents and so forth. Advanced queries for users with a token that must be sent with the request.
+
+### Update Votes and Discussion when they end
+
+- [x] finished
+
+Votes and Discussion should automatically request an update when the run time expires.
+
+### Advanced Search for documents
+
+- [ ] finished
+
+Documents should not be only be available as sorted list by time, but also be able to search documents only 
+from a specific organisation/person/type and also only documents before a specified date.

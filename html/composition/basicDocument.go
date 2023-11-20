@@ -4,6 +4,8 @@ import (
 	"PoliSim/data/database"
 	. "PoliSim/html/builder"
 	"fmt"
+	"net/url"
+	"time"
 )
 
 func getDocumentHead(doc *database.Document, isAdmin bool, extra ...Node) Node {
@@ -24,4 +26,20 @@ func getDocumentBody(doc *database.Document) Node {
 	return DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
 		Raw(doc.HTMLContent),
 	)
+}
+
+func scriptForUpdateOnEnd(doc *database.Document, httpUrl HttpUrl) Node {
+	return Group(DIV(ID("trigger-me-on-document-finish"),
+		HXTRIGGER("pageReloaded"), HXGET("/"+APIPreRoute+string(httpUrl)+url.PathEscape(doc.UUID)),
+		HXTARGET("#"+MessageID), HXSWAP("outerHTML")),
+		SCRIPT(Raw(`
+		function timeForRefresh() {
+			htmx.trigger("#trigger-me-on-document-finish", "pageReloaded");
+   		}
+		var timeEnd = new Date("`+doc.Info.Finishing.Format(time.RFC3339)+`").getTime();
+		var currentTime = new Date().getTime();
+		var subtractMilliSecondsValue = timeEnd - currentTime;
+		if (subtractMilliSecondsValue < 0) {subtractMilliSecondsValue = 0;}
+		setTimeout(timeForRefresh, subtractMilliSecondsValue);
+`)))
 }

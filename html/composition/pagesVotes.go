@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const voteContainerDiv = "vote-container-div"
@@ -106,6 +107,32 @@ func getPartialButton(number string, withSwap bool) Node {
 		))
 }
 
+func GetVoteViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
+	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedVote, database.RunningVote)
+	if err != nil {
+		return GetMessage(validation.Message{Message: Translation["documentDoesNotExists"]})
+	}
+	if doc.Type == database.RunningVote {
+		if doc.Info.Finishing.Before(time.Now()) {
+			logic.CloseVoteIfTimeIsUp(doc.Info.Finishing, doc.UUID)
+		} else {
+			return GetMessage(validation.Message{Message: Translation["voteIsStillRunning"]})
+		}
+	}
+	votes, err := extraction.GetVotesForDocument(doc.UUID)
+	if err != nil {
+		return GetMessage(validation.Message{Message: Translation["errorLoadingVotesForDocument"]})
+	}
+	lenVotes := len(votes)
+	votesDivs := make([]Node, lenVotes*2+1)
+	votesDivs[0] = GetMessage(validation.Message{Message: Translation["voteClosedJustNow"], Positive: true})
+	for i, item := range votes {
+		votesDivs[i+1] = swapForVoteForm(&item)
+		votesDivs[i+1+lenVotes] = GetInfoStandardView(&item, true)
+	}
+	return Group(votesDivs...)
+}
+
 func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
 	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedVote, database.RunningVote)
 	if err != nil {
@@ -158,6 +185,7 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 		),
 		GetMessage(val),
 		Group(votesDivs...),
+		If(doc.Type == database.RunningVote, scriptForUpdateOnEnd(doc, VoteUpdateDocumentLink)),
 	)
 }
 
@@ -184,16 +212,17 @@ func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 	}
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
-			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
-				url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.SingleVote)), CLASS("w-[800px]"),
-				HXEXTEND("json-enc-custom"),
-				getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-				getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
-					HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
-				DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
-					Group(RadioButtons...)),
-				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
-			)),
+			DIV(CLASS("w-[800px]"), ID("form-vote-on-"+item.UUID),
+				getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.SingleVote)), CLASS("w-full"),
+					HXEXTEND("json-enc-custom"),
+					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+					getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+						HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
+					DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
+						Group(RadioButtons...)),
+					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
+				))),
 		GetInfoStandardView(item, false),
 	}
 }
@@ -205,17 +234,18 @@ func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID 
 	}
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
-			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
-				url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.MultipleVotes)), CLASS("w-[800px]"),
-				HXEXTEND("json-enc-custom"),
-				getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-				getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
-					HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
-				DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
-					Group(checkBoxes...),
-				),
-				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
-			)),
+			DIV(CLASS("w-[800px]"), ID("form-vote-on-"+item.UUID),
+				getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.MultipleVotes)), CLASS("w-full"),
+					HXEXTEND("json-enc-custom"),
+					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+					getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+						HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
+					DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
+						Group(checkBoxes...),
+					),
+					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
+				))),
 		GetInfoStandardView(item, false),
 	}
 }
@@ -230,16 +260,17 @@ func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 	}
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
-			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
-				url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.RankedVotes)), CLASS("w-[800px]"),
-				HXEXTEND("json-enc-custom"),
-				getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-				getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
-					HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
-				DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
-					Group(rankings...)),
-				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
-			)),
+			DIV(CLASS("w-[800px]"), ID("form-vote-on-"+item.UUID),
+				getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.RankedVotes)), CLASS("w-full"),
+					HXEXTEND("json-enc-custom"),
+					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+					getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+						HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
+					DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
+						Group(rankings...)),
+					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
+				))),
 		GetInfoRankedView(item, false),
 	}
 }
@@ -262,19 +293,24 @@ func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, doc
 	}
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
-			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
-				url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.ThreeCategoryVoting)), CLASS("w-[800px]"),
-				HXEXTEND("json-enc-custom"),
-				getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-				getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
-					HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
-				DIV(CLASS("my-2")),
-				DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
-					Group(threeCategory...)),
-				getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
-			)),
+			DIV(CLASS("w-[800px]"), ID("form-vote-on-"+item.UUID),
+				getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.ThreeCategoryVoting)), CLASS("w-full"),
+					HXEXTEND("json-enc-custom"),
+					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
+					getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+						HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
+					DIV(CLASS("my-2")),
+					DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
+						Group(threeCategory...)),
+					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
+				))),
 		GetInfoStandardView(item, false),
 	}
+}
+
+func swapForVoteForm(item *database.Votes) Node {
+	return DIV(ID("form-vote-on-"+item.UUID), HXSWAPOOB("true"))
 }
 
 func GetInfoStandardView(item *database.Votes, oobSwap bool) Node {

@@ -24,6 +24,9 @@ func CloseDiscussionIfTimeIsUp(ending time.Time, uuidStr string) {
 		_, _ = fmt.Fprintf(os.Stdout, "Error finding discussion: "+err.Error())
 		return
 	}
+	if doc.Type == database.FinishedDiscussion {
+		return
+	}
 	doc.Type = database.FinishedDiscussion
 	err = extraction.UpdateDocument(doc)
 	if err != nil {

@@ -7,6 +7,7 @@ import (
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"net/url"
+	"time"
 )
 
 func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.CreateDiscussion, val validation.Message) Node {
@@ -95,16 +96,35 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 				P(Text(Translation["peopleAllowedToComment"], reduceAccountsToString(doc.Poster)))),
 		),
 		Group(comments...),
-		If(doc.Type == database.RunningDiscussion && acc.ID != 0, Group(
-			getFormStandardForm("form", POST, "/"+APIPreRoute+string(CommentDiscussionLink)+url.PathEscape(doc.UUID), CLASS("mt-2 w-[800px]"),
-				getUserDropdown(acc, "", Translation["discussionCommentAuthor"]),
-				getTextArea("content", "content", "", Translation["discussionCommentContent"],
-					MarkdownFormPage),
-				getSubmitButton("submitCommentButton", Translation["addCommentButton"])),
-			GetMessage(val),
-			getPreviewElement(),
-		)),
+		GetMessage(val),
+		If(doc.Type == database.RunningDiscussion && acc.ID != 0,
+			DIV(ID("discussion-comment-div"),
+				getFormStandardForm("form", POST, "/"+APIPreRoute+string(CommentDiscussionLink)+url.PathEscape(doc.UUID), CLASS("mt-2 w-[800px]"),
+					getUserDropdown(acc, "", Translation["discussionCommentAuthor"]),
+					getTextArea("content", "content", "", Translation["discussionCommentContent"],
+						MarkdownFormPage),
+					getSubmitButton("submitCommentButton", Translation["addCommentButton"])),
+				getPreviewElement(),
+			)),
+		scriptForUpdateOnEnd(doc, DiscussionUpdateDocumentLink),
 	)
+}
+
+func GetDiscussionViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
+	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
+	if err != nil {
+		return GetMessage(validation.Message{Message: Translation["documentDoesNotExists"]})
+	}
+
+	if doc.Type == database.RunningDiscussion {
+		if doc.Info.Finishing.Before(time.Now()) {
+			logic.CloseDiscussionIfTimeIsUp(doc.Info.Finishing, doc.UUID)
+		} else {
+			return GetMessage(validation.Message{Message: Translation["discussionIsStillRunning"]})
+		}
+	}
+	return Group(GetMessage(validation.Message{Message: Translation["discussionClosedJustNow"], Positive: true}),
+		DIV(ID("discussion-comment-div"), HXSWAPOOB("true")))
 }
 
 func reduceAccountsToString(accs []database.Account) string {

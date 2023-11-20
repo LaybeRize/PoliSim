@@ -425,5 +425,9 @@
   "selfTableFlair": "Flair",
   "selfTableOrganisations": "Organisationen",
   "selfTableTitles": "Titel",
-  "emptySubtitleForRejection": "[Der Artikel hat keinen Untertitel]"
+  "emptySubtitleForRejection": "[Der Artikel hat keinen Untertitel]",
+  "voteIsStillRunning": "Abstimmung läuft noch",
+  "voteClosedJustNow": "Abstimmung hat geendet",
+  "discussionIsStillRunning": "Diskussion läuft noch",
+  "discussionClosedJustNow": "Diskussion hat geendet"
 }

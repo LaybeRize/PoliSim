@@ -17,10 +17,18 @@ func InstallDocumentDiscussion() {
 	composition.SidebarTitleMap[composition.CreateDiscussionDocument] = builder.Translation["documentDiscussionCreateSidebarText"]
 	composition.GetHTMXFunctions[composition.CreateDiscussionDocument] = GetDocumentDiscussionCreationService
 	composition.PostHTMXFunctions[composition.CreateDiscussionDocument] = PostDocumentDiscussionCreationService
+
 	composition.PageTitleMap[composition.ViewDiscussionDocument] = builder.Translation["documentDiscussionViewPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewDiscussionDocument] = GetDocumentDiscussionViewService
 	composition.PostHTMXFunctions[composition.CommentDiscussion] = PostCommentDiscussionViewService
 	composition.PatchHTMXFunctions[composition.ChangeCommentDocument] = PatchChangeCommentVisibilityService
+
+	composition.GetHTMXFunctions[composition.DiscussionUpdateDocument] = GetUpdateDiscussionService
+}
+
+func GetUpdateDiscussionService(w http.ResponseWriter, r *http.Request) {
+	acc, isAdmin := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
+	renderRequest(w, composition.GetDiscussionViewPageUpdate(acc, chi.URLParam(r, "uuid"), isAdmin))
 }
 
 func PatchChangeCommentVisibilityService(w http.ResponseWriter, r *http.Request) {

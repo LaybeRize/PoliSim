@@ -20,13 +20,21 @@ func InstallVoteCreation() {
 	composition.GetHTMXFunctions[composition.CreateVoteDocument] = GetVoteCreationService
 	composition.PostHTMXFunctions[composition.CreateVoteDocument] = PostCreateVoteInDatabaseService
 	composition.PatchHTMXFunctions[composition.RequestVotePartial] = PatchGetVotePartial
+
 	composition.PageTitleMap[composition.ViewVoteDocument] = builder.Translation["voteViewPageTitle"]
 	composition.GetHTMXFunctions[composition.ViewVoteDocument] = GetVoteViewService
 	composition.PatchHTMXFunctions[composition.MakeVote] = PatchMakeVoteService
+
+	composition.GetHTMXFunctions[composition.VoteUpdateDocument] = GetUpdateVoteService
+}
+
+func GetUpdateVoteService(w http.ResponseWriter, r *http.Request) {
+	acc, isAdmin := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
+	renderRequest(w, composition.GetVoteViewPageUpdate(acc, chi.URLParam(r, "uuid"), isAdmin))
 }
 
 func PatchMakeVoteService(w http.ResponseWriter, r *http.Request) {
-	acc, ok := CheckUserPrivileges(r, database.Admin, database.HeadAdmin)
+	acc, ok := CheckUserPrivileges(r, database.Admin, database.HeadAdmin, database.MediaAdmin, database.User)
 	isAdmin := CheckIfHasRole(acc, database.HeadAdmin, database.Admin)
 	docUUID := chi.URLParam(r, "doc")
 	voteUUID := chi.URLParam(r, "vote")

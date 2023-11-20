@@ -27,6 +27,9 @@ func CloseVoteIfTimeIsUp(ending time.Time, uuidStr string) {
 		_, _ = fmt.Fprintf(os.Stdout, "Error finding vote document: "+err.Error())
 		return
 	}
+	if doc.Type == database.FinishedVote {
+		return
+	}
 	doc.Type = database.FinishedVote
 	createSummaryForAllVotes(doc.UUID)
 	err = extraction.UpdateDocument(doc)
