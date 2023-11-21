@@ -74,9 +74,9 @@ func PatchMakeVoteService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var vote *database.Votes
-	msg, vote = create.CastVote(acc, docUUID, voteUUID, voteType)
-	if !msg.Positive {
+	msg = create.CastVote(acc, docUUID, voteUUID, voteType)
+	viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
+	/*if !msg.Positive {
 		viewVoteDocumentOnlySwapMessage(w, r, msg, acc)
 		return
 	}
@@ -90,7 +90,7 @@ func PatchMakeVoteService(w http.ResponseWriter, r *http.Request) {
 	case database.RankedVotes:
 		swapInfo = composition.GetInfoRankedView(vote, true)
 	}
-	renderRequest(w, updateInformation(w, r, acc, composition.ViewVoteDocument), html, swapInfo)
+	renderRequest(w, updateInformation(w, r, acc, composition.ViewVoteDocument), html, swapInfo)*/
 }
 
 func GetVoteViewService(w http.ResponseWriter, r *http.Request) {

@@ -448,5 +448,6 @@
   "documentSearchAddWritten": "Nur Dokumente veröffentlicht vor dem Datum anzeigen",
   "documentSearchWritten": "Datum",
   "documentSearchOrganisation": "Organisationsname muss enthalten",
-  "documentSearchAuthor": "Autorname muss enthalten"
+  "documentSearchAuthor": "Autorname muss enthalten",
+  "documentSearchTitle": "Titel muss enthalten"
 }

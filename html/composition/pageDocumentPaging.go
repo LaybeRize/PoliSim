@@ -76,6 +76,7 @@ func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 					"", "", MIN(strconv.FormatInt(MinDocuments, 10)), MAX(strconv.FormatInt(MaxDocuments, 10))),
 				getSimpleTextInput("organisation", "organisation", extra.Organisation, Translation["documentSearchOrganisation"]),
 				getSimpleTextInput("author", "author", extra.Author, Translation["documentSearchAuthor"]),
+				getSimpleTextInput("title", "title", extra.Title, Translation["documentSearchTitle"]),
 				If(isAdmin, getCheckBox("hideblock", extra.HideBlock, false, "true", "hideblock", Translation["documentSearchHideBlock"], nil)),
 				getCheckBox("text", extra.Text, false, "true", "text", Translation["documentSearchText"], nil),
 				getCheckBox("discussion", extra.Discussion, false, "true", "discussion", Translation["documentSearchDiscussion"], nil),
@@ -108,6 +109,9 @@ func GetExtraString(extra *extraction.ExtraInfo) string {
 	}
 	if extra.Author != "" {
 		result += "&author=" + url.QueryEscape(extra.Author)
+	}
+	if extra.Title != "" {
+		result += "&title=" + url.QueryEscape(extra.Author)
 	}
 	return result
 }

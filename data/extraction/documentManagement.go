@@ -98,6 +98,7 @@ type ExtraInfo struct {
 	Written       string `input:"written"`
 	Organisation  string `input:"organisation"`
 	Author        string `input:"author"`
+	Title         string `input:"title"`
 	ViewAccountID int64
 }
 
@@ -168,6 +169,10 @@ func (extra *ExtraInfo) getBasicDocumentQuery(isAdmin bool) *gorm.DB {
 	if extra.Author != "" {
 		query += "AND author LIKE ? "
 		params = append(params, "%"+extra.Author+"%")
+	}
+	if extra.Title != "" {
+		query += "AND title LIKE ? "
+		params = append(params, "%"+extra.Title+"%")
 	}
 	return database.DB.Joins("LEFT JOIN organisation_account ON documents.organisation = organisation_account.name").
 		Joins("LEFT JOIN doc_allowed ON doc_allowed.uuid = documents.uuid").

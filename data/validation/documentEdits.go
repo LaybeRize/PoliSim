@@ -119,7 +119,7 @@ func (form *AddComment) AddComment(uuidStr string, acc *extraction.AccountAuth) 
 
 type (
 	CastVote interface {
-		CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) (validate Message, vote *database.Votes)
+		CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message
 	}
 	GeneralVote struct {
 		InvalidateVote bool   `json:"invalidateVote"`
@@ -143,8 +143,8 @@ type (
 	}
 )
 
-func (form *AddSingleVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) (validate Message, vote *database.Votes) {
-	validate, vote = generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
+func (form *AddSingleVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
+	return generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
 		result := database.Results{
 			InvalidVote: form.InvalidateVote,
 			Votes:       map[string]int64{},
@@ -159,10 +159,10 @@ func (form *AddSingleVote) CastVote(acc *extraction.AccountAuth, docUUID string,
 		result.Votes[vote.Info.Options[form.Answer]] = 1
 		return Message{Positive: true}, result
 	})
-	return
 }
-func (form *AddMultipleVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) (validate Message, vote *database.Votes) {
-	validate, vote = generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
+
+func (form *AddMultipleVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
+	return generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
 		result := database.Results{
 			InvalidVote: form.InvalidateVote,
 			Votes:       map[string]int64{},
@@ -181,10 +181,10 @@ func (form *AddMultipleVote) CastVote(acc *extraction.AccountAuth, docUUID strin
 		}
 		return Message{Positive: true}, result
 	})
-	return
 }
-func (form *AddRankedVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) (validate Message, vote *database.Votes) {
-	validate, vote = generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
+
+func (form *AddRankedVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
+	return generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
 		result := database.Results{
 			InvalidVote: form.InvalidateVote,
 			Votes:       map[string]int64{},
@@ -212,10 +212,10 @@ func (form *AddRankedVote) CastVote(acc *extraction.AccountAuth, docUUID string,
 		}
 		return Message{Positive: true}, result
 	})
-	return
 }
-func (form *AddThreeChoice) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) (validate Message, vote *database.Votes) {
-	validate, vote = generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
+
+func (form *AddThreeChoice) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
+	return generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
 		result := database.Results{
 			InvalidVote: form.InvalidateVote,
 			Votes:       map[string]int64{},
@@ -235,10 +235,9 @@ func (form *AddThreeChoice) CastVote(acc *extraction.AccountAuth, docUUID string
 		}
 		return Message{Positive: true}, result
 	})
-	return
 }
 
-func generelizeCast(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType, accountName string, f func(vote *database.Votes) (Message, database.Results)) (validate Message, vote *database.Votes) {
+func generelizeCast(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType, accountName string, f func(vote *database.Votes) (Message, database.Results)) (validate Message) {
 	validate = Message{Positive: false}
 	account, ok, err := IsAccountValidForUser(acc.ID, accountName)
 	switch false {
@@ -272,7 +271,7 @@ func generelizeCast(acc *extraction.AccountAuth, docUUID string, voteUUID string
 	}
 	validate.Positive = false
 
-	vote, err = logic.AddNewResultToVote(voteUUID, account.DisplayName, result)
+	err = logic.AddNewResultToVote(voteUUID, account.DisplayName, result)
 	if err != nil {
 		validate.Message = builder.Translation["notAllowedToVote"]
 		return

@@ -107,6 +107,11 @@ func getPartialButton(number string, withSwap bool) Node {
 		))
 }
 
+const (
+	voteSSEScriptDiv = "sse-script-vote-div"
+	VoteInfoDiv      = "vote-info-for-%s"
+)
+
 func GetVoteViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
 	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedVote, database.RunningVote)
 	if err != nil {
@@ -124,13 +129,18 @@ func GetVoteViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin 
 		return GetMessage(validation.Message{Message: Translation["errorLoadingVotesForDocument"]})
 	}
 	lenVotes := len(votes)
-	votesDivs := make([]Node, lenVotes*2+2)
+	votesDivs := make([]Node, lenVotes*2+3)
 	votesDivs[0] = GetMessage(validation.Message{Message: Translation["voteClosedJustNow"], Positive: true})
 	doc.Type = database.FinishedVote
 	votesDivs[1] = getTimeVoteInfo(doc, HXSWAPOOB("true"))
+	votesDivs[2] = DIV(ID(voteSSEScriptDiv), HXSWAPOOB("true"))
 	for i, item := range votes {
-		votesDivs[i+2] = swapForVoteForm(&item)
-		votesDivs[i+2+lenVotes] = GetInfoStandardView(&item, true)
+		votesDivs[i+3] = swapForVoteForm(&item)
+		if item.Info.VoteMethod == database.RankedVotes {
+			votesDivs[i+3+lenVotes] = GetInfoRankedView(&item, true)
+		} else {
+			votesDivs[i+3+lenVotes] = GetInfoStandardView(&item, true)
+		}
 	}
 	return Group(votesDivs...)
 }
@@ -186,6 +196,27 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 		GetMessage(val),
 		Group(votesDivs...),
 		If(doc.Type == database.RunningVote, scriptForUpdateOnEnd(doc, VoteUpdateDocumentLink)),
+		If(doc.Type == database.RunningVote, DIV(ID(voteSSEScriptDiv), SCRIPT(Raw(`
+setTimeout(startSSE, 100);
+function startSSE() {
+    const es = new EventSource("/`+APIPreRoute+string(sseReaderVoteLink)+doc.UUID+`");
+    es.onerror = (err) => {
+        console.log("onerror", err)
+    };
+
+    es.onmessage = (msg) => {
+        console.log("onmessage", msg)
+    };
+
+    es.onopen = (...args) => {
+        console.log("onopen", args)
+    };
+    es.addEventListener("change", (event) => {
+        const parsedData = JSON.parse(event.data);
+        const el = document.getElementById(parsedData.id);
+        el.outerHTML = parsedData.data;
+    });
+};`)))),
 	)
 }
 
@@ -358,7 +389,7 @@ func GetInfoStandardView(item *database.Votes, oobSwap bool) Node {
 			moreInfo[j+1] = TR(Group(clone(row)...))
 		}
 	}
-	return DIV(ID("vote-info-for-"+item.UUID), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
+	return DIV(ID(fmt.Sprintf(VoteInfoDiv, item.UUID)), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
 		If((item.ShowNumbersWhileVoting && !item.Finished) || item.Finished,
 			TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4 w-max-[800px]"),
 				TR(
@@ -407,7 +438,7 @@ func GetInfoRankedView(item *database.Votes, oobSwap bool) Node {
 		}
 	}
 
-	return DIV(ID("vote-info-for-"+item.UUID), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
+	return DIV(ID(fmt.Sprintf(VoteInfoDiv, item.UUID)), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
 		If((item.ShowNumbersWhileVoting && !item.Finished) || item.Finished, Group(
 			P(CLASS("mt-4"), Text(Translation["invalidateVoteRankedText"], len(item.Info.Summary.InvalidVotes))),
 			If(((item.ShowNamesAfterVoting && item.Finished) || (item.ShowNamesWhileVoting && !item.Finished)) && len(item.Info.Summary.InvalidVotes) != 0,

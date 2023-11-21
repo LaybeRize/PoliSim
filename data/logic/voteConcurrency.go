@@ -92,16 +92,16 @@ func createCSVForVote(vote *database.Votes) {
 
 const ResultExistsErrorText = "results for key already exists"
 
-func AddNewResultToVote(uuid string, resultKey string, result database.Results) (*database.Votes, error) {
+func AddNewResultToVote(uuid string, resultKey string, result database.Results) error {
 	documentMutex.Lock()
 	defer documentMutex.Unlock()
 	vote, err := extraction.GetSingleVote(uuid)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if _, ok := vote.Info.Results[resultKey]; ok {
-		return nil, errors.New(ResultExistsErrorText)
+		return errors.New(ResultExistsErrorText)
 	}
 	vote.Info.Results[resultKey] = result
 	if result.InvalidVote {
@@ -115,8 +115,8 @@ func AddNewResultToVote(uuid string, resultKey string, result database.Results) 
 	}
 
 	err = extraction.UpdateVote(vote)
-	if err != nil {
+	if err == nil {
 		go SendVoteToChannels(vote.Parent, *vote)
 	}
-	return vote, err
+	return err
 }

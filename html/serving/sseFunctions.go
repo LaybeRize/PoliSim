@@ -19,7 +19,6 @@ func InstallSSEHandlers() {
 }
 
 func GetSSEReaderForVoteService(w http.ResponseWriter, r *http.Request) {
-	_, admin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	uuidStr := chi.URLParam(r, "uuid")
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -38,7 +37,14 @@ func GetSSEReaderForVoteService(w http.ResponseWriter, r *http.Request) {
 		var err error
 
 		event, err = formatServerSentEvent(func() ([]string, error) {
-			return []string{info.UUID + uuidStr, fmt.Sprintf("%v", admin)}, nil
+			newErr := error(nil)
+			buff := bytes.NewBuffer([]byte{})
+			if info.Info.VoteMethod == database.RankedVotes {
+				newErr = composition.GetInfoRankedView(&info, false).Render(buff)
+			} else {
+				newErr = composition.GetInfoStandardView(&info, false).Render(buff)
+			}
+			return []string{buff.String(), fmt.Sprintf(composition.VoteInfoDiv, info.UUID), ""}, newErr
 		})
 
 		if err != nil {
