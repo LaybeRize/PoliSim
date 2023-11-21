@@ -121,26 +121,25 @@ type (
 	CastVote interface {
 		CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) (validate Message, vote *database.Votes)
 	}
-
-	AddSingleVote struct {
+	GeneralVote struct {
 		InvalidateVote bool   `json:"invalidateVote"`
-		Answer         int64  `json:"answerSingle"`
 		Account        string `json:"authorAccount"`
+	}
+	AddSingleVote struct {
+		GeneralVote
+		Answer int64 `json:"answerSingle"`
 	}
 	AddMultipleVote struct {
-		InvalidateVote bool   `json:"invalidateVote"`
-		Answer         []bool `json:"answerMultiple"`
-		Account        string `json:"authorAccount"`
+		GeneralVote
+		Answer []bool `json:"answerMultiple"`
 	}
 	AddRankedVote struct {
-		InvalidateVote bool    `json:"invalidateVote"`
-		Answers        []int64 `json:"answerRanked"`
-		Account        string  `json:"authorAccount"`
+		GeneralVote
+		Answers []int64 `json:"answerRanked"`
 	}
 	AddThreeChoice struct {
-		InvalidateVote bool    `json:"invalidateVote"`
-		Answers        []int64 `json:"answerThree"`
-		Account        string  `json:"authorAccount"`
+		GeneralVote
+		Answers []int64 `json:"answerThree"`
 	}
 )
 
