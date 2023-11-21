@@ -46,6 +46,7 @@ func main() {
 	serving.InstallDocumentDiscussion()
 	serving.InstallVoteCreation()
 	serving.InstallDocumentPager()
+	serving.InstallSSEHandlers()
 
 	_, _ = fmt.Fprintf(os.Stdout, "Creating cookie store\n")
 	validation.CreateStore()

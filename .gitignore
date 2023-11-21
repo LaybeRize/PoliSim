@@ -2,6 +2,3 @@
 /.idea/
 go.sum
 /resources/temp.html
-/html/composition/experiments.go
-/html/serving/experimentFunctions.go
-/data/logic/experiments.go

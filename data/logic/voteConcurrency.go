@@ -115,5 +115,8 @@ func AddNewResultToVote(uuid string, resultKey string, result database.Results) 
 	}
 
 	err = extraction.UpdateVote(vote)
+	if err != nil {
+		go SendVoteToChannels(vote.Parent, *vote)
+	}
 	return vote, err
 }

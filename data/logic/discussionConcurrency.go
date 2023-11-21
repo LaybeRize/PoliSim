@@ -26,7 +26,7 @@ func CloseDiscussionIfTimeIsUp(ending time.Time, uuidStr string) {
 	}
 	doc.Type = database.FinishedDiscussion
 	err = extraction.UpdateDocument(doc)
-	if err != nil {
+	if err == nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error updating discussion: "+err.Error())
 	}
 }
@@ -38,15 +38,19 @@ func AddComment(author string, flair string, comment string, uuidStr string) err
 	if err != nil {
 		return err
 	}
-	doc.Info.Discussion = append(doc.Info.Discussion, database.Discussions{
+	disc := database.Discussions{
 		UUID:        uuid.New().String(),
 		Hidden:      false,
 		Written:     time.Now(),
 		Author:      author,
 		Flair:       flair,
 		HTMLContent: comment,
-	})
+	}
+	doc.Info.Discussion = append(doc.Info.Discussion, disc)
 	err = extraction.UpdateDocument(doc)
+	if err == nil {
+		go SendCommentToChannels(doc.UUID, CommentUpdate{Discussion: disc, Change: false})
+	}
 	return err
 }
 
@@ -57,13 +61,16 @@ func ChangeVisibiltyComment(commentUUID, docUUID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	exists := false
+	var exists *database.Discussions = nil
 	for i, disc := range doc.Info.Discussion {
 		if disc.UUID == commentUUID {
-			exists = true
-			doc.Info.Discussion[i].Hidden = !disc.Hidden
+			exists = &doc.Info.Discussion[i]
+			exists.Hidden = !disc.Hidden
 		}
 	}
 	err = extraction.UpdateDocument(doc)
-	return exists, err
+	if err == nil {
+		go SendCommentToChannels(doc.UUID, CommentUpdate{Discussion: *exists, Change: true})
+	}
+	return exists != nil, err
 }

@@ -48,14 +48,12 @@ func PatchChangeCommentVisibilityService(w http.ResponseWriter, r *http.Request)
 	}
 	if !exists {
 		msg.Message = builder.Translation["commentDoesNotExists"]
-		viewDiscussionDocumentOnlySwapMessage(w, r, msg, acc)
-		return
+	} else {
+		msg.Positive = true
+		msg.Message = builder.Translation["changeCommentVisiblitySuccessfull"]
 	}
 
-	msg.Positive = true
-	msg.Message = builder.Translation["changeCommentVisiblitySuccessfull"]
-	html := composition.ViewDiscussionPage(acc, docUUID, true, msg)
-	viewDiscussionDocumentRenderRequest(w, r, acc, html)
+	viewDiscussionDocumentOnlySwapMessage(w, r, msg, acc)
 }
 
 func PostCommentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
@@ -81,13 +79,7 @@ func PostCommentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
 
 	msg = create.AddComment(uuidStr, acc)
 
-	if !msg.Positive {
-		viewDiscussionDocumentOnlySwapMessage(w, r, msg, acc)
-		return
-	}
-
-	html := composition.ViewDiscussionPage(acc, uuidStr, isAdmin, msg)
-	viewDiscussionDocumentRenderRequest(w, r, acc, html)
+	viewDiscussionDocumentOnlySwapMessage(w, r, msg, acc)
 }
 
 func GetDocumentDiscussionViewService(w http.ResponseWriter, r *http.Request) {

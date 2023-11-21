@@ -51,6 +51,8 @@ var (
 	HXGET       = attributeWrapper("hx-get")
 	HXTRIGGER   = attributeWrapper("hx-trigger")
 	HXEXTEND    = attributeWrapper("hx-ext")
+	SSECONNECT  = attributeWrapper("sse-connect")
+	SSESWAP     = attributeWrapper("sse-swap")
 	TEST        = attributeWrapper("data-testid")
 	CONVERTTO   = attributeWrapper("data-convert")
 	MIN         = attributeWrapper("min")

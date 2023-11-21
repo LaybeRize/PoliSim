@@ -6,6 +6,7 @@ import (
 	"PoliSim/data/logic"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
+	"fmt"
 	"net/url"
 	"time"
 )
@@ -46,6 +47,37 @@ func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.Crea
 	)
 }
 
+const (
+	CommentSingleDivID = "comment-div-id-%s"
+	AdditionDiv        = "add-comment-div"
+	AllCommentDiv      = "all-comments-in-one-div"
+	CommentContentDiv  = "comment-content-div"
+)
+
+func GetCommentRendered(docUUID string, disc *database.Discussions, isAdmin bool) Node {
+	id := ID(fmt.Sprintf(CommentSingleDivID, disc.UUID))
+	if disc.Hidden && !isAdmin {
+		return DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"), id,
+			P(Text(Translation["commentHasBeenHidden"])),
+		)
+	}
+	return DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"), id,
+		If(disc.Hidden, P(CLASS("text-rose-600"), Text(Translation["commentCurrentlyHidden"]))),
+		P(CLASS("mb-2"), I(Text(disc.Written.Format(Translation["commentWrittenAuthor"]), disc.Author)),
+			If(disc.Flair != "", Group(I(Text("; ")), Text(disc.Flair)))),
+		Raw(disc.HTMLContent),
+		If(isAdmin, getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeCommentDocumentLink)+
+			url.PathEscape(docUUID)+"/"+url.PathEscape(disc.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2"),
+			STYLE("text-align: center;"), IfElse(!disc.Hidden, Text(Translation["hideCommentDiscussion"]),
+				Text(Translation["showCommentDiscussion"]))),
+		)),
+	)
+}
+
+func GetNewAdditionSSEDiv() Node {
+	return DIV(ID(AdditionDiv))
+}
+
 func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
 	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
 	if err != nil {
@@ -57,23 +89,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 	}
 	comments := make([]Node, len(doc.Info.Discussion))
 	for i, disc := range doc.Info.Discussion {
-		if disc.Hidden && !isAdmin {
-			comments[i] = DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
-				P(Text(Translation["commentHasBeenHidden"])),
-			)
-			continue
-		}
-		comments[i] = DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
-			If(disc.Hidden, P(CLASS("text-rose-600"), Text(Translation["commentCurrentlyHidden"]))),
-			P(CLASS("mb-2"), I(Text(disc.Written.Format(Translation["commentWrittenAuthor"]), disc.Author)),
-				If(disc.Flair != "", Group(I(Text("; ")), Text(disc.Flair)))),
-			Raw(disc.HTMLContent),
-			If(isAdmin, getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeCommentDocumentLink)+
-				url.PathEscape(doc.UUID)+"/"+url.PathEscape(disc.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2"),
-				STYLE("text-align: center;"), IfElse(!disc.Hidden, Text(Translation["hideCommentDiscussion"]),
-					Text(Translation["showCommentDiscussion"]))),
-			)),
-		)
+		comments[i] = GetCommentRendered(doc.UUID, &disc, isAdmin)
 	}
 
 	return getBasePageWrapper(
@@ -93,19 +109,37 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 			If(len(doc.Poster) != 0 && !doc.AnyPosterAllowed,
 				P(Text(Translation["peopleAllowedToComment"], reduceAccountsToString(doc.Poster)))),
 		),
-		Group(comments...),
+		DIV(ID(AllCommentDiv),
+			Group(comments...),
+			If(doc.Type == database.RunningDiscussion, GetNewAdditionSSEDiv()),
+		),
+		getDiscussionScript(doc.UUID),
 		GetMessage(val),
 		If(doc.Type == database.RunningDiscussion && acc.ID != 0,
 			DIV(ID("discussion-comment-div"),
 				getFormStandardForm("form", POST, "/"+APIPreRoute+string(CommentDiscussionLink)+url.PathEscape(doc.UUID), CLASS("mt-2 w-[800px]"),
 					getUserDropdown(acc, "", Translation["discussionCommentAuthor"]),
-					getTextArea("content", "content", "", Translation["discussionCommentContent"],
+					getTextArea(CommentContentDiv, "content", "", Translation["discussionCommentContent"],
 						MarkdownFormPage),
 					getSubmitButton("submitCommentButton", Translation["addCommentButton"])),
 				getPreviewElement(),
 			)),
 		If(doc.Type == database.RunningDiscussion, scriptForUpdateOnEnd(doc, DiscussionUpdateDocumentLink)),
 	)
+}
+
+func getDiscussionScript(uuid string) Node {
+	return SCRIPT(Raw(`
+const es = new EventSource("/` + APIPreRoute + string(sseReaderDiscussionLink) + uuid + `");
+es.addEventListener("change", (event) => {
+    const parsedData = JSON.parse(event.data);
+    const el = document.getElementById(parsedData.id);
+    el.outerHTML = parsedData.data;
+	htmx.process(document.getElementById(parsedData.replace));
+	if (parsedData.id !== parsedData.replace) {
+        document.getElementById("` + CommentContentDiv + `").value = "";
+    }
+});`))
 }
 
 func GetDiscussionViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
@@ -122,8 +156,14 @@ func GetDiscussionViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, is
 		}
 	}
 	doc.Type = database.FinishedDiscussion
+	comments := make([]Node, len(doc.Info.Discussion))
+	for i, disc := range doc.Info.Discussion {
+		comments[i] = GetCommentRendered(doc.UUID, &disc, isAdmin)
+	}
 	return Group(GetMessage(validation.Message{Message: Translation["discussionClosedJustNow"], Positive: true}),
-		DIV(ID("discussion-comment-div"), HXSWAPOOB("true")), getTimeDiscussionInfo(doc, HXSWAPOOB("true")))
+		DIV(ID("discussion-comment-div"), HXSWAPOOB("true")),
+		DIV(ID(AllCommentDiv), HXSWAPOOB("true"), Group(comments...)),
+		getTimeDiscussionInfo(doc, HXSWAPOOB("true")))
 }
 
 func getTimeDiscussionInfo(doc *database.Document, extra Node) Node {
