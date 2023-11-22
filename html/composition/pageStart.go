@@ -9,7 +9,7 @@ import (
 
 func GetStartPage(acc *extraction.AccountAuth, val validation.Message) Node {
 	return getBasePageWrapper(
-		getCustomPageHeader(Translation["welcomeMessage"]),
+		getCustomPageHeader(Configuration["welcomeMessage"]),
 		IfElse(acc.Role == database.NotLoggedIn,
 			// if the user is not logged in give him the possibility to log in
 			getFormStandardForm("form", POST, "/"+APIPreRoute+string(Login),

@@ -1,5 +1,6 @@
 {
   "logo": "/public/MReichstagLogo.png",
   "logoType": "image/png",
-  "projectName": "MReichstag"
+  "projectName": "MReichstag",
+  "welcomeMessage": "Herzlich Willkommen im MReichstag"
 }
