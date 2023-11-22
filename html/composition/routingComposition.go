@@ -13,6 +13,7 @@ const (
 	SidebarID          = "sidebar-element"
 	MessageID          = "message-div"
 	DisplayID          = "preview-display-div"
+	LetterSidebarID    = "letter-sidebar-button-id"
 
 	Start                        builder.HttpUrl = "start"
 	Login                        builder.HttpUrl = "login"
@@ -88,6 +89,7 @@ const (
 	updateLetterLink             builder.HttpUrl = "letter/personal/"
 	UpdateLetter                                 = updateLetterLink + "{account}/{uuid}/{action}"
 	ChangeViewLetterAccount      builder.HttpUrl = "letter/change/account"
+	MarkAllLetterAccount         builder.HttpUrl = "letter/mark/all"
 	ViewModMails                 builder.HttpUrl = "letter/modmails/view"
 	ErrorPage                    builder.HttpUrl = "errorPage"
 	MarkdownFormPage             builder.HttpUrl = "render/form/markdown"

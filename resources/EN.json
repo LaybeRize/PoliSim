@@ -107,6 +107,8 @@
   "createOrganisationButton": "create organisation",
   "searchOrganisationButton": "search organisation",
   "changeOrganisationButton": "change organisation",
+  "markAllLettersRead": "mark all letters as read",
+  "errorMarkingAllAsRead": "an error occurred while trying to mark all letters as read",
   "errorWhileLoadingHiddenOrganisations": "Es ist ein Fehler beim laden der versteckten Organisationen aufgetreten",
   "organisationViewPageTitle": "Organisationsübersicht",
   "organisationViewSidebarText": "Organisationsübersicht",

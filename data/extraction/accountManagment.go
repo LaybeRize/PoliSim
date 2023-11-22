@@ -46,6 +46,7 @@ type AccountAuth struct {
 	ID          int64
 	DisplayName string
 	Suspended   bool
+	HasLetters  bool
 	Role        database.RoleLevel
 	Session     *sessions.Session `gorm:"-"`
 }
@@ -197,6 +198,12 @@ func (acc *AccountModification) UpdateEverythingExceptFlair() error {
 		"suspended": acc.Suspended,
 		"role":      acc.Role,
 		"linked":    acc.Linked,
+	}).Error
+}
+
+func UpdateHasLettersFlag(accountID int64, hasLetters bool) error {
+	return database.DB.Model(&database.Account{ID: accountID}).Updates(map[string]interface{}{
+		"has_letters": hasLetters,
 	}).Error
 }
 

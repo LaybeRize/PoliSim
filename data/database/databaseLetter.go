@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	LetterList []Letter
+	LetterList []ExtendedLetter
 	Letter     struct {
 		UUID        string `gorm:"primaryKey"`
 		Written     time.Time
@@ -26,4 +26,18 @@ type (
 		Signed             []string `json:"signed"`
 		Rejected           []string `json:"rejected"`
 	}
+
+	LetterAccount struct {
+		UUID string `gorm:"primaryKey"`
+		ID   int64  `gorm:"primaryKey"`
+		Read bool   `gorm:"default:false"`
+	}
+	ExtendedLetter struct {
+		Letter
+		Read bool
+	}
 )
+
+func (LetterAccount) TableName() string {
+	return "letter_account"
+}

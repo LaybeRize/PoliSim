@@ -50,6 +50,7 @@ var (
 	HXPOST      = attributeWrapper("hx-post")
 	HXGET       = attributeWrapper("hx-get")
 	HXTRIGGER   = attributeWrapper("hx-trigger")
+	HXINCLUDE   = attributeWrapper("hx-include")
 	HXEXTEND    = attributeWrapper("hx-ext")
 	TEST        = attributeWrapper("data-testid")
 	CONVERTTO   = attributeWrapper("data-convert")

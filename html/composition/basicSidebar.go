@@ -33,7 +33,7 @@ func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
 			getSidebarButton(level, database.User, CreateDiscussionDocument),
 			getSidebarButton(level, database.User, CreateVoteDocument),
 		),
-		getSidebarButtonDetailed(level, database.User, ViewLetterLink+HttpUrl(url.PathEscape(acc.DisplayName)), SidebarTitleMap[ViewLetter]),
+		GetLetterSidebarButton(acc, false),
 		getSidebarButton(level, database.User, ViewSelf),
 		If(database.MediaAdmin <= level, getSidebarBreaker()),
 		getSidebarButton(level, database.MediaAdmin, ViewHiddenNewspaperList),
@@ -75,15 +75,16 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 	)
 }
 
-func getSidebarButtonDetailed(userLevel database.RoleLevel, minimumLevel database.RoleLevel, url HttpUrl, buttonText string) Node {
-	if minimumLevel > userLevel {
-		return A(ID(string(url)+SidebarID), HIDDEN())
+func GetLetterSidebarButton(acc *extraction.AccountAuth, swap bool) Node {
+	useURL := ViewLetterLink + HttpUrl(url.PathEscape(acc.DisplayName))
+	if database.User > acc.Role {
+		return A(ID(LetterSidebarID), HIDDEN(), If(swap, HXSWAPOOB("true")))
 	}
-	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID),
-		ID(string(url)+SidebarID), TEST(string(url)+SidebarID),
-		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
+	return A(HXGET("/"+APIPreRoute+string(useURL)), HXTARGET("#"+MainBodyID),
+		ID(LetterSidebarID), TEST(LetterSidebarID), If(swap, HXSWAPOOB("true")),
+		HXPUSHURL("/"+string(useURL)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(useURL)),
 		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
-		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(buttonText)),
+		P(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[ViewLetter]), If(acc.HasLetters, I(CLASS("ml-2 p-1 text-rose-600 bi-envelope")))),
 	)
 }
 

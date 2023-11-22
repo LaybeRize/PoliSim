@@ -21,6 +21,7 @@ type Account struct {
 	NextLoginTime sql.NullTime
 	Role          RoleLevel
 	Linked        sql.NullInt64
+	HasLetters    bool      `gorm:"default:false"`
 	Parent        *Account  `gorm:"foreignKey:linked;joinReferences:id"`
 	Children      []Account `gorm:"foreignKey:linked"`
 }

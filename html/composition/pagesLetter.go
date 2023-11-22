@@ -67,14 +67,14 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 	for i, item := range *view.LetterList {
 		link := string(ViewLetterLink) + url.PathEscape(extra.ViewAccountName) + "/" + url.PathEscape(item.UUID)
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
-			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+			CLASS("w-[800px] box box-e p-2 mt-2"), IfElse(item.Read, STYLE("--clr-border: rgb(40 51 69);"), STYLE("--clr-border: rgb(140 140 140);")),
 			H1(CLASS("text-2xl"), Text(item.Title)),
 			P(Text(Translation["authorShortFormLetter"], item.Author))))
 	}
 
 	return getBasePageWrapper(
 		getPageHeader(ViewLetter),
-		getUserDropdownForLetter(acc, extra.ViewAccountName, Translation["selectedReaderLetter"]),
+		getUserModificationForLetters(acc, extra.ViewAccountName, Translation["selectedReaderLetter"]),
 		Group(nodes...),
 		pagerFooter(view.BeforeUUID, view.NextUUID,
 			fmt.Sprintf("%s%s?uuid=%s&amount=%d&before=true", string(ViewLetterLink),
@@ -109,7 +109,7 @@ func GetViewModmailList(acc *extraction.AccountAuth, extra *logic.ExtraInfo) Nod
 	)
 }
 
-func getUserDropdownForLetter(user *extraction.AccountAuth, selectedAccount string, labelText string) Node {
+func getUserModificationForLetters(user *extraction.AccountAuth, selectedAccount string, labelText string) Node {
 	return DIV(CLASS("mt-2 w-full"),
 		LABEL(FOR("reader"), Text(labelText)),
 		SELECT(ID("reader"), NAME("reader"), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
@@ -117,6 +117,10 @@ func getUserDropdownForLetter(user *extraction.AccountAuth, selectedAccount stri
 			HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"),
 			getUserOptions(user, selectedAccount),
 		),
+		BUTTON(TYPE("submit"), CLASS(buttonClassAttribute+" mt-2 mr-2"), HXPATCH("/"+APIPreRoute+string(MarkAllLetterAccount)), HXTARGET("#"+MainBodyID),
+			HXINCLUDE("[name='reader']"), HXSWAP("outerHTML"),
+			ID("mark-all-read"), TEST("mark-all-read"), Text(Translation["markAllLettersRead"])),
+		GetMessage(validation.Message{}),
 	)
 }
 
@@ -125,6 +129,7 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 	if err != nil {
 		return GetErrorPage(Translation["errorWithSpecificLetter"])
 	}
+	go extraction.SetLetterAsRead(letterUUID, account.ID)
 	infoText := ""
 	if letter.ModMessage {
 		infoText = fmt.Sprintf(letter.Written.Format(Translation["authorModMessage"]), letter.Author)

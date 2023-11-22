@@ -1,4 +1,6 @@
 {
+  "errorMarkingAllAsRead": "Fehler beim markieren der Briefe als gelesen",
+  "markAllLettersRead": "Alle Briefe als gelesen markieren",
   "errorPageTitle": "Es ist ein Fehler aufgetreten",
   "notAllowedToViewThisPage": "Es fehlen die Berechtigungen diese Seite zu besuchen",
   "deleteEditableInput": "Löschen",

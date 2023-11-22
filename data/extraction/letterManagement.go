@@ -78,6 +78,21 @@ func GetLetterByIDOnlyWithAccount(uuid string, accountID int64, isMod bool) (*da
 	return letter, err
 }
 
+func SetLetterAsRead(uuid string, accountID int64) {
+	_ = database.DB.Raw("UPDATE letter_account SET read = true WHERE uuid = ? and id = ?", uuid, accountID).Scan(&database.LetterAccount{}).Error
+}
+
+func SetAllLetterAsReadForAccount(accountID int64) error {
+	return database.DB.Raw("UPDATE letter_account SET read = true WHERE read = false and id = ?", accountID).Scan(&database.LetterAccount{}).Error
+}
+
 func UpdateLetter(letter *database.Letter) error {
 	return database.DB.Where("uuid = ?", letter.UUID).Updates(letter).Error
+}
+
+func GetCountOfLetters(accountID int64) (int64, error) {
+	counter := int64(0)
+	err := database.DB.Raw("SELECT accounts.id FROM accounts LEFT JOIN letter_account on accounts.id = letter_account.id WHERE (accounts.id = ? OR linked = ?) AND read = false",
+		accountID, accountID).Count(&counter).Error
+	return counter, err
 }

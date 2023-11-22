@@ -13,6 +13,8 @@ These are the goals which have to be reached to transfer the project from the Al
 - updates discussion and vote on end
 - advanced search for documents
 - english localisation
+- add css rule for buttons so their text isn't selectable anymore
+- add information on new letters for user
 
 ### Tests
 
@@ -76,6 +78,11 @@ translation for all strings in DE.json into an appropriate english equivalent.
 - [ ] finished
 
 add "user-select: none;" to all buttons.
+
+
+### Add notification for new letters
+
+- [x] finished
 
 ## Features for versions beyond the next
 

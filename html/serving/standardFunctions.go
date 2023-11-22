@@ -3,6 +3,7 @@ package serving
 import (
 	"PoliSim/data/database"
 	"PoliSim/data/extraction"
+	"PoliSim/data/logic"
 	"PoliSim/data/validation"
 	"PoliSim/helper"
 	"PoliSim/html/builder"
@@ -155,20 +156,22 @@ func CheckIfHasRole(acc *extraction.AccountAuth, roles ...database.RoleLevel) bo
 // is expected of the page it will replace the title/sidebar according to the new page/accountLevel. It covers GET request, form requests and json requests
 // It gets all it's information from the Cookie.
 func updateInformation(w http.ResponseWriter, r *http.Request, acc *extraction.AccountAuth, currentPage builder.HttpUrl) builder.Node {
+	go logic.UpdateLetterNotification(acc.ID)
 	role, ok := acc.Session.Values["role"].(int)
 	if !ok {
 		role = -100
 	}
-
 	acc.Session.Values["role"] = int(acc.Role)
 	validation.AddCookie(w, r, acc.Session)
 
+	arr := []builder.Node{nil, composition.GetTitleReplacement(currentPage)}
 	if role != int(acc.Role) {
-		return builder.Group(composition.GetSidebarReplacement(acc),
-			composition.GetTitleReplacement(currentPage))
+		arr[0] = composition.GetSidebarReplacement(acc)
+	} else if acc.Role != database.NotLoggedIn {
+		arr[0] = composition.GetLetterSidebarButton(acc, true)
 	}
 
-	return composition.GetTitleReplacement(currentPage)
+	return builder.Group(arr...)
 }
 
 // genericRenderer returns a generics render function for a typical urls by parsing the htmlComposition.HttpUrl

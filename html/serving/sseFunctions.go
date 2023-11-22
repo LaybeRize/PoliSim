@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 	"net/http"
 	"strings"
 )
@@ -19,6 +18,7 @@ func InstallSSEHandlers() {
 }
 
 func GetSSEReaderForVoteService(w http.ResponseWriter, r *http.Request) {
+	acc, _ := CheckUserPrivileges(r)
 	uuidStr := chi.URLParam(r, "uuid")
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -30,7 +30,7 @@ func GetSSEReaderForVoteService(w http.ResponseWriter, r *http.Request) {
 
 	commentChannel := make(chan database.Votes)
 
-	go addVoteToChannel(r.Context(), uuidStr, commentChannel)
+	go addVoteToChannel(r.Context(), uuidStr, commentChannel, acc.ID)
 
 	for info := range commentChannel {
 		var event string
@@ -62,9 +62,8 @@ func GetSSEReaderForVoteService(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addVoteToChannel(ctx context.Context, id string, channel chan database.Votes) {
-	uniqueID := uuid.New().String()
-	logic.AddVoteChannel(id, uniqueID, channel)
+func addVoteToChannel(ctx context.Context, id string, channel chan database.Votes, accountID int64) {
+	logic.AddVoteChannel(id, accountID, channel)
 outerloop:
 	for {
 		select {
@@ -73,12 +72,12 @@ outerloop:
 		}
 	}
 
-	logic.RemoveVoteChannel(id, uniqueID)
+	logic.RemoveVoteChannel(id, accountID)
 	close(channel)
 }
 
 func GetSSEReaderForDiscussionService(w http.ResponseWriter, r *http.Request) {
-	_, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	uuidStr := chi.URLParam(r, "uuid")
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -90,7 +89,7 @@ func GetSSEReaderForDiscussionService(w http.ResponseWriter, r *http.Request) {
 
 	commentChannel := make(chan logic.CommentUpdate)
 
-	go addCommentToChannel(r.Context(), uuidStr, commentChannel)
+	go addCommentToChannel(r.Context(), uuidStr, commentChannel, acc.ID)
 
 	for info := range commentChannel {
 		event, err := formatServerSentEvent(func() ([]string, error) {
@@ -127,9 +126,8 @@ func GetSSEReaderForDiscussionService(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addCommentToChannel(ctx context.Context, id string, channel chan logic.CommentUpdate) {
-	uniqueID := uuid.New().String()
-	logic.AddCommentChannel(id, uniqueID, channel)
+func addCommentToChannel(ctx context.Context, id string, channel chan logic.CommentUpdate, accountID int64) {
+	logic.AddCommentChannel(id, accountID, channel)
 outerloop:
 	for {
 		select {
@@ -138,7 +136,7 @@ outerloop:
 		}
 	}
 
-	logic.RemoveCommentChannel(id, uniqueID)
+	logic.RemoveCommentChannel(id, accountID)
 	close(channel)
 }
 

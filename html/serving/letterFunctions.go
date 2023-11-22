@@ -7,7 +7,9 @@ import (
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
+	"errors"
 	"github.com/go-chi/chi/v5"
+	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 )
@@ -22,6 +24,7 @@ func InstallLetter() {
 	composition.SidebarTitleMap[composition.ViewLetter] = builder.Translation["letterViewSidebarText"]
 	composition.GetHTMXFunctions[composition.ViewLetter] = GetViewLetterService
 	composition.PatchHTMXFunctions[composition.ChangeViewLetterAccount] = PatchViewLetterService
+	composition.PatchHTMXFunctions[composition.MarkAllLetterAccount] = PatchMarkLetterService
 
 	composition.PageTitleMap[composition.ViewSingleLetter] = builder.Translation["letterViewSinglePageTitle"]
 	composition.GetHTMXFunctions[composition.ViewSingleLetter] = GetViewSingleLetterService
@@ -138,6 +141,39 @@ func GetViewSingleLetterService(w http.ResponseWriter, r *http.Request) {
 var viewSingleLetterRenderRequest = genericRenderer(composition.ViewSingleLetter)
 var viewSingleLetterOnlySwapMessage = genericMessageSwapper(composition.ViewSingleLetter)
 
+func PatchMarkLetterService(w http.ResponseWriter, r *http.Request) {
+	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
+	if !ok {
+		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
+		return
+	}
+	err := r.ParseForm()
+	name := ""
+	if err == nil {
+		name = r.PostFormValue("reader")
+	}
+	var account *extraction.AccountModification
+	account, ok, err = validation.IsAccountValidForUser(acc.ID, name)
+	if !ok || err != nil {
+		ShowErrorPage(w, r, acc, builder.Translation["letterAccountError"])
+		return
+	}
+	err = extraction.SetAllLetterAsReadForAccount(account.ID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		viewLetterSwapMessage(w, r, validation.Message{Message: builder.Translation["errorMarkingAllAsRead"]}, acc)
+	}
+
+	extraInfo := &logic.ExtraInfo{
+		UUID:            "",
+		Before:          false,
+		Amount:          standardAmount,
+		ViewAccountID:   account.ID,
+		ViewAccountName: account.DisplayName,
+	}
+	html := composition.GetLetterViewPersonalLetters(acc, extraInfo)
+	viewLetterRenderRequest(w, r, acc, html)
+}
+
 func PatchViewLetterService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
 	if !ok {
@@ -191,6 +227,7 @@ func GetViewLetterService(w http.ResponseWriter, r *http.Request) {
 }
 
 var viewLetterRenderRequest = genericRenderer(composition.ViewLetter)
+var viewLetterSwapMessage = genericMessageSwapper(composition.ViewLetter)
 
 func GetCreateLetterService(w http.ResponseWriter, r *http.Request) {
 	acc, ok := CheckUserPrivileges(r, database.HeadAdmin, database.Admin, database.MediaAdmin, database.User)
