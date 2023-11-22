@@ -9,3 +9,8 @@ func UpdateLetterNotification(accountId int64) {
 	}
 	_ = extraction.UpdateHasLettersFlag(accountId, count != 0)
 }
+
+func SetLetterAsRead(uuid string, accountID int64) {
+	extraction.SetLetterAsRead(uuid, accountID)
+	UpdateLetterNotification(accountID)
+}

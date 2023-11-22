@@ -129,7 +129,7 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 	if err != nil {
 		return GetErrorPage(Translation["errorWithSpecificLetter"])
 	}
-	go extraction.SetLetterAsRead(letterUUID, account.ID)
+	go logic.SetLetterAsRead(letterUUID, account.ID)
 	infoText := ""
 	if letter.ModMessage {
 		infoText = fmt.Sprintf(letter.Written.Format(Translation["authorModMessage"]), letter.Author)

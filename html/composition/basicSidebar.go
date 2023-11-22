@@ -84,7 +84,7 @@ func GetLetterSidebarButton(acc *extraction.AccountAuth, swap bool) Node {
 		ID(LetterSidebarID), TEST(LetterSidebarID), If(swap, HXSWAPOOB("true")),
 		HXPUSHURL("/"+string(useURL)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(useURL)),
 		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
-		P(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[ViewLetter]), If(acc.HasLetters, I(CLASS("ml-2 p-1 text-rose-600 bi-envelope")))),
+		P(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[ViewLetter]), If(acc.HasLetters, I(CLASS("ml-2 bi bi-envelope-exclamation-fill")))),
 	)
 }
 
