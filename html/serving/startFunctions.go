@@ -55,6 +55,7 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 		DisplayName: loginAccount.DisplayName,
 		Suspended:   loginAccount.Suspended,
 		Role:        loginAccount.Role,
+		HasLetters:  loginAccount.HasLetters,
 		Session:     acc.Session,
 	}, composition.Start),
 		html)

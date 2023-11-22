@@ -58,6 +58,7 @@ type AccountLogin struct {
 	Password      string
 	Suspended     bool
 	LoginTries    int
+	HasLetters    bool
 	NextLoginTime sql.NullTime
 	Role          database.RoleLevel
 }
