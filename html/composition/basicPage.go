@@ -105,6 +105,8 @@ func getCustomRequestClickable(f func(str ...string) Node, link string, urlToPus
 	)
 }
 
+var getStandardBoxClass = CLASS("w-[800px] box box-e p-2 mt-2 cursor-pointer")
+
 func getClickableLink(link string, urlToPush string, node Node) Node {
 	return A(HXGET(link), HXTARGET("#"+MainBodyID),
 		If(urlToPush != "", HXPUSHURL(urlToPush)), HXSWAP("outerHTML"),
@@ -116,10 +118,10 @@ func getClickableLink(link string, urlToPush string, node Node) Node {
 func pagerFooter(beforeUUID string, nextUUID string, beforeLink string, nextLink string) Node {
 	return DIV(CLASS("w-[800px] flex justify-between flex-row"),
 		DIV(If(beforeUUID != "", getClickableLink("/"+APIPreRoute+beforeLink, "/"+beforeLink,
-			P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["beforePage"])),
+			P(CLASS("bg-slate-700 text-white p-2 mt-2 disable-selection"), Text(Translation["beforePage"])),
 		))),
 		DIV(If(nextUUID != "", getClickableLink("/"+APIPreRoute+nextLink, "/"+nextLink,
-			P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["nextPage"])),
+			P(CLASS("bg-slate-700 text-white p-2 mt-2 disable-selection"), Text(Translation["nextPage"])),
 		))),
 	)
 }

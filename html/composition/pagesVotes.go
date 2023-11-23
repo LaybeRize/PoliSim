@@ -77,7 +77,7 @@ func getPartialVote(number string) Node {
 		STYLE("--clr-border: rgb(40 51 69);"),
 		DIV(CLASS("w-full flex justify-between flex-row"),
 			P(CLASS("text-xl"), Text(Translation["votePartialHeader"], number)),
-			BUTTON(CLASS("bg-slate-700 text-white p-2 mt-2 hover:bg-rose-800"), TYPE("button"),
+			BUTTON(CLASS("bg-slate-700 text-white p-2 mt-2 hover:bg-rose-800 disable-selection"), TYPE("button"),
 				ID("deleteVoteButton"), TEST("deleteVoteButton-"+number),
 				HYPERSCRIPT("on click tell #vote-partial-"+number+" remove yourself"), Text(Translation["deleteVote"])),
 		),
@@ -101,10 +101,9 @@ func getPartialVote(number string) Node {
 
 func getPartialButton(number string, withSwap bool) Node {
 	return BUTTON(If(withSwap, HXSWAPOOB("true")), ID(votePartialButtonID), TYPE("button"),
+		CLASS("bg-slate-700 text-white p-2 mt-2 disable-selection"),
 		HXTARGET("#"+voteContainerDiv), HXSWAP("beforeend"), HXPATCH("/"+APIPreRoute+string(requestVotePartialLink)+number),
-		P(CLASS("bg-slate-700 text-white p-2 mt-2"), STYLE("text-align: center;"),
-			Text(Translation["addnewVoteToPost"]),
-		))
+		P(STYLE("text-align: center;"), Text(Translation["addnewVoteToPost"])))
 }
 
 const (

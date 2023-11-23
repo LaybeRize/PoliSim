@@ -75,7 +75,7 @@ translation for all strings in DE.json into an appropriate english equivalent.
 
 ### Add special css rule for buttons
 
-- [ ] finished
+- [x] finished
 
 add "user-select: none;" to all buttons.
 

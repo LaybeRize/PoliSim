@@ -49,6 +49,10 @@
   min-width: calc(800px + (2 * 0.75em));
 }
 
+.disable-selection {
+  user-select: none;
+}
+
 /*orginial*/
 
 @font-face {

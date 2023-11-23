@@ -66,8 +66,8 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 	nodes := make([]Node, len(*view.LetterList))
 	for i, item := range *view.LetterList {
 		link := string(ViewLetterLink) + url.PathEscape(extra.ViewAccountName) + "/" + url.PathEscape(item.UUID)
-		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
-			CLASS("w-[800px] box box-e p-2 mt-2"), IfElse(item.Read, STYLE("--clr-border: rgb(40 51 69);"), STYLE("--clr-border: rgb(140 140 140);")),
+		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(getStandardBoxClass,
+			IfElse(item.Read, STYLE("--clr-border: rgb(40 51 69);"), STYLE("--clr-border: rgb(140 140 140);")),
 			H1(CLASS("text-2xl"), Text(item.Title)),
 			P(Text(Translation["authorShortFormLetter"], item.Author))))
 	}
@@ -92,8 +92,8 @@ func GetViewModmailList(acc *extraction.AccountAuth, extra *logic.ExtraInfo) Nod
 	nodes := make([]Node, len(*view.LetterList))
 	for i, item := range *view.LetterList {
 		link := string(ViewLetterLink) + url.PathEscape(acc.DisplayName) + "/" + url.PathEscape(item.UUID)
-		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
-			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(getStandardBoxClass,
+			STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"), Text(item.Title)),
 			P(Text(Translation["authorShortFormLetter"], item.Author))))
 	}
@@ -187,6 +187,6 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 func updateLetterButton(link string, buttonText string) Node {
 	return A(HXPATCH(link), HXTARGET("#"+MainBodyID),
 		HXSWAP("outerHTML"),
-		P(CLASS("bg-slate-700 text-white p-2 mr-4 mt-2"), Text(buttonText)),
+		P(CLASS("bg-slate-700 text-white p-2 mr-4 mt-2 disable-selection"), Text(buttonText)),
 	)
 }

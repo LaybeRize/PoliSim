@@ -43,7 +43,7 @@ func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 			classification = Group(I(CLASS("bi bi-check2-square")), Text(" "), I(CLASS("bi bi-hourglass-split")))
 		}
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
-			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+			getStandardBoxClass, STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"), classification, Text(" "+item.Title)),
 			P(I(Text(item.Written.Format(Translation["documentWrittenDate"])))),
 			P(Text(Translation["authorOrganisationShortFormDocument"], item.Author, item.Organisation))))

@@ -127,7 +127,7 @@ func getInput(id string, name string, value string, labelText string, typeStr st
 	)
 }
 
-var buttonClassAttribute = "bg-slate-700 text-white p-2"
+var buttonClassAttribute = "bg-slate-700 text-white p-2 disable-selection"
 
 // getSubmitButton returns the standard form submit button
 func getSubmitButton(id string, buttonText string) Node {
@@ -184,7 +184,7 @@ func getEditableList(content []string, nameSpace string, listName string, addBut
 		nodes[i] = getEditDiv(listName, nameSpace, str, "")
 	}
 	return DIV(CLASS(basicDivStyling),
-		BUTTON(CLASS("bg-gray-900 text-white p-2 mt-2"), TYPE("button"),
+		BUTTON(CLASS("bg-gray-900 text-white p-2 mt-2 disable-selection"), TYPE("button"),
 			HYPERSCRIPT("on click tell next <div/> from me put you as HTML after you then toggle .hidden on next <div/> from you"), Text(addButtonText)),
 		getEditDiv(listName, nameSpace, "", "hidden"),
 		Group(nodes...),
@@ -195,7 +195,7 @@ func getEditDiv(listName string, nameSpace string, value string, extraClass stri
 	return DIV(CLASS("flex flex-row "+extraClass),
 		INPUT(LIST(listName), CLASS("bg-slate-700 appearance-none w-full py-2 px-3 mt-2"), NAME(nameSpace),
 			VALUE(value)),
-		BUTTON(CLASS("bg-slate-700 text-white p-4 ml-2 mt-2 hover:bg-rose-800"),
+		BUTTON(CLASS("bg-slate-700 text-white p-4 ml-2 mt-2 hover:bg-rose-800 disable-selection"), TYPE("button"),
 			HYPERSCRIPT("on click tell me.parentElement remove yourself"), Text(Translation["deleteEditableInput"]),
 		),
 	)

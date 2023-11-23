@@ -10,7 +10,7 @@ import (
 // getSidebar returns a full <div> with every button needed for navigation
 func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
 	level := acc.Role
-	return DIV(specialNode, ID(SidebarID), CLASS("lg:left-0 p-2 sidebarSize min-h-screen text-center bg-gray-900"),
+	return DIV(specialNode, ID(SidebarID), CLASS("lg:left-0 p-2 sidebarSize min-h-screen text-center bg-gray-900 disable-selection"),
 		DIV(CLASS("text-gray-100 text-xl"),
 			DIV(CLASS("p-2.5 mt-1 flex items-center"),
 				IMG(SRC(Configuration["logo"]), ALT("Logo"),
@@ -62,6 +62,11 @@ func getSidebarBreaker() Node {
 	return DIV(CLASS("my-2 bg-gray-600 h-[1px]"))
 }
 
+const (
+	sidebarLinkClass = "p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"
+	sidebarSpanClass = "text-[15px] ml-4 text-gray-200 font-bold"
+)
+
 // getSidebarButton returns a button if the userLevel is as high or higher than minimumLevel for the given url
 func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLevel, url HttpUrl) Node {
 	if minimumLevel > userLevel {
@@ -70,8 +75,7 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID),
 		ID(string(url)+SidebarID), TEST(string(url)+SidebarID),
 		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
-		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
-		SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[url])),
+		CLASS(sidebarLinkClass), SPAN(CLASS(sidebarSpanClass), Text(SidebarTitleMap[url])),
 	)
 }
 
@@ -83,8 +87,8 @@ func GetLetterSidebarButton(acc *extraction.AccountAuth, swap bool) Node {
 	return A(HXGET("/"+APIPreRoute+string(useURL)), HXTARGET("#"+MainBodyID),
 		ID(LetterSidebarID), TEST(LetterSidebarID), If(swap, HXSWAPOOB("true")),
 		HXPUSHURL("/"+string(useURL)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(useURL)),
-		CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
-		P(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(SidebarTitleMap[ViewLetter]), If(acc.HasLetters, I(CLASS("ml-2 bi bi-envelope-exclamation-fill")))),
+		CLASS(sidebarLinkClass),
+		P(CLASS(sidebarSpanClass), Text(SidebarTitleMap[ViewLetter]), If(acc.HasLetters, I(CLASS("ml-2 bi bi-envelope-exclamation-fill")))),
 	)
 }
 

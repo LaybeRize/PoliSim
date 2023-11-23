@@ -9,7 +9,10 @@ import (
 	"strings"
 )
 
-const joinSeperator = ", "
+const (
+	joinSeperator       = ", "
+	collapseButtonClass = "bg-slate-700 text-white p-2 m-2 disable-selection"
+)
 
 func GetViewTitelPage() Node {
 	listing := make([]Node, len(extraction.TitleGroupMap))
@@ -37,7 +40,7 @@ func GetViewTitelPage() Node {
 	return getBasePageWrapper(
 		getPageHeader(ViewTitles),
 		DIV(CLASS("flex flex-row w-[600px]"),
-			BUTTON(TYPE("button"), CLASS("bg-slate-700 text-white p-2 m-2"),
+			BUTTON(TYPE("button"), CLASS(collapseButtonClass),
 				HYPERSCRIPT("on click add .hidden to .collapse-all"), Text(Translation["collapseAll"])),
 		),
 		DIV(CLASS("mt-4 w-[600px]"),
@@ -60,7 +63,6 @@ func GetViewSubGroupOfTitles(mainGroup string, subGroup string) Node {
 				If(title.Flair.Valid, P(CLASS("text-base mt-2"), Text(Translation["viewTitleFlairText"], title.Flair.String))),
 				P(If(!title.Flair.Valid, CLASS("mt-2")), I(CLASS("bi bi-people-fill")), IfElse(holderText == "", Text(" "+Translation["viewTitleNoHolderText"]),
 					Text(" "+Translation["viewTitleHolderText"], holderText))))
-
 		}
 		newDiv = DIV(ID("out-"+mainGroup+"-in-"+subGroup), CLASS("border-l-4 border-slate-400 pl-6 mt-2 collapse-all"),
 			Group(nodeList...))
@@ -105,7 +107,7 @@ func GetViewOrganisationPage(accountID int64, isAdmin bool) Node {
 	return getBasePageWrapper(
 		getPageHeader(ViewOrganisations),
 		DIV(CLASS("flex flex-row w-[600px]"),
-			BUTTON(TYPE("button"), CLASS("bg-slate-700 text-white p-2 m-2"),
+			BUTTON(TYPE("button"), CLASS(collapseButtonClass),
 				HYPERSCRIPT("on click add .hidden to .collapse-all"), Text(Translation["collapseAll"])),
 		),
 		DIV(CLASS("mt-4 w-[600px]"),

@@ -116,9 +116,11 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 		validate.Message = builder.Translation["cantFindAuthorOfArticle"]
 		return
 	}
-	subtitle := article.Subtitle.String
-	if subtitle == "" {
-		subtitle = builder.Translation["emptySubtitleForRejection"]
+	params := []any{article.Content, content}
+	msg := builder.Translation["rejectionLetterBody"]
+	if article.Subtitle.Valid {
+		msg = builder.Translation["rejectionLetterBodySubtitle"] + msg
+		params = []any{article.Subtitle.String, article.Content, content}
 	}
 	letter := database.Letter{
 		UUID:    uuid.New().String(),
@@ -126,7 +128,7 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 		Author:  builder.Translation["authorOfRejections"],
 		Flair:   "",
 		Title:   fmt.Sprintf(builder.Translation["rejectionLetterTitle"], article.Headline),
-		Content: fmt.Sprintf(builder.Translation["rejectionLetterBody"], subtitle, article.Content, content),
+		Content: fmt.Sprintf(msg, params...),
 		Info: database.LetterInfo{
 			AllHaveToAgree:     false,
 			NoSigning:          true,

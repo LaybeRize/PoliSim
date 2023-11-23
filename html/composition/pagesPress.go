@@ -35,7 +35,7 @@ func GetViewOfHiddenNewspaper() Node {
 	for i, item := range *list {
 		link := string(ViewHiddenNewspaperList) + "/" + url.PathEscape(item.UUID)
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
-			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+			getStandardBoxClass, STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"),
 				IfElse(item.UUID == database.EternatityPublicationName, Text(Translation["hiddenStandardNewsPaper"]),
 					Text(item.CreateTime.Format(Translation["hiddenBreakingNews"]))))))
@@ -69,7 +69,7 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 	return getBasePageWrapper(
 		getCustomPageHeader(fmt.Sprintf(Translation["unpublishedNewsletterTitle"], uuid)),
 		getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+link, "",
-			P(CLASS("bg-slate-700 text-white p-2 mt-2"), Text(Translation["publishNewspaperButton"]))),
+			P(CLASS("bg-slate-700 text-white p-2 mt-2 disable-selection"), Text(Translation["publishNewspaperButton"]))),
 		GetMessage(validation.Message{}),
 		Group(nodes...),
 	)
@@ -114,7 +114,7 @@ func GetNewspaperListPage(extra *logic.ExtraInfo) Node {
 	for i, item := range *view.PaperList {
 		link := string(ViewNewspaperList) + "/" + url.PathEscape(item.UUID)
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
-			CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"),
+			getStandardBoxClass, STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"), IfElse(item.BreakingNews, Text(item.PublishTime.Format(Translation["breakingNewsFormat"])),
 				Text(item.PublishTime.Format(Translation["normalNewsFormat"]))))))
 	}

@@ -75,14 +75,14 @@ func GetTagAdminPanel(uuid string, isAdmin bool) Node {
 		if post.Hidden {
 			hiddenNodes = append(hiddenNodes, DIV(CLASS("mt-2 w-[800px] grid grid-flow-col grid-cols-3 justify-stretch"),
 				renderTag(post, "col-span-2"), getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeTagDocumentLink)+
-					url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2"),
+					url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2 disable-selection"),
 					STYLE("text-align: center;"), Text(Translation["showTagButtonText"])),
 				)))
 			continue
 		}
 		nodes = append(nodes, DIV(CLASS("mt-2 w-[800px] grid grid-flow-col grid-cols-3 justify-stretch"),
 			renderTag(post, "col-span-2"), getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeTagDocumentLink)+
-				url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2"),
+				url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2 disable-selection"),
 				STYLE("text-align: center;"), Text(Translation["hideTagButtonText"])),
 			)))
 	}
