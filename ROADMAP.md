@@ -70,7 +70,7 @@ use the correct number.)
 
 ### English localisation
 
-- [ ] finished
+- [x] finished
 
 translation for all strings in DE.json into an appropriate english equivalent.
 
