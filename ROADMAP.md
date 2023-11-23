@@ -65,7 +65,8 @@ Needs implementing being able to block documents too.
 
 - [x] finished
 
-fix bug with paging occuring with three pages and more. (turns out this is pretty simple. You just stop being stupid and use the correct number.)
+fix bug with paging occuring with three pages and more. (turns out this is pretty simple. You just stop being stupid and 
+use the correct number.)
 
 ### English localisation
 
