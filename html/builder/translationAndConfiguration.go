@@ -48,7 +48,7 @@ func setTranslationsForDatabase() {
 }
 
 func importConfiguration() {
-	file, err := os.ReadFile("resources/config.json")
+	file, err := os.ReadFile("resources/" + os.Getenv("CONFIG") + ".json")
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to read the config json file:\n"+err.Error()+"\n")
 		os.Exit(1)

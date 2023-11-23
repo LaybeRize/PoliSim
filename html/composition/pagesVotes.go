@@ -38,10 +38,10 @@ func GetCreateVotePage(acc *extraction.AccountAuth, document *validation.CreateV
 			getInput("endTime", "endTime", document.EndTime, Translation["endTimeVote"], "datetime-local", "", ""),
 			getTextArea("content", "content", "", Translation["contentVoteDocument"],
 				MarkdownJsonPage),
-			getCheckBox("private", false, false, "", "private", Translation["privateVote"],
-				HYPERSCRIPT("on click toggle .hidden on #anyoneCanComment")),
-			getCheckBox("anyoneCanVote", false, false, "", "anyoneCanVote", Translation["anyoneCanVote"], nil),
-			getCheckBox("membersCanVote", false, false, "", "membersCanVote", Translation["membersCanVote"], nil),
+			getCheckBox("private", false, false, "true", "private", Translation["privateVote"],
+				HYPERSCRIPT("on click toggle .hidden on #anyoneCanVote")),
+			getCheckBox("anyoneCanVote", false, false, "true", "anyoneCanVote", Translation["anyoneCanVote"], nil),
+			getCheckBox("membersCanVote", false, false, "true", "membersCanVote", Translation["membersCanVote"], nil),
 			getHiddenEmptyInput("attendents"), getHiddenEmptyInput("voter"),
 			DIV(CLASS("flex flex-row"),
 				getEditableList([]string{}, "attendents", "displayNames",
@@ -86,12 +86,12 @@ func getPartialVote(number string) Node {
 		getDropDown("question["+number+"][type]", "question-type-"+
 			number, Translation["voteQuestionType"], false,
 			database.VoteTypes, database.VoteTranslation, database.SingleVote),
-		getCheckBox("viewCountsWhileRunning-"+number, false, false, "",
+		getCheckBox("viewCountsWhileRunning-"+number, false, false, "true",
 			"question["+number+"][viewCountsWhileRunning]", Translation["viewCountsWhileRunning"], nil),
-		getCheckBox("viewNamesWhileRunning-"+number, false, false, "",
+		getCheckBox("viewNamesWhileRunning-"+number, false, false, "true",
 			"question["+number+"][viewNamesWhileRunning]", Translation["viewNamesWhileRunning"],
 			HYPERSCRIPT("on click toggle .hidden on #viewNamesAfterFinished-"+number)),
-		getCheckBox("viewNamesAfterFinished-"+number, false, false, "",
+		getCheckBox("viewNamesAfterFinished-"+number, false, false, "true",
 			"question["+number+"][viewNamesAfterFinished]", Translation["viewNamesAfterFinished"], nil),
 		getHiddenEmptyInput("question["+number+"][answers]"),
 		getEditableList([]string{}, "question["+number+"][answers]", "",
@@ -244,7 +244,7 @@ func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 	RadioButtons := make([]Node, len(item.Info.Options))
 	for i, str := range item.Info.Options {
 		RadioButtons[i] = getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10),
-			i == 0, false, strconv.FormatInt(int64(i), 10), "answerSingle", str, CONVERTTO("number"))
+			i == 0, strconv.FormatInt(int64(i), 10), "answerSingle", str)
 	}
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
@@ -253,7 +253,7 @@ func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.SingleVote)), CLASS("w-full"),
 					HXEXTEND("json-enc-custom"),
 					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-					getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+					getCheckBox("invalidateVote", false, false, "true", "invalidateVote", Translation["invalidateVoteCheckbox"],
 						HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
 					DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
 						Group(RadioButtons...)),
@@ -266,7 +266,7 @@ func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID 
 	checkBoxes := make([]Node, len(item.Info.Options))
 	for i, str := range item.Info.Options {
 		checkBoxes[i] = getCheckBox("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10),
-			false, false, "", "answerMultiple["+strconv.FormatInt(int64(i), 10)+"]", str, nil)
+			false, false, "true", "answerMultiple["+strconv.FormatInt(int64(i), 10)+"]", str, nil)
 	}
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
@@ -275,7 +275,7 @@ func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID 
 					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.MultipleVotes)), CLASS("w-full"),
 					HXEXTEND("json-enc-custom"),
 					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-					getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+					getCheckBox("invalidateVote", false, false, "true", "invalidateVote", Translation["invalidateVoteCheckbox"],
 						HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
 					DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
 						Group(checkBoxes...),
@@ -301,7 +301,7 @@ func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.RankedVotes)), CLASS("w-full"),
 					HXEXTEND("json-enc-custom"),
 					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-					getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+					getCheckBox("invalidateVote", false, false, "true", "invalidateVote", Translation["invalidateVoteCheckbox"],
 						HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
 					DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),
 						Group(rankings...)),
@@ -317,14 +317,14 @@ func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, doc
 		threeCategory[i] = Group(P(CLASS("mt-2"), Text(str)),
 			DIV(CLASS("w-full grid grid-flow-col grid-cols-3 justify-stretch"),
 				getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10)+"-for",
-					false, false, "1", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
-					Translation["voteFor"], CONVERTTO("number")),
+					false, "1", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
+					Translation["voteFor"]),
 				getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10)+"-neutral",
-					true, false, "0", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
-					Translation["voteNeutral"], CONVERTTO("number")),
+					true, "0", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
+					Translation["voteNeutral"]),
 				getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10)+"-against",
-					false, false, "-1", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
-					Translation["voteAgainst"], CONVERTTO("number")),
+					false, "-1", "answerThree["+strconv.FormatInt(int64(i), 10)+"]",
+					Translation["voteAgainst"]),
 			))
 	}
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
@@ -334,7 +334,7 @@ func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, doc
 					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.ThreeCategoryVoting)), CLASS("w-full"),
 					HXEXTEND("json-enc-custom"),
 					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
-					getCheckBox("invalidateVote", false, false, "", "invalidateVote", Translation["invalidateVoteCheckbox"],
+					getCheckBox("invalidateVote", false, false, "true", "invalidateVote", Translation["invalidateVoteCheckbox"],
 						HYPERSCRIPT("on click toggle .hidden on #vote-card-div-"+item.UUID)),
 					DIV(CLASS("my-2")),
 					DIV(ID("vote-card-div-"+item.UUID), CLASS("w-full mt-4"),

@@ -10,6 +10,11 @@ import (
 )
 
 var language = strings.ToLower(os.Getenv("LANG"))
+var titleFormat = "!placeholder!"
+
+func SetupComposition() {
+	titleFormat = Configuration["projectName"] + ": %s"
+}
 
 // GetBasePage returns the typical <html> frame for the page.
 // it includes the correct sidebar for the parsed role and an element which automatically
@@ -18,10 +23,10 @@ func GetBasePage(pageTitle string, acc *extraction.AccountAuth, loadURL string, 
 	return HTML(LANG(language),
 		HEAD(
 			META(CHARSET("UTF-8")),
-			TITLE(Text(pageTitle)),
+			TITLE(Text(titleFormat, pageTitle)),
 			META(NAME("viewport"), CONTENT("width=device-width, initial-scale=1")),
 			LINK(REL("icon"), TYPE(Configuration["logoType"]), HREF(Configuration["logo"])),
-			LINK(REL("shortcut icon"), TYPE("image/png"), HREF("/public/favicon.png")),
+			LINK(REL("shortcut icon"), TYPE("image/png"), HREF(Configuration["favicon"])),
 			LINK(REL("stylesheet"), HREF("/public/jsdelivr.css")),
 			LINK(REL("stylesheet"), HREF("/public/design.css")),
 			SCRIPT(SRC("/public/_hyperscript_0.9.11.js")),
@@ -77,7 +82,7 @@ func GetMessageOOB(val validation.Message) Node {
 
 // GetTitleReplacement returns a new <title> element for htmx to swap with the correct PageTitle
 func GetTitleReplacement(url HttpUrl) Node {
-	return TITLE(HXSWAPOOB("true"), Text(PageTitleMap[url]))
+	return TITLE(HXSWAPOOB("true"), Text(titleFormat, PageTitleMap[url]))
 }
 
 // GetSidebarReplacement gets a new sidebar based on the database.RoleLevel that has the hx-swap-oob parameter

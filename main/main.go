@@ -48,6 +48,8 @@ func main() {
 	serving.InstallDocumentPager()
 	serving.InstallSSEHandlers()
 
+	composition.SetupComposition()
+
 	_, _ = fmt.Fprintf(os.Stdout, "Creating cookie store\n")
 	validation.CreateStore()
 
@@ -82,6 +84,7 @@ func instigateRoutes(router *chi.Mux) {
 	router.NotFound(serving.GetFullPage(builder.Translation["pageNotFoundTitle"]))
 	composition.PageTitleMap[composition.NotFound] = builder.Translation["pageNotFoundTitle"]
 	router.Get("/"+composition.APIPreRoute+"*", serving.NotFoundService)
+	router.Put("/"+composition.APIPreRoute+"*", serving.NotFoundService)
 	router.Post("/"+composition.APIPreRoute+"*", serving.NotFoundService)
 	router.Patch("/"+composition.APIPreRoute+"*", serving.NotFoundService)
 	router.Delete("/"+composition.APIPreRoute+"*", serving.NotFoundService)

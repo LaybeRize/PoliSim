@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"net/http"
 	"strings"
 )
@@ -63,7 +64,8 @@ func GetSSEReaderForVoteService(w http.ResponseWriter, r *http.Request) {
 }
 
 func addVoteToChannel(ctx context.Context, id string, channel chan database.Votes, accountID int64) {
-	logic.AddVoteChannel(id, accountID, channel)
+	newID := uuid.New().String()
+	logic.AddVoteChannel(id, newID, accountID, channel)
 outerloop:
 	for {
 		select {
@@ -72,7 +74,7 @@ outerloop:
 		}
 	}
 
-	logic.RemoveVoteChannel(id, accountID)
+	logic.RemoveVoteChannel(id, newID, accountID)
 	close(channel)
 }
 
@@ -127,7 +129,8 @@ func GetSSEReaderForDiscussionService(w http.ResponseWriter, r *http.Request) {
 }
 
 func addCommentToChannel(ctx context.Context, id string, channel chan logic.CommentUpdate, accountID int64) {
-	logic.AddCommentChannel(id, accountID, channel)
+	newID := uuid.New().String()
+	logic.AddCommentChannel(id, newID, accountID, channel)
 outerloop:
 	for {
 		select {
@@ -136,7 +139,7 @@ outerloop:
 		}
 	}
 
-	logic.RemoveCommentChannel(id, accountID)
+	logic.RemoveCommentChannel(id, newID, accountID)
 	close(channel)
 }
 

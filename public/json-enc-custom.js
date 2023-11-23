@@ -6,12 +6,11 @@ htmx.defineExtension('json-enc-custom', {
     },
     encodeParameters: function (xhr, parameters, elt) {
         xhr.overrideMimeType('text/json');
-        let encoded_parameters = encodingAlgorithm(parameters);
-        return encoded_parameters;
+        return encodingAlgorithm(parameters, elt);
     }
 });
 
-function encodingAlgorithm(parameters) {
+function encodingAlgorithm(parameters, elt) {
     let resultingObject = Object.create(null);
     const PARAM_NAMES = Object.keys(parameters);
     const PARAM_VALUES = Object.values(parameters);
@@ -20,11 +19,24 @@ function encodingAlgorithm(parameters) {
     for (let param_index = 0; param_index < PARAM_LENGHT; param_index++) {
         let name = PARAM_NAMES[param_index];
         let value = PARAM_VALUES[param_index];
-        if (document.querySelectorAll("input[type=checkbox][name='"+name+"']").length !== 0 &&
-            document.querySelectorAll("input[type=checkbox][name='"+name+"']").item(0).attributes.getNamedItem("value") === null) {
-            value = value === "on";
-        } else if (document.querySelectorAll("input[data-convert=number][name='"+name+"']").length !== 0) {
-            value = parseInt(value)
+        let boolAmount = checkQuerySelectors(elt,"bool",name)
+        let numAmount = checkQuerySelectors(elt, "number",name)
+        if (boolAmount !== 0) {
+            if (boolAmount === 1) {
+                value = value !== ""
+            } else {
+                value = value.map(function (value) {
+                    return value !== ""
+                })
+            }
+        } else if (numAmount !== 0) {
+            if (numAmount === 1) {
+                value = parseInt(String(value))
+            } else {
+                value = value.map(function (value) {
+                    return parseInt(String(value))
+                })
+            }
         }
         let steps = JSONEncodingPath(name);
         let context = resultingObject;
@@ -35,8 +47,15 @@ function encodingAlgorithm(parameters) {
         }
     }
 
-    let result = JSON.stringify(resultingObject);
-    return result
+    return JSON.stringify(resultingObject)
+}
+
+function checkQuerySelectors(elt, convertType, name) {
+    let number = elt.querySelectorAll("[name='"+name+"']").length
+    if (number !== elt.querySelectorAll("[data-convert="+convertType+"][name='"+name+"']").length) {
+        return 0
+    }
+    return number
 }
 
 function JSONEncodingPath(name) {
