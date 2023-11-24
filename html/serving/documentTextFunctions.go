@@ -127,12 +127,11 @@ func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
 	}
 	account, ok, err := validation.IsAccountValidForUser(acc.ID, name)
 	if !ok || err != nil {
-		w.Header().Set("HX-Retarget", "#"+composition.MessageID)
-		html := composition.GetMessage(validation.Message{
+		retargetToMessage(w)
+		renderRequest(w, composition.GetMessage(validation.Message{
 			Message:  builder.Translation["notAllowedToUseAccount"],
 			Positive: false,
-		})
-		renderRequest(w, html)
+		}))
 		return
 	}
 
@@ -180,7 +179,7 @@ func PostDocumentTextCreationService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewTextDocumentLink)+create.UUIDredirect)
+	pushURL(w, "/"+string(composition.ViewTextDocumentLink)+create.UUIDredirect)
 	html := composition.ViewDocumentPage(create.UUIDredirect, CheckIfHasRole(acc, database.HeadAdmin, database.Admin))
 	viewTextDocumentRenderRequest(w, r, acc, html)
 }

@@ -211,7 +211,7 @@ function startSSE() {
     };
     es.addEventListener("change", (event) => {
         const parsedData = JSON.parse(event.data);
-        const el = document.getElementById(parsedData.id);
+        const el = document.getElementById(parsedData.targetID);
         el.outerHTML = parsedData.data;
     });
 };`)))),
@@ -226,15 +226,7 @@ func getTimeVoteInfo(doc *database.Document, extra Node) Node {
 
 func compactVoteView(id string, text string, children []Node) Node {
 	return DIV(ID(id), TEST(id),
-		DIV(CLASS("p-2.5 mt-3 w-[800px] flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
-			HYPERSCRIPT("on click toggle .hidden on next <div/> from me then toggle .rotate-180 on last <span/> in first <div/> in me"),
-			DIV(CLASS("flex justify-between items-center"),
-				SPAN(CLASS("text-[15px] mr-4 text-gray-200 font-bold"), Text(text)),
-				SPAN(CLASS("text-sm rotate-180"),
-					I(CLASS("bi bi-chevron-down")),
-				),
-			),
-		),
+		toggleVisiblityOfNextDiv(text),
 		DIV(ID(id+"-content"), Group(children...), CLASS("text-left text-sm mt-2 w-auto mx-auto text-gray-200 font-bold hidden")),
 	)
 }

@@ -45,7 +45,7 @@ func PatchPublishNewspaperService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewNewspaperList)+"/"+uuid)
+	pushURL(w, "/"+string(composition.ViewNewspaperList)+"/"+uuid)
 	html := composition.GetSingleNewspaperPage(uuid)
 	newspaperRenderRequest(w, r, acc, html)
 }
@@ -167,7 +167,7 @@ func PostRejectArticleService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//return to the hidden newspapers
-	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewHiddenNewspaperList))
+	pushURL(w, "/"+string(composition.ViewHiddenNewspaperList))
 	html := composition.GetViewOfHiddenNewspaper()
 	viewHiddenNewspaperRenderRequest(w, r, acc, html)
 }

@@ -25,11 +25,11 @@ func getTableHeader(p Position, sortPos int, text string) Node {
 	}
 	switch p {
 	case StartPos:
-		return TH(CLASS("p-2 border-r-2 border-gray-600"), If(hScript != nil, STYLE("cursor: pointer;")), hScript,
-			Text(text))
+		return TH(CLASS("p-2 border-r-2 border-gray-600"), If(hScript != nil, STYLE("cursor: pointer;")),
+			hScript, Text(text))
 	case MiddlePos:
-		return TH(CLASS("p-2 border-r-2 border-gray-600"), If(hScript != nil, STYLE("cursor: pointer;")), hScript,
-			Text(text))
+		return TH(CLASS("p-2 border-r-2 border-gray-600"), If(hScript != nil, STYLE("cursor: pointer;")),
+			hScript, Text(text))
 	case EndPos:
 		return TH(CLASS("p-2"), If(hScript != nil, STYLE("cursor: pointer;")), hScript,
 			Text(text))

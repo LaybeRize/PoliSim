@@ -58,7 +58,8 @@ func ViewDocumentPage(uuidStr string, isAdmin bool) Node {
 			)),
 		getDocumentBody(doc),
 		DIV(ID(DocumentAdminPanel), HXGET("/"+APIPreRoute+string(AddTagDocumentLink)+url.PathEscape(doc.UUID)+"?org="+
-			url.QueryEscape(doc.Organisation)), HXTRIGGER("load"), HXSWAP("outerHTML"), HXTARGET("#"+DocumentAdminPanel)),
+			url.QueryEscape(doc.Organisation)), HXTRIGGER("load"), HXSWAP("outerHTML"),
+			HXTARGET("#"+DocumentAdminPanel)),
 		GetMessage(validation.Message{}),
 		DIV(CLASS("w-[800px]"), ID(documentTagDiv), If(len(nodes) != 0, Group(nodes[1:]...))),
 	)
@@ -72,22 +73,23 @@ func GetTagAdminPanel(uuid string, isAdmin bool) Node {
 	nodes := make([]Node, 0, len(doc.Info.Post))
 	hiddenNodes := make([]Node, 0, len(doc.Info.Post))
 	for _, post := range doc.Info.Post {
+		ref := &nodes
+		text := Text(Translation["hideTagButtonText"])
 		if post.Hidden {
-			hiddenNodes = append(hiddenNodes, DIV(CLASS("mt-2 w-[800px] grid grid-flow-col grid-cols-3 justify-stretch"),
-				renderTag(post, "col-span-2"), getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeTagDocumentLink)+
-					url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2 disable-selection"),
-					STYLE("text-align: center;"), Text(Translation["showTagButtonText"])),
-				)))
-			continue
+			ref = &hiddenNodes
+			text = Text(Translation["showTagButtonText"])
 		}
-		nodes = append(nodes, DIV(CLASS("mt-2 w-[800px] grid grid-flow-col grid-cols-3 justify-stretch"),
-			renderTag(post, "col-span-2"), getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeTagDocumentLink)+
-				url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2 disable-selection"),
-				STYLE("text-align: center;"), Text(Translation["hideTagButtonText"])),
+		*ref = append(*ref, DIV(CLASS("mt-2 w-[800px] grid grid-flow-col grid-cols-3 justify-stretch"),
+			renderTag(post, "col-span-2"), getCustomRequestClickable(HXPATCH,
+				"/"+APIPreRoute+string(ChangeTagDocumentLink)+url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID),
+				"",
+				P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2 disable-selection"),
+					STYLE("text-align: center;"), text),
 			)))
 	}
 	return Group(DIV(
-		getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(AddTagDocumentLink)+url.PathEscape(uuid), CLASS("w-[800px]"),
+		getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(AddTagDocumentLink)+url.PathEscape(uuid),
+			CLASS("w-[800px]"),
 			getSimpleTextInput("tag", "tag", "", Translation["tagTextDocument"]),
 			getInput("color", "color", "", Translation["tagColorTextDocument"], "color",
 				"", "", STYLE("min-height: 20px;")),

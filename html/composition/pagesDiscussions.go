@@ -132,10 +132,10 @@ func getDiscussionScript(uuid string) Node {
 const es = new EventSource("/` + APIPreRoute + string(sseReaderDiscussionLink) + uuid + `");
 es.addEventListener("change", (event) => {
     const parsedData = JSON.parse(event.data);
-    const el = document.getElementById(parsedData.id);
+    const el = document.getElementById(parsedData.targetID);
     el.outerHTML = parsedData.data;
-	htmx.process(document.getElementById(parsedData.replace));
-	if (parsedData.id !== parsedData.replace) {
+	htmx.process(document.getElementById(parsedData.updateID));
+	if (parsedData.targetID !== parsedData.updateID) {
         document.getElementById("` + CommentContentDiv + `").value = "";
     }
 });`))

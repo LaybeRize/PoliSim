@@ -81,8 +81,7 @@ func PatchViewDocumentsService(w http.ResponseWriter, r *http.Request) {
 		extraInfo.Written = ""
 	}
 
-	w.Header().Set("HX-Push-Url", fmt.Sprintf("/%s?amount=%d%s", string(composition.ViewDocument),
-		extraInfo.Amount, str))
+	pushURL(w, fmt.Sprintf("/%s?amount=%d%s", string(composition.ViewDocument), extraInfo.Amount, str))
 	html := composition.GetDocumentPage(isAdmin, extraInfo)
 	viewDocumentsRenderRequest(w, r, acc, html)
 }

@@ -116,7 +116,7 @@ func PostDocumentDiscussionCreationService(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewDiscussionDocumentLink)+create.UUIDredirect)
+	pushURL(w, "/"+string(composition.ViewDiscussionDocumentLink)+create.UUIDredirect)
 	html := composition.ViewDiscussionPage(acc, create.UUIDredirect,
 		CheckIfHasRole(acc, database.HeadAdmin, database.Admin),
 		validation.Message{})
@@ -130,9 +130,10 @@ func GetDocumentDiscussionCreationService(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	html := composition.CreateDiscussionPage(acc, &validation.CreateDiscussion{PrivateDocumentInfo: validation.PrivateDocumentInfo{
-		EndTime: time.Now().Add(time.Hour * 25).Format("2006-01-02T15:04"),
-	}}, validation.Message{})
+	html := composition.CreateDiscussionPage(acc, &validation.CreateDiscussion{
+		PrivateDocumentInfo: validation.PrivateDocumentInfo{
+			EndTime: time.Now().Add(time.Hour * 25).Format("2006-01-02T15:04"),
+		}}, validation.Message{})
 	createDiscussionDocumentRenderRequest(w, r, acc, html)
 }
 

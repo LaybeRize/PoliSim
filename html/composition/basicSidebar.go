@@ -10,7 +10,8 @@ import (
 // getSidebar returns a full <div> with every button needed for navigation
 func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
 	level := acc.Role
-	return DIV(specialNode, ID(SidebarID), CLASS("lg:left-0 p-2 sidebarSize min-h-screen text-center bg-gray-900 disable-selection"),
+	return DIV(specialNode, ID(SidebarID),
+		CLASS("lg:left-0 p-2 sidebarSize min-h-screen text-center bg-gray-900 disable-selection"),
 		DIV(CLASS("text-gray-100 text-xl"),
 			DIV(CLASS("p-2.5 mt-1 flex items-center"),
 				IMG(SRC(Configuration["logo"]), ALT("Logo"),
@@ -88,7 +89,9 @@ func GetLetterSidebarButton(acc *extraction.AccountAuth, swap bool) Node {
 		ID(LetterSidebarID), TEST(LetterSidebarID), If(swap, HXSWAPOOB("true")),
 		HXPUSHURL("/"+string(useURL)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(useURL)),
 		CLASS(sidebarLinkClass),
-		P(CLASS(sidebarSpanClass), Text(SidebarTitleMap[ViewLetter]), If(acc.HasLetters, I(CLASS("ml-2 bi bi-envelope-exclamation-fill")))),
+		P(CLASS(sidebarSpanClass), Text(SidebarTitleMap[ViewLetter]),
+			If(acc.HasLetters, I(CLASS("ml-2 bi bi-envelope-exclamation-fill"))),
+		),
 	)
 }
 
@@ -99,7 +102,8 @@ func getSideBarSubMenu(userLevel database.RoleLevel, minimumLevel database.RoleL
 	}
 	return DIV(ID(subMenuName+SidebarID), TEST(subMenuName+SidebarID),
 		DIV(CLASS("p-2.5 mt-3 flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
-			HYPERSCRIPT("on click toggle .hidden on next <div/> from me then toggle .rotate-180 on last <span/> in first <div/> in me"),
+			HYPERSCRIPT("on click toggle .hidden on next <div/> from me"+
+				" then toggle .rotate-180 on last <span/> in first <div/> in me"),
 			DIV(CLASS("flex justify-between w-full items-center"),
 				SPAN(CLASS("text-[15px] ml-4 text-gray-200 font-bold"), Text(subMenuName)),
 				SPAN(CLASS("text-sm rotate-180"),

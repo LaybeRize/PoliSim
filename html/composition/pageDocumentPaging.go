@@ -16,6 +16,13 @@ const (
 	MaxDocuments = 50
 )
 
+var (
+	textSymbol = I(CLASS("bi bi-card-text"))
+	discSymbol = I(CLASS("bi bi-chat-fill"))
+	voteSymbol = I(CLASS("bi bi-check2-square"))
+	runSymbol  = I(CLASS("bi bi-hourglass-split"))
+)
+
 func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 	view, err := logic.GetDocuments(isAdmin, extra)
 	if err != nil {
@@ -28,19 +35,19 @@ func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 		switch item.Type {
 		case database.LegislativeText:
 			link = string(ViewTextDocumentLink) + link
-			classification = I(CLASS("bi bi-card-text"))
+			classification = textSymbol
 		case database.FinishedDiscussion:
 			link = string(ViewDiscussionDocumentLink) + link
-			classification = I(CLASS("bi bi-chat-fill"))
+			classification = discSymbol
 		case database.RunningDiscussion:
 			link = string(ViewDiscussionDocumentLink) + link
-			classification = Group(I(CLASS("bi bi-chat-fill")), Text(" "), I(CLASS("bi bi-hourglass-split")))
+			classification = Group(discSymbol, Text(" "), runSymbol)
 		case database.FinishedVote:
 			link = string(ViewVoteDocumentLink) + link
-			classification = I(CLASS("bi bi-check2-square"))
+			classification = voteSymbol
 		case database.RunningVote:
 			link = string(ViewVoteDocumentLink) + link
-			classification = Group(I(CLASS("bi bi-check2-square")), Text(" "), I(CLASS("bi bi-hourglass-split")))
+			classification = Group(voteSymbol, Text(" "), runSymbol)
 		}
 		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
 			getStandardBoxClass, STYLE("--clr-border: rgb(40 51 69);"),
@@ -50,7 +57,8 @@ func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 	}
 	if len(nodes) == 0 {
 		nodes = []Node{
-			DIV(CLASS("w-[800px] box box-e p-2 mt-2 flex items-center flex-col"), STYLE("--clr-border: rgb(40 51 69);"),
+			DIV(CLASS("w-[800px] box box-e p-2 mt-2 flex items-center flex-col"),
+				STYLE("--clr-border: rgb(40 51 69);"),
 				P(CLASS("text-xl text-rose-600"), Text(Translation["noDocumentsFound"]))),
 		}
 	}
@@ -61,32 +69,36 @@ func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 	extraStr := GetExtraString(extra)
 	return getBasePageWrapper(
 		getPageHeader(ViewDocument),
-		DIV(CLASS("p-2.5 mt-3 w-[800px] flex items-center px-4 duration-300 cursor-pointer text-white hover:bg-blue-600"),
-			HYPERSCRIPT("on click toggle .hidden on next <div/> from me then toggle .rotate-180 on last <span/> in first <div/> in me"),
-			DIV(CLASS("flex justify-between items-center"),
-				SPAN(CLASS("text-[15px] mr-4 text-gray-200 font-bold"), Text(Translation["advancedDocumentSearch"])),
-				SPAN(CLASS("text-sm rotate-180"),
-					I(CLASS("bi bi-chevron-down")),
-				),
-			),
-		),
-		DIV(ID("advanced-search-div"), CLASS("text-left text-sm mt-2 w-auto mx-auto text-gray-200 font-bold hidden"),
-			getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(ViewDocument), CLASS("w-[800px]"),
-				getInput("amount", "amount", strconv.FormatInt(int64(extra.Amount), 10), Translation["documentSearchAmount"], "number",
-					"", "", MIN(strconv.FormatInt(MinDocuments, 10)), MAX(strconv.FormatInt(MaxDocuments, 10))),
-				getSimpleTextInput("organisation", "organisation", extra.Organisation, Translation["documentSearchOrganisation"]),
-				getSimpleTextInput("author", "author", extra.Author, Translation["documentSearchAuthor"]),
-				getSimpleTextInput("title", "title", extra.Title, Translation["documentSearchTitle"]),
-				If(isAdmin, getStandardCheckBox(extra.HideBlock, "true", "hideblock", Translation["documentSearchHideBlock"])),
-				getStandardCheckBox(extra.Text, "true", "text", Translation["documentSearchText"]),
-				getStandardCheckBox(extra.Discussion, "true", "discussion", Translation["documentSearchDiscussion"]),
-				getStandardCheckBox(extra.Votes, "true", "votes", Translation["documentSearchVotes"]),
-				getStandardCheckBox(false, "true", "addWritten", Translation["documentSearchAddWritten"]),
-				getInput("written", "written", time.Now().Format("2006-01-02"), Translation["documentSearchWritten"], "date", "", ""),
-				getSubmitButton("make-advanced-search-query", Translation["makeAdvancedSearch"]))),
+		toggleVisiblityOfNextDiv(Translation["advancedDocumentSearch"]),
+		getAdvancedSearch(isAdmin, extra),
 		Group(nodes...),
 		pagerFooter(view.BeforeUUID, view.NextUUID,
 			before+extraStr, next+extraStr),
+	)
+}
+
+func getAdvancedSearch(isAdmin bool, extra *extraction.ExtraInfo) Node {
+	return DIV(ID("advanced-search-div"),
+		CLASS("text-left text-sm mt-2 w-auto mx-auto text-gray-200 font-bold hidden"),
+		getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(ViewDocument), CLASS("w-[800px]"),
+			getInput("amount", "amount", strconv.FormatInt(int64(extra.Amount), 10),
+				Translation["documentSearchAmount"], "number", "", "",
+				MIN(strconv.FormatInt(MinDocuments, 10)), MAX(strconv.FormatInt(MaxDocuments, 10))),
+			getSimpleTextInput("organisation", "organisation", extra.Organisation,
+				Translation["documentSearchOrganisation"]),
+			getSimpleTextInput("author", "author", extra.Author, Translation["documentSearchAuthor"]),
+			getSimpleTextInput("title", "title", extra.Title, Translation["documentSearchTitle"]),
+			If(isAdmin, getStandardCheckBox(extra.HideBlock, "true", "hideblock",
+				Translation["documentSearchHideBlock"])),
+			getStandardCheckBox(extra.Text, "true", "text", Translation["documentSearchText"]),
+			getStandardCheckBox(extra.Discussion, "true", "discussion",
+				Translation["documentSearchDiscussion"]),
+			getStandardCheckBox(extra.Votes, "true", "votes", Translation["documentSearchVotes"]),
+			getCheckBoxWithHideScript(false, "true", "addWritten",
+				Translation["documentSearchAddWritten"], "writtenDiv"),
+			getInput("written", "written", time.Now().Format("2006-01-02"),
+				Translation["documentSearchWritten"], "date", "", "hidden"),
+			getSubmitButton("make-advanced-search-query", Translation["makeAdvancedSearch"])),
 	)
 }
 

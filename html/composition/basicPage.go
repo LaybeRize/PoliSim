@@ -12,6 +12,7 @@ import (
 var language = strings.ToLower(os.Getenv("LANG"))
 var titleFormat = "!placeholder!"
 
+// SetupComposition gets the project name after loading the config file to make the title format
 func SetupComposition() {
 	titleFormat = Configuration["projectName"] + ": %s"
 }
@@ -35,12 +36,15 @@ func GetBasePage(pageTitle string, acc *extraction.AccountAuth, loadURL string, 
 		BODY(CLASS("bg-slate-800 min-h-screen text-slate-200"),
 			DIV(CLASS("flex flex-row"),
 				getSidebar(acc, nil),
-				DIV(ID(MainBodyID), HXGET("/"+APIPreRoute+loadURL+loadURLAddition), HXTRIGGER("load"), HXSWAP("outerHTML")),
+				DIV(ID(MainBodyID), HXGET("/"+APIPreRoute+loadURL+loadURLAddition),
+					HXTRIGGER("load"), HXSWAP("outerHTML"),
+				),
 			),
 		))
 }
 
-// getBasePageWrapper wraps the children in the MainBodyID div (and now an addition div to fucking standardize the fade in effect).
+// getBasePageWrapper wraps the children in the MainBodyID div
+// (and now an additional div to standardize the fade in effect).
 func getBasePageWrapper(children ...Node) Node {
 	return DIV(ID(MainBodyID), CLASS("flex items-center flex-col basePadding w-full minSizeBase mb-4"),
 		DIV(CLASS("flex items-center flex-col h-full fadeMeIn"), Group(children...)),
@@ -93,16 +97,19 @@ func GetSidebarReplacement(acc *extraction.AccountAuth) Node {
 // GetErrorPage returns an error page builder.Node with the errorText in it.
 func GetErrorPage(errorText string) Node {
 	return getBasePageWrapper(DIV(CLASS("h-full flex items-center justify-center"),
-		DIV(STYLE("padding: 0.5em; line-height: 1; justify-content: center; align-items: center;--clr-border: rgb(159 18 57); background-size: 4px 100%, 100% 4px, 4px 100% , 100% 4px;"),
+		DIV(STYLE("padding: 0.5em; line-height: 1; justify-content: center; align-items:"+
+			" center;--clr-border: rgb(159 18 57); background-size: 4px 100%, 100% 4px, 4px 100% , 100% 4px;"),
 			CLASS("box box-e flex-col flex"),
-			P(STYLE("font-size: 5em; margin-top: 3px; margin-left: 10px; margin-right: 10px"), CLASS("text-rose-600"),
-				Text(Translation["errorPageTitle"])),
-			P(STYLE("font-size: 2em; margin-top: 8px; margin-bottom: 21px;margin-left: 10px; margin-right: 10px"), CLASS("text-rose-600"),
-				Text(errorText)),
+			P(STYLE("font-size: 5em; margin-top: 3px; margin-left: 10px; margin-right: 10px"),
+				CLASS("text-rose-600"), Text(Translation["errorPageTitle"])),
+			P(STYLE("font-size: 2em; margin-top: 8px; margin-bottom: 21px;margin-left: 10px; margin-right: 10px"),
+				CLASS("text-rose-600"), Text(errorText)),
 		),
 	))
 }
 
+// getCustomRequestClickable returns a clickable link with a custom Attribute node a specific link, an URL to push and
+// the element node that displays what is desired for the link.
 func getCustomRequestClickable(f func(str ...string) Node, link string, urlToPush string, node Node) Node {
 	return A(f(link), HXTARGET("#"+MainBodyID),
 		If(urlToPush != "", HXPUSHURL(urlToPush)), HXSWAP("outerHTML"),

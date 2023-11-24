@@ -50,7 +50,7 @@ func ChangePasswordSelfService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("HX-Retarget", "#"+composition.MessageID)
+	retargetToMessage(w)
 	html := composition.GetMessage(msg)
 	swap := composition.GetLoginThing(true)
 	renderRequest(w, updateInformation(w, r, acc, composition.ViewSelf), html, swap)

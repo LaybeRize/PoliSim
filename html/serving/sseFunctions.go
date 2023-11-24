@@ -6,6 +6,7 @@ import (
 	"PoliSim/html/composition"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -19,48 +20,22 @@ func InstallSSEHandlers() {
 }
 
 func GetSSEReaderForVoteService(w http.ResponseWriter, r *http.Request) {
-	acc, _ := CheckUserPrivileges(r)
-	uuidStr := chi.URLParam(r, "uuid")
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		http.Error(w, "SSE not supported", http.StatusInternalServerError)
-		return
+	generlizeSSEConnection[database.Votes](w, r, addVoteToChannel, getVoteEvent)
+}
+
+func getVoteEvent(info database.Votes, isAdmin bool, uuidStr string) (*SendEventStruct, error) {
+	newErr := error(nil)
+	buff := bytes.NewBuffer([]byte{})
+	if info.Info.VoteMethod == database.RankedVotes {
+		newErr = composition.GetInfoRankedView(&info, false).Render(buff)
+	} else {
+		newErr = composition.GetInfoStandardView(&info, false).Render(buff)
 	}
-
-	w.Header().Set("Content-Type", "text/event-stream")
-
-	commentChannel := make(chan database.Votes)
-
-	go addVoteToChannel(r.Context(), uuidStr, commentChannel, acc.ID)
-
-	for info := range commentChannel {
-		var event string
-		var err error
-
-		event, err = formatServerSentEvent(func() ([]string, error) {
-			newErr := error(nil)
-			buff := bytes.NewBuffer([]byte{})
-			if info.Info.VoteMethod == database.RankedVotes {
-				newErr = composition.GetInfoRankedView(&info, false).Render(buff)
-			} else {
-				newErr = composition.GetInfoStandardView(&info, false).Render(buff)
-			}
-			return []string{buff.String(), fmt.Sprintf(composition.VoteInfoDiv, info.UUID), ""}, newErr
-		})
-
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-
-		_, err = fmt.Fprint(w, event)
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-
-		flusher.Flush()
-	}
+	return &SendEventStruct{
+		HTML:       buff.String(),
+		HTMXupdate: "",
+		Target:     fmt.Sprintf(composition.VoteInfoDiv, info.UUID),
+	}, newErr
 }
 
 func addVoteToChannel(ctx context.Context, id string, channel chan database.Votes, accountID int64) {
@@ -79,53 +54,30 @@ outerloop:
 }
 
 func GetSSEReaderForDiscussionService(w http.ResponseWriter, r *http.Request) {
-	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
-	uuidStr := chi.URLParam(r, "uuid")
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		http.Error(w, "SSE not supported", http.StatusInternalServerError)
-		return
+	generlizeSSEConnection[logic.CommentUpdate](w, r, addCommentToChannel, getCommentEvent)
+}
+
+func getCommentEvent(info logic.CommentUpdate, isAdmin bool, uuidStr string) (*SendEventStruct, error) {
+	id := composition.AdditionDiv
+	buff := bytes.NewBuffer([]byte{})
+	err := composition.GetCommentRendered(uuidStr, &info.Discussion, isAdmin).Render(buff)
+	if err != nil {
+		return nil, err
 	}
-
-	w.Header().Set("Content-Type", "text/event-stream")
-
-	commentChannel := make(chan logic.CommentUpdate)
-
-	go addCommentToChannel(r.Context(), uuidStr, commentChannel, acc.ID)
-
-	for info := range commentChannel {
-		event, err := formatServerSentEvent(func() ([]string, error) {
-			id := composition.AdditionDiv
-			buff := bytes.NewBuffer([]byte{})
-			err := composition.GetCommentRendered(uuidStr, &info.Discussion, isAdmin).Render(buff)
-			if err != nil {
-				return []string{}, err
-			}
-			replacer := fmt.Sprintf(fmt.Sprintf(composition.CommentSingleDivID, info.Discussion.UUID))
-			if info.Change {
-				id = replacer
-			} else {
-				err = composition.GetNewAdditionSSEDiv().Render(buff)
-			}
-			if err != nil {
-				return []string{}, err
-			}
-			return []string{buff.String(), id, replacer}, err
-		})
-
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-
-		_, err = fmt.Fprint(w, event)
-		if err != nil {
-			fmt.Println(err)
-			break
-		}
-
-		flusher.Flush()
+	replacer := fmt.Sprintf(fmt.Sprintf(composition.CommentSingleDivID, info.Discussion.UUID))
+	if info.Change {
+		id = replacer
+	} else {
+		err = composition.GetNewAdditionSSEDiv().Render(buff)
 	}
+	if err != nil {
+		return nil, err
+	}
+	return &SendEventStruct{
+		HTML:       buff.String(),
+		HTMXupdate: id,
+		Target:     replacer,
+	}, err
 }
 
 func addCommentToChannel(ctx context.Context, id string, channel chan logic.CommentUpdate, accountID int64) {
@@ -143,18 +95,66 @@ outerloop:
 	close(channel)
 }
 
-func formatServerSentEvent(f func() ([]string, error)) (string, error) {
-	array, err := f()
-	if err != nil || len(array) != 3 {
+type SendEventStruct struct {
+	HTML       string `json:"data"`
+	HTMXupdate string `json:"updateID"`
+	Target     string `json:"targetID"`
+}
+
+func generlizeSSEConnection[t any](w http.ResponseWriter, r *http.Request,
+	addRoutine func(ctx context.Context, id string, channel chan t, accountID int64),
+	formater func(info t, isAdmin bool, uuidStr string) (*SendEventStruct, error)) {
+	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
+	uuidStr := chi.URLParam(r, "uuid")
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "SSE not supported", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+
+	commentChannel := make(chan t)
+
+	go addRoutine(r.Context(), uuidStr, commentChannel, acc.ID)
+
+	for info := range commentChannel {
+		event, err := formatServerSentEvent[t](info, isAdmin, uuidStr, formater)
+
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+
+		_, err = fmt.Fprint(w, event)
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+
+		flusher.Flush()
+	}
+}
+
+func formatServerSentEvent[t any](info t, isAdmin bool, uuidStr string,
+	formater func(info t, isAdmin bool, uuidStr string) (*SendEventStruct, error)) (string, error) {
+	convert, err := formater(info, isAdmin, uuidStr)
+	if err != nil {
+		return "", err
+	}
+
+	buff := bytes.Buffer{}
+	enc := json.NewEncoder(&buff)
+	enc.SetEscapeHTML(false)
+	err = enc.Encode(convert)
+	if err != nil {
 		return "", err
 	}
 
 	sb := strings.Builder{}
 
 	sb.WriteString(fmt.Sprintf("event: change\n"))
-	sb.WriteString(fmt.Sprintf("data: {\"data\": \"%s\", \"id\":\"%s\", \"replace\":\"%s\"}\n\n",
-		strings.ReplaceAll(array[0], "\"", "\\\""),
-		array[1], array[2]))
+	sb.WriteString(fmt.Sprintf("data: %s\n", buff.String()))
 
 	return sb.String(), nil
 }

@@ -140,7 +140,7 @@ func PostCreateVoteInDatabaseService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("HX-Push-Url", "/"+string(composition.ViewVoteDocumentLink)+create.UUIDredirect)
+	pushURL(w, "/"+string(composition.ViewVoteDocumentLink)+create.UUIDredirect)
 	html := composition.GetVoteViewPage(acc, create.UUIDredirect,
 		CheckIfHasRole(acc, database.HeadAdmin, database.Admin),
 		validation.Message{})
