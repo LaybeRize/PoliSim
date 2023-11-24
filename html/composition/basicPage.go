@@ -36,7 +36,7 @@ func GetBasePage(pageTitle string, acc *extraction.AccountAuth, loadURL string, 
 		BODY(CLASS("bg-slate-800 min-h-screen text-slate-200"),
 			DIV(CLASS("flex flex-row"),
 				getSidebar(acc, nil),
-				DIV(ID(MainBodyID), HXGET("/"+APIPreRoute+loadURL+loadURLAddition),
+				DIV(ID(MainBodyID), HXGET("/"+HTMXPreRouter+loadURL+loadURLAddition),
 					HXTRIGGER("load"), HXSWAP("outerHTML"),
 				),
 			),
@@ -129,10 +129,10 @@ func getClickableLink(link string, urlToPush string, node Node) Node {
 
 func pagerFooter(beforeUUID string, nextUUID string, beforeLink string, nextLink string) Node {
 	return DIV(CLASS("w-[800px] flex justify-between flex-row"),
-		DIV(If(beforeUUID != "", getClickableLink("/"+APIPreRoute+beforeLink, "/"+beforeLink,
+		DIV(If(beforeUUID != "", getClickableLink("/"+HTMXPreRouter+beforeLink, "/"+beforeLink,
 			P(CLASS("bg-slate-700 text-white p-2 mt-2 disable-selection"), Text(Translation["beforePage"])),
 		))),
-		DIV(If(nextUUID != "", getClickableLink("/"+APIPreRoute+nextLink, "/"+nextLink,
+		DIV(If(nextUUID != "", getClickableLink("/"+HTMXPreRouter+nextLink, "/"+nextLink,
 			P(CLASS("bg-slate-700 text-white p-2 mt-2 disable-selection"), Text(Translation["nextPage"])),
 		))),
 	)

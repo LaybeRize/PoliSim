@@ -13,7 +13,7 @@ import (
 func GetCreatePressReleasePage(acc *extraction.AccountAuth, press *validation.CreateArticle, val validation.Message) Node {
 	return getBasePageWrapper(
 		getPageHeader(CreatePressRelease),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreatePressRelease), CLASS("w-[800px]"),
+		getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(CreatePressRelease), CLASS("w-[800px]"),
 			getUserDropdown(acc, press.Account, Translation["accountPressRelease"]),
 			getSimpleTextInput("title", "title", press.Title, Translation["pressTitle"]),
 			getSimpleTextInput("subtitle", "subtitle", press.Subtitle, Translation["pressSubtitle"]),
@@ -34,7 +34,7 @@ func GetViewOfHiddenNewspaper() Node {
 	nodes := make([]Node, len(*list))
 	for i, item := range *list {
 		link := string(ViewHiddenNewspaperList) + "/" + url.PathEscape(item.UUID)
-		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
+		nodes[i] = getClickableLink("/"+HTMXPreRouter+link, "/"+link, Group(
 			getStandardBoxClass, STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"),
 				IfElse(item.UUID == database.EternatityPublicationName, Text(Translation["hiddenStandardNewsPaper"]),
@@ -59,7 +59,7 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 		//}
 		link := string(rejectArticleLink) + item.UUID
 		nodes[i] = renderSingleArticle(&item,
-			getClickableLink("/"+APIPreRoute+link, "/"+link, Group(CLASS(buttonClassAttribute+" m-2"),
+			getClickableLink("/"+HTMXPreRouter+link, "/"+link, Group(CLASS(buttonClassAttribute+" m-2"),
 				STYLE("display: inline-block;"), Text(Translation["directToRejectArticleButton"]))))
 	}
 	if err != nil {
@@ -68,7 +68,7 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 	link := string(publishNewspaperLink) + uuid
 	return getBasePageWrapper(
 		getCustomPageHeader(fmt.Sprintf(Translation["unpublishedNewsletterTitle"], uuid)),
-		getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+link, "",
+		getCustomRequestClickable(HXPATCH, "/"+HTMXPreRouter+link, "",
 			P(CLASS("bg-slate-700 text-white p-2 mt-2 disable-selection"), Text(Translation["publishNewspaperButton"]))),
 		GetMessage(validation.Message{}),
 		Group(nodes...),
@@ -76,14 +76,14 @@ func GetViewSingleHiddenNewspaper(uuid string) Node {
 }
 
 func GetRejectArticlePage(uuid string, content string, val validation.Message) Node {
-	article, err := extraction.FindArticle(uuid, false)
+	article, err := extraction.FindHiddenArticle(uuid)
 	if err != nil {
 		return GetErrorPage(Translation["errorFindingRejectableArticle"])
 	}
 	return getBasePageWrapper(
 		getPageHeader(RejectArticle),
 		renderSingleArticle(article, nil),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(rejectArticleLink)+url.PathEscape(uuid), CLASS("w-[800px]"),
+		getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(rejectArticleLink)+url.PathEscape(uuid), CLASS("w-[800px]"),
 			getTextArea("content", "content", content, Translation["rejectArticleMessage"],
 				MarkdownFormPage),
 			getSubmitButton("rejectArticleButton", Translation["rejectArticleButton"])),
@@ -113,7 +113,7 @@ func GetNewspaperListPage(extra *logic.ExtraInfo) Node {
 	nodes := make([]Node, len(*view.PaperList))
 	for i, item := range *view.PaperList {
 		link := string(ViewNewspaperList) + "/" + url.PathEscape(item.UUID)
-		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
+		nodes[i] = getClickableLink("/"+HTMXPreRouter+link, "/"+link, Group(
 			getStandardBoxClass, STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"), IfElse(item.BreakingNews, Text(item.PublishTime.Format(Translation["breakingNewsFormat"])),
 				Text(item.PublishTime.Format(Translation["normalNewsFormat"]))))))

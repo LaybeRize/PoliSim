@@ -15,7 +15,7 @@ func getDocumentHead(doc *database.Document, isAdmin bool, extra ...Node) Node {
 		addition = " text-rose-600"
 	}
 	return DIV(CLASS("w-[800px]"), ID("document-header-div"),
-		If(isAdmin, A(HXPATCH("/"+APIPreRoute+string(BlockDocumentLink)+url.PathEscape(doc.UUID)),
+		If(isAdmin, A(HXPATCH("/"+HTMXPreRouter+string(BlockDocumentLink)+url.PathEscape(doc.UUID)),
 			HXTARGET("#"+MessageID), ID("block-button-document"),
 			TEST("block-button-document"), HXSWAP("outerHTML"),
 			CLASS("bg-slate-700 text-white p-2"),
@@ -42,7 +42,7 @@ func getDocumentBody(doc *database.Document) Node {
 // when the vote/discussion should end
 func scriptForUpdateOnEnd(doc *database.Document, httpUrl HttpUrl) Node {
 	return Group(DIV(ID("trigger-me-on-document-finish"),
-		HXTRIGGER("pageReloaded"), HXGET("/"+APIPreRoute+string(httpUrl)+url.PathEscape(doc.UUID)),
+		HXTRIGGER("pageReloaded"), HXGET("/"+HTMXPreRouter+string(httpUrl)+url.PathEscape(doc.UUID)),
 		HXTARGET("#"+MessageID), HXSWAP("outerHTML")),
 		SCRIPT(Raw(`
 		function timeForRefresh() {

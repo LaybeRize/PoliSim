@@ -16,15 +16,17 @@ func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.Crea
 	if err != nil {
 		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
 	}
-	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{ID: acc.ID,
-		DisplayName: acc.DisplayName}, document.Organisation, "user")
+	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{AccountDisplayName: extraction.AccountDisplayName{
+		ID:          acc.ID,
+		DisplayName: acc.DisplayName,
+	}}, document.Organisation, "user")
 	if err != nil {
 		val.Message = Translation["errorRetrievingOrganisationForAccount"] + "\n" + val.Message
 	}
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
 		getPageHeader(CreateDiscussionDocument),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateDiscussionDocument), CLASS("w-[800px]"),
+		getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(CreateDiscussionDocument), CLASS("w-[800px]"),
 			node,
 			getSimpleTextInput("title", "title", document.Title, Translation["titleDiscussion"]),
 			getSimpleTextInput("subtitle", "subtitle", document.Subtitle, Translation["subtitleDiscussion"]),
@@ -65,7 +67,7 @@ func GetCommentRendered(docUUID string, disc *database.Discussions, isAdmin bool
 		P(CLASS("mb-2"), I(Text(disc.Written.Format(Translation["commentWrittenAuthor"]), disc.Author)),
 			If(disc.Flair != "", Group(I(Text("; ")), Text(disc.Flair)))),
 		Raw(disc.HTMLContent),
-		If(isAdmin, getCustomRequestClickable(HXPATCH, "/"+APIPreRoute+string(ChangeCommentDocumentLink)+
+		If(isAdmin, getCustomRequestClickable(HXPATCH, "/"+HTMXPreRouter+string(ChangeCommentDocumentLink)+
 			url.PathEscape(docUUID)+"/"+url.PathEscape(disc.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2"),
 			STYLE("text-align: center;"), IfElse(!disc.Hidden, Text(Translation["hideCommentDiscussion"]),
 				Text(Translation["showCommentDiscussion"]))),
@@ -78,7 +80,7 @@ func GetNewAdditionSSEDiv() Node {
 }
 
 func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
-	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
+	doc, err := extraction.GetDiscussionForUser(uuidStr, acc.ID, isAdmin)
 	if err != nil {
 		return GetErrorPage(Translation["documentDoesNotExists"])
 	}
@@ -116,7 +118,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 		GetMessage(val),
 		If(doc.Type == database.RunningDiscussion && acc.ID != 0,
 			DIV(ID("discussion-comment-div"),
-				getFormStandardForm("form", POST, "/"+APIPreRoute+string(CommentDiscussionLink)+url.PathEscape(doc.UUID), CLASS("mt-2 w-[800px]"),
+				getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(CommentDiscussionLink)+url.PathEscape(doc.UUID), CLASS("mt-2 w-[800px]"),
 					getUserDropdown(acc, "", Translation["discussionCommentAuthor"]),
 					getTextArea(CommentContentDiv, "content", "", Translation["discussionCommentContent"],
 						MarkdownFormPage),
@@ -129,7 +131,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 
 func getDiscussionScript(uuid string) Node {
 	return SCRIPT(Raw(`
-const es = new EventSource("/` + APIPreRoute + string(sseReaderDiscussionLink) + uuid + `");
+const es = new EventSource("/` + HTMXPreRouter + string(sseReaderDiscussionLink) + uuid + `");
 es.addEventListener("change", (event) => {
     const parsedData = JSON.parse(event.data);
     const el = document.getElementById(parsedData.targetID);
@@ -142,7 +144,7 @@ es.addEventListener("change", (event) => {
 }
 
 func GetDiscussionViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
-	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
+	doc, err := extraction.GetDiscussionForUser(uuidStr, acc.ID, isAdmin)
 	if err != nil {
 		return GetMessage(validation.Message{Message: Translation["documentDoesNotExists"]})
 	}

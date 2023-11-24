@@ -22,64 +22,53 @@ type (
 		ID    int64
 		Flair string
 	}
-)
-
-type AccountNames struct {
-	DisplayName string
-	Username    string
-}
-
-type (
-	AccountList        []AccountListElement
-	AccountListElement struct {
-		ID          int64
+	AccountNames struct {
 		DisplayName string
 		Username    string
-		Flair       string
-		Suspended   bool
-		Role        database.RoleLevel
-		Linked      sql.NullInt64
+	}
+	AccountList        []AccountListElement
+	AccountPermissions struct {
+		Suspended bool
+		Role      database.RoleLevel
+	}
+	AccountListElement struct {
+		AccountDisplayName
+		AccountPermissions
+		Username string
+		Flair    string
+		Linked   sql.NullInt64
+	}
+	AccountAuth struct {
+		AccountDisplayName
+		AccountPermissions
+		HasLetters bool
+		Session    *sessions.Session `gorm:"-"`
+	}
+	AccountLogin struct {
+		AccountDisplayName
+		AccountPermissions
+		Username      string
+		Password      string
+		LoginTries    int
+		HasLetters    bool
+		NextLoginTime sql.NullTime
+	}
+	AccountModification struct {
+		AccountDisplayName
+		AccountPermissions
+		Username string
+		Password string
+		Flair    string
+		Linked   sql.NullInt64
 	}
 )
-
-type AccountAuth struct {
-	ID          int64
-	DisplayName string
-	Suspended   bool
-	HasLetters  bool
-	Role        database.RoleLevel
-	Session     *sessions.Session `gorm:"-"`
-}
-
-type AccountLogin struct {
-	ID            int64
-	DisplayName   string
-	Username      string
-	Password      string
-	Suspended     bool
-	LoginTries    int
-	HasLetters    bool
-	NextLoginTime sql.NullTime
-	Role          database.RoleLevel
-}
-
-type AccountModification struct {
-	ID          int64
-	DisplayName string
-	Username    string
-	Password    string
-	Flair       string
-	Suspended   bool
-	Role        database.RoleLevel
-	Linked      sql.NullInt64
-}
 
 // RootAccountExists checks if the account with the ID 1 exists
 // if so, it returns true and nil. If the DB gives back a gorm.ErrRecordNotFound
 // it will return false and nil.
 // If any other error occurs it will return false and the error.
 func RootAccountExists() (bool, error) {
-	err := database.DB.Where("id=?", 1).First(&database.Account{}).Error
+	err := database.DB.Where("id=?", 1).Select("id").First(&database.Account{}).Error
 	if err == nil {
 		return true, nil
 	}

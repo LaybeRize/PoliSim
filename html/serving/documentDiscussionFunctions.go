@@ -61,7 +61,7 @@ func PostCommentDiscussionViewService(w http.ResponseWriter, r *http.Request) {
 
 	isAdmin := CheckIfHasRole(acc, database.HeadAdmin, database.Admin)
 	uuidStr := chi.URLParam(r, "uuid")
-	_, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedDiscussion, database.RunningDiscussion)
+	_, err := extraction.GetDiscussionForUser(uuidStr, acc.ID, isAdmin)
 
 	if !ok || err != nil {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])

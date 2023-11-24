@@ -23,7 +23,7 @@ func GetViewTitelPage() Node {
 		for _, inner := range extraction.TitleGroupMap[outer] {
 			innerListing[innerCounter] = Group(BUTTON(
 				CLASS("text-2xl mt-2 w-full text-left"), Text(inner),
-				HXGET("/"+APIPreRoute+string(getTitleSubGroup)+url.PathEscape(outer)+"/"+url.PathEscape(inner)),
+				HXGET("/"+HTMXPreRouter+string(getTitleSubGroup)+url.PathEscape(outer)+"/"+url.PathEscape(inner)),
 				HXTARGET("#out-"+outer+"-in-"+inner), ID("out-"+outer+"-in-"+inner+"-button"),
 				HXSWAP("outerHTML"),
 			),
@@ -93,7 +93,7 @@ func GetViewOrganisationPage(accountID int64, isAdmin bool) Node {
 		for pos, inner := range (*orgGroupings)[i+1] {
 			innerListing[pos] = Group(BUTTON(
 				CLASS("text-2xl mt-2 w-full text-left"), Text(inner),
-				HXGET("/"+APIPreRoute+string(getOrganisationSubGroup)+url.PathEscape(outer)+"/"+url.PathEscape(inner)),
+				HXGET("/"+HTMXPreRouter+string(getOrganisationSubGroup)+url.PathEscape(outer)+"/"+url.PathEscape(inner)),
 				HXTARGET("#out-"+outer+"-in-"+inner), ID("out-"+outer+"-in-"+inner+"-button"),
 				HXSWAP("outerHTML"),
 			),

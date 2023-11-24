@@ -20,8 +20,10 @@ func GetCreateVotePage(acc *extraction.AccountAuth, document *validation.CreateV
 	if err != nil {
 		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
 	}
-	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{ID: acc.ID,
-		DisplayName: acc.DisplayName}, "", "user")
+	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{AccountDisplayName: extraction.AccountDisplayName{
+		ID:          acc.ID,
+		DisplayName: acc.DisplayName,
+	}}, "", "user")
 	if err != nil {
 		val.Message = Translation["errorRetrievingOrganisationForAccount"] + "\n" + val.Message
 	}
@@ -30,7 +32,7 @@ func GetCreateVotePage(acc *extraction.AccountAuth, document *validation.CreateV
 		getDataList("displayNames", display),
 		SCRIPT(SRC("/public/json-enc-custom.js")),
 		getPageHeader(CreateVoteDocument),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateVoteDocument), CLASS("w-[800px]"),
+		getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(CreateVoteDocument), CLASS("w-[800px]"),
 			HXEXTEND("json-enc-custom"),
 			node,
 			getSimpleTextInput("title", "title", "", Translation["titleVoteDocument"]),
@@ -101,7 +103,7 @@ func getPartialVote(number string) Node {
 func getPartialButton(number string, withSwap bool) Node {
 	return BUTTON(If(withSwap, HXSWAPOOB("true")), ID(votePartialButtonID), TYPE("button"),
 		CLASS("bg-slate-700 text-white p-2 mt-2 disable-selection"),
-		HXTARGET("#"+voteContainerDiv), HXSWAP("beforeend"), HXPATCH("/"+APIPreRoute+string(requestVotePartialLink)+number),
+		HXTARGET("#"+voteContainerDiv), HXSWAP("beforeend"), HXPATCH("/"+HTMXPreRouter+string(requestVotePartialLink)+number),
 		P(STYLE("text-align: center;"), Text(Translation["addnewVoteToPost"])))
 }
 
@@ -111,7 +113,7 @@ const (
 )
 
 func GetVoteViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
-	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedVote, database.RunningVote)
+	doc, err := extraction.GetVoteForUser(uuidStr, acc.ID, isAdmin)
 	if err != nil {
 		return GetMessage(validation.Message{Message: Translation["documentDoesNotExists"]})
 	}
@@ -144,7 +146,7 @@ func GetVoteViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin 
 }
 
 func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
-	doc, err := extraction.GetDocumentForUser(uuidStr, acc.ID, isAdmin, database.FinishedVote, database.RunningVote)
+	doc, err := extraction.GetVoteForUser(uuidStr, acc.ID, isAdmin)
 	if err != nil {
 		return GetErrorPage(Translation["documentDoesNotExists"])
 	}
@@ -197,7 +199,7 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 		If(doc.Type == database.RunningVote, DIV(ID(voteSSEScriptDiv), SCRIPT(Raw(`
 setTimeout(startSSE, 100);
 function startSSE() {
-    const es = new EventSource("/`+APIPreRoute+string(sseReaderVoteLink)+doc.UUID+`");
+    const es = new EventSource("/`+HTMXPreRouter+string(sseReaderVoteLink)+doc.UUID+`");
     es.onerror = (err) => {
         console.log("onerror", err)
     };
@@ -240,7 +242,7 @@ func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
 			DIV(CLASS("w-[800px]"), ID("form-vote-on-"+item.UUID),
-				getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+				getFormStandardForm("form", PATCH, "/"+HTMXPreRouter+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
 					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.SingleVote)), CLASS("w-full"),
 					HXEXTEND("json-enc-custom"),
 					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
@@ -262,7 +264,7 @@ func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID 
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
 			DIV(CLASS("w-[800px]"), ID("form-vote-on-"+item.UUID),
-				getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+				getFormStandardForm("form", PATCH, "/"+HTMXPreRouter+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
 					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.MultipleVotes)), CLASS("w-full"),
 					HXEXTEND("json-enc-custom"),
 					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
@@ -288,7 +290,7 @@ func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
 			DIV(CLASS("w-[800px]"), ID("form-vote-on-"+item.UUID),
-				getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+				getFormStandardForm("form", PATCH, "/"+HTMXPreRouter+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
 					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.RankedVotes)), CLASS("w-full"),
 					HXEXTEND("json-enc-custom"),
 					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),
@@ -321,7 +323,7 @@ func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, doc
 	return []Node{P(CLASS("text-xl my-2"), Text(item.Question)),
 		If(acc.Role != database.NotLoggedIn && !item.Finished,
 			DIV(CLASS("w-[800px]"), ID("form-vote-on-"+item.UUID),
-				getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
+				getFormStandardForm("form", PATCH, "/"+HTMXPreRouter+string(MakeVoteLink)+url.PathEscape(docUUID)+"/"+
 					url.PathEscape(item.UUID)+"/"+url.PathEscape(string(database.ThreeCategoryVoting)), CLASS("w-full"),
 					HXEXTEND("json-enc-custom"),
 					getUserDropdown(acc, "", Translation["giveVoteAuthorText"]),

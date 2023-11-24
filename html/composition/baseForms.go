@@ -143,7 +143,7 @@ func getTextArea(id string, name string, content string, labelText string, patch
 		TEXTAREA(NAME(name), ID(id), TEST(id),
 			CLASS(inputFieldBackgroundColor+"appearance-none w-full h-[200px] py-2 px-3"),
 			If(patchURL != "", Group(
-				HXPATCH("/"+APIPreRoute+string(patchURL)),
+				HXPATCH("/"+HTMXPreRouter+string(patchURL)),
 				HXTARGET("#"+DisplayID),
 				HXTRIGGER("keyup changed delay:1s"),
 				HXSWAP("outerHTML"))),

@@ -19,7 +19,7 @@ func GetCreateNormalLetterPage(acc *extraction.AccountAuth, letter *validation.C
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
 		getPageHeader(CreateLetter),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateLetter), CLASS("w-[800px]"),
+		getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(CreateLetter), CLASS("w-[800px]"),
 			getUserDropdown(acc, letter.Account, Translation["accountLetter"]),
 			getSimpleTextInput("title", "title", letter.Title, Translation["letterTitle"]),
 			getCheckBoxWithHideScript(letter.NoSigning, "true", "noSigning", Translation["letterNoSigning"], "allHaveToAgree"),
@@ -41,7 +41,7 @@ func GetCreateModMailPage(letter *validation.CreateLetter, val validation.Messag
 	return getBasePageWrapper(
 		getDataList("displayNames", display),
 		getPageHeader(CreateModmail),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateModmail), CLASS("w-[800px]"),
+		getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(CreateModmail), CLASS("w-[800px]"),
 			getSimpleTextInput("authorAccount", "authorAccount", letter.Account, Translation["modMailAccount"]),
 			getSimpleTextInput("flair", "flair", letter.Flair, Translation["modMailFlair"]),
 			getSimpleTextInput("title", "title", letter.Title, Translation["modMailTitle"]),
@@ -64,7 +64,7 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 	nodes := make([]Node, len(*view.LetterList))
 	for i, item := range *view.LetterList {
 		link := string(ViewLetterLink) + url.PathEscape(extra.ViewAccountName) + "/" + url.PathEscape(item.UUID)
-		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(getStandardBoxClass,
+		nodes[i] = getClickableLink("/"+HTMXPreRouter+link, "/"+link, Group(getStandardBoxClass,
 			IfElse(item.Read, STYLE("--clr-border: rgb(40 51 69);"), STYLE("--clr-border: rgb(140 140 140);")),
 			H1(CLASS("text-2xl"), Text(item.Title)),
 			P(Text(Translation["authorShortFormLetter"], item.Author))))
@@ -90,7 +90,7 @@ func GetViewModmailList(acc *extraction.AccountAuth, extra *logic.ExtraInfo) Nod
 	nodes := make([]Node, len(*view.LetterList))
 	for i, item := range *view.LetterList {
 		link := string(ViewLetterLink) + url.PathEscape(acc.DisplayName) + "/" + url.PathEscape(item.UUID)
-		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(getStandardBoxClass,
+		nodes[i] = getClickableLink("/"+HTMXPreRouter+link, "/"+link, Group(getStandardBoxClass,
 			STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"), Text(item.Title)),
 			P(Text(Translation["authorShortFormLetter"], item.Author))))
@@ -111,11 +111,11 @@ func getUserModificationForLetters(user *extraction.AccountAuth, selectedAccount
 	return DIV(CLASS("mt-2 w-full"),
 		LABEL(FOR("reader"), Text(labelText)),
 		SELECT(ID("reader"), NAME("reader"), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
-			HXPATCH("/"+APIPreRoute+string(ChangeViewLetterAccount)), HXTRIGGER("change"),
+			HXPATCH("/"+HTMXPreRouter+string(ChangeViewLetterAccount)), HXTRIGGER("change"),
 			HXTARGET("#"+MainBodyID), HXSWAP("outerHTML"),
 			getUserOptions(user, selectedAccount),
 		),
-		BUTTON(TYPE("submit"), CLASS(buttonClassAttribute+" mt-2 mr-2"), HXPATCH("/"+APIPreRoute+string(MarkAllLetterAccount)), HXTARGET("#"+MainBodyID),
+		BUTTON(TYPE("submit"), CLASS(buttonClassAttribute+" mt-2 mr-2"), HXPATCH("/"+HTMXPreRouter+string(MarkAllLetterAccount)), HXTARGET("#"+MainBodyID),
 			HXINCLUDE("[name='reader']"), HXSWAP("outerHTML"),
 			ID("mark-all-read"), TEST("mark-all-read"), Text(Translation["markAllLettersRead"])),
 		GetMessage(validation.Message{}),
@@ -172,10 +172,10 @@ func GetSingLetterView(account *extraction.AccountModification, letterUUID strin
 		),
 		specialNode,
 		If(hasNotSigned && !letter.Info.NoSigning, DIV(CLASS("w-[800px] flex flex-row"),
-			updateLetterButton("/"+APIPreRoute+string(updateLetterLink)+
+			updateLetterButton("/"+HTMXPreRouter+string(updateLetterLink)+
 				url.PathEscape(account.DisplayName)+"/"+
 				letterUUID+"/sign", Translation["signLetter"]),
-			updateLetterButton("/"+APIPreRoute+string(updateLetterLink)+
+			updateLetterButton("/"+HTMXPreRouter+string(updateLetterLink)+
 				url.PathEscape(account.DisplayName)+"/"+
 				letterUUID+"/reject", Translation["rejectLetter"]))),
 		GetMessage(val),

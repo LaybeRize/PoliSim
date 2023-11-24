@@ -127,12 +127,12 @@ func (info *ExtraInfo) GetNewspaper() (*ViewNewspaper, error) {
 	return viewInfo, err
 }
 
-func GetDocuments(isAdmin bool, info *extraction.ExtraInfo) (*ViewDocuments, error) {
+func GetDocuments(info *extraction.ExtraInfo) (*ViewDocuments, error) {
 	viewInfo := &ViewDocuments{NextUUID: "", BeforeUUID: ""}
 	var exists bool
 	var err error
 	if info.Before {
-		viewInfo.DocumentList, exists, err = info.GetDocumentsBefore(isAdmin)
+		viewInfo.DocumentList, exists, err = info.GetDocumentsBefore()
 		if err != nil || len(*viewInfo.DocumentList) == 0 {
 			return viewInfo, err
 		}
@@ -144,7 +144,7 @@ func GetDocuments(isAdmin bool, info *extraction.ExtraInfo) (*ViewDocuments, err
 			viewInfo.NextUUID = (*viewInfo.DocumentList)[len(*viewInfo.DocumentList)-1].UUID
 		}
 	} else {
-		viewInfo.DocumentList, exists, err = info.GetDocumentsAfter(isAdmin)
+		viewInfo.DocumentList, exists, err = info.GetDocumentsAfter()
 		if err != nil || len(*viewInfo.DocumentList) == 0 {
 			return viewInfo, err
 		}

@@ -47,16 +47,24 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	html := composition.GetStartPage(&extraction.AccountAuth{
-		DisplayName: loginAccount.DisplayName,
-		Role:        loginAccount.Role,
+		AccountDisplayName: extraction.AccountDisplayName{
+			DisplayName: loginAccount.DisplayName,
+		},
+		AccountPermissions: extraction.AccountPermissions{
+			Role: loginAccount.Role,
+		},
 	}, msg)
 	renderRequest(w, updateInformation(w, r, &extraction.AccountAuth{
-		ID:          loginAccount.ID,
-		DisplayName: loginAccount.DisplayName,
-		Suspended:   loginAccount.Suspended,
-		Role:        loginAccount.Role,
-		HasLetters:  loginAccount.HasLetters,
-		Session:     acc.Session,
+		AccountDisplayName: extraction.AccountDisplayName{
+			ID:          loginAccount.ID,
+			DisplayName: loginAccount.DisplayName,
+		},
+		AccountPermissions: extraction.AccountPermissions{
+			Suspended: loginAccount.Suspended,
+			Role:      loginAccount.Role,
+		},
+		HasLetters: loginAccount.HasLetters,
+		Session:    acc.Session,
 	}, composition.Start),
 		html)
 }

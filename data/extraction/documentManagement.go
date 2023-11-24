@@ -18,7 +18,23 @@ func GetDocumentIfNotPrivate(docType database.DocumentType, uuid string, admin b
 	return doc, err
 }
 
-func GetDocumentForUser(uuid string, userID int64, isAdmin bool, docType ...database.DocumentType) (*database.Document, error) {
+func GetVoteForUser(uuid string, userID int64, isAdmin bool) (*database.Document, error) {
+	doc, err := GetDocumentForUser(uuid, userID, isAdmin)
+	if doc.Type == database.FinishedVote || doc.Type == database.RunningVote {
+		return doc, err
+	}
+	return nil, errors.New("is not a vote")
+}
+
+func GetDiscussionForUser(uuid string, userID int64, isAdmin bool) (*database.Document, error) {
+	doc, err := GetDocumentForUser(uuid, userID, isAdmin)
+	if doc.Type == database.FinishedDiscussion || doc.Type == database.RunningDiscussion {
+		return doc, err
+	}
+	return nil, errors.New("is not a vote")
+}
+
+func GetDocumentForUser(uuid string, userID int64, isAdmin bool) (*database.Document, error) {
 	doc := &database.Document{}
 	err := database.DB.Joins("LEFT JOIN organisation_account ON documents.organisation = organisation_account.name").
 		Joins("LEFT JOIN doc_allowed ON doc_allowed.uuid = documents.uuid").
@@ -30,15 +46,7 @@ func GetDocumentForUser(uuid string, userID int64, isAdmin bool, docType ...data
 		", html_content, private, blocked, info, allowed_any, allowed_members").
 		Where("documents.uuid = ? AND (blocked = false Or true = ?) AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?)",
 			uuid, isAdmin, userID, userID, isAdmin).First(doc).Error
-	if len(docType) == 0 {
-		return doc, err
-	}
-	for _, singleType := range docType {
-		if doc.Type == singleType {
-			return doc, err
-		}
-	}
-	return doc, errors.New("is Not One Of the specified Types")
+	return doc, err
 }
 
 func GetDocument(uuid string) (*database.Document, error) {
@@ -76,15 +84,46 @@ func GetFirstDocumentBeforeTime(t time.Time, userID int64, isAdmin bool) (*datab
 	doc := &database.Document{}
 	err := database.DB.Joins("LEFT JOIN organisation_account ON documents.organisation = organisation_account.name").
 		Joins("LEFT JOIN doc_allowed ON doc_allowed.uuid = documents.uuid").
-		Preload("Viewer", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id, display_name")
-		}).Preload("Poster", func(db *gorm.DB) *gorm.DB {
-		return db.Select("id, display_name")
-	}).Select("documents.uuid, written, documents.organisation, type, author, flair, title, subtitle"+
-		", html_content, private, blocked, info, allowed_any, allowed_members").
+		Select("documents.uuid, written, documents.organisation, type, author, flair, title, subtitle"+
+			", html_content, private, blocked, info, allowed_any, allowed_members").
 		Where("(blocked = false Or true = ?) AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?) AND written > ?",
 			isAdmin, userID, userID, isAdmin, t).Order("written").First(doc).Error
 	return doc, err
+}
+
+func (extra *ExtraInfo) GetDocumentsAfter() (documentList *database.DocumentList, exists bool, err error) {
+	documentList = &database.DocumentList{}
+	exists = true
+	var doc *database.Document
+	t, err := time.Parse("2006-01-02", extra.Written)
+	if err == nil {
+		doc, err = GetFirstDocumentBeforeTime(t, extra.ViewAccountID, extra.IsAdmin)
+	} else {
+		doc, err = GetDocumentForUser(extra.UUID, extra.ViewAccountID, extra.IsAdmin)
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		exists = false
+		doc.Written = time.Now()
+	} else if err != nil {
+		return
+	}
+	err = extra.getBasicDocumentQuery().Where("written < ?", doc.Written).Order("written desc").Find(documentList).Error
+	return
+}
+
+func (extra *ExtraInfo) GetDocumentsBefore() (documentList *database.DocumentList, exists bool, err error) {
+	documentList = &database.DocumentList{}
+	exists = true
+	var doc *database.Document
+	doc, err = GetDocumentForUser(extra.UUID, extra.ViewAccountID, extra.IsAdmin)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		exists = false
+		doc.Written = time.Now()
+	} else if err != nil {
+		return
+	}
+	err = database.DB.Select("*").Table("(?) as X", extra.getBasicDocumentQuery().Order("written").Where("written > ?", doc.Written)).Order("X.written desc").Find(documentList).Error
+	return
 }
 
 type ExtraInfo struct {
@@ -99,52 +138,18 @@ type ExtraInfo struct {
 	Organisation  string `input:"organisation"`
 	Author        string `input:"author"`
 	Title         string `input:"title"`
+	IsAdmin       bool
 	ViewAccountID int64
 }
 
-func (extra *ExtraInfo) GetDocumentsAfter(isAdmin bool) (documentList *database.DocumentList, exists bool, err error) {
-	documentList = &database.DocumentList{}
-	exists = true
-	var doc *database.Document
-	t, err := time.Parse("2006-01-02", extra.Written)
-	if err == nil {
-		doc, err = GetFirstDocumentBeforeTime(t, extra.ViewAccountID, isAdmin)
-	} else {
-		doc, err = GetDocumentForUser(extra.UUID, extra.ViewAccountID, isAdmin)
-	}
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		exists = false
-		doc.Written = time.Now()
-	} else if err != nil {
-		return
-	}
-	err = extra.getBasicDocumentQuery(isAdmin).Where("written < ?", doc.Written).Order("written desc").Find(documentList).Error
-	return
-}
-
-func (extra *ExtraInfo) GetDocumentsBefore(isAdmin bool) (documentList *database.DocumentList, exists bool, err error) {
-	documentList = &database.DocumentList{}
-	exists = true
-	var doc *database.Document
-	doc, err = GetDocumentForUser(extra.UUID, extra.ViewAccountID, isAdmin)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		exists = false
-		doc.Written = time.Now()
-	} else if err != nil {
-		return
-	}
-	err = database.DB.Select("*").Table("(?) as X", extra.getBasicDocumentQuery(isAdmin).Order("written").Where("written > ?", doc.Written)).Order("X.written desc").Find(documentList).Error
-	return
-}
-
-func (extra *ExtraInfo) getBasicDocumentQuery(isAdmin bool) *gorm.DB {
+func (extra *ExtraInfo) getBasicDocumentQuery() *gorm.DB {
 	query := "documents.uuid != ? AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?) "
-	params := []interface{}{extra.UUID, extra.ViewAccountID, extra.ViewAccountID, isAdmin}
+	params := []interface{}{extra.UUID, extra.ViewAccountID, extra.ViewAccountID, extra.IsAdmin}
 	if extra.HideBlock {
 		query += "AND blocked = false "
 	} else {
 		query += "AND (blocked = false Or true = ?) "
-		params = append(params, isAdmin)
+		params = append(params, extra.IsAdmin)
 	}
 	if extra.Text || extra.Discussion || extra.Votes {
 		query += "AND ("

@@ -87,13 +87,17 @@ func (form *AccountModification) ValidateAccountCreation(changer *extraction.Acc
 		pass = []byte("")
 	}
 	acc := extraction.AccountModification{
-		DisplayName: form.DisplayName,
-		Username:    form.Username,
-		Password:    string(pass),
-		Flair:       form.Flair,
-		Suspended:   false,
-		Role:        database.RoleLevel(form.Role),
-		Linked:      sql.NullInt64{Int64: form.Linked},
+		AccountDisplayName: extraction.AccountDisplayName{
+			DisplayName: form.DisplayName,
+		},
+		AccountPermissions: extraction.AccountPermissions{
+			Suspended: false,
+			Role:      database.RoleLevel(form.Role),
+		},
+		Username: form.Username,
+		Password: string(pass),
+		Flair:    form.Flair,
+		Linked:   sql.NullInt64{Int64: form.Linked},
 	}
 	if acc.Role == database.PressAccount {
 		acc.Linked.Valid = true

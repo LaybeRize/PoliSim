@@ -1,7 +1,6 @@
 package composition
 
 import (
-	"PoliSim/data/database"
 	. "PoliSim/html/builder"
 	"net/http"
 )
@@ -98,19 +97,14 @@ const (
 	// NotFound is only used as a way to keep the PageTitleMap in order
 	NotFound HttpUrl = "notFound"
 
-	// APIPreRoute is a subroute for the web application to prepend to any
+	// HTMXPreRouter is a subroute for the web application to prepend to any
 	// backend partial replies. It never starts with a / because that is automatically prepend anyway
-	APIPreRoute = "htmx/"
-)
+	HTMXPreRouter = "htmx/"
 
-type HttpHandling struct {
-	TitleText          string
-	SidebarButtonText  string
-	HasSidebarButton   bool
-	SidebarSubMenuText string
-	HasSidebarSubMenu  bool
-	RoleLevel          database.RoleLevel
-}
+	// JSONPreRouter is a subroute for all json api calls. It is automatically prepend to all
+	// routes that returns json.
+	JSONPreRouter = "api/json/"
+)
 
 var PageTitleMap = make(map[HttpUrl]string)
 var SidebarTitleMap = make(map[HttpUrl]string)

@@ -23,8 +23,8 @@ var (
 	runSymbol  = I(CLASS("bi bi-hourglass-split"))
 )
 
-func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
-	view, err := logic.GetDocuments(isAdmin, extra)
+func GetDocumentPage(extra *extraction.ExtraInfo) Node {
+	view, err := logic.GetDocuments(extra)
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingDocuments"])
 	}
@@ -49,7 +49,7 @@ func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 			link = string(ViewVoteDocumentLink) + link
 			classification = Group(voteSymbol, Text(" "), runSymbol)
 		}
-		nodes[i] = getClickableLink("/"+APIPreRoute+link, "/"+link, Group(
+		nodes[i] = getClickableLink("/"+HTMXPreRouter+link, "/"+link, Group(
 			getStandardBoxClass, STYLE("--clr-border: rgb(40 51 69);"),
 			H1(CLASS("text-2xl"), classification, Text(" "+item.Title)),
 			P(I(Text(item.Written.Format(Translation["documentWrittenDate"])))),
@@ -70,7 +70,7 @@ func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 	return getBasePageWrapper(
 		getPageHeader(ViewDocument),
 		toggleVisiblityOfNextDiv(Translation["advancedDocumentSearch"]),
-		getAdvancedSearch(isAdmin, extra),
+		getAdvancedSearch(extra.IsAdmin, extra),
 		Group(nodes...),
 		pagerFooter(view.BeforeUUID, view.NextUUID,
 			before+extraStr, next+extraStr),
@@ -80,7 +80,7 @@ func GetDocumentPage(isAdmin bool, extra *extraction.ExtraInfo) Node {
 func getAdvancedSearch(isAdmin bool, extra *extraction.ExtraInfo) Node {
 	return DIV(ID("advanced-search-div"),
 		CLASS("text-left text-sm mt-2 w-auto mx-auto text-gray-200 font-bold hidden"),
-		getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(ViewDocument), CLASS("w-[800px]"),
+		getFormStandardForm("form", PATCH, "/"+HTMXPreRouter+string(ViewDocument), CLASS("w-[800px]"),
 			getInput("amount", "amount", strconv.FormatInt(int64(extra.Amount), 10),
 				Translation["documentSearchAmount"], "number", "", "",
 				MIN(strconv.FormatInt(MinDocuments, 10)), MAX(strconv.FormatInt(MaxDocuments, 10))),

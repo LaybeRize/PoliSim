@@ -86,7 +86,7 @@ func errorAccountData(val *validation.Message) {
 
 func GetLoginThing(swap bool) Node {
 	return DIV(ID("password-div-id"), If(swap, HXSWAPOOB("true")),
-		getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(ChangePassword),
+		getFormStandardForm("form", PATCH, "/"+HTMXPreRouter+string(ChangePassword),
 			getInput("ordPassword", "ordPassword", "", Translation["ordPassword"],
 				"password", "", ""),
 			getInput("newPassword", "newPassword", "", Translation["newPassword"],

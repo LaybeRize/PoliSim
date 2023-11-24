@@ -106,7 +106,7 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 		validate.Message = fmt.Sprintf(builder.Translation["missingRejectionMessage"], maxCharacterForRejection)
 		return
 	}
-	article, err := extraction.FindArticle(uuidStr, false)
+	article, err := extraction.FindHiddenArticle(uuidStr)
 	if err != nil {
 		validate.Message = builder.Translation["cantRejectArticle"]
 		return

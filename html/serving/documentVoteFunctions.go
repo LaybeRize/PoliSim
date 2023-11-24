@@ -40,7 +40,7 @@ func PatchMakeVoteService(w http.ResponseWriter, r *http.Request) {
 	voteUUID := chi.URLParam(r, "vote")
 	voteType := database.VoteType(chi.URLParam(r, "type"))
 
-	_, err := extraction.GetDocumentForUser(docUUID, acc.ID, isAdmin, database.FinishedVote, database.RunningVote)
+	_, err := extraction.GetVoteForUser(docUUID, acc.ID, isAdmin)
 
 	if !ok || err != nil {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])

@@ -83,11 +83,11 @@ func instigateRoutes(router *chi.Mux) {
 	// sets up the 404 routing
 	router.NotFound(serving.GetFullPage(builder.Translation["pageNotFoundTitle"]))
 	composition.PageTitleMap[composition.NotFound] = builder.Translation["pageNotFoundTitle"]
-	router.Get("/"+composition.APIPreRoute+"*", serving.NotFoundService)
-	router.Put("/"+composition.APIPreRoute+"*", serving.NotFoundService)
-	router.Post("/"+composition.APIPreRoute+"*", serving.NotFoundService)
-	router.Patch("/"+composition.APIPreRoute+"*", serving.NotFoundService)
-	router.Delete("/"+composition.APIPreRoute+"*", serving.NotFoundService)
+	router.Get("/"+composition.HTMXPreRouter+"*", serving.NotFoundService)
+	router.Put("/"+composition.HTMXPreRouter+"*", serving.NotFoundService)
+	router.Post("/"+composition.HTMXPreRouter+"*", serving.NotFoundService)
+	router.Patch("/"+composition.HTMXPreRouter+"*", serving.NotFoundService)
+	router.Delete("/"+composition.HTMXPreRouter+"*", serving.NotFoundService)
 	_, _ = fmt.Fprintf(os.Stdout, "Added htmx not found routing\n")
 
 	// sets up the standard routes
@@ -97,15 +97,15 @@ func instigateRoutes(router *chi.Mux) {
 	}
 
 	for url, function := range composition.GetHTMXFunctions {
-		router.Get("/"+composition.APIPreRoute+string(url), function)
+		router.Get("/"+composition.HTMXPreRouter+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Get Routes for htmx backend\n")
 	for url, function := range composition.PostHTMXFunctions {
-		router.Post("/"+composition.APIPreRoute+string(url), function)
+		router.Post("/"+composition.HTMXPreRouter+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Post Routes for htmx backend\n")
 	for url, function := range composition.PatchHTMXFunctions {
-		router.Patch("/"+composition.APIPreRoute+string(url), function)
+		router.Patch("/"+composition.HTMXPreRouter+string(url), function)
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Added Patch Routes for htmx backend\n")
 }
@@ -128,12 +128,16 @@ func createAdminAccount() {
 	}
 
 	adminAccount := extraction.AccountLogin{
-		ID:          1,
-		DisplayName: os.Getenv("INIT_NAME"),
-		Username:    os.Getenv("INIT_USERNAME"),
-		Password:    string(hashedPassword),
-		Suspended:   false,
-		Role:        database.HeadAdmin,
+		AccountDisplayName: extraction.AccountDisplayName{
+			ID:          1,
+			DisplayName: os.Getenv("INIT_NAME"),
+		},
+		AccountPermissions: extraction.AccountPermissions{
+			Suspended: false,
+			Role:      database.HeadAdmin,
+		},
+		Username: os.Getenv("INIT_USERNAME"),
+		Password: string(hashedPassword),
 	}
 	err = adminAccount.CreateMe()
 	if err != nil {

@@ -9,14 +9,16 @@ import (
 )
 
 func CreateDocumentPage(acc *extraction.AccountAuth, document *validation.CreateDocument, val validation.Message) Node {
-	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{ID: acc.ID,
-		DisplayName: acc.DisplayName}, document.Organisation, "admin")
+	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{AccountDisplayName: extraction.AccountDisplayName{
+		ID:          acc.ID,
+		DisplayName: acc.DisplayName,
+	}}, document.Organisation, "admin")
 	if err != nil {
 		val.Message = Translation["errorRetrievingOrganisationForAccount"] + "\n" + val.Message
 	}
 	return getBasePageWrapper(
 		getPageHeader(CreateTextDocument),
-		getFormStandardForm("form", POST, "/"+APIPreRoute+string(CreateTextDocument), CLASS("w-[800px]"),
+		getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(CreateTextDocument), CLASS("w-[800px]"),
 			node,
 			getSimpleTextInput("title", "title", document.Title, Translation["titleTextDocument"]),
 			getSimpleTextInput("subtitle", "subtitle", document.Subtitle, Translation["subtitleTextDocument"]),
@@ -57,7 +59,7 @@ func ViewDocumentPage(uuidStr string, isAdmin bool) Node {
 				If(len(nodes) != 0, nodes[0]),
 			)),
 		getDocumentBody(doc),
-		DIV(ID(DocumentAdminPanel), HXGET("/"+APIPreRoute+string(AddTagDocumentLink)+url.PathEscape(doc.UUID)+"?org="+
+		DIV(ID(DocumentAdminPanel), HXGET("/"+HTMXPreRouter+string(AddTagDocumentLink)+url.PathEscape(doc.UUID)+"?org="+
 			url.QueryEscape(doc.Organisation)), HXTRIGGER("load"), HXSWAP("outerHTML"),
 			HXTARGET("#"+DocumentAdminPanel)),
 		GetMessage(validation.Message{}),
@@ -81,14 +83,14 @@ func GetTagAdminPanel(uuid string, isAdmin bool) Node {
 		}
 		*ref = append(*ref, DIV(CLASS("mt-2 w-[800px] grid grid-flow-col grid-cols-3 justify-stretch"),
 			renderTag(post, "col-span-2"), getCustomRequestClickable(HXPATCH,
-				"/"+APIPreRoute+string(ChangeTagDocumentLink)+url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID),
+				"/"+HTMXPreRouter+string(ChangeTagDocumentLink)+url.PathEscape(uuid)+"/"+url.PathEscape(post.UUID),
 				"",
 				P(CLASS("bg-slate-700 text-white p-2 mt-2 ml-2 disable-selection"),
 					STYLE("text-align: center;"), text),
 			)))
 	}
 	return Group(DIV(
-		getFormStandardForm("form", PATCH, "/"+APIPreRoute+string(AddTagDocumentLink)+url.PathEscape(uuid),
+		getFormStandardForm("form", PATCH, "/"+HTMXPreRouter+string(AddTagDocumentLink)+url.PathEscape(uuid),
 			CLASS("w-[800px]"),
 			getSimpleTextInput("tag", "tag", "", Translation["tagTextDocument"]),
 			getInput("color", "color", "", Translation["tagColorTextDocument"], "color",
@@ -120,7 +122,7 @@ func UpdateUserOrganisations(baseAccount *extraction.AccountAuth, account *extra
 	return DIV(ID(UserSelectionID), DIV(CLASS("mt-2"),
 		LABEL(FOR("authorAccount"), Text(Translation["accountDocument"])),
 		SELECT(ID("authorAccount"), NAME("authorAccount"), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
-			HXPATCH("/"+APIPreRoute+string(updateUserSelectionLink)+isAdmin), HXTRIGGER("change"),
+			HXPATCH("/"+HTMXPreRouter+string(updateUserSelectionLink)+isAdmin), HXTRIGGER("change"),
 			HXTARGET("#"+UserSelectionID), HXSWAP("outerHTML"),
 			getUserOptions(baseAccount, account.DisplayName),
 		),

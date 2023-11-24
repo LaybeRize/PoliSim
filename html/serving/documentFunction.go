@@ -50,10 +50,11 @@ func GetViewDocumentsService(w http.ResponseWriter, r *http.Request) {
 
 	extraInfo := &extraction.ExtraInfo{
 		ViewAccountID: acc.ID,
+		IsAdmin:       isAdmin,
 	}
 	extractURLFieldValues(extraInfo, r, composition.MinDocuments, int64(standardAmount), composition.MaxDocuments)
 
-	html := composition.GetDocumentPage(isAdmin, extraInfo)
+	html := composition.GetDocumentPage(extraInfo)
 	viewDocumentsRenderRequest(w, r, acc, html)
 }
 
@@ -61,6 +62,7 @@ func PatchViewDocumentsService(w http.ResponseWriter, r *http.Request) {
 	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 	extraInfo := &extraction.ExtraInfo{
 		ViewAccountID: acc.ID,
+		IsAdmin:       isAdmin,
 	}
 
 	err := extractFormValuesForFields(extraInfo, r, 0)
@@ -82,7 +84,7 @@ func PatchViewDocumentsService(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pushURL(w, fmt.Sprintf("/%s?amount=%d%s", string(composition.ViewDocument), extraInfo.Amount, str))
-	html := composition.GetDocumentPage(isAdmin, extraInfo)
+	html := composition.GetDocumentPage(extraInfo)
 	viewDocumentsRenderRequest(w, r, acc, html)
 }
 

@@ -73,7 +73,7 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 	if minimumLevel > userLevel {
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
-	return A(HXGET("/"+APIPreRoute+string(url)), HXTARGET("#"+MainBodyID),
+	return A(HXGET("/"+HTMXPreRouter+string(url)), HXTARGET("#"+MainBodyID),
 		ID(string(url)+SidebarID), TEST(string(url)+SidebarID),
 		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
 		CLASS(sidebarLinkClass), SPAN(CLASS(sidebarSpanClass), Text(SidebarTitleMap[url])),
@@ -85,7 +85,7 @@ func GetLetterSidebarButton(acc *extraction.AccountAuth, swap bool) Node {
 	if database.User > acc.Role {
 		return A(ID(LetterSidebarID), HIDDEN(), If(swap, HXSWAPOOB("true")))
 	}
-	return A(HXGET("/"+APIPreRoute+string(useURL)), HXTARGET("#"+MainBodyID),
+	return A(HXGET("/"+HTMXPreRouter+string(useURL)), HXTARGET("#"+MainBodyID),
 		ID(LetterSidebarID), TEST(LetterSidebarID), If(swap, HXSWAPOOB("true")),
 		HXPUSHURL("/"+string(useURL)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(useURL)),
 		CLASS(sidebarLinkClass),
@@ -120,7 +120,7 @@ func getSidebarSubMenuButton(userLevel database.RoleLevel, minimumLevel database
 	if minimumLevel > userLevel {
 		return A(ID(string(url)+SidebarID), HIDDEN())
 	}
-	return A(HXGET("/"+APIPreRoute+string(url)), ID(string(url)+SidebarID),
+	return A(HXGET("/"+HTMXPreRouter+string(url)), ID(string(url)+SidebarID),
 		TEST(string(url)+SidebarID), HXTARGET("#"+MainBodyID),
 		HXPUSHURL("/"+string(url)), HXSWAP("outerHTML"), HYPERSCRIPT(getClickAction(url)),
 		H1(CLASS("cursor-pointer p-2 mt-1 w-full hover:bg-blue-600"), Text(SidebarTitleMap[url])),

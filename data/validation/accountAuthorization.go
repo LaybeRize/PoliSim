@@ -33,7 +33,10 @@ func ValidateToken(r *http.Request) (returnAcc *extraction.AccountAuth) {
 	temp, ok := session.Values["id"]
 	id, okConvert := temp.(int64)
 
-	returnAcc = &extraction.AccountAuth{Role: database.NotLoggedIn, Session: session}
+	returnAcc = &extraction.AccountAuth{
+		AccountPermissions: extraction.AccountPermissions{Role: database.NotLoggedIn},
+		Session:            session,
+	}
 	if err != nil || !ok || !okConvert {
 		return
 	}
