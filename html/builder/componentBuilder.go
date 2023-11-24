@@ -7,63 +7,12 @@ import (
 	"strings"
 )
 
-// RenderHTMLDoc returns a Node that writes the html doctype to the io.Writer
-func RenderHTMLDoc() Node {
-	return Raw("<!DOCTYPE html>")
-}
-
-type Node interface {
-	Render(w io.Writer) error
-}
-
-// elementFunc is the Node function to return, if you want the text to
-// be rendered inside the parent element
-type elementFunc func(io.Writer) error
-
-// attributeFunc is the Node function to return, if you want it rendered as an
-// attribute on the parent element.
-type attributeFunc func(io.Writer) error
-
-func elementWrapper(str string) func(nodes ...Node) Node {
-	return func(nodes ...Node) Node {
-		return el(str, nodes...)
-	}
-}
-
-func attributeWrapper(name string) func(str ...string) Node {
-	return func(str ...string) Node {
-		return attr(name, str...)
-	}
-}
-
-// groupFunc is the Node function to return, if you want it group a bunch of children
-// into a single node. This kind of Node can be put into an elementFunc and gets rendered
-// correctly anyway.
-type groupFunc func(w io.Writer, f func(io.Writer, Node) error) error
-
-func (n elementFunc) Render(w io.Writer) error {
-	return n(w)
-}
-
-func (n attributeFunc) Render(w io.Writer) error {
-	return n(w)
-}
-
-func (n groupFunc) Render(w io.Writer) error {
-	return n(w, renderElementChild)
-}
-
-func (n groupFunc) renderAttr(w io.Writer) error {
-	return n(w, renderAttributeChild)
-}
-
 // Group groups children into a group that has the same hierarchy level.
 // the Render function for this Node only renders elements. But it can be used in
 // elements itself and will render all attributes in the group on the parent element of the group, while
 // only rendering the elements correctly in the element itself.
-func Group(children ...Node) Node {
+func Group(children ...Node) GroupNode {
 	return groupFunc(func(w io.Writer, f func(io.Writer, Node) error) (err error) {
-
 		for _, c := range children {
 			err = f(w, c)
 			if err != nil {
@@ -72,6 +21,11 @@ func Group(children ...Node) Node {
 		}
 		return nil
 	})
+}
+
+// RenderHTMLDoc returns a Node that writes the html doctype to the io.Writer
+func RenderHTMLDoc() Node {
+	return Raw("<!DOCTYPE html>")
 }
 
 // el creates an element DOM Node with a name and child Nodes.

@@ -17,7 +17,7 @@ func GetCreatePressReleasePage(acc *extraction.AccountAuth, press *validation.Cr
 			getUserDropdown(acc, press.Account, Translation["accountPressRelease"]),
 			getSimpleTextInput("title", "title", press.Title, Translation["pressTitle"]),
 			getSimpleTextInput("subtitle", "subtitle", press.Subtitle, Translation["pressSubtitle"]),
-			getCheckBox("breakingNews", press.IsBreakingNews, false, "true", "breakingNews", Translation["pressBreakingNews"], nil),
+			getStandardCheckBox(press.IsBreakingNews, "true", "breakingNews", Translation["pressBreakingNews"]),
 			getTextArea("content", "content", press.Content, Translation["pressContent"],
 				MarkdownFormPage),
 			getSubmitButton("createArticleButton", Translation["createArticleButton"])),

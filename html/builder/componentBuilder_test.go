@@ -53,3 +53,22 @@ func TestPathEscape(t *testing.T) {
 	testStr := "\""
 	assert.Equal(t, "%22", url.PathEscape(testStr))
 }
+
+func TestElementFunc_PureNode(t *testing.T) {
+	var buf bytes.Buffer
+	p := el("test",
+		attr("hxValue", "val", "test2"),
+		el("other")).PureNode()
+	err := p.Render(&buf)
+	assert.Nil(t, err)
+	assert.Equal(t, "<test hxValue=\"val\"><other></other></test>", buf.String())
+}
+
+func TestGroupFunc_PureAttributes(t *testing.T) {
+	p := Group(attr("hxValue", "val", "test2"),
+		attr("newval", "val", "test2")).PureAttributes()
+	var buf bytes.Buffer
+	err := el("test", p, attr("class", "test"), el("other")).Render(&buf)
+	assert.Nil(t, err)
+	assert.Equal(t, "<test hxValue=\"val\" newval=\"val\" class=\"test\"><other></other></test>", buf.String())
+}

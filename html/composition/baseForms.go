@@ -6,33 +6,59 @@ import (
 	"fmt"
 )
 
-func getCheckBox(id string, checked bool, hidden bool, value string, name string, labelText string, hyperscript Node) Node {
-	return DIV(IfElse(hidden, CLASS("form-check mt-2 hidden"), CLASS("form-check mt-2")), ID(id),
-		INPUT(CLASS(`form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none
-            transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer`),
-			TYPE("checkbox"), VALUE(value), NAME(name), ID(id+"Input"), TEST(id+"Input"), hyperscript,
-			CONVERTTO("bool"), If(checked && !hidden, CHECKED())),
-		LABEL(CLASS("form-check-label inline-block"), FOR(id+"Input"),
+func getCheckBoxWithHideScript(checked bool, value string, name string, labelText string, idToHide string) Node {
+	return getCheckBox(name, checked, value, name, labelText, HYPERSCRIPT("on click toggle .hidden on #"+idToHide))
+}
+
+func getStandardCheckBox(checked bool, value string, name string, labelText string) Node {
+	return getStandardCheckBoxID(name, checked, value, name, labelText)
+}
+
+const (
+	divCheckBoxClass   = "form-check mt-2"
+	inputCheckBoxClass = `form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white 
+ checked:bg-blue-600 checked:border-blue-600 focus:outline-none transition duration-200 mt-1 align-top bg-no-repeat 
+ bg-center bg-contain float-left mr-2 cursor-pointer`
+	lableCheckBoxClass = "form-check-label inline-block"
+)
+
+func getStandardCheckBoxID(id string, checked bool, value string, name string, labelText string) Node {
+	inputID := id + "Input"
+	return DIV(CLASS(divCheckBoxClass), ID(id),
+		INPUT(CLASS(inputCheckBoxClass), TYPE("checkbox"), VALUE(value), NAME(name),
+			ID(inputID), TEST(inputID), CONVERTTO("bool"), If(checked, CHECKED())),
+		LABEL(CLASS(lableCheckBoxClass), FOR(inputID), Text(labelText)),
+	)
+}
+
+func getCheckBox(id string, checked bool, value string, name string, labelText string, hyperscript Node) Node {
+	inputID := id + "Input"
+	return DIV(CLASS(divCheckBoxClass), ID(id),
+		INPUT(CLASS(inputCheckBoxClass), TYPE("checkbox"), VALUE(value), NAME(name),
+			ID(inputID), TEST(inputID), hyperscript, CONVERTTO("bool"), If(checked, CHECKED())),
+		LABEL(CLASS(lableCheckBoxClass), FOR(inputID),
 			Text(labelText)),
 	)
 }
 
 func getRadioButton(id string, checked bool, value string, name string, labelText string) Node {
-	return DIV(CLASS("form-check mt-2"), ID(id),
-		INPUT(CLASS(`form-check-input appearance-none h-4 w-4 border border-gray-300 rounded-sm bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none
-            transition duration-200 mt-1 align-top bg-no-repeat bg-center bg-contain float-left mr-2 cursor-pointer`),
-			TYPE("radio"), If(value != "", VALUE(value)), NAME(name), ID(id+"Input"), TEST(id+"Input"), CONVERTTO("number"),
+	inputID := id + "Input"
+	return DIV(CLASS(divCheckBoxClass), ID(id),
+		INPUT(CLASS(inputCheckBoxClass),
+			TYPE("radio"), VALUE(value), NAME(name), ID(inputID), TEST(inputID), CONVERTTO("number"),
 			If(checked, CHECKED())),
-		LABEL(CLASS("form-check-label inline-block"), FOR(id+"Input"),
+		LABEL(CLASS(lableCheckBoxClass), FOR(inputID),
 			Text(labelText)),
 	)
 }
+
+const inputFieldBackgroundColor = "bg-slate-700 "
 
 // getDropDown only works correct if the type t used also has the fmt.Stringer interface implemented.
 func getDropDown[t comparable](name string, id string, labelText string, disable bool, arr []t, m map[t]string, selectedItem t) Node {
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR(id), Text(labelText)),
-		SELECT(If(disable, DISABLED()), ID(id), TEST(id), NAME(name), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
+		SELECT(If(disable, DISABLED()), ID(id), TEST(id), NAME(name), CLASS(inputFieldBackgroundColor+"appearance-none w-full py-2 px-3"),
 			getOptions(arr, m, selectedItem),
 		),
 	)
@@ -44,7 +70,7 @@ func getUserDropdown(user *extraction.AccountAuth, selectedAccount string, label
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR("authorAccount"), Text(labelText)),
 		SELECT(If(user.ID == 0, DISABLED()), ID(userDropDownID), TEST(userDropDownID),
-			NAME(userDropDownID), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
+			NAME(userDropDownID), CLASS(inputFieldBackgroundColor+"appearance-none w-full py-2 px-3"),
 			getUserOptions(user, selectedAccount),
 		),
 	)
@@ -100,7 +126,7 @@ func getDataListFromMap[t any](listName string, listMap map[string]t) Node {
 func getTextArea(id string, name string, content string, labelText string, patchURL HttpUrl) Node {
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR(id), Text(labelText)), BR(),
-		TEXTAREA(NAME(name), ID(id), TEST(id), CLASS("bg-slate-700 appearance-none w-full h-[200px] py-2 px-3"),
+		TEXTAREA(NAME(name), ID(id), TEST(id), CLASS(inputFieldBackgroundColor+"appearance-none w-full h-[200px] py-2 px-3"),
 			If(patchURL != "", Group(
 				HXPATCH("/"+APIPreRoute+string(patchURL)),
 				HXTARGET("#"+DisplayID),
@@ -122,12 +148,12 @@ func getInput(id string, name string, value string, labelText string, typeStr st
 	return DIV(CLASS("mt-2 "+extraClass), ID(id+"Div"),
 		LABEL(FOR(id), Text(labelText)),
 		INPUT(TYPE(typeStr), NAME(name), ID(id), TEST(id), VALUE(value), Group(others...),
-			CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),
+			CLASS(inputFieldBackgroundColor+"appearance-none w-full py-2 px-3"),
 			If(list != "", LIST(list))),
 	)
 }
 
-var buttonClassAttribute = "bg-slate-700 text-white p-2 disable-selection"
+const buttonClassAttribute = inputFieldBackgroundColor + "text-white p-2 disable-selection"
 
 // getSubmitButton returns the standard form submit button
 func getSubmitButton(id string, buttonText string) Node {
@@ -193,9 +219,9 @@ func getEditableList(content []string, nameSpace string, listName string, addBut
 
 func getEditDiv(listName string, nameSpace string, value string, extraClass string) Node {
 	return DIV(CLASS("flex flex-row "+extraClass),
-		INPUT(LIST(listName), CLASS("bg-slate-700 appearance-none w-full py-2 px-3 mt-2"), NAME(nameSpace),
+		INPUT(LIST(listName), CLASS(inputFieldBackgroundColor+"appearance-none w-full py-2 px-3 mt-2"), NAME(nameSpace),
 			VALUE(value)),
-		BUTTON(CLASS("bg-slate-700 text-white p-4 ml-2 mt-2 hover:bg-rose-800 disable-selection"), TYPE("button"),
+		BUTTON(CLASS(inputFieldBackgroundColor+"text-white p-4 ml-2 mt-2 hover:bg-rose-800 disable-selection"), TYPE("button"),
 			HYPERSCRIPT("on click tell me.parentElement remove yourself"), Text(Translation["deleteEditableInput"]),
 		),
 	)
