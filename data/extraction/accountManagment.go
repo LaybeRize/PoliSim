@@ -26,11 +26,11 @@ type (
 		DisplayName string
 		Username    string
 	}
-	AccountList        []AccountListElement
 	AccountPermissions struct {
 		Suspended bool
 		Role      database.RoleLevel
 	}
+	AccountList        []AccountListElement
 	AccountListElement struct {
 		AccountDisplayName
 		AccountPermissions

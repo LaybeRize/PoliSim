@@ -5,9 +5,7 @@ import (
 )
 
 type (
-	StatusString     string
-	OrganisationList []Organisation
-	Organisation     struct {
+	Organisation struct {
 		Name      string `gorm:"primaryKey"`
 		MainGroup string
 		SubGroup  string
@@ -17,6 +15,9 @@ type (
 		Admins    []Account `gorm:"many2many:organisation_admins;foreignKey:name;joinForeignKey:name;References:id;joinReferences:id"`
 		Accounts  []Account `gorm:"many2many:organisation_account;foreignKey:name;joinForeignKey:name;References:id;joinReferences:id"`
 	}
+	OrganisationList []Organisation
+
+	StatusString string
 )
 
 const (

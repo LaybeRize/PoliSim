@@ -6,10 +6,7 @@ import (
 )
 
 type (
-	DocumentType     string
-	DocumentTypeList []DocumentType
-	DocumentList     []Document
-	Document         struct {
+	Document struct {
 		UUID                      string `gorm:"primaryKey"`
 		Written                   time.Time
 		Organisation              string
@@ -29,7 +26,11 @@ type (
 		Poster                    []Account    `gorm:"many2many:doc_poster;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
 		Allowed                   []Account    `gorm:"many2many:doc_allowed;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
 	}
-	DocumentInfo struct {
+	DocumentList []Document
+
+	DocumentType     string
+	DocumentTypeList []DocumentType
+	DocumentInfo     struct {
 		Finishing  time.Time     `json:"time"`
 		Post       []Posts       `json:"post"`
 		Discussion []Discussions `json:"discussion"`

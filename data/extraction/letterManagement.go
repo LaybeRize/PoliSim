@@ -17,39 +17,39 @@ func GetByID(uuid string) (*database.Letter, error) {
 	return letter, err
 }
 
-func GetLettersAfter(publicationUUID string, amount int, accountId int64) (*database.LetterList, bool, error) {
-	letterList := &database.LetterList{}
+func GetLettersAfter(publicationUUID string, amount int, accountId int64) (*database.ExtendedLetterList, bool, error) {
+	letterList := &database.ExtendedLetterList{}
 	exists, err := getLetters(letterList, publicationUUID, func(pub *database.Letter) *gorm.DB {
 		return getBasicLetterQuery(pub.UUID, amount, accountId).Where("written < ?", pub.Written).Order("written desc")
 	})
 	return letterList, exists, err
 }
 
-func GetLettersBefore(publicationUUID string, amount int, accountId int64) (*database.LetterList, bool, error) {
-	letterList := &database.LetterList{}
+func GetLettersBefore(publicationUUID string, amount int, accountId int64) (*database.ExtendedLetterList, bool, error) {
+	letterList := &database.ExtendedLetterList{}
 	exists, err := getLetters(letterList, publicationUUID, func(pub *database.Letter) *gorm.DB {
 		return database.DB.Select("*").Table("(?) as X", getBasicLetterQuery(pub.UUID, amount, accountId).Where("written > ?", pub.Written).Order("written")).Order("X.written desc")
 	})
 	return letterList, exists, err
 }
 
-func GetModMailsAfter(publicationUUID string, amount int) (*database.LetterList, bool, error) {
-	letterList := &database.LetterList{}
+func GetModMailsAfter(publicationUUID string, amount int) (*database.ExtendedLetterList, bool, error) {
+	letterList := &database.ExtendedLetterList{}
 	exists, err := getLetters(letterList, publicationUUID, func(pub *database.Letter) *gorm.DB {
 		return getBasicModmailQuery(pub.UUID, amount).Where("written < ?", pub.Written).Order("written desc")
 	})
 	return letterList, exists, err
 }
 
-func GetModMailsBefore(publicationUUID string, amount int) (*database.LetterList, bool, error) {
-	letterList := &database.LetterList{}
+func GetModMailsBefore(publicationUUID string, amount int) (*database.ExtendedLetterList, bool, error) {
+	letterList := &database.ExtendedLetterList{}
 	exists, err := getLetters(letterList, publicationUUID, func(pub *database.Letter) *gorm.DB {
 		return database.DB.Select("*").Table("(?) as X", getBasicModmailQuery(pub.UUID, amount).Where("written > ?", pub.Written).Order("written")).Order("X.written desc")
 	})
 	return letterList, exists, err
 }
 
-func getLetters(letterList *database.LetterList, publicationUUID string, query func(pub *database.Letter) *gorm.DB) (bool, error) {
+func getLetters(letterList *database.ExtendedLetterList, publicationUUID string, query func(pub *database.Letter) *gorm.DB) (bool, error) {
 	exists := true
 	pub, err := GetByID(publicationUUID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {

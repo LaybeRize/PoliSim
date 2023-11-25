@@ -1,9 +1,7 @@
 package database
 
 type (
-	VoteType  string
-	VotesList []Votes
-	Votes     struct {
+	Votes struct {
 		UUID                   string `gorm:"primaryKey"`
 		Parent                 string
 		Question               string
@@ -13,6 +11,9 @@ type (
 		Finished               bool
 		Info                   VoteInfo `gorm:"type:jsonb;serializer:json"`
 	}
+	VotesList []Votes
+
+	VoteType string
 	VoteInfo struct {
 		VoteOrder  []string           `json:"voteOrder"` //order in which people voted
 		Results    map[string]Results `json:"results"`   //the key is the voter name

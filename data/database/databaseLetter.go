@@ -5,8 +5,7 @@ import (
 )
 
 type (
-	LetterList []ExtendedLetter
-	Letter     struct {
+	Letter struct {
 		UUID        string `gorm:"primaryKey"`
 		Written     time.Time
 		Author      string
@@ -19,6 +18,8 @@ type (
 		Removed     bool
 		ModMessage  bool `gorm:"column:mod_message"`
 	}
+	LetterList []Letter
+
 	LetterInfo struct {
 		AllHaveToAgree     bool     `json:"allAgree"`
 		NoSigning          bool     `json:"noSigning"`
@@ -26,13 +27,13 @@ type (
 		Signed             []string `json:"signed"`
 		Rejected           []string `json:"rejected"`
 	}
-
 	LetterAccount struct {
 		UUID string `gorm:"primaryKey"`
 		ID   int64  `gorm:"primaryKey"`
 		Read bool   `gorm:"default:false"`
 	}
-	ExtendedLetter struct {
+	ExtendedLetterList []ExtendedLetter
+	ExtendedLetter     struct {
 		Letter
 		Read bool
 	}

@@ -6,25 +6,25 @@ import (
 )
 
 type (
-	RoleLevel   int
+	Account struct {
+		ID            int64  `gorm:"primaryKey;autoIncrement:true"`
+		DisplayName   string `gorm:"index:unique"`
+		Flair         string
+		Username      string `gorm:"index:unique"`
+		Password      string
+		Suspended     bool
+		LoginTries    int
+		NextLoginTime sql.NullTime
+		Role          RoleLevel
+		Linked        sql.NullInt64
+		HasLetters    bool      `gorm:"default:false"`
+		Parent        *Account  `gorm:"foreignKey:linked;joinReferences:id"`
+		Children      []Account `gorm:"foreignKey:linked"`
+	}
 	AccountList []Account
-)
 
-type Account struct {
-	ID            int64  `gorm:"primaryKey;autoIncrement:true"`
-	DisplayName   string `gorm:"index:unique"`
-	Flair         string
-	Username      string `gorm:"index:unique"`
-	Password      string
-	Suspended     bool
-	LoginTries    int
-	NextLoginTime sql.NullTime
-	Role          RoleLevel
-	Linked        sql.NullInt64
-	HasLetters    bool      `gorm:"default:false"`
-	Parent        *Account  `gorm:"foreignKey:linked;joinReferences:id"`
-	Children      []Account `gorm:"foreignKey:linked"`
-}
+	RoleLevel int
+)
 
 const (
 	PressAccount RoleLevel = iota - 1

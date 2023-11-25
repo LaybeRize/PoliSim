@@ -14,7 +14,7 @@ type ExtraInfo struct {
 }
 
 type ViewLetter struct {
-	LetterList *database.LetterList
+	LetterList *database.ExtendedLetterList
 	NextUUID   string
 	BeforeUUID string
 }
