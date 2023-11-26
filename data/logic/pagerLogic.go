@@ -31,6 +31,12 @@ type ViewDocuments struct {
 	BeforeUUID   string
 }
 
+type ViewZwitscher struct {
+	ZwitscherList *database.ZwitscherList
+	NextUUID      string
+	BeforeUUID    string
+}
+
 func (info *ExtraInfo) GetLetter() (*ViewLetter, error) {
 	viewInfo := &ViewLetter{NextUUID: "", BeforeUUID: ""}
 	var exists bool
@@ -154,6 +160,38 @@ func GetDocuments(info *extraction.ExtraInfo) (*ViewDocuments, error) {
 		}
 		if exists {
 			viewInfo.BeforeUUID = (*viewInfo.DocumentList)[0].UUID
+		}
+	}
+	return viewInfo, err
+}
+
+func GetZwitschers(info *extraction.ExtraZwitscherInfo) (*ViewZwitscher, error) {
+	viewInfo := &ViewZwitscher{NextUUID: "", BeforeUUID: ""}
+	var exists bool
+	var err error
+	if info.Before {
+		viewInfo.ZwitscherList, exists, err = info.GetZwitscherBefore()
+		if err != nil || len(*viewInfo.ZwitscherList) == 0 {
+			return viewInfo, err
+		}
+		if len(*viewInfo.ZwitscherList) == info.Amount+1 {
+			viewInfo.BeforeUUID = (*viewInfo.ZwitscherList)[1].UUID
+			*viewInfo.ZwitscherList = (*viewInfo.ZwitscherList)[1:]
+		}
+		if exists {
+			viewInfo.NextUUID = (*viewInfo.ZwitscherList)[len(*viewInfo.ZwitscherList)-1].UUID
+		}
+	} else {
+		viewInfo.ZwitscherList, exists, err = info.GetZwitscherAfter()
+		if err != nil || len(*viewInfo.ZwitscherList) == 0 {
+			return viewInfo, err
+		}
+		if len(*viewInfo.ZwitscherList) == info.Amount+1 {
+			viewInfo.NextUUID = (*viewInfo.ZwitscherList)[info.Amount-1].UUID
+			*viewInfo.ZwitscherList = (*viewInfo.ZwitscherList)[:info.Amount]
+		}
+		if exists {
+			viewInfo.BeforeUUID = (*viewInfo.ZwitscherList)[0].UUID
 		}
 	}
 	return viewInfo, err

@@ -144,7 +144,7 @@ type ExtraInfo struct {
 
 func (extra *ExtraInfo) getBasicDocumentQuery() *gorm.DB {
 	query := "documents.uuid != ? AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?) "
-	params := []interface{}{extra.UUID, extra.ViewAccountID, extra.ViewAccountID, extra.IsAdmin}
+	params := []any{extra.UUID, extra.ViewAccountID, extra.ViewAccountID, extra.IsAdmin}
 	if extra.HideBlock {
 		query += "AND blocked = false "
 	} else {
@@ -152,7 +152,6 @@ func (extra *ExtraInfo) getBasicDocumentQuery() *gorm.DB {
 		params = append(params, extra.IsAdmin)
 	}
 	if extra.Text || extra.Discussion || extra.Votes {
-		query += "AND ("
 		types := make([]string, 0, 5)
 		if extra.Text {
 			types = append(types, "type='"+string(database.LegislativeText)+"'")
@@ -165,7 +164,7 @@ func (extra *ExtraInfo) getBasicDocumentQuery() *gorm.DB {
 			types = append(types, "type='"+string(database.RunningVote)+"'",
 				"type='"+string(database.FinishedVote)+"'")
 		}
-		query += strings.Join(types, " OR ") + ") "
+		query += "AND (" + strings.Join(types, " OR ") + ") "
 	}
 	if extra.Organisation != "" {
 		query += "AND organisation LIKE ? "

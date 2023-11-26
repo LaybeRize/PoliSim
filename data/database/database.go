@@ -33,7 +33,7 @@ func ConnectDatabase() {
 		os.Exit(1)
 	}
 
-	err = DB.AutoMigrate(Account{}, Votes{}, Document{}, Title{}, Organisation{}, Article{}, Publication{}, Letter{}, LetterAccount{})
+	err = DB.AutoMigrate(Account{}, Votes{}, Document{}, Title{}, Organisation{}, Article{}, Publication{}, Letter{}, LetterAccount{}, Zwitscher{})
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while migrating data model to postgres DB:\n"+err.Error()+"\n")
 		os.Exit(1)

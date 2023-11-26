@@ -12,7 +12,7 @@ type (
 		Flair       string
 		Title       string
 		Content     string
-		HTMLContent string     `gorm:"column:html_content"`
+		HTMLContent string
 		Info        LetterInfo `gorm:"type:jsonb;serializer:json"`
 		Viewer      []Account  `gorm:"many2many:letter_account;foreignKey:uuid;joinForeignKey:uuid;References:id;joinReferences:id"`
 		Removed     bool

@@ -15,7 +15,7 @@ type (
 		Headline    string
 		Subtitle    sql.NullString
 		Content     string
-		HTMLContent string `gorm:"column:html_content"`
+		HTMLContent string
 	}
 	ArticleList []Article
 )
