@@ -47,6 +47,7 @@ func main() {
 	serving.InstallVoteCreation()
 	serving.InstallDocumentPager()
 	serving.InstallSSEHandlers()
+	serving.InstallZwitscher()
 
 	composition.SetupComposition()
 

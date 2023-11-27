@@ -69,7 +69,13 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 			H1(CLASS("text-2xl"), Text(item.Title)),
 			P(Text(Translation["authorShortFormLetter"], item.Author))))
 	}
-
+	if len(nodes) == 0 {
+		nodes = []Node{
+			DIV(CLASS("w-[800px] box box-e p-2 mt-2 flex items-center flex-col"),
+				STYLE("--clr-border: rgb(40 51 69);"),
+				P(CLASS("text-xl text-rose-600"), Text(Translation["noLettersFound"]))),
+		}
+	}
 	return getBasePageWrapper(
 		getPageHeader(ViewLetter),
 		getUserModificationForLetters(acc, extra.ViewAccountName, Translation["selectedReaderLetter"]),

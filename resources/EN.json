@@ -193,7 +193,7 @@
   "rejectionLetterBody": "## Content\n```\n%s\n```\n\n## Comment from the moderation\n\n%s",
   "errorCreatingRejectionLetter": "an error occurred while trying to create the rejection letter",
   "errorWhileDeletingArticle": "an error occurred while trying to delete the press release",
-  "letterViewSinglePageTitle": "Briefansicht",
+  "letterViewSinglePageTitle": "letter overview",
   "errorWithSpecificLetter": "an error occurred when trying to load requested letter",
   "authorModMessage": "letter from the moderation written 02.01.2006 15:04 by %s",
   "authorNormalLetter": "written 02.01.2006 15:04 by %s",
@@ -203,8 +203,8 @@
   "atLeastOneRejection": "at least one person rejected the letter",
   "everyoneSigned": "everyone signed the letter",
   "noDecisionYet": "missing signatures pending",
-  "beforePage": "Previous",
-  "nextPage": "Next",
+  "beforePage": "previous",
+  "nextPage": "next",
   "signLetter": "sign letter",
   "rejectLetter": "reject letter",
   "allViewerText": "letter is available to: %s",
@@ -450,5 +450,11 @@
   "documentSearchWritten": "start date",
   "documentSearchOrganisation": "organisation name must contain",
   "documentSearchAuthor": "authorname must contain",
-  "documentSearchTitle": "document title must contain"
+  "documentSearchTitle": "document title must contain",
+  "zwitscherViewPageTitle": "Zwitscher",
+  "zwitscherViewSidebarText": "Zwitscher",
+  "zwitscherWrittenTime": "zwitschered 02.01.2006 15:04",
+  "errorLoadingZwitscher": "an error occurred trying to load zwitschers",
+  "noZwitscherFound": "no zwitschers found for that request",
+  "noLettersFound": "no letters found for that request"
 }

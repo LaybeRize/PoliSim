@@ -8,18 +8,31 @@ import (
 	"net/url"
 )
 
+const (
+	MinZwitscher = 5
+	MaxZwitscher = 50
+)
+
 func GetZwitschers(extra *extraction.ExtraZwitscherInfo) Node {
 	view, err := logic.GetZwitschers(extra)
 	if err != nil {
-		return GetErrorPage(Translation["errorLoadingLetters"])
+		return GetErrorPage(Translation["errorLoadingZwitscher"])
 	}
 	nodes := make([]Node, len(*view.ZwitscherList))
 	for i, item := range *view.ZwitscherList {
 		link := string(ViewSingleZwitscherLink) + url.PathEscape(item.UUID)
 		nodes[i] = getClickableLink("/"+HTMXPreRouter+link, "/"+link, Group(getStandardBoxClass,
-			IfElse(item.Blocked, STYLE("--clr-border: rgb(40 51 69);"), STYLE("--clr-border: rgb(140 140 140);")),
-			H1(CLASS("text-2xl"), Text(item.HTMLContent)),
-			P(Text(Translation["authorShortFormLetter"], item.Author))))
+			IfElse(item.Blocked, STYLE("--clr-border: rgb(159 18 57);"), STYLE("--clr-border: rgb(40 51 69);")),
+			H1(CLASS("text-2xl"), Text(item.Author), If(item.Flair != "", Group(Text("; "), I(Text(item.Flair))))),
+			P(I(Text(item.Written.Format(Translation["zwitscherWrittenTime"])))),
+			Raw(item.HTMLContent)))
+	}
+	if len(nodes) == 0 {
+		nodes = []Node{
+			DIV(CLASS("w-[800px] box box-e p-2 mt-2 flex items-center flex-col"),
+				STYLE("--clr-border: rgb(40 51 69);"),
+				P(CLASS("text-xl text-rose-600"), Text(Translation["noZwitscherFound"]))),
+		}
 	}
 	before := fmt.Sprintf("%s?uuid=%s&amount=%d&before=true", string(ViewZwitscher),
 		url.QueryEscape(view.BeforeUUID), extra.Amount)
@@ -27,7 +40,7 @@ func GetZwitschers(extra *extraction.ExtraZwitscherInfo) Node {
 		url.QueryEscape(view.NextUUID), extra.Amount)
 	extraStr := GetExtraStringForZwitscher(extra)
 	return getBasePageWrapper(
-		getPageHeader(ViewLetter),
+		getPageHeader(ViewZwitscher),
 		Group(nodes...),
 		pagerFooter(view.BeforeUUID, view.NextUUID,
 			before+extraStr, next+extraStr),

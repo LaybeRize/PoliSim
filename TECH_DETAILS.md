@@ -15,7 +15,7 @@ INIT_USERNAME=Root Account Username
 INIT_PASSWORD=Root Account password
 CORS_URL=Your URL needed for CORS
 LANG=your language (most likely DE or EN)
-CONFIG=your config file name (standard value is config_ps)
+CONFIG=your config file name (standard value should be config_ps)
 ```
 
 ## Architecture

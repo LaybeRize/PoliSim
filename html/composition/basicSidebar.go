@@ -26,6 +26,7 @@ func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
 		getSidebarButton(level, database.NotLoggedIn, ViewOrganisations),
 		getSidebarButton(level, database.NotLoggedIn, ViewNewspaperList),
 		getSidebarButton(level, database.NotLoggedIn, ViewDocument),
+		getSidebarButton(level, database.NotLoggedIn, ViewZwitscher),
 		If(database.User <= level, getSidebarBreaker()),
 		getSideBarSubMenu(level, database.User, Translation["createDocumentSubMenu"],
 			getSidebarButton(level, database.User, CreatePressRelease),
