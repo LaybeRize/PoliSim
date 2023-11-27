@@ -19,23 +19,23 @@ function encodingAlgorithm(parameters, elt) {
     for (let param_index = 0; param_index < PARAM_LENGHT; param_index++) {
         let name = PARAM_NAMES[param_index];
         let value = PARAM_VALUES[param_index];
-        let boolAmount = checkQuerySelectors(elt,"bool",name)
-        let numAmount = checkQuerySelectors(elt, "number",name)
-        if (boolAmount !== 0) {
-            if (boolAmount === 1) {
-                value = value !== ""
-            } else {
+        let isBool = checkQuerySelectors(elt,"bool",name)
+        let isNum = checkQuerySelectors(elt, "number",name)
+        if (isBool) {
+            if (Array.isArray(value)) {
                 value = value.map(function (value) {
                     return value !== ""
                 })
-            }
-        } else if (numAmount !== 0) {
-            if (numAmount === 1) {
-                value = parseInt(String(value))
             } else {
+                value = value !== ""
+            }
+        } else if (isNum) {
+            if (Array.isArray(value)) {
                 value = value.map(function (value) {
                     return parseInt(String(value))
                 })
+            } else {
+                value = parseInt(String(value))
             }
         }
         let steps = JSONEncodingPath(name);
@@ -52,10 +52,8 @@ function encodingAlgorithm(parameters, elt) {
 
 function checkQuerySelectors(elt, convertType, name) {
     let number = elt.querySelectorAll("[name='"+name+"']").length
-    if (number !== elt.querySelectorAll("[data-convert="+convertType+"][name='"+name+"']").length) {
-        return 0
-    }
-    return number
+    return number === elt.querySelectorAll("[data-convert=" + convertType + "][name='" + name + "']").length;
+
 }
 
 function JSONEncodingPath(name) {

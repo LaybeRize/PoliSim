@@ -6,7 +6,6 @@ import (
 	"PoliSim/html/composition"
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -32,9 +31,8 @@ func getVoteEvent(info database.Votes, isAdmin bool, uuidStr string) (*SendEvent
 		newErr = composition.GetInfoStandardView(&info, false).Render(buff)
 	}
 	return &SendEventStruct{
-		HTML:       buff.String(),
-		HTMXupdate: "",
-		Target:     fmt.Sprintf(composition.VoteInfoDiv, info.UUID),
+		HTML:      buff.String(),
+		EventName: info.UUID,
 	}, newErr
 }
 
@@ -58,25 +56,21 @@ func GetSSEReaderForDiscussionService(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCommentEvent(info logic.CommentUpdate, isAdmin bool, uuidStr string) (*SendEventStruct, error) {
-	id := composition.AdditionDiv
 	buff := bytes.NewBuffer([]byte{})
-	err := composition.GetCommentRendered(uuidStr, &info.Discussion, isAdmin).Render(buff)
+	err := composition.GetCommentRendered(uuidStr, &info.Discussion, isAdmin, !info.Change).Render(buff)
 	if err != nil {
 		return nil, err
 	}
-	replacer := fmt.Sprintf(fmt.Sprintf(composition.CommentSingleDivID, info.Discussion.UUID))
-	if info.Change {
-		id = replacer
-	} else {
-		err = composition.GetNewAdditionSSEDiv().Render(buff)
+	eventName := info.Discussion.UUID
+	if !info.Change {
+		eventName = composition.EventAddComment
 	}
 	if err != nil {
 		return nil, err
 	}
 	return &SendEventStruct{
-		HTML:       buff.String(),
-		HTMXupdate: id,
-		Target:     replacer,
+		HTML:      buff.String(),
+		EventName: eventName,
 	}, err
 }
 
@@ -96,9 +90,8 @@ outerloop:
 }
 
 type SendEventStruct struct {
-	HTML       string `json:"data"`
-	HTMXupdate string `json:"updateID"`
-	Target     string `json:"targetID"`
+	HTML      string
+	EventName string
 }
 
 func generlizeSSEConnection[t any](w http.ResponseWriter, r *http.Request,
@@ -143,18 +136,10 @@ func formatServerSentEvent[t any](info t, isAdmin bool, uuidStr string,
 		return "", err
 	}
 
-	buff := bytes.Buffer{}
-	enc := json.NewEncoder(&buff)
-	enc.SetEscapeHTML(false)
-	err = enc.Encode(convert)
-	if err != nil {
-		return "", err
-	}
-
 	sb := strings.Builder{}
 
-	sb.WriteString(fmt.Sprintf("event: change\n"))
-	sb.WriteString(fmt.Sprintf("data: %s\n", buff.String()))
+	sb.WriteString(fmt.Sprintf("event: %s\n", convert.EventName))
+	sb.WriteString(fmt.Sprintf("data: %s\n\n", convert.HTML))
 
 	return sb.String(), nil
 }

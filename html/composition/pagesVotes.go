@@ -194,29 +194,10 @@ func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, 
 				P(Text(Translation["peopleAllowedToComment"], reduceAccountsToString(doc.Poster)))),
 		),
 		GetMessage(val),
-		Group(votesDivs...),
+		DIV(HXEXTEND("sse"), SSECONNECT("/"+HTMXPreRouter+string(sseReaderVoteLink)+url.PathEscape(doc.UUID)),
+			Group(votesDivs...),
+		),
 		If(doc.Type == database.RunningVote, scriptForUpdateOnEnd(doc, VoteUpdateDocumentLink)),
-		If(doc.Type == database.RunningVote, DIV(ID(voteSSEScriptDiv), SCRIPT(Raw(`
-setTimeout(startSSE, 100);
-function startSSE() {
-    const es = new EventSource("/`+HTMXPreRouter+string(sseReaderVoteLink)+doc.UUID+`");
-    es.onerror = (err) => {
-        console.log("onerror", err)
-    };
-
-    es.onmessage = (msg) => {
-        console.log("onmessage", msg)
-    };
-
-    es.onopen = (...args) => {
-        console.log("onopen", args)
-    };
-    es.addEventListener("change", (event) => {
-        const parsedData = JSON.parse(event.data);
-        const el = document.getElementById(parsedData.targetID);
-        el.outerHTML = parsedData.data;
-    });
-};`)))),
 	)
 }
 
@@ -252,7 +233,9 @@ func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 						Group(RadioButtons...)),
 					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 				))),
-		GetInfoStandardView(item, false),
+		DIV(CLASS("w-full"), HXSWAP("innerHTML"), SSESWAP(item.UUID),
+			GetInfoStandardView(item, false),
+		),
 	}
 }
 func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
@@ -275,7 +258,9 @@ func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID 
 					),
 					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 				))),
-		GetInfoStandardView(item, false),
+		DIV(CLASS("w-full"), HXSWAP("innerHTML"), SSESWAP(item.UUID),
+			GetInfoStandardView(item, false),
+		),
 	}
 }
 
@@ -300,7 +285,9 @@ func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 						Group(rankings...)),
 					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 				))),
-		GetInfoRankedView(item, false),
+		DIV(CLASS("w-full"), HXSWAP("innerHTML"), SSESWAP(item.UUID),
+			GetInfoRankedView(item, false),
+		),
 	}
 }
 
@@ -334,7 +321,9 @@ func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, doc
 						Group(threeCategory...)),
 					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 				))),
-		GetInfoStandardView(item, false),
+		DIV(CLASS("w-full"), HXSWAP("innerHTML"), SSESWAP(item.UUID),
+			GetInfoStandardView(item, false),
+		),
 	}
 }
 
