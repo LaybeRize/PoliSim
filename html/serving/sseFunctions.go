@@ -57,7 +57,7 @@ func GetSSEReaderForDiscussionService(w http.ResponseWriter, r *http.Request) {
 
 func getCommentEvent(info logic.CommentUpdate, isAdmin bool, uuidStr string) (*SendEventStruct, error) {
 	buff := bytes.NewBuffer([]byte{})
-	err := composition.GetCommentRendered(uuidStr, &info.Discussion, isAdmin, !info.Change).Render(buff)
+	err := composition.GetCommentRendered(uuidStr, &info.Discussion, isAdmin).Render(buff)
 	if err != nil {
 		return nil, err
 	}

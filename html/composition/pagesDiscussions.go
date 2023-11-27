@@ -56,30 +56,26 @@ const (
 	CommentContentDiv  = "comment-content-div"
 )
 
-func GetCommentRendered(docUUID string, disc *database.Discussions, isAdmin bool, renderWithSSE bool) Node {
+func GetCommentRendered(docUUID string, disc *database.Discussions, isAdmin bool) Node {
 	id := ID(fmt.Sprintf(CommentSingleDivID, disc.UUID))
-	inner := Node(nil)
 	if disc.Hidden && !isAdmin {
-		inner = DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"), id,
+		return DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"), id,
+			SSESWAP(disc.UUID), HXSWAP("outerHTML"),
 			P(Text(Translation["commentHasBeenHidden"])),
 		)
-	} else {
-		inner = DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"), id,
-			If(disc.Hidden, P(CLASS("text-rose-600"), Text(Translation["commentCurrentlyHidden"]))),
-			P(CLASS("mb-2"), I(Text(disc.Written.Format(Translation["commentWrittenAuthor"]), disc.Author)),
-				If(disc.Flair != "", Group(I(Text("; ")), Text(disc.Flair)))),
-			Raw(disc.HTMLContent),
-			If(isAdmin, getCustomRequestClickable(HXPATCH, "/"+HTMXPreRouter+string(ChangeCommentDocumentLink)+
-				url.PathEscape(docUUID)+"/"+url.PathEscape(disc.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2"),
-				STYLE("text-align: center;"), IfElse(!disc.Hidden, Text(Translation["hideCommentDiscussion"]),
-					Text(Translation["showCommentDiscussion"]))),
-			)),
-		)
 	}
-	if !renderWithSSE {
-		return inner
-	}
-	return DIV(SSESWAP(disc.UUID), HXSWAP("innerHTML"), inner)
+	return DIV(CLASS("w-[800px] box box-e p-2 mt-2"), STYLE("--clr-border: rgb(40 51 69);"), id,
+		SSESWAP(disc.UUID), HXSWAP("outerHTML"),
+		If(disc.Hidden, P(CLASS("text-rose-600"), Text(Translation["commentCurrentlyHidden"]))),
+		P(CLASS("mb-2"), I(Text(disc.Written.Format(Translation["commentWrittenAuthor"]), disc.Author)),
+			If(disc.Flair != "", Group(I(Text("; ")), Text(disc.Flair)))),
+		Raw(disc.HTMLContent),
+		If(isAdmin, getCustomRequestClickable(HXPATCH, "/"+HTMXPreRouter+string(ChangeCommentDocumentLink)+
+			url.PathEscape(docUUID)+"/"+url.PathEscape(disc.UUID), "", P(CLASS("bg-slate-700 text-white p-2 mt-2"),
+			STYLE("text-align: center;"), IfElse(!disc.Hidden, Text(Translation["hideCommentDiscussion"]),
+				Text(Translation["showCommentDiscussion"]))),
+		)),
+	)
 }
 
 func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
@@ -93,7 +89,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 	}
 	comments := make([]Node, len(doc.Info.Discussion))
 	for i, disc := range doc.Info.Discussion {
-		comments[i] = GetCommentRendered(doc.UUID, &disc, isAdmin, true)
+		comments[i] = GetCommentRendered(doc.UUID, &disc, isAdmin)
 	}
 
 	return getBasePageWrapper(
@@ -146,7 +142,7 @@ func GetDiscussionViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, is
 	doc.Type = database.FinishedDiscussion
 	comments := make([]Node, len(doc.Info.Discussion))
 	for i, disc := range doc.Info.Discussion {
-		comments[i] = GetCommentRendered(doc.UUID, &disc, isAdmin, true)
+		comments[i] = GetCommentRendered(doc.UUID, &disc, isAdmin)
 	}
 	return Group(GetMessage(validation.Message{Message: Translation["discussionClosedJustNow"], Positive: true}),
 		DIV(ID("discussion-comment-div"), HXSWAPOOB("true")),

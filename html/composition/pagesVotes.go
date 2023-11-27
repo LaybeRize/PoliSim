@@ -233,9 +233,7 @@ func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 						Group(RadioButtons...)),
 					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 				))),
-		DIV(CLASS("w-full"), HXSWAP("innerHTML"), SSESWAP(item.UUID),
-			GetInfoStandardView(item, false),
-		),
+		GetInfoStandardView(item, false),
 	}
 }
 func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
@@ -258,9 +256,7 @@ func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID 
 					),
 					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 				))),
-		DIV(CLASS("w-full"), HXSWAP("innerHTML"), SSESWAP(item.UUID),
-			GetInfoStandardView(item, false),
-		),
+		GetInfoStandardView(item, false),
 	}
 }
 
@@ -285,9 +281,7 @@ func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 						Group(rankings...)),
 					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 				))),
-		DIV(CLASS("w-full"), HXSWAP("innerHTML"), SSESWAP(item.UUID),
-			GetInfoRankedView(item, false),
-		),
+		GetInfoRankedView(item, false),
 	}
 }
 
@@ -321,9 +315,7 @@ func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, doc
 						Group(threeCategory...)),
 					getSubmitButton("sendVote-"+item.UUID, Translation["sendVote"]),
 				))),
-		DIV(CLASS("w-full"), HXSWAP("innerHTML"), SSESWAP(item.UUID),
-			GetInfoStandardView(item, false),
-		),
+		GetInfoStandardView(item, false),
 	}
 }
 
@@ -371,6 +363,7 @@ func GetInfoStandardView(item *database.Votes, oobSwap bool) Node {
 		}
 	}
 	return DIV(ID(fmt.Sprintf(VoteInfoDiv, item.UUID)), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
+		If(!item.Finished, Group(HXSWAP("outerHTML"), SSESWAP(item.UUID))),
 		If((item.ShowNumbersWhileVoting && !item.Finished) || item.Finished,
 			TABLE(ID("vote-info-table-summary-"+item.UUID), CLASS("table-auto mt-4 w-max-[800px]"),
 				TR(
@@ -420,6 +413,7 @@ func GetInfoRankedView(item *database.Votes, oobSwap bool) Node {
 	}
 
 	return DIV(ID(fmt.Sprintf(VoteInfoDiv, item.UUID)), If(oobSwap, HXSWAPOOB("true")), CLASS("w-full"),
+		If(!item.Finished, Group(HXSWAP("outerHTML"), SSESWAP(item.UUID))),
 		If((item.ShowNumbersWhileVoting && !item.Finished) || item.Finished, Group(
 			P(CLASS("mt-4"), Text(Translation["invalidateVoteRankedText"], len(item.Info.Summary.InvalidVotes))),
 			If(((item.ShowNamesAfterVoting && item.Finished) || (item.ShowNamesWhileVoting && !item.Finished)) && len(item.Info.Summary.InvalidVotes) != 0,
