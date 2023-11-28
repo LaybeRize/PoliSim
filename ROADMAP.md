@@ -15,6 +15,7 @@ These are the goals which have to be reached to transfer the project from the Al
 - english localisation
 - add css rule for buttons so their text isn't selectable anymore
 - add information on new letters for user
+- add life updates via SSE for document tags
 
 ### Tests
 
@@ -84,6 +85,10 @@ add "user-select: none;" to all buttons.
 ### Add notification for new letters
 
 - [x] finished
+
+### Add life updates via SSE for document tags
+
+- [ ] finished
 
 ## Features for versions beyond the next
 

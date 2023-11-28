@@ -174,20 +174,24 @@ func updateInformation(w http.ResponseWriter, r *http.Request, acc *extraction.A
 	return builder.Group(arr...)
 }
 
+func pushURL(w http.ResponseWriter, url string) {
+	w.Header().Set("HX-Push-Url", url)
+}
+
+func retargetToMessage(w http.ResponseWriter) {
+	retargetTo(w, composition.MessageID)
+}
+
+func retargetTo(w http.ResponseWriter, objectID string) {
+	w.Header().Set("HX-Retarget", "#"+objectID)
+}
+
 // genericRenderer returns a generics render function for a typical urls by parsing the htmlComposition.HttpUrl
 func genericRenderer(currentPage builder.HttpUrl) func(w http.ResponseWriter,
 	r *http.Request, acc *extraction.AccountAuth, node builder.Node) {
 	return func(w http.ResponseWriter, r *http.Request, acc *extraction.AccountAuth, node builder.Node) {
 		renderRequest(w, updateInformation(w, r, acc, currentPage), node)
 	}
-}
-
-func pushURL(w http.ResponseWriter, url string) {
-	w.Header().Set("HX-Push-Url", url)
-}
-
-func retargetToMessage(w http.ResponseWriter) {
-	w.Header().Set("HX-Retarget", "#"+composition.MessageID)
 }
 
 // genericMessageSwapper returns a generics render function that only swaps the message

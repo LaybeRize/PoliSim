@@ -1,6 +1,7 @@
 package composition
 
 import (
+	"PoliSim/data/database"
 	"PoliSim/data/extraction"
 	"PoliSim/data/logic"
 	"PoliSim/data/validation"
@@ -42,22 +43,37 @@ func GetZwitschers(acc *extraction.AccountAuth, extra *extraction.ExtraZwitscher
 	extraStr := GetExtraStringForZwitscher(extra)
 	return getBasePageWrapper(
 		getPageHeader(ViewZwitscher),
-		toggleVisiblityOfNextDiv(Translation["showTweetInterface"]),
-		getZwitscherInterface(acc, "", true, validation.Message{}),
+		If(acc.Role != database.NotLoggedIn, toggleVisiblityOfNextDiv(Translation["showTweetInterface"])),
+		GetZwitscherInterface(acc, "", true, validation.Message{}),
 		Group(nodes...),
 		pagerFooter(view.BeforeUUID, view.NextUUID,
 			before+extraStr, next+extraStr),
 	)
 }
 
-func getZwitscherInterface(acc *extraction.AccountAuth, responseTo string, hideInterface bool, msg validation.Message) Node {
+func GetSingleZwitscher(acc *extraction.AccountAuth, isAdmin bool, uuid string) Node {
+	zwt, err := extraction.GetZwitscher(uuid)
+	if err != nil {
+		return GetErrorPage(Translation["tweetWithUUIDDoesNotExist"])
+	}
+	return getBasePageWrapper(DIV(Text(zwt.HTMLContent)))
+}
+
+const ZwitscherInterfaceID = "zwitscher-interface-id"
+
+func GetZwitscherInterface(acc *extraction.AccountAuth, responseTo string, hideInterface bool, msg validation.Message) Node {
 	extra := ""
 	if responseTo != "" {
 		extra = "?zwitscher=" + url.QueryEscape(responseTo)
 	}
-	return DIV(CLASS("w-[800px]"), If(hideInterface, HIDDEN()),
+	return DIV(CLASS("w-[800px]"), If(hideInterface, HIDDEN()), ID(ZwitscherInterfaceID),
 		getFormStandardForm("createZwitscher", POST, "/"+HTMXPreRouter+string(CreateZwitscher)+extra,
-			getUserOptions(acc, "")),
+			getUserDropdown(acc, "", Translation["zwitscherPerson"]),
+			getTextArea("zwitscherContent", "content", "", Translation["zwitscherContent"],
+				MarkdownFormPage),
+			getSubmitButton("submitCommentButton", Translation["postZwitscher"]),
+		),
+		getPreviewElement(),
 		GetMessage(msg))
 }
 

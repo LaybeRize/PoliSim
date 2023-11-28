@@ -451,11 +451,16 @@
   "documentSearchOrganisation": "organisation name must contain",
   "documentSearchAuthor": "authorname must contain",
   "documentSearchTitle": "document title must contain",
-  "zwitscherViewPageTitle": "Zwitscher",
-  "zwitscherViewSidebarText": "Zwitscher",
+  "zwitscherViewPageTitle": "zwitscher overview",
+  "zwitscherViewSidebarText": "zwitscher",
   "zwitscherWrittenTime": "zwitschered 02.01.2006 15:04",
   "errorLoadingZwitscher": "an error occurred trying to load zwitschers",
   "noZwitscherFound": "no zwitschers found for that request",
   "noLettersFound": "no letters found for that request",
-  "showTweetInterface": "zwitscher something"
+  "showTweetInterface": "zwitscher something",
+  "singleZwitscherViewPageTitle": "zwitscher",
+  "zwitscherPerson": "zwitscher author",
+  "zwitscherContent": "zwitscher content",
+  "postZwitscher": "zwitscher it",
+  "tweetWithUUIDDoesNotExist": "zwitscher does not exist"
 }
