@@ -18,6 +18,7 @@ const (
 	Login                        HttpUrl = "login"
 	Logout                       HttpUrl = "logout"
 	ViewZwitscher                HttpUrl = "zwitscher/view"
+	CreateZwitscher              HttpUrl = "zwitscher/create"
 	ViewSingleZwitscherLink      HttpUrl = "zwitscher/view/"
 	ViewSingleZwitscher                  = ViewSingleZwitscherLink + "{uuid}"
 	ViewDocument                 HttpUrl = "document/view"

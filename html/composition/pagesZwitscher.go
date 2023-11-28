@@ -3,6 +3,7 @@ package composition
 import (
 	"PoliSim/data/extraction"
 	"PoliSim/data/logic"
+	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"fmt"
 	"net/url"
@@ -13,7 +14,7 @@ const (
 	MaxZwitscher = 50
 )
 
-func GetZwitschers(extra *extraction.ExtraZwitscherInfo) Node {
+func GetZwitschers(acc *extraction.AccountAuth, extra *extraction.ExtraZwitscherInfo) Node {
 	view, err := logic.GetZwitschers(extra)
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingZwitscher"])
@@ -41,10 +42,23 @@ func GetZwitschers(extra *extraction.ExtraZwitscherInfo) Node {
 	extraStr := GetExtraStringForZwitscher(extra)
 	return getBasePageWrapper(
 		getPageHeader(ViewZwitscher),
+		toggleVisiblityOfNextDiv(Translation["showTweetInterface"]),
+		getZwitscherInterface(acc, "", true, validation.Message{}),
 		Group(nodes...),
 		pagerFooter(view.BeforeUUID, view.NextUUID,
 			before+extraStr, next+extraStr),
 	)
+}
+
+func getZwitscherInterface(acc *extraction.AccountAuth, responseTo string, hideInterface bool, msg validation.Message) Node {
+	extra := ""
+	if responseTo != "" {
+		extra = "?zwitscher=" + url.QueryEscape(responseTo)
+	}
+	return DIV(CLASS("w-[800px]"), If(hideInterface, HIDDEN()),
+		getFormStandardForm("createZwitscher", POST, "/"+HTMXPreRouter+string(CreateZwitscher)+extra,
+			getUserOptions(acc, "")),
+		GetMessage(msg))
 }
 
 func GetAuthorQueryString(author string) string {

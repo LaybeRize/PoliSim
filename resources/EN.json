@@ -456,5 +456,6 @@
   "zwitscherWrittenTime": "zwitschered 02.01.2006 15:04",
   "errorLoadingZwitscher": "an error occurred trying to load zwitschers",
   "noZwitscherFound": "no zwitschers found for that request",
-  "noLettersFound": "no letters found for that request"
+  "noLettersFound": "no letters found for that request",
+  "showTweetInterface": "zwitscher something"
 }

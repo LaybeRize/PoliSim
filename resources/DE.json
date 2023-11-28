@@ -456,5 +456,6 @@
   "zwitscherWrittenTime": "gezwitscheret am 02.01.2006 um 15:04 Uhr",
   "errorLoadingZwitscher": "Es ist ein Fehler beim laden der Zwitschers aufgetreten",
   "noZwitscherFound": "Konnte keine Zwitscher für die Anfrage finden",
-  "noLettersFound": "Konnte keine Briefe für die Anfrage finden"
+  "noLettersFound": "Konnte keine Briefe für die Anfrage finden",
+  "showTweetInterface": "Erstell einen Zwitscher"
 }

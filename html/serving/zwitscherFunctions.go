@@ -22,7 +22,7 @@ func GetZwitscherViewService(w http.ResponseWriter, r *http.Request) {
 	}
 	extractURLFieldValues(extraInfo, r, composition.MinZwitscher, int64(standardAmount), composition.MaxZwitscher)
 
-	html := composition.GetZwitschers(extraInfo)
+	html := composition.GetZwitschers(acc, extraInfo)
 	viewZwitscherRenderRequest(w, r, acc, html)
 }
 
