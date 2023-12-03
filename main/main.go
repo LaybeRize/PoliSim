@@ -128,19 +128,15 @@ func createAdminAccount() {
 		os.Exit(1)
 	}
 
-	adminAccount := extraction.AccountLogin{
-		AccountDisplayName: extraction.AccountDisplayName{
-			ID:          1,
-			DisplayName: os.Getenv("INIT_NAME"),
-		},
-		AccountPermissions: extraction.AccountPermissions{
-			Suspended: false,
-			Role:      database.HeadAdmin,
-		},
-		Username: os.Getenv("INIT_USERNAME"),
-		Password: string(hashedPassword),
+	adminAccount := &database.Account{
+		ID:          1,
+		DisplayName: os.Getenv("INIT_NAME"),
+		Suspended:   false,
+		Role:        database.HeadAdmin,
+		Username:    os.Getenv("INIT_USERNAME"),
+		Password:    string(hashedPassword),
 	}
-	err = adminAccount.CreateMe()
+	err = extraction.CreateFullAccount(adminAccount)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stdout, "Error while trying to create root account:\n"+err.Error()+"\n")
 		os.Exit(1)

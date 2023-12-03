@@ -34,8 +34,8 @@ func ValidateToken(r *http.Request) (returnAcc *extraction.AccountAuth) {
 	id, okConvert := temp.(int64)
 
 	returnAcc = &extraction.AccountAuth{
-		AccountPermissions: extraction.AccountPermissions{Role: database.NotLoggedIn},
-		Session:            session,
+		Role:    database.NotLoggedIn,
+		Session: session,
 	}
 	if err != nil || !ok || !okConvert {
 		return
@@ -69,8 +69,8 @@ type LoginForm struct {
 // TryLogin always returns a ValidationMessage containing the error or success for the process.
 // On success, it also returns a filled extraction.AccountLogin struct as well as writing
 // a valid *http.Cookie to the response.
-func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate Message, acc *extraction.AccountLogin) {
-	acc = &extraction.AccountLogin{}
+func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate Message, acc *database.Account) {
+	acc = &database.Account{}
 	validate = Message{Positive: false}
 
 	if form.Username == "" || form.Password == "" {
@@ -120,7 +120,7 @@ func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate
 	// and setting the cookie for identification
 	acc.LoginTries = 0
 	acc.NextLoginTime = sql.NullTime{}
-	dbError := acc.SaveBack()
+	dbError := extraction.UpdateLogin(acc)
 	session, _ := store.Get(r, "session")
 	session.Values["id"] = acc.ID
 	session.Values["role"] = -100
@@ -139,7 +139,7 @@ func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate
 // UpdateLoginTries increases the LoginTries by one and calculates the new NextLoginTime if needed
 // then returns if the account is already timed out and if an error occurred on trying to save back the new
 // data.
-func UpdateLoginTries(acc *extraction.AccountLogin) (canNotBeLoggedIn bool, err error) {
+func UpdateLoginTries(acc *database.Account) (canNotBeLoggedIn bool, err error) {
 	canNotBeLoggedIn = false
 	acc.LoginTries += 1
 	//set the timer appropriate for the tries
@@ -159,7 +159,7 @@ func UpdateLoginTries(acc *extraction.AccountLogin) (canNotBeLoggedIn bool, err 
 	if acc.LoginTries > 3 {
 		acc.NextLoginTime.Valid = true
 	}
-	err = acc.SaveBack()
+	err = extraction.UpdateLogin(acc)
 	//check if the timer was saved correctly
 	if err == nil && acc.LoginTries > 3 {
 		canNotBeLoggedIn = true

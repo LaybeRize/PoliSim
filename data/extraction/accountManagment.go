@@ -26,27 +26,29 @@ type (
 		DisplayName string
 		Username    string
 	}
-	AccountPermissions struct {
-		Suspended bool
-		Role      database.RoleLevel
-	}
 	AccountList        []AccountListElement
 	AccountListElement struct {
-		AccountDisplayName
-		AccountPermissions
-		Username string
-		Flair    string
-		Linked   sql.NullInt64
+		ID          int64
+		DisplayName string
+		Suspended   bool
+		Role        database.RoleLevel
+		Username    string
+		Flair       string
+		Linked      sql.NullInt64
 	}
 	AccountAuth struct {
-		AccountDisplayName
-		AccountPermissions
-		HasLetters bool
-		Session    *sessions.Session `gorm:"-"`
+		ID          int64
+		DisplayName string
+		Suspended   bool
+		Role        database.RoleLevel
+		HasLetters  bool
+		Session     *sessions.Session `gorm:"-"`
 	}
 	AccountLogin struct {
-		AccountDisplayName
-		AccountPermissions
+		ID            int64
+		DisplayName   string
+		Suspended     bool
+		Role          database.RoleLevel
 		Username      string
 		Password      string
 		LoginTries    int
@@ -54,12 +56,14 @@ type (
 		NextLoginTime sql.NullTime
 	}
 	AccountModification struct {
-		AccountDisplayName
-		AccountPermissions
-		Username string
-		Password string
-		Flair    string
-		Linked   sql.NullInt64
+		ID          int64
+		DisplayName string
+		Suspended   bool
+		Role        database.RoleLevel
+		Username    string
+		Password    string
+		Flair       string
+		Linked      sql.NullInt64
 	}
 )
 
@@ -80,9 +84,9 @@ func RootAccountExists() (bool, error) {
 
 // GetAccountForLogin returns a filled *AccountLogin on successfully locating
 // an account with that username. Otherwise, return an empty struct and the error.
-func GetAccountForLogin(username string) (*AccountLogin, error) {
-	accountLogin := &AccountLogin{}
-	err := database.DB.Model(database.Account{}).Where("username=?", username).First(accountLogin).Error
+func GetAccountForLogin(username string) (*database.Account, error) {
+	accountLogin := &database.Account{}
+	err := database.DB.Where("username=?", username).First(accountLogin).Error
 	return accountLogin, err
 }
 
@@ -100,25 +104,19 @@ func ChangePassword(id int64, newPassword string) error {
 	}).Error
 }
 
-// SaveBack updates the given account in the DB by id.
-func (acc *AccountLogin) SaveBack() error {
-	return database.DB.Model(database.Account{}).Where("id=?", acc.ID).Updates(acc).Error
+// UpdateLogin updates the given account login tries and next login time in the DB by id.
+func UpdateLogin(acc *database.Account) error {
+	return database.DB.Model(&database.Account{ID: acc.ID}).Updates(map[string]interface{}{
+		"login_tries":     acc.LoginTries,
+		"next_login_time": acc.NextLoginTime,
+	}).Error
 }
 
-// CreateMe creates a new account with all given rows. Every other row
+// CreateFullAccount creates a new account with all given rows. Every non-used field
 // specified in database.Account will be filled with the standard struct value for that field.
-// Only use this for the root account creation. Otherwise, use the ID agnostic creation with AccountModification.
-func (acc *AccountLogin) CreateMe() error {
-	return database.DB.Create(&database.Account{
-		ID:            acc.ID,
-		DisplayName:   acc.DisplayName,
-		Username:      acc.Username,
-		Password:      acc.Password,
-		Suspended:     acc.Suspended,
-		LoginTries:    acc.LoginTries,
-		NextLoginTime: acc.NextLoginTime,
-		Role:          acc.Role,
-	}).Error
+// Only use this for the root account creation. Otherwise, use the ID agnostic creation with CreateAccount.
+func CreateFullAccount(acc *database.Account) error {
+	return database.DB.Create(acc).Error
 }
 
 // GetAccountForAuth returns a filled *AccountAuth on successfully locating
@@ -140,6 +138,18 @@ func GetAllChildrenDisplayNames(parentID int64) (*AccountDisplayNameList, error)
 // CreateMe creates the account in the database based on the display name, username, password, flair, role and linked value
 // theoretically also sets the suspended value, but creating a suspended accounts seems dumb.
 func (acc *AccountModification) CreateMe() error {
+	return database.DB.Create(&database.Account{
+		DisplayName: acc.DisplayName,
+		Username:    acc.Username,
+		Password:    acc.Password,
+		Flair:       acc.Flair,
+		Suspended:   acc.Suspended,
+		Role:        acc.Role,
+		Linked:      acc.Linked,
+	}).Error
+}
+
+func CreateAccount(acc *database.Account) error {
 	return database.DB.Create(&database.Account{
 		DisplayName: acc.DisplayName,
 		Username:    acc.Username,
