@@ -8,11 +8,11 @@ import (
 	"net/url"
 )
 
-func CreateDocumentPage(acc *extraction.AccountAuth, document *validation.CreateDocument, val validation.Message) Node {
-	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{AccountDisplayName: extraction.AccountDisplayName{
+func CreateDocumentPage(acc *database.AccountAuth, document *validation.CreateDocument, val validation.Message) Node {
+	node, err := UpdateUserOrganisations(acc, &database.Account{
 		ID:          acc.ID,
 		DisplayName: acc.DisplayName,
-	}}, document.Organisation, "admin")
+	}, document.Organisation, "admin")
 	if err != nil {
 		val.Message = Translation["errorRetrievingOrganisationForAccount"] + "\n" + val.Message
 	}
@@ -111,7 +111,7 @@ func renderTag(posts database.Posts, extraClass string) Node {
 		I(STYLE("font-size: 0.875rem;"), Text(posts.Submitted.Format(Translation["postsTimeFormat"]))))
 }
 
-func UpdateUserOrganisations(baseAccount *extraction.AccountAuth, account *extraction.AccountModification, organisationName string, isAdmin string) (Node, error) {
+func UpdateUserOrganisations(baseAccount *database.AccountAuth, account *database.Account, organisationName string, isAdmin string) (Node, error) {
 	searchForAdmin := isAdmin == "admin"
 	orgList, err := extraction.GetOrganisationsForWithUserInIt(account.ID, searchForAdmin)
 	nodes := make([]Node, len(*orgList))

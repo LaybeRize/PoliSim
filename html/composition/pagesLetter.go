@@ -1,6 +1,7 @@
 package composition
 
 import (
+	"PoliSim/data/database"
 	"PoliSim/data/extraction"
 	"PoliSim/data/logic"
 	"PoliSim/data/validation"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-func GetCreateNormalLetterPage(acc *extraction.AccountAuth, letter *validation.CreateLetter, val validation.Message) Node {
+func GetCreateNormalLetterPage(acc *database.AccountAuth, letter *validation.CreateLetter, val validation.Message) Node {
 	display, err := extraction.ReturnListOfDisplayNames()
 	if err != nil {
 		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
@@ -56,7 +57,7 @@ func GetCreateModMailPage(letter *validation.CreateLetter, val validation.Messag
 	)
 }
 
-func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.ExtraInfo) Node {
+func GetLetterViewPersonalLetters(acc *database.AccountAuth, extra *logic.ExtraInfo) Node {
 	view, err := extra.GetLetter()
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingLetters"])
@@ -88,7 +89,7 @@ func GetLetterViewPersonalLetters(acc *extraction.AccountAuth, extra *logic.Extr
 	)
 }
 
-func GetViewModmailList(acc *extraction.AccountAuth, extra *logic.ExtraInfo) Node {
+func GetViewModmailList(acc *database.AccountAuth, extra *logic.ExtraInfo) Node {
 	view, err := extra.GetModMails()
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingLetters"])
@@ -113,7 +114,7 @@ func GetViewModmailList(acc *extraction.AccountAuth, extra *logic.ExtraInfo) Nod
 	)
 }
 
-func getUserModificationForLetters(user *extraction.AccountAuth, selectedAccount string, labelText string) Node {
+func getUserModificationForLetters(user *database.AccountAuth, selectedAccount string, labelText string) Node {
 	return DIV(CLASS("mt-2 w-full"),
 		LABEL(FOR("reader"), Text(labelText)),
 		SELECT(ID("reader"), NAME("reader"), CLASS("bg-slate-700 appearance-none w-full py-2 px-3"),

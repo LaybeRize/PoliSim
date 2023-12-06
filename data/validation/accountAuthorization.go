@@ -28,12 +28,12 @@ func CreateStore() {
 // ValidateToken returns a *extraction.AccountAuth with the Role database.NotLoggedIn if
 // either no cookie exists on the request, or it is invalid. If the cookie is valid it renews it
 // for the current session by writing it to the response.
-func ValidateToken(r *http.Request) (returnAcc *extraction.AccountAuth) {
+func ValidateToken(r *http.Request) (returnAcc *database.AccountAuth) {
 	session, err := store.Get(r, "session")
 	temp, ok := session.Values["id"]
 	id, okConvert := temp.(int64)
 
-	returnAcc = &extraction.AccountAuth{
+	returnAcc = &database.AccountAuth{
 		Role:    database.NotLoggedIn,
 		Session: session,
 	}

@@ -10,7 +10,7 @@ import (
 	"net/url"
 )
 
-func GetCreatePressReleasePage(acc *extraction.AccountAuth, press *validation.CreateArticle, val validation.Message) Node {
+func GetCreatePressReleasePage(acc *database.AccountAuth, press *validation.CreateArticle, val validation.Message) Node {
 	return getBasePageWrapper(
 		getPageHeader(CreatePressRelease),
 		getFormStandardForm("form", POST, "/"+HTMXPreRouter+string(CreatePressRelease), CLASS("w-[800px]"),

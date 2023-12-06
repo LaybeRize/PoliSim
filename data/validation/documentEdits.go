@@ -80,7 +80,7 @@ const (
 	maxDocumentCommentLength = 5_000
 )
 
-func (form *AddComment) AddComment(uuidStr string, acc *extraction.AccountAuth) (validate Message) {
+func (form *AddComment) AddComment(uuidStr string, acc *database.AccountAuth) (validate Message) {
 	validate = Message{Positive: false}
 	account, ok, err := IsAccountValidForUser(acc.ID, form.Account)
 	switch false {
@@ -119,7 +119,7 @@ func (form *AddComment) AddComment(uuidStr string, acc *extraction.AccountAuth) 
 
 type (
 	CastVote interface {
-		CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message
+		CastVote(acc *database.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message
 	}
 	GeneralVote struct {
 		InvalidateVote bool   `json:"invalidateVote"`
@@ -143,7 +143,7 @@ type (
 	}
 )
 
-func (form *AddSingleVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
+func (form *AddSingleVote) CastVote(acc *database.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
 	return generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
 		result := database.Results{
 			InvalidVote: form.InvalidateVote,
@@ -161,7 +161,7 @@ func (form *AddSingleVote) CastVote(acc *extraction.AccountAuth, docUUID string,
 	})
 }
 
-func (form *AddMultipleVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
+func (form *AddMultipleVote) CastVote(acc *database.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
 	return generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
 		result := database.Results{
 			InvalidVote: form.InvalidateVote,
@@ -183,7 +183,7 @@ func (form *AddMultipleVote) CastVote(acc *extraction.AccountAuth, docUUID strin
 	})
 }
 
-func (form *AddRankedVote) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
+func (form *AddRankedVote) CastVote(acc *database.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
 	return generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
 		result := database.Results{
 			InvalidVote: form.InvalidateVote,
@@ -214,7 +214,7 @@ func (form *AddRankedVote) CastVote(acc *extraction.AccountAuth, docUUID string,
 	})
 }
 
-func (form *AddThreeChoice) CastVote(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
+func (form *AddThreeChoice) CastVote(acc *database.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType) Message {
 	return generelizeCast(acc, docUUID, voteUUID, voteType, form.Account, func(vote *database.Votes) (Message, database.Results) {
 		result := database.Results{
 			InvalidVote: form.InvalidateVote,
@@ -237,7 +237,7 @@ func (form *AddThreeChoice) CastVote(acc *extraction.AccountAuth, docUUID string
 	})
 }
 
-func generelizeCast(acc *extraction.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType, accountName string, f func(vote *database.Votes) (Message, database.Results)) (validate Message) {
+func generelizeCast(acc *database.AccountAuth, docUUID string, voteUUID string, voteType database.VoteType, accountName string, f func(vote *database.Votes) (Message, database.Results)) (validate Message) {
 	validate = Message{Positive: false}
 	account, ok, err := IsAccountValidForUser(acc.ID, accountName)
 	switch false {

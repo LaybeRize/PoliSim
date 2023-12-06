@@ -2,7 +2,6 @@ package serving
 
 import (
 	"PoliSim/data/database"
-	"PoliSim/data/extraction"
 	"PoliSim/data/logic"
 	"PoliSim/data/validation"
 	"PoliSim/helper"
@@ -136,14 +135,14 @@ func getInt(r *http.Request, fieldName string, onError int64) int64 {
 
 // CheckUserPrivileges gets the account from the cookie and returns the extraction.AccountAuth if one is found for the cookie, and if
 // the account has one of the specified roles returns true. Otherwise, returns false
-func CheckUserPrivileges(r *http.Request, roleString ...database.RoleLevel) (*extraction.AccountAuth, bool) {
+func CheckUserPrivileges(r *http.Request, roleString ...database.RoleLevel) (*database.AccountAuth, bool) {
 	acc := validation.ValidateToken(r)
 
 	return acc, CheckIfHasRole(acc, roleString...)
 }
 
 // CheckIfHasRole checks if the referenced account has one of the provided roles
-func CheckIfHasRole(acc *extraction.AccountAuth, roles ...database.RoleLevel) bool {
+func CheckIfHasRole(acc *database.AccountAuth, roles ...database.RoleLevel) bool {
 	for _, r := range roles {
 		if r == acc.Role {
 			return true
@@ -155,7 +154,7 @@ func CheckIfHasRole(acc *extraction.AccountAuth, roles ...database.RoleLevel) bo
 // updateInformation extracts the current roleLevel and pageURL via submitted form/url and if one of these are different from what
 // is expected of the page it will replace the title/sidebar according to the new page/accountLevel. It covers GET request, form requests and json requests
 // It gets all it's information from the Cookie.
-func updateInformation(w http.ResponseWriter, r *http.Request, acc *extraction.AccountAuth, currentPage builder.HttpUrl) builder.Node {
+func updateInformation(w http.ResponseWriter, r *http.Request, acc *database.AccountAuth, currentPage builder.HttpUrl) builder.Node {
 	go logic.UpdateLetterNotification(acc.ID)
 	role, ok := acc.Session.Values["role"].(int)
 	if !ok {
@@ -188,8 +187,8 @@ func retargetTo(w http.ResponseWriter, objectID string) {
 
 // genericRenderer returns a generics render function for a typical urls by parsing the htmlComposition.HttpUrl
 func genericRenderer(currentPage builder.HttpUrl) func(w http.ResponseWriter,
-	r *http.Request, acc *extraction.AccountAuth, node builder.Node) {
-	return func(w http.ResponseWriter, r *http.Request, acc *extraction.AccountAuth, node builder.Node) {
+	r *http.Request, acc *database.AccountAuth, node builder.Node) {
+	return func(w http.ResponseWriter, r *http.Request, acc *database.AccountAuth, node builder.Node) {
 		renderRequest(w, updateInformation(w, r, acc, currentPage), node)
 	}
 }
@@ -198,8 +197,8 @@ func genericRenderer(currentPage builder.HttpUrl) func(w http.ResponseWriter,
 // element for a typical urls by parsing the htmlComposition.HttpUrl. It retargets the request and only
 // replaces the Message <div> on the page via htmx.
 func genericMessageSwapper(currentPage builder.HttpUrl) func(w http.ResponseWriter,
-	r *http.Request, val validation.Message, acc *extraction.AccountAuth) {
-	return func(w http.ResponseWriter, r *http.Request, val validation.Message, acc *extraction.AccountAuth) {
+	r *http.Request, val validation.Message, acc *database.AccountAuth) {
+	return func(w http.ResponseWriter, r *http.Request, val validation.Message, acc *database.AccountAuth) {
 		retargetToMessage(w)
 		html := composition.GetMessage(val)
 		renderRequest(w, updateInformation(w, r, acc, currentPage), html)

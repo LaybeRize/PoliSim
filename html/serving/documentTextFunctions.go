@@ -135,7 +135,10 @@ func PatchUserSelectionService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html, err := composition.UpdateUserOrganisations(acc, account, "", chi.URLParam(r, "isAdmin"))
+	html, err := composition.UpdateUserOrganisations(acc, &database.Account{
+		ID:          account.ID,
+		DisplayName: account.DisplayName,
+	}, "", chi.URLParam(r, "isAdmin"))
 	var extraNode builder.Node = nil
 	if err != nil {
 		extraNode = composition.GetMessageOOB(validation.Message{

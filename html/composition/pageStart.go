@@ -2,12 +2,11 @@ package composition
 
 import (
 	"PoliSim/data/database"
-	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 )
 
-func GetStartPage(acc *extraction.AccountAuth, val validation.Message) Node {
+func GetStartPage(acc *database.AccountAuth, val validation.Message) Node {
 	return getBasePageWrapper(
 		getCustomPageHeader(Configuration["welcomeMessage"]),
 		IfElse(acc.Role == database.NotLoggedIn,

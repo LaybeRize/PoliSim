@@ -15,15 +15,15 @@ import (
 
 const voteContainerDiv = "vote-container-div"
 
-func GetCreateVotePage(acc *extraction.AccountAuth, document *validation.CreateVote, val validation.Message) Node {
+func GetCreateVotePage(acc *database.AccountAuth, document *validation.CreateVote, val validation.Message) Node {
 	display, err := extraction.ReturnListOfDisplayNames()
 	if err != nil {
 		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
 	}
-	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{AccountDisplayName: extraction.AccountDisplayName{
+	node, err := UpdateUserOrganisations(acc, &database.Account{
 		ID:          acc.ID,
 		DisplayName: acc.DisplayName,
-	}}, "", "user")
+	}, "", "user")
 	if err != nil {
 		val.Message = Translation["errorRetrievingOrganisationForAccount"] + "\n" + val.Message
 	}
@@ -112,7 +112,7 @@ const (
 	VoteInfoDiv      = "vote-info-for-%s"
 )
 
-func GetVoteViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
+func GetVoteViewPageUpdate(acc *database.AccountAuth, uuidStr string, isAdmin bool) Node {
 	doc, err := extraction.GetVoteForUser(uuidStr, acc.ID, isAdmin)
 	if err != nil {
 		return GetMessage(validation.Message{Message: Translation["documentDoesNotExists"]})
@@ -145,7 +145,7 @@ func GetVoteViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin 
 	return Group(votesDivs...)
 }
 
-func GetVoteViewPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
+func GetVoteViewPage(acc *database.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
 	doc, err := extraction.GetVoteForUser(uuidStr, acc.ID, isAdmin)
 	if err != nil {
 		return GetErrorPage(Translation["documentDoesNotExists"])
@@ -214,7 +214,7 @@ func compactVoteView(id string, text string, children []Node) Node {
 	)
 }
 
-func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
+func getSingleVote(acc *database.AccountAuth, item *database.Votes, docUUID string) []Node {
 	RadioButtons := make([]Node, len(item.Info.Options))
 	for i, str := range item.Info.Options {
 		RadioButtons[i] = getRadioButton("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10),
@@ -236,7 +236,7 @@ func getSingleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 		GetInfoStandardView(item, false),
 	}
 }
-func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
+func getMultipleVote(acc *database.AccountAuth, item *database.Votes, docUUID string) []Node {
 	checkBoxes := make([]Node, len(item.Info.Options))
 	for i, str := range item.Info.Options {
 		checkBoxes[i] = getStandardCheckBoxID("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10),
@@ -260,7 +260,7 @@ func getMultipleVote(acc *extraction.AccountAuth, item *database.Votes, docUUID 
 	}
 }
 
-func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
+func getRankedVote(acc *database.AccountAuth, item *database.Votes, docUUID string) []Node {
 	rankings := make([]Node, len(item.Info.Options))
 	for i, str := range item.Info.Options {
 		rankings[i] = getInput("vote-option-"+item.UUID+"-"+strconv.FormatInt(int64(i), 10),
@@ -285,7 +285,7 @@ func getRankedVote(acc *extraction.AccountAuth, item *database.Votes, docUUID st
 	}
 }
 
-func getThreeCategoryVote(acc *extraction.AccountAuth, item *database.Votes, docUUID string) []Node {
+func getThreeCategoryVote(acc *database.AccountAuth, item *database.Votes, docUUID string) []Node {
 	threeCategory := make([]Node, len(item.Info.Options))
 	for i, str := range item.Info.Options {
 		threeCategory[i] = Group(P(CLASS("mt-2"), Text(str)),

@@ -13,15 +13,15 @@ import (
 
 const EventAddComment = "addcomment"
 
-func CreateDiscussionPage(acc *extraction.AccountAuth, document *validation.CreateDiscussion, val validation.Message) Node {
+func CreateDiscussionPage(acc *database.AccountAuth, document *validation.CreateDiscussion, val validation.Message) Node {
 	display, err := extraction.ReturnListOfDisplayNames()
 	if err != nil {
 		val.Message = Translation["errorQueryingNames"] + "\n" + val.Message
 	}
-	node, err := UpdateUserOrganisations(acc, &extraction.AccountModification{AccountDisplayName: extraction.AccountDisplayName{
+	node, err := UpdateUserOrganisations(acc, &database.Account{
 		ID:          acc.ID,
 		DisplayName: acc.DisplayName,
-	}}, document.Organisation, "user")
+	}, document.Organisation, "user")
 	if err != nil {
 		val.Message = Translation["errorRetrievingOrganisationForAccount"] + "\n" + val.Message
 	}
@@ -78,7 +78,7 @@ func GetCommentRendered(docUUID string, disc *database.Discussions, isAdmin bool
 	)
 }
 
-func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
+func ViewDiscussionPage(acc *database.AccountAuth, uuidStr string, isAdmin bool, val validation.Message) Node {
 	doc, err := extraction.GetDiscussionForUser(uuidStr, acc.ID, isAdmin)
 	if err != nil {
 		return GetErrorPage(Translation["documentDoesNotExists"])
@@ -126,7 +126,7 @@ func ViewDiscussionPage(acc *extraction.AccountAuth, uuidStr string, isAdmin boo
 	)
 }
 
-func GetDiscussionViewPageUpdate(acc *extraction.AccountAuth, uuidStr string, isAdmin bool) Node {
+func GetDiscussionViewPageUpdate(acc *database.AccountAuth, uuidStr string, isAdmin bool) Node {
 	doc, err := extraction.GetDiscussionForUser(uuidStr, acc.ID, isAdmin)
 	if err != nil {
 		return GetMessage(validation.Message{Message: Translation["documentDoesNotExists"]})

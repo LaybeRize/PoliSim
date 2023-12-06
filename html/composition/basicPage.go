@@ -1,7 +1,7 @@
 package composition
 
 import (
-	"PoliSim/data/extraction"
+	"PoliSim/data/database"
 	"PoliSim/data/validation"
 	. "PoliSim/html/builder"
 	"html/template"
@@ -20,7 +20,7 @@ func SetupComposition() {
 // GetBasePage returns the typical <html> frame for the page.
 // it includes the correct sidebar for the parsed role and an element which automatically
 // calls the correct partial for the page content.
-func GetBasePage(pageTitle string, acc *extraction.AccountAuth, loadURL string, loadURLAddition string) Node {
+func GetBasePage(pageTitle string, acc *database.AccountAuth, loadURL string, loadURLAddition string) Node {
 	return HTML(LANG(language),
 		HEAD(
 			META(CHARSET("UTF-8")),
@@ -91,7 +91,7 @@ func GetTitleReplacement(url HttpUrl) Node {
 }
 
 // GetSidebarReplacement gets a new sidebar based on the database.RoleLevel that has the hx-swap-oob parameter
-func GetSidebarReplacement(acc *extraction.AccountAuth) Node {
+func GetSidebarReplacement(acc *database.AccountAuth) Node {
 	return getSidebar(acc, HXSWAPOOB("true"))
 }
 

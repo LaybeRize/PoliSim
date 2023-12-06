@@ -2,13 +2,12 @@ package composition
 
 import (
 	"PoliSim/data/database"
-	"PoliSim/data/extraction"
 	. "PoliSim/html/builder"
 	"net/url"
 )
 
 // getSidebar returns a full <div> with every button needed for navigation
-func getSidebar(acc *extraction.AccountAuth, specialNode Node) Node {
+func getSidebar(acc *database.AccountAuth, specialNode Node) Node {
 	level := acc.Role
 	return DIV(specialNode, ID(SidebarID),
 		CLASS("lg:left-0 p-2 sidebarSize min-h-screen text-center bg-gray-900 disable-selection"),
@@ -81,7 +80,7 @@ func getSidebarButton(userLevel database.RoleLevel, minimumLevel database.RoleLe
 	)
 }
 
-func GetLetterSidebarButton(acc *extraction.AccountAuth, swap bool) Node {
+func GetLetterSidebarButton(acc *database.AccountAuth, swap bool) Node {
 	useURL := ViewLetterLink + HttpUrl(url.PathEscape(acc.DisplayName))
 	if database.User > acc.Role {
 		return A(ID(LetterSidebarID), HIDDEN(), If(swap, HXSWAPOOB("true")))

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GetPersonalProfil(acc *extraction.AccountAuth) Node {
+func GetPersonalProfil(acc *database.AccountAuth) Node {
 	val := validation.Message{}
 	var list extraction.AccountList
 	var err error

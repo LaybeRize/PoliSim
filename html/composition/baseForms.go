@@ -1,6 +1,7 @@
 package composition
 
 import (
+	"PoliSim/data/database"
 	"PoliSim/data/extraction"
 	. "PoliSim/html/builder"
 	"fmt"
@@ -78,7 +79,7 @@ const userDropDownID = "authorAccount"
 // getUserDropdown gets a dropdown with all valid accounts for the parsed user. it has "authorAccount" as the name.
 // Parse a specific account by display name to selectedAccount to activate the selected Tag on the option
 // with that name.
-func getUserDropdown(user *extraction.AccountAuth, selectedAccount string, labelText string) Node {
+func getUserDropdown(user *database.AccountAuth, selectedAccount string, labelText string) Node {
 	return DIV(CLASS("mt-2"),
 		LABEL(FOR(userDropDownID), Text(labelText)),
 		SELECT(If(user.ID == 0, DISABLED()), ID(userDropDownID), TEST(userDropDownID),
@@ -88,7 +89,7 @@ func getUserDropdown(user *extraction.AccountAuth, selectedAccount string, label
 	)
 }
 
-func getUserOptions(user *extraction.AccountAuth, selectedAccount string) Node {
+func getUserOptions(user *database.AccountAuth, selectedAccount string) Node {
 	children, _ := extraction.GetAllChildrenDisplayNames(user.ID)
 	nodes := make([]Node, len(*children)+1)
 	nodes[0] = OPTION(VALUE(user.DisplayName), If(user.DisplayName == selectedAccount, SELECTED()),

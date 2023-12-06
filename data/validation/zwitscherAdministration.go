@@ -1,6 +1,8 @@
 package validation
 
-import "PoliSim/data/extraction"
+import (
+	"PoliSim/data/database"
+)
 
 type CreateZwitscher struct {
 	Account         string `input:"authorAccount"`
@@ -8,6 +10,6 @@ type CreateZwitscher struct {
 	ParentZwitscher string
 }
 
-func (form *CreateZwitscher) CreateZwitscher(acc *extraction.AccountAuth) (validation Message) {
+func (form *CreateZwitscher) CreateZwitscher(acc *database.AccountAuth) (validation Message) {
 	return
 }

@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"github.com/gorilla/sessions"
 	"strconv"
 )
 
@@ -23,6 +24,14 @@ type (
 	}
 	AccountList []Account
 
+	AccountAuth struct {
+		ID          int64
+		DisplayName string
+		Suspended   bool
+		Role        RoleLevel
+		HasLetters  bool
+		Session     *sessions.Session `gorm:"-"`
+	}
 	RoleLevel int
 )
 

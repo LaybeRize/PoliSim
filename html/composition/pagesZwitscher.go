@@ -15,7 +15,7 @@ const (
 	MaxZwitscher = 50
 )
 
-func GetZwitschers(acc *extraction.AccountAuth, extra *extraction.ExtraZwitscherInfo) Node {
+func GetZwitschers(acc *database.AccountAuth, extra *extraction.ExtraZwitscherInfo) Node {
 	view, err := logic.GetZwitschers(extra)
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingZwitscher"])
@@ -51,7 +51,7 @@ func GetZwitschers(acc *extraction.AccountAuth, extra *extraction.ExtraZwitscher
 	)
 }
 
-func GetSingleZwitscher(acc *extraction.AccountAuth, isAdmin bool, uuid string) Node {
+func GetSingleZwitscher(acc *database.AccountAuth, isAdmin bool, uuid string) Node {
 	zwt, err := extraction.GetZwitscher(uuid)
 	if err != nil {
 		return GetErrorPage(Translation["tweetWithUUIDDoesNotExist"])
@@ -61,7 +61,7 @@ func GetSingleZwitscher(acc *extraction.AccountAuth, isAdmin bool, uuid string) 
 
 const ZwitscherInterfaceID = "zwitscher-interface-id"
 
-func GetZwitscherInterface(acc *extraction.AccountAuth, responseTo string, hideInterface bool, msg validation.Message) Node {
+func GetZwitscherInterface(acc *database.AccountAuth, responseTo string, hideInterface bool, msg validation.Message) Node {
 	extra := ""
 	if responseTo != "" {
 		extra = "?zwitscher=" + url.QueryEscape(responseTo)

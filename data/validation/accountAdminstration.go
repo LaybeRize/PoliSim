@@ -53,7 +53,7 @@ func (form *AccountModification) RequestAccount() (validate Message) {
 	return
 }
 
-func (form *AccountModification) ValidateAccountCreation(changer *extraction.AccountAuth) (validate Message) {
+func (form *AccountModification) ValidateAccountCreation(changer *database.AccountAuth) (validate Message) {
 	validate = Message{Positive: false}
 	switch false {
 	case isValidString(form.DisplayName, maxNameLength):
@@ -87,17 +87,13 @@ func (form *AccountModification) ValidateAccountCreation(changer *extraction.Acc
 		pass = []byte("")
 	}
 	acc := extraction.AccountModification{
-		AccountDisplayName: extraction.AccountDisplayName{
-			DisplayName: form.DisplayName,
-		},
-		AccountPermissions: extraction.AccountPermissions{
-			Suspended: false,
-			Role:      database.RoleLevel(form.Role),
-		},
-		Username: form.Username,
-		Password: string(pass),
-		Flair:    form.Flair,
-		Linked:   sql.NullInt64{Int64: form.Linked},
+		DisplayName: form.DisplayName,
+		Suspended:   false,
+		Role:        database.RoleLevel(form.Role),
+		Username:    form.Username,
+		Password:    string(pass),
+		Flair:       form.Flair,
+		Linked:      sql.NullInt64{Int64: form.Linked},
 	}
 	if acc.Role == database.PressAccount {
 		acc.Linked.Valid = true
@@ -115,7 +111,7 @@ func (form *AccountModification) ValidateAccountCreation(changer *extraction.Acc
 	return
 }
 
-func (form *AccountModification) ValidateAccountModification(changer *extraction.AccountAuth) (validate Message) {
+func (form *AccountModification) ValidateAccountModification(changer *database.AccountAuth) (validate Message) {
 	var acc *extraction.AccountModification
 	var err error
 	if form.SearchByUsername {
@@ -140,7 +136,7 @@ func (form *AccountModification) ValidateAccountModification(changer *extraction
 	}
 }
 
-func (form *AccountModification) validateChangeRootAccount(acc *extraction.AccountModification, changer *extraction.AccountAuth) (validate Message) {
+func (form *AccountModification) validateChangeRootAccount(acc *extraction.AccountModification, changer *database.AccountAuth) (validate Message) {
 	validate = Message{Positive: false}
 	if changer.ID != 1 {
 		validate.Message = builder.Translation["notAllowedToChangeAccount"]
@@ -165,7 +161,7 @@ func (form *AccountModification) validateChangeRootAccount(acc *extraction.Accou
 	return
 }
 
-func (form *AccountModification) validateChangeHeadAdmin(acc *extraction.AccountModification, changer *extraction.AccountAuth) (validate Message) {
+func (form *AccountModification) validateChangeHeadAdmin(acc *extraction.AccountModification, changer *database.AccountAuth) (validate Message) {
 	var err error
 	validate = Message{Positive: false}
 	if changer.ID != 1 && changer.ID != acc.ID {
@@ -257,7 +253,7 @@ func (form *AccountModification) validateChangeToPressAccount(acc *extraction.Ac
 	return
 }
 
-func (form *AccountModification) validateChangeToEveryoneElse(acc *extraction.AccountModification, changer *extraction.AccountAuth) (validate Message) {
+func (form *AccountModification) validateChangeToEveryoneElse(acc *extraction.AccountModification, changer *database.AccountAuth) (validate Message) {
 	validate = Message{Positive: false}
 	if changer.ID != 1 && form.Role == int(database.HeadAdmin) {
 		// Not allowed
@@ -403,7 +399,7 @@ const (
 	minPasswordLength = 10
 )
 
-func (form *ChangePassword) ChangePassword(acc *extraction.AccountAuth) (validate Message) {
+func (form *ChangePassword) ChangePassword(acc *database.AccountAuth) (validate Message) {
 	validate.Positive = false
 	account, err := extraction.GetAccountForPasswordChange(acc.ID)
 	if err != nil {

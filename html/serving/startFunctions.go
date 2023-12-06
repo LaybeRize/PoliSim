@@ -2,7 +2,6 @@ package serving
 
 import (
 	"PoliSim/data/database"
-	"PoliSim/data/extraction"
 	"PoliSim/data/validation"
 	"PoliSim/html/builder"
 	"PoliSim/html/composition"
@@ -46,11 +45,11 @@ func PostLoginService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	html := composition.GetStartPage(&extraction.AccountAuth{
+	html := composition.GetStartPage(&database.AccountAuth{
 		DisplayName: loginAccount.DisplayName,
 		Role:        loginAccount.Role,
 	}, msg)
-	renderRequest(w, updateInformation(w, r, &extraction.AccountAuth{
+	renderRequest(w, updateInformation(w, r, &database.AccountAuth{
 		ID:          loginAccount.ID,
 		DisplayName: loginAccount.DisplayName,
 		Suspended:   loginAccount.Suspended,
@@ -73,7 +72,7 @@ func PostLogoutService(w http.ResponseWriter, r *http.Request) {
 
 	val.Positive = true
 	val.Message = builder.Translation["successfullyLoggedOut"]
-	html := composition.GetStartPage(&extraction.AccountAuth{}, val)
+	html := composition.GetStartPage(&database.AccountAuth{}, val)
 	acc.Role = database.NotLoggedIn
 	update := updateInformation(w, r, acc, composition.Start)
 	w.Header().Set("Set-Cookie", cookie.String())

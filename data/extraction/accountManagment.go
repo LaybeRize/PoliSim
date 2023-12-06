@@ -5,7 +5,6 @@ import (
 	"PoliSim/helper"
 	"database/sql"
 	"errors"
-	"github.com/gorilla/sessions"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -35,14 +34,6 @@ type (
 		Username    string
 		Flair       string
 		Linked      sql.NullInt64
-	}
-	AccountAuth struct {
-		ID          int64
-		DisplayName string
-		Suspended   bool
-		Role        database.RoleLevel
-		HasLetters  bool
-		Session     *sessions.Session `gorm:"-"`
 	}
 	AccountLogin struct {
 		ID            int64
@@ -121,8 +112,8 @@ func CreateFullAccount(acc *database.Account) error {
 
 // GetAccountForAuth returns a filled *AccountAuth on successfully locating
 // an account with that id. Otherwise, return an empty struct and the error.
-func GetAccountForAuth(id int64) (*AccountAuth, error) {
-	accountAuth := &AccountAuth{}
+func GetAccountForAuth(id int64) (*database.AccountAuth, error) {
+	accountAuth := &database.AccountAuth{}
 	err := database.DB.Model(database.Account{}).Where("id=?", id).First(accountAuth).Error
 	return accountAuth, err
 }
