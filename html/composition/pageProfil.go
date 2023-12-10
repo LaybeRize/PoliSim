@@ -11,10 +11,9 @@ import (
 
 func GetPersonalProfil(acc *database.AccountAuth) Node {
 	val := validation.Message{}
-	var list extraction.AccountList
+	list := &database.AccountList{}
 	var err error
 	nodes := make([]Node, 0, 20)
-	list = extraction.AccountList{}
 	if acc.ID != 0 {
 		list, err = extraction.ReturnAccountList(acc.ID)
 		if err != nil {
@@ -24,15 +23,15 @@ func GetPersonalProfil(acc *database.AccountAuth) Node {
 	var orgs *database.OrganisationList
 	var titles *database.TitleList
 	sort.Slice(list, func(i, j int) bool {
-		if list[i].DisplayName == acc.DisplayName {
+		if (*list)[i].DisplayName == acc.DisplayName {
 			return true
 		}
-		if list[j].DisplayName == acc.DisplayName {
+		if (*list)[j].DisplayName == acc.DisplayName {
 			return false
 		}
-		return list[i].DisplayName < list[j].DisplayName
+		return (*list)[i].DisplayName < (*list)[j].DisplayName
 	})
-	for _, item := range list {
+	for _, item := range *list {
 		orgs, err = extraction.GetOrganisationsForUser(item.ID)
 		if err != nil {
 			errorAccountData(&val)

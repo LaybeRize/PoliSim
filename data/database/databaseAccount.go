@@ -32,7 +32,12 @@ type (
 		HasLetters  bool
 		Session     *sessions.Session `gorm:"-"`
 	}
-	RoleLevel int
+	AccountDisplayName struct {
+		ID          int64
+		DisplayName string
+	}
+	AccountDisplayNameList []AccountDisplayName
+	RoleLevel              int
 )
 
 const (

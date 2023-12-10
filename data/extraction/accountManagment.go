@@ -10,31 +10,6 @@ import (
 )
 
 type (
-	AccountDisplayNameList []AccountDisplayName
-	AccountDisplayName     struct {
-		ID          int64
-		DisplayName string
-	}
-
-	AccountFlairUpdateList []AccountFlairUpdate
-	AccountFlairUpdate     struct {
-		ID    int64
-		Flair string
-	}
-	AccountNames struct {
-		DisplayName string
-		Username    string
-	}
-	AccountList        []AccountListElement
-	AccountListElement struct {
-		ID          int64
-		DisplayName string
-		Suspended   bool
-		Role        database.RoleLevel
-		Username    string
-		Flair       string
-		Linked      sql.NullInt64
-	}
 	AccountLogin struct {
 		ID            int64
 		DisplayName   string
@@ -120,8 +95,8 @@ func GetAccountForAuth(id int64) (*database.AccountAuth, error) {
 
 // GetAllChildrenDisplayNames returns a *AccountDisplayNameList on successfully finding any children.
 // Will return an empty array and a gorm.ErrRecordNotFound on no children found and any other error if there was one.
-func GetAllChildrenDisplayNames(parentID int64) (*AccountDisplayNameList, error) {
-	array := &AccountDisplayNameList{}
+func GetAllChildrenDisplayNames(parentID int64) (*database.AccountDisplayNameList, error) {
+	array := &database.AccountDisplayNameList{}
 	err := database.DB.Model(database.Account{}).Select("display_name").Where("linked=? AND suspended = false", parentID).Order("display_name").Find(array).Error
 	return array, err
 }
@@ -208,7 +183,10 @@ func ReturnNames() ([]string, []string, error) {
 		return names, users, err
 	}
 	for rows.Next() {
-		var user AccountNames
+		var user struct {
+			DisplayName string
+			Username    string
+		}
 		err = database.DB.ScanRows(rows, &user)
 		if err != nil {
 			return names, users, err
@@ -229,7 +207,9 @@ func ReturnListOfDisplayNames() ([]string, error) {
 		return names, err
 	}
 	for rows.Next() {
-		var user AccountNames
+		var user struct {
+			DisplayName string
+		}
 		err = database.DB.ScanRows(rows, &user)
 		if err != nil {
 			return names, err
@@ -241,9 +221,10 @@ func ReturnListOfDisplayNames() ([]string, error) {
 }
 
 // ReturnAccountList returns itself and all their press accounts
-func ReturnAccountList(id int64) (AccountList, error) {
-	array := AccountList{}
-	err := database.DB.Model(database.Account{}).Where("id=? OR linked=? OR ?=0", id, id, id).Order("id").Find(&array).Error
+func ReturnAccountList(id int64) (*database.AccountList, error) {
+	array := &database.AccountList{}
+	err := database.DB.Model(database.Account{}).Where("id=? OR linked=? OR ?=0", id, id, id).
+		Select("id, linked, display_name, username, role, flair, suspended").Order("id").Find(array).Error
 	return array, err
 }
 

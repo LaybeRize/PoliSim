@@ -68,8 +68,8 @@ func GetViewAccountList(id string) Node {
 	if err != nil {
 		return GetErrorPage(Translation["errorWithDatabaseRequest"])
 	}
-	nodes := make([]Node, len(arr))
-	for i, item := range arr {
+	nodes := make([]Node, len(*arr))
+	for i, item := range *arr {
 		susSpan := SPAN(CLASS("text-sm"), I(CLASS("bi bi-check-lg")))
 		if item.Suspended {
 			susSpan = SPAN(CLASS("text-sm"), I(CLASS("bi bi-x-lg")))
