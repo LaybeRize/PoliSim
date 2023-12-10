@@ -57,7 +57,7 @@ func GetCreateModMailPage(letter *validation.CreateLetter, val validation.Messag
 	)
 }
 
-func GetLetterViewPersonalLetters(acc *database.AccountAuth, extra *logic.ExtraInfo) Node {
+func GetLetterViewPersonalLetters(acc *database.AccountAuth, extra *logic.QueryInfo) Node {
 	view, err := extra.GetLetter()
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingLetters"])
@@ -89,7 +89,7 @@ func GetLetterViewPersonalLetters(acc *database.AccountAuth, extra *logic.ExtraI
 	)
 }
 
-func GetViewModmailList(acc *database.AccountAuth, extra *logic.ExtraInfo) Node {
+func GetViewModmailList(acc *database.AccountAuth, extra *logic.QueryInfo) Node {
 	view, err := extra.GetModMails()
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingLetters"])

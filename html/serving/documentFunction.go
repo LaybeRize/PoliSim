@@ -48,7 +48,7 @@ func PatchBlockDocumentService(w http.ResponseWriter, r *http.Request) {
 func GetViewDocumentsService(w http.ResponseWriter, r *http.Request) {
 	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 
-	extraInfo := &extraction.ExtraInfo{
+	extraInfo := &extraction.DocumentQueryInfo{
 		ViewAccountID: acc.ID,
 		IsAdmin:       isAdmin,
 	}
@@ -60,7 +60,7 @@ func GetViewDocumentsService(w http.ResponseWriter, r *http.Request) {
 
 func PatchViewDocumentsService(w http.ResponseWriter, r *http.Request) {
 	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
-	extraInfo := &extraction.ExtraInfo{
+	extraInfo := &extraction.DocumentQueryInfo{
 		ViewAccountID: acc.ID,
 		IsAdmin:       isAdmin,
 	}

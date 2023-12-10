@@ -64,7 +64,7 @@ func GetSingleZwitscherViewService(w http.ResponseWriter, r *http.Request) {
 func GetZwitscherViewService(w http.ResponseWriter, r *http.Request) {
 	acc, isAdmin := CheckUserPrivileges(r, database.HeadAdmin, database.Admin)
 
-	extraInfo := &extraction.ExtraZwitscherInfo{
+	extraInfo := &extraction.ZwitscherQueryInfo{
 		IsAdmin: isAdmin,
 	}
 	extractURLFieldValues(extraInfo, r, composition.MinZwitscher, int64(standardAmount), composition.MaxZwitscher)

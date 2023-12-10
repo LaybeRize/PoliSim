@@ -89,7 +89,7 @@ func GetViewModMailListService(w http.ResponseWriter, r *http.Request) {
 		ShowErrorPage(w, r, acc, builder.Translation["notAllowedToViewThisPage"])
 		return
 	}
-	extraInfo := &logic.ExtraInfo{}
+	extraInfo := &logic.QueryInfo{}
 	extractURLFieldValues(extraInfo, r, 5, int64(standardAmount), 50)
 
 	html := composition.GetViewModmailList(acc, extraInfo)
@@ -163,7 +163,7 @@ func PatchMarkLetterService(w http.ResponseWriter, r *http.Request) {
 		viewLetterSwapMessage(w, r, validation.Message{Message: builder.Translation["errorMarkingAllAsRead"]}, acc)
 	}
 
-	extraInfo := &logic.ExtraInfo{
+	extraInfo := &logic.QueryInfo{
 		UUID:            "",
 		Before:          false,
 		Amount:          standardAmount,
@@ -194,7 +194,7 @@ func PatchViewLetterService(w http.ResponseWriter, r *http.Request) {
 	pushURL(w, "/"+string(composition.ViewLetterLink)+
 		url.PathEscape(account.DisplayName))
 
-	extraInfo := &logic.ExtraInfo{
+	extraInfo := &logic.QueryInfo{
 		UUID:            "",
 		Before:          false,
 		Amount:          standardAmount,
@@ -216,7 +216,7 @@ func GetViewLetterService(w http.ResponseWriter, r *http.Request) {
 		ShowErrorPage(w, r, acc, builder.Translation["letterAccountError"])
 		return
 	}
-	extraInfo := &logic.ExtraInfo{
+	extraInfo := &logic.QueryInfo{
 		ViewAccountID:   account.ID,
 		ViewAccountName: account.DisplayName,
 	}

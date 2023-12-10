@@ -91,7 +91,7 @@ func GetFirstDocumentBeforeTime(t time.Time, userID int64, isAdmin bool) (*datab
 	return doc, err
 }
 
-func (extra *ExtraInfo) GetDocumentsAfter() (documentList *database.DocumentList, exists bool, err error) {
+func (extra *DocumentQueryInfo) GetDocumentsAfter() (documentList *database.DocumentList, exists bool, err error) {
 	documentList = &database.DocumentList{}
 	exists = true
 	var doc *database.Document
@@ -111,7 +111,7 @@ func (extra *ExtraInfo) GetDocumentsAfter() (documentList *database.DocumentList
 	return
 }
 
-func (extra *ExtraInfo) GetDocumentsBefore() (documentList *database.DocumentList, exists bool, err error) {
+func (extra *DocumentQueryInfo) GetDocumentsBefore() (documentList *database.DocumentList, exists bool, err error) {
 	documentList = &database.DocumentList{}
 	exists = true
 	var doc *database.Document
@@ -126,7 +126,7 @@ func (extra *ExtraInfo) GetDocumentsBefore() (documentList *database.DocumentLis
 	return
 }
 
-type ExtraInfo struct {
+type DocumentQueryInfo struct {
 	UUID          string `input:"uuid"`
 	Before        bool   `input:"before"`
 	Amount        int    `input:"amount"`
@@ -142,7 +142,7 @@ type ExtraInfo struct {
 	ViewAccountID int64
 }
 
-func (extra *ExtraInfo) getBasicDocumentQuery() *gorm.DB {
+func (extra *DocumentQueryInfo) getBasicDocumentQuery() *gorm.DB {
 	query := "documents.uuid != ? AND (private = false OR organisation_account.id = ? OR doc_allowed.id=? OR true = ?) "
 	params := []any{extra.UUID, extra.ViewAccountID, extra.ViewAccountID, extra.IsAdmin}
 	if extra.HideBlock {

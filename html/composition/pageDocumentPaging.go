@@ -23,7 +23,7 @@ var (
 	runSymbol  = I(CLASS("bi bi-hourglass-split"))
 )
 
-func GetDocumentPage(extra *extraction.ExtraInfo) Node {
+func GetDocumentPage(extra *extraction.DocumentQueryInfo) Node {
 	view, err := logic.GetDocuments(extra)
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingDocuments"])
@@ -77,7 +77,7 @@ func GetDocumentPage(extra *extraction.ExtraInfo) Node {
 	)
 }
 
-func getAdvancedSearch(isAdmin bool, extra *extraction.ExtraInfo) Node {
+func getAdvancedSearch(isAdmin bool, extra *extraction.DocumentQueryInfo) Node {
 	return DIV(ID("advanced-search-div"),
 		CLASS("text-left text-sm mt-2 w-auto mx-auto text-gray-200 font-bold hidden"),
 		getFormStandardForm("form", PATCH, "/"+HTMXPreRouter+string(ViewDocument), CLASS("w-[800px]"),
@@ -102,7 +102,7 @@ func getAdvancedSearch(isAdmin bool, extra *extraction.ExtraInfo) Node {
 	)
 }
 
-func GetExtraString(extra *extraction.ExtraInfo) string {
+func GetExtraString(extra *extraction.DocumentQueryInfo) string {
 	result := ""
 	if extra.HideBlock {
 		result += "&hideblock=true"

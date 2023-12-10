@@ -5,7 +5,7 @@ import (
 	"PoliSim/data/extraction"
 )
 
-type ExtraInfo struct {
+type QueryInfo struct {
 	UUID            string `input:"uuid"`
 	Before          bool   `input:"before"`
 	Amount          int    `input:"amount"`
@@ -37,7 +37,7 @@ type ViewZwitscher struct {
 	BeforeUUID    string
 }
 
-func (info *ExtraInfo) GetLetter() (*ViewLetter, error) {
+func (info *QueryInfo) GetLetter() (*ViewLetter, error) {
 	viewInfo := &ViewLetter{NextUUID: "", BeforeUUID: ""}
 	var exists bool
 	var err error
@@ -69,7 +69,7 @@ func (info *ExtraInfo) GetLetter() (*ViewLetter, error) {
 	return viewInfo, err
 }
 
-func (info *ExtraInfo) GetModMails() (*ViewLetter, error) {
+func (info *QueryInfo) GetModMails() (*ViewLetter, error) {
 	viewInfo := &ViewLetter{NextUUID: "", BeforeUUID: ""}
 	var exists bool
 	var err error
@@ -101,7 +101,7 @@ func (info *ExtraInfo) GetModMails() (*ViewLetter, error) {
 	return viewInfo, err
 }
 
-func (info *ExtraInfo) GetNewspaper() (*ViewNewspaper, error) {
+func (info *QueryInfo) GetNewspaper() (*ViewNewspaper, error) {
 	viewInfo := &ViewNewspaper{NextUUID: "", BeforeUUID: ""}
 	var exists bool
 	var err error
@@ -133,7 +133,7 @@ func (info *ExtraInfo) GetNewspaper() (*ViewNewspaper, error) {
 	return viewInfo, err
 }
 
-func GetDocuments(info *extraction.ExtraInfo) (*ViewDocuments, error) {
+func GetDocuments(info *extraction.DocumentQueryInfo) (*ViewDocuments, error) {
 	viewInfo := &ViewDocuments{NextUUID: "", BeforeUUID: ""}
 	var exists bool
 	var err error
@@ -165,7 +165,7 @@ func GetDocuments(info *extraction.ExtraInfo) (*ViewDocuments, error) {
 	return viewInfo, err
 }
 
-func GetZwitschers(info *extraction.ExtraZwitscherInfo) (*ViewZwitscher, error) {
+func GetZwitschers(info *extraction.ZwitscherQueryInfo) (*ViewZwitscher, error) {
 	viewInfo := &ViewZwitscher{NextUUID: "", BeforeUUID: ""}
 	var exists bool
 	var err error

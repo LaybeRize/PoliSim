@@ -64,7 +64,7 @@ var newspaperRenderRequest = genericRenderer(composition.ViewNewspaper)
 func GetNewsPaperListService(w http.ResponseWriter, r *http.Request) {
 	acc, _ := CheckUserPrivileges(r)
 
-	extraInfo := &logic.ExtraInfo{}
+	extraInfo := &logic.QueryInfo{}
 	extractURLFieldValues(extraInfo, r, 5, 10, 50)
 	html := composition.GetNewspaperListPage(extraInfo)
 	newspaperListRenderRequest(w, r, acc, html)

@@ -30,7 +30,7 @@ func GetAllZwitscherFromAuthor(author string) (*database.ZwitscherList, error) {
 	return list, err
 }
 
-type ExtraZwitscherInfo struct {
+type ZwitscherQueryInfo struct {
 	UUID              string `input:"uuid"`
 	Before            bool   `input:"before"`
 	HideBlock         bool   `input:"hideblock"`
@@ -41,7 +41,7 @@ type ExtraZwitscherInfo struct {
 	IsAdmin           bool
 }
 
-func (info *ExtraZwitscherInfo) GetZwitscherAfter() (zwitscherList *database.ZwitscherList, exists bool, err error) {
+func (info *ZwitscherQueryInfo) GetZwitscherAfter() (zwitscherList *database.ZwitscherList, exists bool, err error) {
 	zwitscherList = &database.ZwitscherList{}
 	exists = true
 	var zwt *database.Zwitscher
@@ -56,7 +56,7 @@ func (info *ExtraZwitscherInfo) GetZwitscherAfter() (zwitscherList *database.Zwi
 	return
 }
 
-func (info *ExtraZwitscherInfo) GetZwitscherBefore() (zwitscherList *database.ZwitscherList, exists bool, err error) {
+func (info *ZwitscherQueryInfo) GetZwitscherBefore() (zwitscherList *database.ZwitscherList, exists bool, err error) {
 	zwitscherList = &database.ZwitscherList{}
 	exists = true
 	var zwt *database.Zwitscher
@@ -71,7 +71,7 @@ func (info *ExtraZwitscherInfo) GetZwitscherBefore() (zwitscherList *database.Zw
 	return
 }
 
-func (info *ExtraZwitscherInfo) getBasicZwitscherQuery() *gorm.DB {
+func (info *ZwitscherQueryInfo) getBasicZwitscherQuery() *gorm.DB {
 	query := "uuid != ? AND blocked = false"
 	params := make([]any, 1, 2)
 	params[0] = info.UUID

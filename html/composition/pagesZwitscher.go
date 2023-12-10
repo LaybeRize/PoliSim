@@ -15,7 +15,7 @@ const (
 	MaxZwitscher = 50
 )
 
-func GetZwitschers(acc *database.AccountAuth, extra *extraction.ExtraZwitscherInfo) Node {
+func GetZwitschers(acc *database.AccountAuth, extra *extraction.ZwitscherQueryInfo) Node {
 	view, err := logic.GetZwitschers(extra)
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingZwitscher"])
@@ -81,7 +81,7 @@ func GetAuthorQueryString(author string) string {
 	return "author=" + url.QueryEscape(author)
 }
 
-func GetExtraStringForZwitscher(extra *extraction.ExtraZwitscherInfo) string {
+func GetExtraStringForZwitscher(extra *extraction.ZwitscherQueryInfo) string {
 	result := ""
 	if extra.HideBlock {
 		result += "&hideblock=true"

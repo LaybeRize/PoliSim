@@ -105,7 +105,7 @@ func renderSingleArticle(item *database.Article, specialNode Node) Node {
 	)
 }
 
-func GetNewspaperListPage(extra *logic.ExtraInfo) Node {
+func GetNewspaperListPage(extra *logic.QueryInfo) Node {
 	view, err := extra.GetNewspaper()
 	if err != nil {
 		return GetErrorPage(Translation["errorLoadingLetters"])
