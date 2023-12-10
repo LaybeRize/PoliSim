@@ -152,7 +152,7 @@ func PatchMarkLetterService(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		name = r.PostFormValue("reader")
 	}
-	var account *extraction.AccountModification
+	var account *database.Account
 	account, ok, err = validation.IsAccountValidForUser(acc.ID, name)
 	if !ok || err != nil {
 		ShowErrorPage(w, r, acc, builder.Translation["letterAccountError"])
@@ -185,7 +185,7 @@ func PatchViewLetterService(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		name = r.PostFormValue("reader")
 	}
-	var account *extraction.AccountModification
+	var account *database.Account
 	account, ok, err = validation.IsAccountValidForUser(acc.ID, name)
 	if !ok || err != nil {
 		ShowErrorPage(w, r, acc, builder.Translation["letterAccountError"])

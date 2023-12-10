@@ -129,7 +129,7 @@ func getUserModificationForLetters(user *database.AccountAuth, selectedAccount s
 	)
 }
 
-func GetSingLetterView(account *extraction.AccountModification, letterUUID string, isMod bool, val validation.Message) Node {
+func GetSingLetterView(account *database.Account, letterUUID string, isMod bool, val validation.Message) Node {
 	letter, err := extraction.GetLetterByIDOnlyWithAccount(letterUUID, account.ID, isMod)
 	if err != nil {
 		return GetErrorPage(Translation["errorWithSpecificLetter"])

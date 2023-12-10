@@ -28,7 +28,7 @@ type (
 	}
 )
 
-func (form *BaseDocumentInfo) validateBaseDocumentInformation(requestAccountID int64, account *extraction.AccountModification, validate *Message) (result bool) {
+func (form *BaseDocumentInfo) validateBaseDocumentInformation(requestAccountID int64, account *database.Account, validate *Message) (result bool) {
 	result = false
 	temp, ok, err := IsAccountValidForUser(requestAccountID, form.Account)
 	*account = *temp
@@ -57,7 +57,7 @@ func (form *BaseDocumentInfo) validateBaseDocumentInformation(requestAccountID i
 	return true
 }
 
-func (form *BaseDocumentInfo) validateOrganisation(account *extraction.AccountModification, org *database.Organisation, isAdmin *bool, validate *Message) (result bool) {
+func (form *BaseDocumentInfo) validateOrganisation(account *database.Account, org *database.Organisation, isAdmin *bool, validate *Message) (result bool) {
 	result = false
 	temp, value, err := IsOrganisationValidForAccount(account.ID, form.Organisation)
 	*org = *temp

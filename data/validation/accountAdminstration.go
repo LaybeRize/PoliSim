@@ -31,11 +31,11 @@ const maxNameLength = 100
 func (form *AccountModification) RequestAccount() (validate Message) {
 	validate = Message{Positive: false}
 	var err error
-	acc := &extraction.AccountModification{}
+	acc := &database.Account{}
 	if form.SearchByUsername {
-		acc, err = extraction.GetAccountModificationByUsername(form.Username)
+		acc, err = extraction.GetAccountByUsername(form.Username)
 	} else {
-		acc, err = extraction.GetAccountModificationByDisplayName(form.DisplayName)
+		acc, err = extraction.GetAccountByDisplayName(form.DisplayName)
 	}
 	if err != nil {
 		validate.Message = builder.Translation["accountDoesNotExists"]
@@ -86,7 +86,7 @@ func (form *AccountModification) ValidateAccountCreation(changer *database.Accou
 	if form.Role == int(database.PressAccount) {
 		pass = []byte("")
 	}
-	acc := extraction.AccountModification{
+	acc := database.Account{
 		DisplayName: form.DisplayName,
 		Suspended:   false,
 		Role:        database.RoleLevel(form.Role),
@@ -99,7 +99,7 @@ func (form *AccountModification) ValidateAccountCreation(changer *database.Accou
 		acc.Linked.Valid = true
 		acc.Username = acc.DisplayName
 	}
-	err = acc.CreateMe()
+	err = extraction.CreateAccount(&acc)
 	if err != nil {
 		validate.Message = builder.Translation["creatingUserError"]
 		return
@@ -112,12 +112,12 @@ func (form *AccountModification) ValidateAccountCreation(changer *database.Accou
 }
 
 func (form *AccountModification) ValidateAccountModification(changer *database.AccountAuth) (validate Message) {
-	var acc *extraction.AccountModification
+	var acc *database.Account
 	var err error
 	if form.SearchByUsername {
-		acc, err = extraction.GetAccountModificationByUsername(form.Username)
+		acc, err = extraction.GetAccountByUsername(form.Username)
 	} else {
-		acc, err = extraction.GetAccountModificationByDisplayName(form.DisplayName)
+		acc, err = extraction.GetAccountByDisplayName(form.DisplayName)
 	}
 	if err != nil {
 		validate.Message = builder.Translation["accountDoesNotExists"]
@@ -136,7 +136,7 @@ func (form *AccountModification) ValidateAccountModification(changer *database.A
 	}
 }
 
-func (form *AccountModification) validateChangeRootAccount(acc *extraction.AccountModification, changer *database.AccountAuth) (validate Message) {
+func (form *AccountModification) validateChangeRootAccount(acc *database.Account, changer *database.AccountAuth) (validate Message) {
 	validate = Message{Positive: false}
 	if changer.ID != 1 {
 		validate.Message = builder.Translation["notAllowedToChangeAccount"]
@@ -147,7 +147,7 @@ func (form *AccountModification) validateChangeRootAccount(acc *extraction.Accou
 		return
 	}
 	acc.Flair = form.Flair
-	err := acc.OnlyUpdateFlair()
+	err := extraction.OnlyUpdateFlair(acc)
 	if err != nil {
 		validate.Message = builder.Translation["changingUserError"]
 		return
@@ -161,7 +161,7 @@ func (form *AccountModification) validateChangeRootAccount(acc *extraction.Accou
 	return
 }
 
-func (form *AccountModification) validateChangeHeadAdmin(acc *extraction.AccountModification, changer *database.AccountAuth) (validate Message) {
+func (form *AccountModification) validateChangeHeadAdmin(acc *database.Account, changer *database.AccountAuth) (validate Message) {
 	var err error
 	validate = Message{Positive: false}
 	if changer.ID != 1 && changer.ID != acc.ID {
@@ -176,7 +176,7 @@ func (form *AccountModification) validateChangeHeadAdmin(acc *extraction.Account
 			return
 		}
 		acc.Flair = form.Flair
-		err = acc.OnlyUpdateFlair()
+		err = extraction.OnlyUpdateFlair(acc)
 		if err != nil {
 			validate.Message = builder.Translation["changingUserError"]
 			return
@@ -198,9 +198,9 @@ func (form *AccountModification) validateChangeHeadAdmin(acc *extraction.Account
 	acc.Role = database.RoleLevel(form.Role)
 	if form.ChangeFlair {
 		acc.Flair = form.Flair
-		err = acc.UpdateAllFields()
+		err = extraction.UpdateAllFields(acc)
 	} else {
-		err = acc.UpdateEverythingExceptFlair()
+		err = extraction.UpdateEverythingExceptFlair(acc)
 	}
 	if err != nil {
 		validate.Message = builder.Translation["changingUserError"]
@@ -211,7 +211,7 @@ func (form *AccountModification) validateChangeHeadAdmin(acc *extraction.Account
 	return
 }
 
-func (form *AccountModification) validateChangeToPressAccount(acc *extraction.AccountModification) (validate Message) {
+func (form *AccountModification) validateChangeToPressAccount(acc *database.Account) (validate Message) {
 	acc.Suspended = form.Suspended
 	acc.Linked.Int64 = form.Linked
 	acc.Linked.Valid = true
@@ -223,9 +223,9 @@ func (form *AccountModification) validateChangeToPressAccount(acc *extraction.Ac
 	var err error
 	if form.ChangeFlair {
 		acc.Flair = form.Flair
-		err = acc.UpdateAllFields()
+		err = extraction.UpdateAllFields(acc)
 	} else {
-		err = acc.UpdateEverythingExceptFlair()
+		err = extraction.UpdateEverythingExceptFlair(acc)
 	}
 	// reset linked and try again, maybe the error was that the key was invalid
 	if err != nil {
@@ -233,9 +233,9 @@ func (form *AccountModification) validateChangeToPressAccount(acc *extraction.Ac
 		form.Linked = 0
 		if form.ChangeFlair {
 			acc.Flair = form.Flair
-			err = acc.UpdateAllFields()
+			err = extraction.UpdateAllFields(acc)
 		} else {
-			err = acc.UpdateEverythingExceptFlair()
+			err = extraction.UpdateEverythingExceptFlair(acc)
 		}
 	}
 
@@ -253,7 +253,7 @@ func (form *AccountModification) validateChangeToPressAccount(acc *extraction.Ac
 	return
 }
 
-func (form *AccountModification) validateChangeToEveryoneElse(acc *extraction.AccountModification, changer *database.AccountAuth) (validate Message) {
+func (form *AccountModification) validateChangeToEveryoneElse(acc *database.Account, changer *database.AccountAuth) (validate Message) {
 	validate = Message{Positive: false}
 	if changer.ID != 1 && form.Role == int(database.HeadAdmin) {
 		// Not allowed
@@ -271,9 +271,9 @@ func (form *AccountModification) validateChangeToEveryoneElse(acc *extraction.Ac
 	var err error
 	if form.ChangeFlair {
 		acc.Flair = form.Flair
-		err = acc.UpdateAllFields()
+		err = extraction.UpdateAllFields(acc)
 	} else {
-		err = acc.UpdateEverythingExceptFlair()
+		err = extraction.UpdateEverythingExceptFlair(acc)
 	}
 	if err != nil {
 		validate.Message = builder.Translation["changingUserError"]

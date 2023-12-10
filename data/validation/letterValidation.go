@@ -157,7 +157,7 @@ func (form *CreateLetter) CreateModMail() (validate Message) {
 	}
 }
 
-func SignLetter(acc *database.AccountAuth, letterUUID string, accountSigningName string, action string) (account *extraction.AccountModification, validate Message) {
+func SignLetter(acc *database.AccountAuth, letterUUID string, accountSigningName string, action string) (account *database.Account, validate Message) {
 	validate = Message{Positive: false}
 	var ok bool
 	var err error

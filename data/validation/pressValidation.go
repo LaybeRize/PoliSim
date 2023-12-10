@@ -111,7 +111,7 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 		validate.Message = builder.Translation["cantRejectArticle"]
 		return
 	}
-	account, err := extraction.GetAccountModificationByDisplayName(article.Author)
+	account, err := extraction.GetAccountByDisplayName(article.Author)
 	if err != nil {
 		validate.Message = builder.Translation["cantFindAuthorOfArticle"]
 		return
@@ -136,7 +136,7 @@ func RejectArticle(uuidStr string, content string) (validate Message) {
 			Signed:             []string{account.DisplayName},
 			Rejected:           []string{},
 		},
-		Viewer:     []database.Account{{ID: account.ID, DisplayName: account.DisplayName}},
+		Viewer:     []database.Account{*account},
 		Removed:    false,
 		ModMessage: true,
 	}

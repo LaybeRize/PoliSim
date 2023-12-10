@@ -52,7 +52,7 @@ const (
 
 func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	account := &extraction.AccountModification{}
+	account := &database.Account{}
 	org := &database.Organisation{}
 	var isAdmin bool
 	var IsColor = regexp.MustCompile(`^#[a-fA-F0-9]{6}$`).MatchString
@@ -111,7 +111,7 @@ func (form *CreateDocument) CreateDocument(requestAccountID int64) (validate Mes
 
 func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	account := &extraction.AccountModification{}
+	account := &database.Account{}
 	org := &database.Organisation{}
 	var isAdmin bool
 	var endDiscussion time.Time
@@ -205,7 +205,7 @@ func (form *CreateDiscussion) CreateDiscussion(requestAccountID int64) (validate
 
 func (form *CreateVote) CreateVote(requestAccountID int64) (validate Message) {
 	validate = Message{Positive: false}
-	account := &extraction.AccountModification{}
+	account := &database.Account{}
 	org := &database.Organisation{}
 	var isAdmin bool
 	var endVote time.Time

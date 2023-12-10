@@ -3,23 +3,9 @@ package extraction
 import (
 	"PoliSim/data/database"
 	"PoliSim/helper"
-	"database/sql"
 	"errors"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
-)
-
-type (
-	AccountModification struct {
-		ID          int64
-		DisplayName string
-		Suspended   bool
-		Role        database.RoleLevel
-		Username    string
-		Password    string
-		Flair       string
-		Linked      sql.NullInt64
-	}
 )
 
 // RootAccountExists checks if the account with the ID 1 exists
@@ -35,22 +21,6 @@ func RootAccountExists() (bool, error) {
 		return false, nil
 	}
 	return false, err
-}
-
-// GetAccountByUsername returns a filled *database.Account on successfully locating
-// an account with that username. Otherwise, return an empty struct and the error.
-func GetAccountByUsername(username string) (*database.Account, error) {
-	accountLogin := &database.Account{}
-	err := database.DB.Where("username=?", username).First(accountLogin).Error
-	return accountLogin, err
-}
-
-// GetAccountByID returns a filled *database.Account on successfully locating
-// an account with that id. Otherwise, return an empty struct and the error.
-func GetAccountByID(id int64) (*database.Account, error) {
-	accountLogin := &database.Account{}
-	err := database.DB.Where("id=?", id).First(accountLogin).Error
-	return accountLogin, err
 }
 
 func ChangePassword(id int64, newPassword string) error {
@@ -90,20 +60,8 @@ func GetAllChildrenDisplayNames(parentID int64) (*database.AccountDisplayNameLis
 	return array, err
 }
 
-// CreateMe creates the account in the database based on the display name, username, password, flair, role and linked value
+// CreateAccount creates the account in the database based on the display name, username, password, flair, role and linked value
 // theoretically also sets the suspended value, but creating a suspended accounts seems dumb.
-func (acc *AccountModification) CreateMe() error {
-	return database.DB.Create(&database.Account{
-		DisplayName: acc.DisplayName,
-		Username:    acc.Username,
-		Password:    acc.Password,
-		Flair:       acc.Flair,
-		Suspended:   acc.Suspended,
-		Role:        acc.Role,
-		Linked:      acc.Linked,
-	}).Error
-}
-
 func CreateAccount(acc *database.Account) error {
 	return database.DB.Create(&database.Account{
 		DisplayName: acc.DisplayName,
@@ -116,29 +74,37 @@ func CreateAccount(acc *database.Account) error {
 	}).Error
 }
 
-// GetAccountModificationByUsername returns an AccountModification pointer for the given username
-// or an error.
-func GetAccountModificationByUsername(username string) (*AccountModification, error) {
-	acc := &AccountModification{}
-	err := database.DB.Model(database.Account{}).Where("username=?", username).First(acc).Error
-	return acc, err
+// GetAccountByUsername returns a filled *database.Account on successfully locating
+// an account with that username. Otherwise, return an empty struct and the error.
+func GetAccountByUsername(username string) (*database.Account, error) {
+	accountLogin := &database.Account{}
+	err := database.DB.Where("username=?", username).First(accountLogin).Error
+	return accountLogin, err
 }
 
-// GetAccountModificationByDisplayName returns an AccountModification Pointer to the user with the displayname
+// GetAccountByID returns a filled *database.Account on successfully locating
+// an account with that id. Otherwise, return an empty struct and the error.
+func GetAccountByID(id int64) (*database.Account, error) {
+	accountLogin := &database.Account{}
+	err := database.DB.Where("id=?", id).First(accountLogin).Error
+	return accountLogin, err
+}
+
+// GetAccountByDisplayName returns an database.Account Pointer to the user with the displayname
 // or an error.
-func GetAccountModificationByDisplayName(displayName string) (*AccountModification, error) {
-	acc := &AccountModification{}
-	err := database.DB.Model(database.Account{}).Where("display_name=?", displayName).First(acc).Error
+func GetAccountByDisplayName(displayName string) (*database.Account, error) {
+	acc := &database.Account{}
+	err := database.DB.Where("display_name=?", displayName).First(acc).Error
 	return acc, err
 }
 
 // OnlyUpdateFlair updates the given account flair by id
-func (acc *AccountModification) OnlyUpdateFlair() error {
+func OnlyUpdateFlair(acc *database.Account) error {
 	return database.DB.Model(&database.Account{ID: acc.ID}).Update("flair", acc.Flair).Error
 }
 
 // UpdateAllFields updates all allowed fields (flair, suspended, role, linked)
-func (acc *AccountModification) UpdateAllFields() error {
+func UpdateAllFields(acc *database.Account) error {
 	return database.DB.Model(&database.Account{ID: acc.ID}).Updates(map[string]interface{}{
 		"flair":     acc.Flair,
 		"suspended": acc.Suspended,
@@ -148,7 +114,7 @@ func (acc *AccountModification) UpdateAllFields() error {
 }
 
 // UpdateEverythingExceptFlair updates suspended, role and linked
-func (acc *AccountModification) UpdateEverythingExceptFlair() error {
+func UpdateEverythingExceptFlair(acc *database.Account) error {
 	return database.DB.Model(&database.Account{ID: acc.ID}).Updates(map[string]interface{}{
 		"suspended": acc.Suspended,
 		"role":      acc.Role,
