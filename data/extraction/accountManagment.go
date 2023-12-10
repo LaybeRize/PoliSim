@@ -10,17 +10,6 @@ import (
 )
 
 type (
-	AccountLogin struct {
-		ID            int64
-		DisplayName   string
-		Suspended     bool
-		Role          database.RoleLevel
-		Username      string
-		Password      string
-		LoginTries    int
-		HasLetters    bool
-		NextLoginTime sql.NullTime
-	}
 	AccountModification struct {
 		ID          int64
 		DisplayName string
@@ -48,19 +37,19 @@ func RootAccountExists() (bool, error) {
 	return false, err
 }
 
-// GetAccountForLogin returns a filled *AccountLogin on successfully locating
+// GetAccountByUsername returns a filled *database.Account on successfully locating
 // an account with that username. Otherwise, return an empty struct and the error.
-func GetAccountForLogin(username string) (*database.Account, error) {
+func GetAccountByUsername(username string) (*database.Account, error) {
 	accountLogin := &database.Account{}
 	err := database.DB.Where("username=?", username).First(accountLogin).Error
 	return accountLogin, err
 }
 
-// GetAccountForPasswordChange returns a filled *AccountLogin on successfully locating
+// GetAccountByID returns a filled *database.Account on successfully locating
 // an account with that id. Otherwise, return an empty struct and the error.
-func GetAccountForPasswordChange(id int64) (*AccountLogin, error) {
-	accountLogin := &AccountLogin{}
-	err := database.DB.Model(database.Account{}).Where("id=?", id).First(accountLogin).Error
+func GetAccountByID(id int64) (*database.Account, error) {
+	accountLogin := &database.Account{}
+	err := database.DB.Where("id=?", id).First(accountLogin).Error
 	return accountLogin, err
 }
 

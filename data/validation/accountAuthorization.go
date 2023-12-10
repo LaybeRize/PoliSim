@@ -67,7 +67,7 @@ type LoginForm struct {
 }
 
 // TryLogin always returns a ValidationMessage containing the error or success for the process.
-// On success, it also returns a filled extraction.AccountLogin struct as well as writing
+// On success, it also returns a filled database.Account struct as well as writing
 // a valid *http.Cookie to the response.
 func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate Message, acc *database.Account) {
 	acc = &database.Account{}
@@ -79,7 +79,7 @@ func (form LoginForm) TryLogin(w http.ResponseWriter, r *http.Request) (validate
 	}
 	//check if user account exists
 	var err error
-	acc, err = extraction.GetAccountForLogin(form.Username)
+	acc, err = extraction.GetAccountByUsername(form.Username)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		validate.Message = builder.Translation["passwordOrUsernameWrong"]
 		return

@@ -401,7 +401,7 @@ const (
 
 func (form *ChangePassword) ChangePassword(acc *database.AccountAuth) (validate Message) {
 	validate.Positive = false
-	account, err := extraction.GetAccountForPasswordChange(acc.ID)
+	account, err := extraction.GetAccountByID(acc.ID)
 	if err != nil {
 		validate.Message = builder.Translation["couldNotFindAccount"]
 		return
