@@ -10,11 +10,14 @@ type CommentUpdate struct {
 	Discussion database.Discussions
 }
 
+var updateDocuments = map[string]map[string]chan []database.Posts{}
 var updateComments = map[string]map[string]chan CommentUpdate{}
 var updateVotes = map[string]map[string]chan database.Votes{}
+var watchDocuments = map[int64]int{}
 var watchComments = map[int64]int{}
 var watchVotes = map[int64]int{}
 
+var sseDocumentMutex = sync.Mutex{}
 var sseCommentMutex = sync.Mutex{}
 var sseVoteMutex = sync.Mutex{}
 
@@ -78,6 +81,38 @@ func SendVoteToChannels(uuid string, disc database.Votes) {
 	sseVoteMutex.Lock()
 	defer sseVoteMutex.Unlock()
 	for _, channel := range updateVotes[uuid] {
+		channel <- disc
+	}
+}
+
+func AddDocumentChannel(uuid string, userID string, accountID int64, NewChan chan []database.Posts) {
+	sseDocumentMutex.Lock()
+	defer sseDocumentMutex.Unlock()
+	if _, ok := watchDocuments[accountID]; !ok {
+		watchDocuments[accountID] = 1
+	} else {
+		watchDocuments[accountID] += 1
+	}
+	if _, ok := updateDocuments[uuid]; !ok {
+		updateDocuments[uuid] = make(map[string]chan []database.Posts)
+	}
+	updateDocuments[uuid][userID] = NewChan
+}
+
+func RemoveDocumentChannel(uuid string, userID string, accountID int64) {
+	sseDocumentMutex.Lock()
+	defer sseDocumentMutex.Unlock()
+	watchDocuments[accountID] -= 1
+	delete(updateDocuments[uuid], userID)
+	if len(updateDocuments[uuid]) == 0 {
+		delete(updateDocuments, uuid)
+	}
+}
+
+func SendDocumentUpdateToChannels(uuid string, disc []database.Posts) {
+	sseDocumentMutex.Lock()
+	defer sseDocumentMutex.Unlock()
+	for _, channel := range updateDocuments[uuid] {
 		channel <- disc
 	}
 }

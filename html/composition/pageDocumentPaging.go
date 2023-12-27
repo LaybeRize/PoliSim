@@ -17,10 +17,10 @@ const (
 )
 
 var (
-	textSymbol = I(CLASS("bi bi-card-text"))
-	discSymbol = I(CLASS("bi bi-chat-fill"))
-	voteSymbol = I(CLASS("bi bi-check2-square"))
-	runSymbol  = I(CLASS("bi bi-hourglass-split"))
+	textSymbol = I(CLASS("bi bi-card-text")).PureNode()
+	discSymbol = I(CLASS("bi bi-chat-fill")).PureNode()
+	voteSymbol = I(CLASS("bi bi-check2-square")).PureNode()
+	runSymbol  = I(CLASS("bi bi-hourglass-split")).PureNode()
 )
 
 func GetDocumentPage(extra *extraction.DocumentQueryInfo) Node {
