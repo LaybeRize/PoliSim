@@ -58,15 +58,9 @@ func GetSSEReaderForDiscussionService(w http.ResponseWriter, r *http.Request) {
 func getCommentEvent(info logic.CommentUpdate, isAdmin bool, uuidStr string) (*SendEventStruct, error) {
 	buff := bytes.NewBuffer([]byte{})
 	err := composition.GetCommentRendered(uuidStr, &info.Discussion, isAdmin).Render(buff)
-	if err != nil {
-		return nil, err
-	}
 	eventName := info.Discussion.UUID
 	if !info.Change {
 		eventName = composition.EventAddComment
-	}
-	if err != nil {
-		return nil, err
 	}
 	return &SendEventStruct{
 		HTML:      buff.String(),
@@ -86,6 +80,38 @@ outerloop:
 	}
 
 	logic.RemoveCommentChannel(id, newID, accountID)
+	close(channel)
+}
+
+func GetSSEReaderForDocumentService(w http.ResponseWriter, r *http.Request) {
+	generlizeSSEConnection[logic.DocumentUpdate](w, r, addDocumentToChannel, getDocumentEvent)
+}
+
+func getDocumentEvent(info logic.DocumentUpdate, isAdmin bool, uuidStr string) (*SendEventStruct, error) {
+	buff := bytes.NewBuffer([]byte{})
+	err := composition.GetTagUpdate(&info, isAdmin).Render(buff)
+	eventName := composition.EventUpdateHeaderTag
+	if !info.UpdateHeaderTag {
+		eventName = composition.EventUpdateOldTags
+	}
+	return &SendEventStruct{
+		HTML:      buff.String(),
+		EventName: eventName,
+	}, err
+}
+
+func addDocumentToChannel(ctx context.Context, id string, channel chan logic.DocumentUpdate, accountID int64) {
+	newID := uuid.New().String()
+	logic.AddDocumentChannel(id, newID, accountID, channel)
+outerloop:
+	for {
+		select {
+		case <-ctx.Done():
+			break outerloop
+		}
+	}
+
+	logic.RemoveDocumentChannel(id, newID, accountID)
 	close(channel)
 }
 

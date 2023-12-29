@@ -77,6 +77,15 @@ func GetDocumentPage(extra *extraction.DocumentQueryInfo) Node {
 	)
 }
 
+const (
+	EventUpdateHeaderTag = "headerTag"
+	EventUpdateOldTags   = "oldTags"
+)
+
+func GetTagUpdate(info *logic.DocumentUpdate, isAdmin bool) Node {
+	return DIV()
+}
+
 func getAdvancedSearch(isAdmin bool, extra *extraction.DocumentQueryInfo) Node {
 	return DIV(ID("advanced-search-div"),
 		CLASS("text-left text-sm mt-2 w-auto mx-auto text-gray-200 font-bold hidden"),

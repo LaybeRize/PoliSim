@@ -10,7 +10,12 @@ type CommentUpdate struct {
 	Discussion database.Discussions
 }
 
-var updateDocuments = map[string]map[string]chan []database.Posts{}
+type DocumentUpdate struct {
+	UpdateHeaderTag bool
+	Posts           []database.Posts
+}
+
+var updateDocuments = map[string]map[string]chan DocumentUpdate{}
 var updateComments = map[string]map[string]chan CommentUpdate{}
 var updateVotes = map[string]map[string]chan database.Votes{}
 var watchDocuments = map[int64]int{}
@@ -85,7 +90,7 @@ func SendVoteToChannels(uuid string, disc database.Votes) {
 	}
 }
 
-func AddDocumentChannel(uuid string, userID string, accountID int64, NewChan chan []database.Posts) {
+func AddDocumentChannel(uuid string, userID string, accountID int64, NewChan chan DocumentUpdate) {
 	sseDocumentMutex.Lock()
 	defer sseDocumentMutex.Unlock()
 	if _, ok := watchDocuments[accountID]; !ok {
@@ -94,7 +99,7 @@ func AddDocumentChannel(uuid string, userID string, accountID int64, NewChan cha
 		watchDocuments[accountID] += 1
 	}
 	if _, ok := updateDocuments[uuid]; !ok {
-		updateDocuments[uuid] = make(map[string]chan []database.Posts)
+		updateDocuments[uuid] = make(map[string]chan DocumentUpdate)
 	}
 	updateDocuments[uuid][userID] = NewChan
 }
@@ -113,6 +118,13 @@ func SendDocumentUpdateToChannels(uuid string, disc []database.Posts) {
 	sseDocumentMutex.Lock()
 	defer sseDocumentMutex.Unlock()
 	for _, channel := range updateDocuments[uuid] {
-		channel <- disc
+		channel <- DocumentUpdate{
+			UpdateHeaderTag: true,
+			Posts:           disc,
+		}
+		channel <- DocumentUpdate{
+			UpdateHeaderTag: false,
+			Posts:           disc,
+		}
 	}
 }
