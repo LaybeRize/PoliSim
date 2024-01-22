@@ -1,4 +1,13 @@
 import xml.etree.ElementTree
+from enum import Enum
+
+
+class Mode(Enum):
+    WRITE_START = 1
+    SKIP_LINES = 2
+    REPLACE_SCHEMA_CREATION = 3
+    WRITE_END = 4
+
 
 go_types_to_db_types = {"int64": "BIGINT",
                         "int8": "SMALLINT",
@@ -87,4 +96,24 @@ if __name__ == '__main__':
                 columns.append(get_join_child(column))
             join_tables[child.attrib["name"]] = columns
 
-    print(create_creation_text())
+    with open("..\\database\\database.go", "r+") as go_database:
+        result = ""
+
+        mode = Mode.WRITE_START
+        for line in go_database.readlines():
+            if mode == Mode.WRITE_START:
+                if line.startswith("var schema = `"):
+                    mode = Mode.SKIP_LINES
+                result += line
+            if mode == Mode.SKIP_LINES:
+                if line.startswith("`"):
+                    mode = Mode.REPLACE_SCHEMA_CREATION
+            if mode == Mode.REPLACE_SCHEMA_CREATION:
+                result += create_creation_text()
+                mode = Mode.WRITE_END
+            if mode == Mode.WRITE_END:
+                result += line
+
+        go_database.seek(0)
+        go_database.write(result)
+        go_database.truncate()
