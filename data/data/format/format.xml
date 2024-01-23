@@ -38,8 +38,12 @@
     <view>
 
     </view>
-    <querie name="FindFullAccountByName" parameter="name string">
-        <statement>SELECT * FROM account WHERE DisplayName=:name</statement>
-        <columns table="account">*</columns>
-    </querie>
+    <query name="FindFullAccountByDisplayName" parameter="name string">
+        <statement>SELECT *_account FROM account WHERE DisplayName=:name</statement>
+        <return amount="single">Account</return>
+    </query>
+    <query name="FindFullAccountByUsername" parameter="name string">
+        <statement>SELECT *_account FROM account WHERE Username=:name</statement>
+        <return amount="single" type="pointer">Account</return>
+    </query>
 </root>

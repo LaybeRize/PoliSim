@@ -31,9 +31,21 @@ class DBField:
         self.reference = reference
 
 
+class QueryFunction:
+    def __init__(self, name: str, input_parameter: str, return_value: str, query: str, single: bool,
+                 use_pointer: bool = False):
+        self.name = name
+        self.input_parameter = input_parameter
+        self.return_value = return_value
+        self.query = query
+        self.single = single
+        self.use_pointer = use_pointer
+
+
 tables = {}
 join_tables = {}
 column_lookup = {}
+queries = {}
 
 
 def generate_column_text(field_definition: DBField, add_not_null: bool = False) -> str:
@@ -77,25 +89,7 @@ def get_join_child(item) -> DBField:
     return DBField(temp.name, temp.alias, temp.go_type, temp.extra_info, item.attrib["table"])
 
 
-if __name__ == '__main__':
-    tree = xml.etree.ElementTree.parse("format.xml")
-    root = tree.getroot()
-    for child in root:
-        if child.tag == "table":
-            column_lookup[child.attrib["name"]] = {}
-            columns = []
-            for column in child:
-                field = DBField(column.tag, column.attrib["name"], column.text, column.attrib)
-                columns.append(field)
-                column_lookup[child.attrib["name"]][column.attrib["name"]] = field
-            tables[child.attrib["name"]] = columns
-
-        if child.tag == "jointable":
-            columns = []
-            for column in child:
-                columns.append(get_join_child(column))
-            join_tables[child.attrib["name"]] = columns
-
+def rewrite_database_go_file():
     with open("..\\database\\database.go", "r+") as go_database:
         result = ""
 
@@ -117,3 +111,43 @@ if __name__ == '__main__':
         go_database.seek(0)
         go_database.write(result)
         go_database.truncate()
+
+
+def get_query_from_node(child):
+    pass
+
+
+def reslove_query_parameter(input_query: str) -> str:
+    pass
+
+
+if __name__ == '__main__':
+    tree = xml.etree.ElementTree.parse("format.xml")
+    root = tree.getroot()
+    for child in root:
+        if child.tag == "table":
+            column_lookup[child.attrib["name"]] = {}
+            columns = []
+            for column in child:
+                field = DBField(column.tag, column.attrib["name"], column.text, column.attrib)
+                columns.append(field)
+                column_lookup[child.attrib["name"]][column.attrib["name"]] = field
+            tables[child.attrib["name"]] = columns
+
+        if child.tag == "jointable":
+            columns = []
+            for column in child:
+                field = get_join_child(column)
+                columns.append(field)
+                column_lookup[child.attrib["name"]][field.name] = field
+            join_tables[child.attrib["name"]] = columns
+        if child.tag == "query":
+            corresponding_file = "queries.go"
+            if "fileName" in child.attrib:
+                corresponding_file = child.attrib["fileName"] + "Queries.go"
+            if corresponding_file not in queries:
+                queries[corresponding_file] = []
+            queries[corresponding_file].append(get_query_from_node(child))
+
+
+
