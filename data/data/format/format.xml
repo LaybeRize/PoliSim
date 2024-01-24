@@ -1,49 +1,49 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <root>
     <table name="account">
-        <id name="ID" primaryKey="true" autoIncrement="true">int64</id>
-        <display_name name="DisplayName">string</display_name>
-        <flair name="AccountFlair">string</flair>
-        <username name="Username">string</username>
-        <password name="Password">string</password>
-        <suspended name="Suspended">bool</suspended>
-        <login_tries name="LoginTries">bool</login_tries>
-        <next_login_time name="NextLoginTime">time.Time</next_login_time>
-        <role name="Role">int8</role>
-        <linked name="Linked">int64</linked>
-        <has_letters name="HasLetters">bool</has_letters>
-        <parent name="Parent">int64</parent>
+        <id alias="ID" primaryKey="true" autoIncrement="true">int64</id>
+        <display_name alias="DisplayName">string</display_name>
+        <flair alias="Flair">string</flair>
+        <username alias="Username">string</username>
+        <password alias="Password">string</password>
+        <suspended alias="Suspended">bool</suspended>
+        <login_tries alias="LoginTries">bool</login_tries>
+        <next_login_time alias="NextLoginTime">time.Time</next_login_time>
+        <role alias="Role">int8</role>
+        <linked alias="Linked">int64</linked>
+        <has_letters alias="HasLetters">bool</has_letters>
+        <parent alias="Parent">int64</parent>
     </table>
     <table name="document">
-        <uuid name="DocUUID" primaryKey="true">string</uuid>
-        <written name="DocDate">time.Time</written>
-        <organisation name="DocOrganisation">string</organisation>
-        <type name="DocType">string</type>
-        <author name="DocAuthor">string</author>
-        <flair name="DocFlair">string</flair>
-        <title name="DocTitle">string</title>
-        <subtitle name="DocSubtitle">string</subtitle>
-        <html_content name="DocHTML">string</html_content>
-        <private name="DocPrivate">bool</private>
-        <blocked name="DocBlocked">bool</blocked>
-        <current_tag name="CurrentPostTag">string</current_tag>
-        <any_p_allowed name="AnyPosterAllowed">bool</any_p_allowed>
-        <org_p_allowed name="OrganisationPosterAllowed">bool</org_p_allowed>
-        <info name="DocumentInfo" dbType="JSONB">DocumentInfo</info>
+        <uuid alias="UUID" primaryKey="true">string</uuid>
+        <written alias="Date">time.Time</written>
+        <organisation alias="Organisation">string</organisation>
+        <type alias="Type">string</type>
+        <author alias="Author">string</author>
+        <flair alias="Flair">string</flair>
+        <title alias="Title">string</title>
+        <subtitle alias="Subtitle">string</subtitle>
+        <html_content alias="HTML">string</html_content>
+        <private alias="Private">bool</private>
+        <blocked alias="Blocked">bool</blocked>
+        <current_tag alias="CurrentPostTag">string</current_tag>
+        <any_p_allowed alias="AnyPosterAllowed">bool</any_p_allowed>
+        <org_p_allowed alias="OrganisationPosterAllowed">bool</org_p_allowed>
+        <info alias="DocumentInfo" dbType="JSONB">DocumentInfo</info>
     </table>
     <jointable name="doc_allowed">
         <column alias="ID" table="account"/>
-        <column alias="DocUUID" table="document"/>
+        <column alias="UUID" table="document"/>
     </jointable>
     <view>
 
     </view>
-    <query name="FindFullAccountByDisplayName" parameter="name string">
-        <statement>SELECT *_account FROM account WHERE DisplayName=:name</statement>
+    <query name="FindFullAccountByDisplayName" parameter="name string" fileName="account">
+        <statement>SELECT *_account FROM account WHERE account.DisplayName=:name</statement>
         <return amount="single">Account</return>
     </query>
-    <query name="FindFullAccountByUsername" parameter="name string">
-        <statement>SELECT *_account FROM account WHERE Username=:name</statement>
-        <return amount="single" type="pointer">Account</return>
+    <query name="FindFullAccountByUsername" parameter="name string" fileName="account">
+        <statement>SELECT *_account FROM account WHERE account.Username=:name</statement>
+        <return amount="multiple" singleVersion="Account">[]Account</return>
     </query>
 </root>

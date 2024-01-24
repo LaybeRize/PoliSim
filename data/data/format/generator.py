@@ -32,23 +32,23 @@ class DBField:
 
 
 class QueryFunction:
-    def __init__(self, name: str, input_parameter: str, return_value: str, query: str, single: bool,
-                 use_pointer: bool = False):
+    def __init__(self, name: str, input_parameter: str, return_value: str, query: str, single: bool, single_item: str):
         self.name = name
         self.input_parameter = input_parameter
         self.return_value = return_value
         self.query = query
         self.single = single
-        self.use_pointer = use_pointer
+        self.single_item = single_item
 
 
 tables = {}
 join_tables = {}
 column_lookup = {}
 queries = {}
+star_column_list = {}
 
 
-def generate_column_text(field_definition: DBField, add_not_null: bool = False) -> str:
+def generate_column_text(field_definition: DBField) -> str:
     result = "\n   " + field_definition.name
     if "autoIncrement" in field_definition.extra_info:
         if field_definition.db_type == "INT" or field_definition.db_type == "SMALLINT":
@@ -113,12 +113,102 @@ def rewrite_database_go_file():
         go_database.truncate()
 
 
-def get_query_from_node(child):
-    pass
+def get_query_from_node(xml_element) -> QueryFunction:
+    ret_val = ""
+    query_str = ""
+    single = True
+    single_item = ""
+
+    for xml_child in xml_element:
+        if xml_child.tag == "statement":
+            query_str = xml_child.text
+
+        elif xml_child.tag == "return":
+            ret_val = xml_child.text
+
+            if xml_child.attrib["amount"] == "multiple":
+                single = False
+            elif xml_child.attrib["amount"] != "single":
+                raise Exception("no valid amount for return value in query with the name: " +
+                                xml_element.attrib["name"])
+            if "singleVersion" in xml_child.attrib:
+                single_item = xml_child.attrib["singleVersion"]
+
+    return QueryFunction(xml_element.attrib["name"], xml_element.attrib["parameter"], ret_val,
+                         reslove_query_parameter(query_str), single, single_item)
 
 
 def reslove_query_parameter(input_query: str) -> str:
+    result = input_query
+    for table_name in tables:
+        if "*_" + table_name in input_query:
+            result = str.replace(result, "*_" + table_name, star_column_list[table_name])
+        if table_name + "." in input_query:
+            for ele in tables[table_name]:
+                result = str.replace(result, table_name + "." + ele.alias, table_name + "." + ele.name)
+    return result
+
+
+function_single_str = """
+    result := %s{}
+    row, err := DB.NamedQuery("%s", map[string]interface{}{%s})
+    if err != nil {
+        return result, err
+    }
+    row.Next()
+    err = row.StructScan(&result)
+    return result, err
+"""
+
+function_multiple_str = """
+    result := %s{}
+    rows, err := DB.NamedQuery("%s", map[string]interface{}{%s})
+    if err != nil {
+        return result, err
+    }
+    pos = 0
+    for rows.Next() {
+        result = append(result, %s{})
+        err = row.StructScan(&result[pos])
+        if err != nil {
+            return result, err
+        }
+    }
+    return result, err
+"""
+
+
+def create_query_go_files():
     pass
+
+
+def get_map_string_from_parameter(input_parameter: str) -> str:
+    first_list = input_parameter.split(",")
+    second_list = []
+    for ele in first_list:
+        second_list.append(ele.split()[0])
+    result = ""
+    for ele in second_list:
+        result += "\""+ele+"\": " + ele + ",\n        "
+    return result[:-10]
+
+
+def generate_query_function_from_element(element: QueryFunction) -> str:
+    map_string = get_map_string_from_parameter(element.input_parameter)
+    if element.single:
+        result = function_single_str % (element.return_value, element.query, map_string)
+    else:
+        result = function_multiple_str % (element.return_value, element.query, map_string, element.single_item)
+    return ("func " + element.name + "(" + element.input_parameter + ") " + "(" + element.return_value +
+            ", error) {" + result + "}")
+
+
+def update_star_columns():
+    for table_name in tables:
+        table_column_list = ""
+        for ele in tables[table_name]:
+            table_column_list += table_name + "." + ele.name + ", "
+        star_column_list[table_name] = table_column_list[:-2]
 
 
 if __name__ == '__main__':
@@ -129,18 +219,23 @@ if __name__ == '__main__':
             column_lookup[child.attrib["name"]] = {}
             columns = []
             for column in child:
-                field = DBField(column.tag, column.attrib["name"], column.text, column.attrib)
+                field = DBField(column.tag, column.attrib["alias"], column.text, column.attrib)
                 columns.append(field)
-                column_lookup[child.attrib["name"]][column.attrib["name"]] = field
+                column_lookup[child.attrib["name"]][column.attrib["alias"]] = field
             tables[child.attrib["name"]] = columns
 
-        if child.tag == "jointable":
+        elif child.tag == "jointable":
+            column_lookup[child.attrib["name"]] = {}
             columns = []
             for column in child:
                 field = get_join_child(column)
                 columns.append(field)
                 column_lookup[child.attrib["name"]][field.name] = field
             join_tables[child.attrib["name"]] = columns
+
+    update_star_columns()
+
+    for child in root:
         if child.tag == "query":
             corresponding_file = "queries.go"
             if "fileName" in child.attrib:
@@ -149,5 +244,7 @@ if __name__ == '__main__':
                 queries[corresponding_file] = []
             queries[corresponding_file].append(get_query_from_node(child))
 
-
-
+    rewrite_database_go_file()
+    create_query_go_files()
+    print(generate_query_function_from_element(queries["accountQueries.go"][0]))
+    print(generate_query_function_from_element(queries["accountQueries.go"][1]))
