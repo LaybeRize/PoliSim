@@ -1,3 +1,5 @@
+import os.path
+import re
 import xml.etree.ElementTree
 from enum import Enum
 
@@ -41,6 +43,7 @@ class QueryFunction:
         self.single_item = single_item
 
 
+struct_map = {}
 tables = {}
 join_tables = {}
 column_lookup = {}
@@ -151,7 +154,7 @@ def reslove_query_parameter(input_query: str) -> str:
 
 function_single_str = """
     result := %s{}
-    row, err := DB.NamedQuery("%s", map[string]interface{}{%s})
+    row, err := DB.NamedQuery(`%s`, map[string]interface{}{%s})
     if err != nil {
         return result, err
     }
@@ -161,25 +164,38 @@ function_single_str = """
 """
 
 function_multiple_str = """
-    result := %s{}
-    rows, err := DB.NamedQuery("%s", map[string]interface{}{%s})
+    result := make(%s, 0)
+    rows, err := DB.NamedQuery(`%s`, map[string]interface{}{%s})
     if err != nil {
         return result, err
     }
-    pos = 0
+    pos := 0
     for rows.Next() {
         result = append(result, %s{})
-        err = row.StructScan(&result[pos])
+        err = rows.StructScan(&result[pos])
         if err != nil {
             return result, err
         }
+        pos++
     }
     return result, err
 """
 
 
 def create_query_go_files():
-    pass
+    base_path = "..\\database\\"
+    for query_key in queries:
+        if not os.path.exists(base_path + query_key):
+            with open(base_path + query_key, 'w') as _:
+                pass
+        with open(base_path + query_key, "r+") as go_file:
+            result = "package database\n\n"
+            for query_ele in queries[query_key]:
+                result += generate_query_function_from_element(query_ele) + "\n"
+
+            go_file.seek(0)
+            go_file.write(result)
+            go_file.truncate()
 
 
 def get_map_string_from_parameter(input_parameter: str) -> str:
@@ -195,10 +211,14 @@ def get_map_string_from_parameter(input_parameter: str) -> str:
 
 def generate_query_function_from_element(element: QueryFunction) -> str:
     map_string = get_map_string_from_parameter(element.input_parameter)
+    regex = r".{,120} "
+    subst = "\\g<0>\\n                                     "
+    query_string = re.sub(regex, subst, element.query, 0, re.MULTILINE)
+
     if element.single:
-        result = function_single_str % (element.return_value, element.query, map_string)
+        result = function_single_str % (element.return_value, query_string, map_string)
     else:
-        result = function_multiple_str % (element.return_value, element.query, map_string, element.single_item)
+        result = function_multiple_str % (element.return_value, query_string, map_string, element.single_item)
     return ("func " + element.name + "(" + element.input_parameter + ") " + "(" + element.return_value +
             ", error) {" + result + "}")
 
@@ -209,6 +229,39 @@ def update_star_columns():
         for ele in tables[table_name]:
             table_column_list += table_name + "." + ele.name + ", "
         star_column_list[table_name] = table_column_list[:-2]
+
+
+def set_struct_info(xml_child):
+    if "struct" in xml_child.attrib:
+        struct_map[xml_child.attrib["struct"]] = xml_child.attrib["name"]
+
+
+def generate_structs_form_map() -> str:
+    result = ""
+    for entry in struct_map:
+        result += "type " + entry + " struct {\n"
+        if struct_map[entry] in tables:
+            array = tables[struct_map[entry]]
+        else:
+            array = join_tables[struct_map[entry]]
+        for ele in array:
+            result += f"   {ele.alias} {ele.go_type} `db:\"{ele.name}\"`\n"
+        result += "}\n\n"
+    return result
+
+
+def create_data_structs():
+    path = "..\\database\\generalStruct.go"
+    if not os.path.exists(path):
+        with open(path, 'w') as _:
+            pass
+    with open(path, "r+") as go_database:
+        result = "package database\n\nimport \"time\"\n\n"
+        result += generate_structs_form_map()
+
+        go_database.seek(0)
+        go_database.write(result)
+        go_database.truncate()
 
 
 if __name__ == '__main__':
@@ -223,6 +276,7 @@ if __name__ == '__main__':
                 columns.append(field)
                 column_lookup[child.attrib["name"]][column.attrib["alias"]] = field
             tables[child.attrib["name"]] = columns
+            set_struct_info(child)
 
         elif child.tag == "jointable":
             column_lookup[child.attrib["name"]] = {}
@@ -232,6 +286,7 @@ if __name__ == '__main__':
                 columns.append(field)
                 column_lookup[child.attrib["name"]][field.name] = field
             join_tables[child.attrib["name"]] = columns
+            set_struct_info(child)
 
     update_star_columns()
 
@@ -246,5 +301,4 @@ if __name__ == '__main__':
 
     rewrite_database_go_file()
     create_query_go_files()
-    print(generate_query_function_from_element(queries["accountQueries.go"][0]))
-    print(generate_query_function_from_element(queries["accountQueries.go"][1]))
+    create_data_structs()

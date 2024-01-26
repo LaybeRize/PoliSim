@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <root>
-    <table name="account">
+    <table name="account" struct="Account">
         <id alias="ID" primaryKey="true" autoIncrement="true">int64</id>
         <display_name alias="DisplayName">string</display_name>
         <flair alias="Flair">string</flair>
@@ -14,7 +14,7 @@
         <has_letters alias="HasLetters">bool</has_letters>
         <parent alias="Parent">int64</parent>
     </table>
-    <table name="document">
+    <table name="document" struct="Document">
         <uuid alias="UUID" primaryKey="true">string</uuid>
         <written alias="Date">time.Time</written>
         <organisation alias="Organisation">string</organisation>
@@ -39,11 +39,11 @@
 
     </view>
     <query name="FindFullAccountByDisplayName" parameter="name string" fileName="account">
-        <statement>SELECT *_account FROM account WHERE account.DisplayName=:name</statement>
+        <statement type="map">SELECT *_account FROM account WHERE account.DisplayName=:name</statement>
         <return amount="single">Account</return>
     </query>
     <query name="FindFullAccountByUsername" parameter="name string" fileName="account">
-        <statement>SELECT *_account FROM account WHERE account.Username=:name</statement>
+        <statement type="map">SELECT *_account FROM account WHERE account.Username=:name</statement>
         <return amount="multiple" singleVersion="Account">[]Account</return>
     </query>
 </root>
