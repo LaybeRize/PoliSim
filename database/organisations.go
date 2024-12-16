@@ -114,7 +114,7 @@ func getArrayOfOrganisations(letter string, records []*neo4j.Record) []Organisat
 		node := result.(neo4j.Node)
 		arr = append(arr, Organisation{
 			Name:       node.Props[DB_ORG_NAME].(string),
-			Visibility: node.Props[DB_ORG_VISIBILITY].(OrganisationVisibility),
+			Visibility: OrganisationVisibility(node.Props[DB_ORG_VISIBILITY].(string)),
 			MainType:   node.Props[DB_ORG_MAIN_TYPE].(string),
 			SubType:    node.Props[DB_ORG_SUB_TYPE].(string),
 		})

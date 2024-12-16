@@ -1,6 +1,8 @@
 package account
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 

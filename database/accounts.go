@@ -13,7 +13,8 @@ type Account struct {
 }
 
 const (
-	HEAD_ADMIN AccountRole = iota
+	ROOT_ADMIN AccountRole = iota
+	HEAD_ADMIN
 	ADMIN
 	PRESS_ADMIN
 	USER
@@ -28,7 +29,7 @@ const (
 	DB_ACC_BLOCKED  = "blocked"
 )
 
-func CreateAccount(acc Account) error {
+func CreateAccount(acc *Account) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
 		`CREATE (:Account {`+DB_ACC_NAME+`: $name , `+DB_ACC_USERNAME+`: $username , `+
 			DB_ACC_PASSWORD+`: $password , `+DB_ACC_ROLE+`: $role , `+DB_ACC_BLOCKED+`: $blocked });`,
@@ -123,7 +124,7 @@ func getArrayOfAccounts(letter string, records []*neo4j.Record) []Account {
 			Name:     node.Props[DB_ACC_NAME].(string),
 			Username: node.Props[DB_ACC_USERNAME].(string),
 			Password: node.Props[DB_ACC_PASSWORD].(string),
-			Role:     node.Props[DB_ACC_ROLE].(AccountRole),
+			Role:     AccountRole(node.Props[DB_ACC_ROLE].(int64)),
 			Blocked:  node.Props[DB_ACC_BLOCKED].(bool),
 		})
 	}
@@ -145,7 +146,7 @@ func getSingleAccount(letter string, records []*neo4j.Record) (*Account, error) 
 		Name:     node.Props[DB_ACC_NAME].(string),
 		Username: node.Props[DB_ACC_USERNAME].(string),
 		Password: node.Props[DB_ACC_PASSWORD].(string),
-		Role:     node.Props[DB_ACC_ROLE].(AccountRole),
+		Role:     AccountRole(node.Props[DB_ACC_ROLE].(int64)),
 		Blocked:  node.Props[DB_ACC_BLOCKED].(bool),
 	}, nil
 }

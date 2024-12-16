@@ -14,9 +14,9 @@ function encodingAlgorithm(parameters, elt) {
     let resultingObject = Object.create(null);
     const PARAM_NAMES = Object.keys(parameters);
     const PARAM_VALUES = Object.values(parameters);
-    const PARAM_LENGHT = PARAM_NAMES.length;
+    const PARAM_LENGTH = PARAM_NAMES.length;
 
-    for (let param_index = 0; param_index < PARAM_LENGHT; param_index++) {
+    for (let param_index = 0; param_index < PARAM_LENGTH; param_index++) {
         let name = PARAM_NAMES[param_index];
         let value = PARAM_VALUES[param_index];
         let isBool = checkQuerySelectors(elt,"bool",name)
@@ -71,7 +71,7 @@ function JSONEncodingPath(name) {
     steps.push({ "type": "object", "key": first_key, "last": false, "next_type": null });
     while (path.length) {
         // [123...]
-        if (/^\[\d+\]/.test(path)) {
+        if (/^\[\d+]/.test(path)) {
             path = path.slice(1);
             let collected_digits = path.match(/\d+/)[0]
             path = path.slice(collected_digits.length);
@@ -81,7 +81,7 @@ function JSONEncodingPath(name) {
             continue
         }
         // [abc...]
-        if (/^\[[^\]]+\]/.test(path)) {
+        if (/^\[[^\]]+]/.test(path)) {
             path = path.slice(1);
             let collected_characters = path.match(/[^\]]+/)[0];
             path = path.slice(collected_characters.length);
@@ -111,8 +111,6 @@ function setValueFromPath(context, step, value) {
     if (step.last) {
         context[step.key] = value;
     }
-
-    //TODO: make merge functionality and file suport.
 
     //check if the context value already exists
     if (context[step.key] === undefined) {
