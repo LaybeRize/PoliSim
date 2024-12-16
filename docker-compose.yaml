@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  db:
+    image: memgraph/memgraph-mage:latest
+    environment:
+      - MEMGRAPH_USER=${DB_USER}
+      - MEMGRAPH_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mg_lib:/var/lib/memgraph
+  web:
+    depends_on:
+      - db
+    env_file:
+      - stack.env
+    image:
+      layberize/polisim:vAlpha
+    ports:
+      - "1350:8080"
+
+
+volumes:
+  mg_lib:
