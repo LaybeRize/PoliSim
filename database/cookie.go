@@ -1,0 +1,139 @@
+package database
+
+import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"net/http"
+	"sync"
+	"time"
+)
+
+var sessionStore = make(map[string]*SessionData)
+var mu sync.Mutex
+
+type SessionData struct {
+	Account   *Account
+	ExpiresAt time.Time
+}
+
+const cleanupInterval = 5 * time.Hour
+const expirationTime = 30 * time.Minute
+const cookieName = "poli_sim_cookie"
+
+func init() {
+	go startCleanup()
+}
+
+func CreateSession(w http.ResponseWriter, account *Account) error {
+	sessionID, err := generateSessionID()
+	if err != nil {
+		return err
+	}
+
+	sessionStore[sessionID] = &SessionData{
+		Account:   account,
+		ExpiresAt: time.Now().Add(expirationTime),
+	}
+	setSessionCookie(w, sessionID)
+
+	return nil
+}
+
+func RefreshSession(w http.ResponseWriter, r *http.Request) (*Account, bool) {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil {
+		return nil, false
+	}
+
+	sessionID := cookie.Value
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	data, exists := sessionStore[sessionID]
+	if !exists || time.Now().After(data.ExpiresAt) || data.Account.Blocked {
+		delete(sessionStore, sessionID)
+		return nil, false
+	}
+
+	sessionStore[sessionID].ExpiresAt = time.Now().Add(expirationTime)
+	setSessionCookie(w, sessionID)
+
+	return data.Account, true
+}
+
+func EndSession(w http.ResponseWriter, sessionID string) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	delete(sessionStore, sessionID)
+	http.SetCookie(w, &http.Cookie{
+		Name:     cookieName,
+		Value:    "",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+	})
+}
+
+func generateSessionID() (string, error) {
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return "", err
+	}
+
+	combined := append(randomBytes, []byte(fmt.Sprintf("%d", time.Now().UnixNano()))...)
+
+	hash := sha256.Sum256(combined)
+	return hex.EncodeToString(hash[:]), nil
+}
+
+func setSessionCookie(w http.ResponseWriter, sessionID string) {
+	expiration := time.Now().Add(expirationTime)
+	cookie := &http.Cookie{
+		Name:     cookieName,
+		Value:    sessionID,
+		Expires:  expiration,
+		HttpOnly: true,
+		Secure:   true,
+		Path:     "/",
+	}
+	http.SetCookie(w, cookie)
+}
+
+func updateAccount(account *Account) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	for sessionID, sessionData := range sessionStore {
+		if sessionData.Account.Name == account.Name {
+			sessionStore[sessionID].Account = account
+		}
+	}
+}
+
+func startCleanup() {
+	ticker := time.NewTicker(cleanupInterval)
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C
+		doCleanup()
+	}
+}
+
+func doCleanup() {
+	mu.Lock()
+	defer mu.Unlock()
+
+	for sessionID, sessionData := range sessionStore {
+		if time.Now().After(sessionData.ExpiresAt) {
+			delete(sessionStore, sessionID)
+		}
+	}
+}

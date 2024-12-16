@@ -65,6 +65,9 @@ func UpdateAccount(acc Account) error {
 			"password": acc.Password,
 			"role":     acc.Role,
 			"blocked":  acc.Blocked}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	if err == nil {
+		updateAccount(&acc)
+	}
 	return err
 }
 
