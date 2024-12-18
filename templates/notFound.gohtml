@@ -1,15 +1,13 @@
-{{- /*gotype: PoliSim/handler.NotFoundPage */ -}}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{.Base.Title}}</title>
-    <link rel="icon" href="/public/icon.ico">
-    <link rel="shortcut icon" type="image/png" href="/public/fallback_icon.png">
-    <link rel="stylesheet" href="/public/style.css">
-    <script src="/public/htmx.js"></script>
-</head>
-<body>
-    This is the error page
-</body>
-</html>
+{{define "notFoundFull"}}
+    {{- /*gotype: PoliSim/handler.FullPage*/ -}}
+    {{template "pageHeader" .Base}}
+    {{template "notFound" .Content}}
+    </html>
+{{end}}
+
+{{define "notFound"}}
+    {{- /*gotype: PoliSim/handler.NotFoundPage */ -}}
+    <body id="page-body">
+        This is the error page
+    </body>
+{{end}}

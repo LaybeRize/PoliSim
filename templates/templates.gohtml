@@ -1,17 +1,12 @@
-{{define "login"}}
-<div id="login-form">
-{{- /*gotype: PoliSim/handler.LoginInfo */ -}}
-{{if eq "" .AccountName}}
-    <form hx-post="/login" hx-target="#login-form">
-        <label for="username">Nutzername</label><input id="username" name="username" type="text">
-        <label for="password">Passwort</label><input id="password" name="password" type="password">
-        <button type="submit">Einloggen</button>
-    </form>
-    <div>
-        {{.ErrorMessage}}
-    </div>
-{{else}}
-    Herzlich Willkommen, {{.AccountName}}
-{{end}}
-</div>
+{{define "pageHeader"}}
+{{- /*gotype: PoliSim/handler.BaseInfo */ -}}
+<!DOCTYPE html>
+<html lang="{{.Language}}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Title}}</title>
+    <link rel="shortcut icon" type="image/png" href="/public/{{.Icon}}">
+    <link rel="stylesheet" href="/public/style.css">
+    <script src="/public/htmx.js"></script>
+</head>
 {{end}}

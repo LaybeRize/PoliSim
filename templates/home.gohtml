@@ -1,18 +1,28 @@
+{{define "homeFull"}}
+    {{- /*gotype: PoliSim/handler.FullPage*/ -}}
+    {{template "pageHeader" .Base}}
+    {{template "home" .Content}}
+    </html>
+{{end}}
+
+{{define "home"}}
 {{- /*gotype: PoliSim/handler.HomePage */ -}}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{.Base.Title}}</title>
-    <link rel="shortcut icon" type="image/png" href="/public/icon.png">
-    <link rel="stylesheet" href="/public/style.css">
-    <script src="/public/htmx.js"></script>
-</head>
-<body>
-    {{if .Base.LoggedIn}}
-     <div>Herzlich Willkommen, {{.Base.Account.Name}}</div>
+<body id="page-body">
+    {{if .NavInfo.LoggedIn}}
+        Herzlich Willkommen, {{.Account.Name}}
     {{else}}
-        {{template "login" .Info}}
+        <form hx-post="/login" hx-target="#page-body">
+            <label for="username">Nutzername</label>
+            <input id="username" name="username" type="text">
+            <label for="password">Passwort</label>
+            <input id="password" name="password" type="password">
+            <button type="submit">Einloggen</button>
+        </form>
+    {{end}}
+    {{if ne "" .Message}}
+        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">
+            {{.Message}}
+        </div>
     {{end}}
 </body>
-</html>
+{{end}}

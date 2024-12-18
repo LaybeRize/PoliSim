@@ -17,6 +17,7 @@ func main() {
 	http.HandleFunc("POST /create/account", account.PostCreateAccount)
 
 	http.HandleFunc("POST /login", account.PostLoginAccount)
+	http.HandleFunc("POST /logout", account.PostLogOutAccount)
 
 	http.HandleFunc("GET /", handler.GetHomePage)
 
