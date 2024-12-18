@@ -4,8 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <title>{{.Base.Title}}</title>
+    <link rel="shortcut icon" type="image/png" href="/public/icon.png">
+    <link rel="stylesheet" href="/public/style.css">
+    <script src="/public/htmx.js"></script>
 </head>
 <body>
-    This is the homepage
+    {{if .Base.LoggedIn}}
+     <div>Herzlich Willkommen, {{.Base.Account.Name}}</div>
+    {{else}}
+        {{template "login" .Info}}
+    {{end}}
 </body>
 </html>

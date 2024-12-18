@@ -70,7 +70,14 @@ func RefreshSession(w http.ResponseWriter, r *http.Request) (*Account, bool) {
 	return data.Account, true
 }
 
-func EndSession(w http.ResponseWriter, sessionID string) {
+func EndSession(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil {
+		return
+	}
+
+	sessionID := cookie.Value
+
 	mu.Lock()
 	defer mu.Unlock()
 

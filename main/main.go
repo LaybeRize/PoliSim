@@ -11,7 +11,7 @@ import (
 func main() {
 	_, _ = fmt.Fprintf(os.Stdout, "Registering all Pages\n")
 	fs := http.FileServer(http.Dir("public"))
-	http.Handle("GET public/*", http.StripPrefix("/public/", fs))
+	http.Handle("GET /public/*", http.StripPrefix("/public/", fs))
 
 	http.HandleFunc("GET /create/account", account.GetCreateAccount)
 	http.HandleFunc("POST /create/account", account.PostCreateAccount)
@@ -22,7 +22,7 @@ func main() {
 
 	http.HandleFunc("/", handler.GetNotFoundPage)
 
-	_, _ = fmt.Fprintf(os.Stdout, "Starting HTML Server\n")
+	_, _ = fmt.Fprintf(os.Stdout, "Starting HTML Server: Use http://"+os.Getenv("ADDRESS")+"\n")
 	err := http.ListenAndServe(os.Getenv("ADDRESS"), nil)
 	if err != nil {
 		panic(err)

@@ -1,0 +1,17 @@
+{{define "login"}}
+<div id="login-form">
+{{- /*gotype: PoliSim/handler.LoginInfo */ -}}
+{{if eq "" .AccountName}}
+    <form hx-post="/login" hx-target="#login-form">
+        <label for="username">Nutzername</label><input id="username" name="username" type="text">
+        <label for="password">Passwort</label><input id="password" name="password" type="password">
+        <button type="submit">Einloggen</button>
+    </form>
+    <div>
+        {{.ErrorMessage}}
+    </div>
+{{else}}
+    Herzlich Willkommen, {{.AccountName}}
+{{end}}
+</div>
+{{end}}
