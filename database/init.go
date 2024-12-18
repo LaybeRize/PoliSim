@@ -14,8 +14,8 @@ var driver neo4j.DriverWithContext
 var notFoundError = errors.New("item not found")
 var multipleItemsError = errors.New("more then one item found")
 
+// HashPassword creates a hash of the given password, for later verification
 func HashPassword(password string) (string, error) {
-	// Generate a hash of the password with a default cost factor of 10
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err

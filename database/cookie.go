@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -16,29 +17,28 @@ var mu sync.Mutex
 type SessionData struct {
 	Account   *Account
 	ExpiresAt time.Time
+	UpdateAt  time.Time
 }
 
 const cleanupInterval = 5 * time.Hour
-const expirationTime = 30 * time.Minute
+const expirationTime = 7 * 24 * time.Hour
+const updateTime = 30 * time.Minute
 const cookieName = "poli_sim_cookie"
 
 func init() {
+	_, _ = fmt.Fprintf(os.Stdout, "Starting Cookie Cleanup Routine\n")
 	go startCleanup()
 }
 
-func CreateSession(w http.ResponseWriter, account *Account) error {
-	sessionID, err := generateSessionID()
-	if err != nil {
-		return err
-	}
+func CreateSession(w http.ResponseWriter, account *Account) {
+	sessionID := generateSessionID()
 
 	sessionStore[sessionID] = &SessionData{
 		Account:   account,
 		ExpiresAt: time.Now().Add(expirationTime),
+		UpdateAt:  time.Now().Add(updateTime),
 	}
 	setSessionCookie(w, sessionID)
-
-	return nil
 }
 
 func RefreshSession(w http.ResponseWriter, r *http.Request) (*Account, bool) {
@@ -56,6 +56,12 @@ func RefreshSession(w http.ResponseWriter, r *http.Request) (*Account, bool) {
 	if !exists || time.Now().After(data.ExpiresAt) || data.Account.Blocked {
 		delete(sessionStore, sessionID)
 		return nil, false
+	}
+
+	if time.Now().After(data.UpdateAt) {
+		delete(sessionStore, sessionID)
+		CreateSession(w, data.Account)
+		return data.Account, true
 	}
 
 	sessionStore[sessionID].ExpiresAt = time.Now().Add(expirationTime)
@@ -80,17 +86,17 @@ func EndSession(w http.ResponseWriter, sessionID string) {
 	})
 }
 
-func generateSessionID() (string, error) {
+func generateSessionID() string {
 	randomBytes := make([]byte, 16)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
-		return "", err
+		randomBytes = []byte(fmt.Sprintf("%x", time.Now().String()))
 	}
 
 	combined := append(randomBytes, []byte(fmt.Sprintf("%d", time.Now().UnixNano()))...)
 
 	hash := sha256.Sum256(combined)
-	return hex.EncodeToString(hash[:]), nil
+	return hex.EncodeToString(hash[:])
 }
 
 func setSessionCookie(w http.ResponseWriter, sessionID string) {
