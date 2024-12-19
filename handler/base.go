@@ -23,5 +23,5 @@ func GetHomePage(writer http.ResponseWriter, request *http.Request) {
 func GetNotFoundPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	page := NotFoundPage{}
-	MakePage(writer, acc, &page)
+	MakeFullPage(writer, acc, &page)
 }

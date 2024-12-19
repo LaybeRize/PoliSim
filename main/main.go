@@ -23,6 +23,8 @@ func main() {
 
 	http.HandleFunc("/", handler.GetNotFoundPage)
 
+	http.HandleFunc("POST /markdown", handler.PostMakeMarkdown)
+
 	_, _ = fmt.Fprintf(os.Stdout, "Starting HTML Server: Use http://"+os.Getenv("ADDRESS")+"\n")
 	err := http.ListenAndServe(os.Getenv("ADDRESS"), nil)
 	if err != nil {

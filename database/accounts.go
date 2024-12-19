@@ -10,6 +10,7 @@ type Account struct {
 	Password string
 	Role     AccountRole
 	Blocked  bool
+	FontSize *int64
 }
 
 const (
@@ -27,6 +28,7 @@ const (
 	DB_ACC_PASSWORD = "password"
 	DB_ACC_ROLE     = "role"
 	DB_ACC_BLOCKED  = "blocked"
+	DB_ACC_FONTSIZE = "fontSize"
 )
 
 func CreateAccount(acc *Account) error {
@@ -59,7 +61,7 @@ func GetAccountByName(name string) (*Account, error) {
 	return getSingleAccount("a", result.Records)
 }
 
-func UpdateAccount(acc Account) error {
+func UpdateAccount(acc *Account) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
 		`MATCH (a:Account)  WHERE a.`+DB_ACC_NAME+` = $name SET a.`+DB_ACC_BLOCKED+` = $blocked , a.`+DB_ACC_PASSWORD+` = $password , a.`+DB_ACC_ROLE+` = $role RETURN a;`,
 		map[string]any{"name": acc.Name,
@@ -67,7 +69,21 @@ func UpdateAccount(acc Account) error {
 			"role":     acc.Role,
 			"blocked":  acc.Blocked}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err == nil {
-		updateAccount(&acc)
+		updateAccount(acc)
+	}
+	return err
+}
+
+func SetFontSize(acc *Account) error {
+	if acc.FontSize == nil {
+		return notFoundError
+	}
+	_, err := neo4j.ExecuteQuery(ctx, driver,
+		`MATCH (a:Account)  WHERE a.`+DB_ACC_NAME+` = $name SET a.`+DB_ACC_FONTSIZE+` = $fontsize RETURN a;`,
+		map[string]any{"name": acc.Name,
+			"fontsize": *acc.FontSize}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	if err == nil {
+		updateAccount(acc)
 	}
 	return err
 }
@@ -142,11 +158,18 @@ func getSingleAccount(letter string, records []*neo4j.Record) (*Account, error) 
 		return nil, notFoundError
 	}
 	node := result.(neo4j.Node)
-	return &Account{
+	acc := &Account{
 		Name:     node.Props[DB_ACC_NAME].(string),
 		Username: node.Props[DB_ACC_USERNAME].(string),
 		Password: node.Props[DB_ACC_PASSWORD].(string),
 		Role:     AccountRole(node.Props[DB_ACC_ROLE].(int64)),
 		Blocked:  node.Props[DB_ACC_BLOCKED].(bool),
-	}, nil
+	}
+
+	if fontSize, hasProperty := node.Props[DB_ACC_FONTSIZE]; hasProperty {
+		temp := fontSize.(int64)
+		acc.FontSize = &temp
+	}
+
+	return acc, nil
 }

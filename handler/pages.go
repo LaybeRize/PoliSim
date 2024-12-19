@@ -48,6 +48,10 @@ func (p *HomePage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
 }
 
+type MarkdownBox struct {
+	Information template.HTML
+}
+
 var templateForge *template.Template = nil
 
 func init() {
@@ -60,7 +64,29 @@ func init() {
 	for i, file := range files {
 		filenames[i] = "templates/" + file.Name()
 	}
-	templateForge = template.Must(template.ParseFiles(filenames...))
+	templateForge = template.Must(template.ParseFiles(filenames...)).Funcs(template.FuncMap{
+		"isUser": func(acc *database.Account) bool {
+			return acc != nil
+		},
+		"isPressAdmin": func(acc *database.Account) bool {
+			if acc == nil {
+				return false
+			}
+			return acc.Role <= database.PRESS_ADMIN
+		},
+		"isAdmin": func(acc *database.Account) bool {
+			if acc == nil {
+				return false
+			}
+			return acc.Role <= database.ADMIN
+		},
+		"isHeadAdmin": func(acc *database.Account) bool {
+			if acc == nil {
+				return false
+			}
+			return acc.Role <= database.HEAD_ADMIN
+		},
+	})
 	_, _ = fmt.Fprintf(os.Stdout, "Successfully created the Template Forge\n")
 }
 
@@ -106,6 +132,16 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}
+}
+
+type SpecialPage string
+
+const (
+	MARKDOWN SpecialPage = "markdownBox"
+)
+
+func MakeSpecialPagePart(w http.ResponseWriter, page SpecialPage, data any) {
+	executeTemplate(w, string(page), data)
 }
 
 func executeTemplate(w http.ResponseWriter, name string, data any) {

@@ -8,10 +8,12 @@
 {{define "home"}}
 {{- /*gotype: PoliSim/handler.HomePage */ -}}
 <body id="page-body">
+    {{template "header" .NavInfo}}
     {{if .NavInfo.LoggedIn}}
-        Herzlich Willkommen, {{.Account.Name}}
+        <p>Herzlich Willkommen, {{.Account.Name}}</p>
+        <button hx-post="/logout" hx-target="#page-body">Abmelden</button>
     {{else}}
-        <form hx-post="/login" hx-target="#page-body">
+        <form hx-post="/login" hx-target="#page-body" style="width: var(--standard-small-width);">
             <label for="username">Nutzername</label>
             <input id="username" name="username" type="text">
             <label for="password">Passwort</label>

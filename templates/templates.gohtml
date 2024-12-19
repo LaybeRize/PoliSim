@@ -1,12 +1,39 @@
 {{define "pageHeader"}}
-{{- /*gotype: PoliSim/handler.BaseInfo */ -}}
-<!DOCTYPE html>
-<html lang="{{.Language}}">
-<head>
-    <meta charset="UTF-8">
-    <title>{{.Title}}</title>
-    <link rel="shortcut icon" type="image/png" href="/public/{{.Icon}}">
-    <link rel="stylesheet" href="/public/style.css">
-    <script src="/public/htmx.js"></script>
-</head>
+    {{- /*gotype: PoliSim/handler.BaseInfo */ -}}
+    <!DOCTYPE html>
+    <html lang="{{.Language}}">
+    <head>
+        <meta charset="UTF-8">
+        <title>{{.Title}}</title>
+        <link rel="shortcut icon" type="image/png" href="/public/{{.Icon}}">
+        <link rel="stylesheet" href="/public/style.css">
+        <script src="/public/htmx.js"></script>
+    </head>
+{{end}}
+{{define "header"}}
+    {{- /* gotype: PoliSim/handler.NavigationInfo*/ -}}
+    {{if and (ne nil .Account) (ne nil .Account.FontSize)}}
+        <style>html {font-size: {{.Account.FontSize}}%;}</style>
+    {{end}}
+    <header>
+        <ul>
+            <li>
+                <a href="/">Home</a>
+            </li>
+            <li>
+                <a href="/my/profile">Profil</a>
+                <ul>
+                    <li><a href="/my/letter">Meine Briefe</a></li>
+                    <li><a href="/my/posts">Meine Posts</a></li>
+                </ul>
+            </li>
+        </ul>
+    </header>
+    <hr style="width: 100%;">
+{{end}}
+{{define "markdownBox"}}
+    {{- /*gotype: PoliSim/handler.MarkdownBox*/ -}}
+    <div id="markdown-box" class="markdown">
+        {{.Information}}
+    </div>
 {{end}}

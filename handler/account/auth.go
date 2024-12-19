@@ -62,5 +62,5 @@ func PostLogOutAccount(writer http.ResponseWriter, request *http.Request) {
 	page.Account = nil
 	page.Message = "Erfolgreich ausgeloggt"
 	page.IsError = false
-	handler.MakePage(writer, acc, &page)
+	handler.MakePage(writer, nil, &page)
 }
