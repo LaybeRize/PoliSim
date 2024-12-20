@@ -20,16 +20,35 @@
             <li>
                 <a href="/">Home</a>
             </li>
-            <li>
-                <a href="/my/profile">Profil</a>
-                <ul>
-                    <li><a href="/my/letter">Meine Briefe</a></li>
-                    <li><a href="/my/posts">Meine Posts</a></li>
-                </ul>
-            </li>
+            {{if isUser .Account}}
+                <li>
+                    <a href="/my/profile">Profil</a>
+                    <ul>
+                        <li><a href="/my/letter">Meine Briefe</a></li>
+                        <li><a href="/my/posts">Meine Posts</a></li>
+                    </ul>
+                </li>
+            {{end}}
+            {{if isPressAdmin .Account}}
+                <li>
+                    <a>Adminstration</a>
+                    <ul>
+                        <li><a href="/my/letter">Zeitung überprüfen</a></li>
+                        {{if isAdmin .Account}}
+                            <li><a href="/view/letter">Brief untersuchen</a></li>
+                            <li><a href="/edit/account">Nutzer verwalten</a></li>
+                            <li><a href="/edit/organisation">Organisation verwalten</a></li>
+                            {{if isHeadAdmin .Account }}
+                                <li><a href="/create/account">Nutzer erstellen</a></li>
+                                <li><a href="/create/organisation">Organisation erstellen</a></li>
+                            {{end}}
+                        {{end}}
+                    </ul>
+                </li>
+            {{end}}
         </ul>
     </header>
-    <hr style="width: 100%;">
+    <hr style="width: 100%; margin: 0.3rem 0;">
 {{end}}
 {{define "markdownBox"}}
     {{- /*gotype: PoliSim/handler.MarkdownBox*/ -}}
