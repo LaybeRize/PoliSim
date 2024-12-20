@@ -74,6 +74,7 @@ header {
                 display: block;
                 min-width: inherit;
                 text-align: center;
+                user-select: none;
             }
             ul {
                 z-index: 99;
@@ -257,6 +258,10 @@ div.markdown p {
 
 div.markdown a {
     color: rgb(34 211 238);
+}
+
+div.markdown div.footnotes ol {
+    list-style-type: decimal;
 }
 
 /*
