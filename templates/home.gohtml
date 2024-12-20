@@ -6,23 +6,23 @@
 {{end}}
 
 {{define "home"}}
-{{- /*gotype: PoliSim/handler.HomePage */ -}}
-<body id="page-body">
-    {{template "header" .NavInfo}}
-    {{if .NavInfo.LoggedIn}}
-        <p>Herzlich Willkommen, {{.Account.Name}}</p>
-        <button hx-post="/logout" hx-target="#page-body">Abmelden</button>
-    {{else}}
-        <form hx-post="/login" hx-target="#page-body" style="width: var(--standard-small-width);">
-            <label for="username">Nutzername</label>
-            <input id="username" name="username" type="text">
-            <label for="password">Passwort</label>
-            <input id="password" name="password" type="password">
-            <button type="submit">Einloggen</button>
-        </form>
-    {{end}}
-    {{if ne "" .Message}}
-        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
-    {{end}}
-</body>
+    {{- /*gotype: PoliSim/handler.HomePage */ -}}
+    <body id="page-body">
+        {{template "header" .NavInfo}}
+        {{if .NavInfo.LoggedIn}}
+            <p>Herzlich Willkommen, {{.Account.Name}}</p>
+            <button hx-post="/logout" hx-target="#page-body">Abmelden</button>
+        {{else}}
+            <form hx-post="/login" hx-target="#page-body" style="width: var(--standard-small-width);">
+                <label for="username">Nutzername</label>
+                <input id="username" name="username" type="text">
+                <label for="password">Passwort</label>
+                <input id="password" name="password" type="password">
+                <button type="submit">Einloggen</button>
+            </form>
+        {{end}}
+        {{if ne "" .Message}}
+            <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
+        {{end}}
+    </body>
 {{end}}

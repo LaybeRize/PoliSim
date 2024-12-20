@@ -59,6 +59,30 @@ func (p *CreateAccountPage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
 }
 
+type MyProfilePage struct {
+	NavInfo  NavigationInfo
+	Settings ModifyPersonalSettings
+	Password ChangePassword
+}
+
+func (p *MyProfilePage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+type ChangePassword struct {
+	OldPassword       string
+	NewPassword       string
+	RepeatNewPassword string
+	Message           string
+	IsError           bool
+}
+
+type ModifyPersonalSettings struct {
+	FontScaling int64
+	Message     string
+	IsError     bool
+}
+
 type MarkdownBox struct {
 	Information template.HTML
 }
@@ -114,6 +138,8 @@ func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
 		executeTemplate(w, "notFound", data)
 	case *CreateAccountPage:
 		executeTemplate(w, "createAccount", data)
+	case *MyProfilePage:
+		executeTemplate(w, "profile", data)
 	default:
 		panic("Struct given to MakePage() is not registered")
 	}
@@ -128,7 +154,6 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 
 	fullPage := FullPage{
 		Base: BaseInfo{
-			Title:    "",
 			Language: "de",
 			Icon:     "fallback_icon.png",
 		},
@@ -145,6 +170,9 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	case *CreateAccountPage:
 		fullPage.Base.Title = "Nutzer erstellen"
 		executeTemplate(w, "createAccountFull", fullPage)
+	case *MyProfilePage:
+		fullPage.Base.Title = "Mein Profil"
+		executeTemplate(w, "profileFull", fullPage)
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}
@@ -153,7 +181,9 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 type SpecialPage string
 
 const (
-	MARKDOWN SpecialPage = "markdownBox"
+	MARKDOWN        SpecialPage = "markdownBox"
+	PASSWORD_CHANGE SpecialPage = "changeMyPassword"
+	SETTING_CHANGE  SpecialPage = "changeMySettings"
 )
 
 func MakeSpecialPagePart(w http.ResponseWriter, page SpecialPage, data any) {

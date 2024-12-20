@@ -11,6 +11,21 @@ body {
     display: flex;
 }
 
+div.wrapper {
+    background-color: inherit;
+    color: inherit;
+    flex-direction: inherit;
+    align-items: inherit;
+    display: inherit;
+    width: inherit;
+}
+
+.section-headline {
+    font-size: 1.7rem;
+    line-height: 2rem;
+    width: fit-content;
+}
+
 form {
     flex-direction: column;
     align-items: start;

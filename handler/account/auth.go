@@ -26,25 +26,25 @@ func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	username := request.Form.Get("username")
-	acc, accErr := database.GetAccountByUsername(username)
+	loginAcc, accErr := database.GetAccountByUsername(username)
 	page.Message = "Nutzername oder Passwort falsch"
 	if accErr != nil {
 		handler.MakePage(writer, acc, &page)
 		return
 	}
-	correctPassword := database.VerifyPassword(acc.Password, request.Form.Get("password"))
+	correctPassword := database.VerifyPassword(loginAcc.Password, request.Form.Get("password"))
 	if !correctPassword {
 		handler.MakePage(writer, acc, &page)
 		return
 	}
 
-	database.CreateSession(writer, acc)
+	database.CreateSession(writer, loginAcc)
 	page = handler.HomePage{
-		Account: acc,
+		Account: loginAcc,
 		Message: "Erfolgreich angemeldet",
 		IsError: false,
 	}
-	handler.MakePage(writer, acc, &page)
+	handler.MakePage(writer, loginAcc, &page)
 }
 
 func PostLogOutAccount(writer http.ResponseWriter, request *http.Request) {

@@ -63,25 +63,32 @@ func GetAccountByName(name string) (*Account, error) {
 
 func UpdateAccount(acc *Account) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
-		`MATCH (a:Account)  WHERE a.`+DB_ACC_NAME+` = $name SET a.`+DB_ACC_BLOCKED+` = $blocked , a.`+DB_ACC_PASSWORD+` = $password , a.`+DB_ACC_ROLE+` = $role RETURN a;`,
+		`MATCH (a:Account)  WHERE a.`+DB_ACC_NAME+` = $name SET a.`+DB_ACC_BLOCKED+` = $blocked , a.`+DB_ACC_ROLE+` = $role RETURN a;`,
 		map[string]any{"name": acc.Name,
-			"password": acc.Password,
-			"role":     acc.Role,
-			"blocked":  acc.Blocked}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+			"role":    acc.Role,
+			"blocked": acc.Blocked}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err == nil {
 		updateAccount(acc)
 	}
 	return err
 }
 
-func SetFontSize(acc *Account) error {
-	if acc.FontSize == nil {
-		return notFoundError
+func UpdatePassword(acc *Account) error {
+	return setPersonalSettings(acc, DB_ACC_PASSWORD, acc.Password)
+}
+
+func SetPersonalSettings(acc *Account) error {
+	if acc.FontSize != nil {
+		return setPersonalSettings(acc, DB_ACC_FONTSIZE, *acc.FontSize)
 	}
+	return nil
+}
+
+func setPersonalSettings(acc *Account, field string, value any) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
-		`MATCH (a:Account)  WHERE a.`+DB_ACC_NAME+` = $name SET a.`+DB_ACC_FONTSIZE+` = $fontsize RETURN a;`,
+		`MATCH (a:Account)  WHERE a.`+DB_ACC_NAME+` = $name SET a.`+field+` = $value RETURN a;`,
 		map[string]any{"name": acc.Name,
-			"fontsize": *acc.FontSize}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+			"value": value}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err == nil {
 		updateAccount(acc)
 	}
