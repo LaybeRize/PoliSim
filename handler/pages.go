@@ -48,6 +48,17 @@ func (p *HomePage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
 }
 
+type CreateAccountPage struct {
+	NavInfo NavigationInfo
+	Account database.Account
+	Message string
+	IsError bool
+}
+
+func (p *CreateAccountPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
 type MarkdownBox struct {
 	Information template.HTML
 }
@@ -64,7 +75,7 @@ func init() {
 	for i, file := range files {
 		filenames[i] = "templates/" + file.Name()
 	}
-	templateForge = template.Must(template.ParseFiles(filenames...)).Funcs(template.FuncMap{
+	templateForge = template.Must(template.New("").Funcs(template.FuncMap{
 		"isUser": func(acc *database.Account) bool {
 			return acc != nil
 		},
@@ -86,7 +97,7 @@ func init() {
 			}
 			return acc.Role <= database.HEAD_ADMIN
 		},
-	})
+	}).ParseFiles(filenames...))
 	_, _ = fmt.Fprintf(os.Stdout, "Successfully created the Template Forge\n")
 }
 
@@ -101,6 +112,8 @@ func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
 		executeTemplate(w, "home", data)
 	case *NotFoundPage:
 		executeTemplate(w, "notFound", data)
+	case *CreateAccountPage:
+		executeTemplate(w, "createAccount", data)
 	default:
 		panic("Struct given to MakePage() is not registered")
 	}
@@ -129,6 +142,9 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	case *NotFoundPage:
 		fullPage.Base.Title = "Seite nicht gefunden"
 		executeTemplate(w, "notFoundFull", fullPage)
+	case *CreateAccountPage:
+		fullPage.Base.Title = "Nutzer erstellen"
+		executeTemplate(w, "createAccountFull", fullPage)
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}

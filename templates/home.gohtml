@@ -22,9 +22,7 @@
         </form>
     {{end}}
     {{if ne "" .Message}}
-        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">
-            {{.Message}}
-        </div>
+        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
     {{end}}
 </body>
 {{end}}

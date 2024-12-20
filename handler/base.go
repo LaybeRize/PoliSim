@@ -25,3 +25,9 @@ func GetNotFoundPage(writer http.ResponseWriter, request *http.Request) {
 	page := NotFoundPage{}
 	MakeFullPage(writer, acc, &page)
 }
+
+func PartialGetNotFoundPage(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	page := NotFoundPage{}
+	MakePage(writer, acc, &page)
+}

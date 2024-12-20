@@ -1,0 +1,33 @@
+{{define "createAccountFull"}}
+    {{- /*gotype: PoliSim/handler.FullPage*/ -}}
+    {{template "pageHeader" .Base}}
+    {{template "createAccount" .Content}}
+    </html>
+{{end}}
+
+{{define "createAccount"}}
+    {{- /*gotype: PoliSim/handler.CreateAccountPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <form hx-post="/create/account" hx-target="#page-body">
+        <label for="name">Anzeigename</label>
+        <input id="name" name="name" type="text" value="{{.Account.Name}}">
+        <label for="username">Nutzername</label>
+        <input id="username" name="username" type="text" value="{{.Account.Username}}">
+        <label for="password">Passwort</label>
+        <input id="password" name="password" type="text" value="{{.Account.Password}}">
+        <label for="role">Rolle</label>
+        <select id="role" name="role">
+            <option value="4">Nutzer</option>
+            <option value="5" {{if eq .Account.Role 5}}selected{{end}}>Presse-Nutzer</option>
+            <option value="3" {{if eq .Account.Role 3}}selected{{end}}>Presse-Administrator</option>
+            <option value="2" {{if eq .Account.Role 2}}selected{{end}}>Administrator</option>
+            <option value="1" {{if eq .Account.Role 1}}selected{{end}}>Oberadministrator</option>
+        </select>
+        <button type="submit">Nutzer erstellen</button>
+    </form>
+    {{if ne "" .Message}}
+        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
+    {{end}}
+    </body>
+{{end}}
