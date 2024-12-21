@@ -69,6 +69,21 @@ func (p *MyProfilePage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
 }
 
+type EditAccountPage struct {
+	NavInfo          NavigationInfo
+	Account          database.Account
+	SearchMode       bool
+	AccountNames     []string
+	AccountUsernames []string
+	SubmitURL        template.URL
+	Message          string
+	IsError          bool
+}
+
+func (p *EditAccountPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
 type ChangePassword struct {
 	OldPassword       string
 	NewPassword       string
@@ -140,6 +155,8 @@ func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
 		executeTemplate(w, "createAccount", data)
 	case *MyProfilePage:
 		executeTemplate(w, "profile", data)
+	case *EditAccountPage:
+		executeTemplate(w, "editAccount", data)
 	default:
 		panic("Struct given to MakePage() is not registered")
 	}
@@ -173,6 +190,9 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	case *MyProfilePage:
 		fullPage.Base.Title = "Mein Profil"
 		executeTemplate(w, "profileFull", fullPage)
+	case *EditAccountPage:
+		fullPage.Base.Title = "Accounts anpassen"
+		executeTemplate(w, "editAccountFull", fullPage)
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}

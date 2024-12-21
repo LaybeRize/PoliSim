@@ -7,6 +7,18 @@ import (
 	"strconv"
 )
 
+func GetCreateAccount(writer http.ResponseWriter, request *http.Request) {
+	acc, loggedIn := database.RefreshSession(writer, request)
+	if !loggedIn || acc.Role > database.HEAD_ADMIN {
+		handler.GetNotFoundPage(writer, request)
+		return
+	}
+
+	page := handler.CreateAccountPage{}
+
+	handler.MakeFullPage(writer, acc, &page)
+}
+
 func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn || acc.Role > database.HEAD_ADMIN {
@@ -40,7 +52,7 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if len(page.Account.Password) < 10 {
+	if len(page.Account.Password) < 10 && page.Account.Role != database.PRESS_USER {
 		page.Message = "Das Password hat weniger als 10 Zeichen"
 		handler.MakePage(writer, acc, &page)
 		return
@@ -75,16 +87,4 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 
 	page = handler.CreateAccountPage{IsError: false, Message: "Account erfolgreich erstellt\nDer Nutzername ist: " + page.Account.Username + "\nDas Passwort ist: " + page.Account.Password}
 	handler.MakePage(writer, acc, &page)
-}
-
-func GetCreateAccount(writer http.ResponseWriter, request *http.Request) {
-	acc, loggedIn := database.RefreshSession(writer, request)
-	if !loggedIn || acc.Role > database.HEAD_ADMIN {
-		handler.GetNotFoundPage(writer, request)
-		return
-	}
-
-	page := handler.CreateAccountPage{}
-
-	handler.MakeFullPage(writer, acc, &page)
 }

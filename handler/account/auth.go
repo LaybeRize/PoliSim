@@ -33,7 +33,7 @@ func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	correctPassword := database.VerifyPassword(loginAcc.Password, request.Form.Get("password"))
-	if !correctPassword {
+	if !correctPassword || loginAcc.Role == database.PRESS_USER {
 		handler.MakePage(writer, acc, &page)
 		return
 	}

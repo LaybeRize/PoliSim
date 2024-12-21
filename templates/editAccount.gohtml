@@ -1,0 +1,54 @@
+{{define "editAccountFull"}}
+    {{- /*gotype: PoliSim/handler.FullPage*/ -}}
+    {{template "pageHeader" .Base}}
+    {{template "editAccount" .Content}}
+    </html>
+{{end}}
+
+{{define "editAccount"}}
+    {{- /*gotype: PoliSim/handler.EditAccountPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+
+    {{if .SearchMode}}
+        <form hx-post="/edit/account" hx-target="#page-body">
+            <label for="name">Anzeigename</label>
+            <input id="name" name="name" type="text" value="{{.Account.Name}}" list="names">
+            <datalist id="names">
+                {{range .AccountNames}}
+                    <option>{{.}}</option>
+                {{end}}
+            </datalist>
+            <label for="username">Nutzername</label>
+            <input id="username" name="username" type="text" value="{{.Account.Username}}" list="usernames">
+            <datalist id="usernames">
+                {{range .AccountUsernames}}
+                    <option>{{.}}</option>
+                {{end}}
+            </datalist>
+            <button type="submit">Nutzer suchen</button>
+        </form>
+    {{else}}
+        <form hx-post="/edit/account{{.SubmitURL}}" hx-target="#page-body">
+            <label for="name">Anzeigename</label>
+            <input id="name" name="name" type="text" value="{{.Account.Name}}" readonly>
+            <label for="username">Nutzername</label>
+            <input id="username" name="username" type="text" value="{{.Account.Username}}" readonly>
+            <label for="role">Rolle</label>
+            <select id="role" name="role" {{if eq .Account.Role 5}}disabled{{end}}>
+                <option value="4">Nutzer</option>
+                <option value="5" {{if eq .Account.Role 5}}selected{{end}}>Presse-Nutzer</option>
+                <option value="3" {{if eq .Account.Role 3}}selected{{end}}>Presse-Administrator</option>
+                <option value="2" {{if eq .Account.Role 2}}selected{{end}}>Administrator</option>
+                <option value="1" {{if eq .Account.Role 1}}selected{{end}}>Oberadministrator</option>
+            </select>
+            <label for="blocked">Blockiert</label>
+            <input type="checkbox" id="blocked" name="blocked" {{if.Account.Blocked}}checked{{end}}>
+            <button type="submit">Nutzer anpassen</button>
+        </form>
+        {{if ne "" .Message}}
+            <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
+        {{end}}
+        </body>
+    {{end}}
+{{end}}
