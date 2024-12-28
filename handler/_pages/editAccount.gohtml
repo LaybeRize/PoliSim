@@ -2,18 +2,45 @@
     {{- /*gotype: PoliSim/handler.EditAccountPage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
-
-    {{if .SearchMode}}
+    {{if .Account.Exists}}
+        <a class="button-link" href="/edit/account">Zurück zur Suche</a>
         <form hx-post="/edit/account" hx-target="#page-body">
             <label for="name">Anzeigename</label>
-            <input id="name" name="name" type="text" value="{{.Account.Name}}" list="names">
+            <input id="name" name="name" type="text" value="{{.Account.Name}}" readonly>
+            <label for="username">Nutzername</label>
+            <input id="username" name="username" type="text" value="{{.Account.Username}}" readonly>
+            <label for="role">Rolle</label>
+            <select id="role" name="role" {{if .Account.IsPressUser}}disabled{{end}}>
+                <option value="4">Nutzer</option>
+                <option value="5" {{if .Account.IsPressUser}}selected{{end}}>Presse-Nutzer</option>
+                <option value="3" {{if .Account.IsPressAdmin}}selected{{end}}>Presse-Administrator</option>
+                <option value="2" {{if .Account.IsAdmin}}selected{{end}}>Administrator</option>
+                <option value="1" {{if .Account.IsHeadAdmin}}selected{{end}}>Oberadministrator</option>
+            </select>
+            <label for="blocked">Blockiert</label>
+            <input type="checkbox" id="blocked" name="blocked" {{if .Account.Blocked}}checked{{end}}>
+            {{if .Account.IsPressUser}}
+                <label for="linked">Account-Besitzer</label>
+                <input type="text" id="linked" name="linked" list="names" value="{{.LinkedAccountName}}">
+                <datalist id="names">
+                    {{range .AccountNames}}
+                        <option>{{.}}</option>
+                    {{end}}
+                </datalist>
+            {{end}}
+            <button type="submit">Nutzer anpassen</button>
+        </form>
+    {{else}}
+        <form hx-post="/edit/account/search" hx-target="#page-body">
+            <label for="name">Anzeigename</label>
+            <input id="name" name="name" type="text" list="names">
             <datalist id="names">
                 {{range .AccountNames}}
                     <option>{{.}}</option>
                 {{end}}
             </datalist>
             <label for="username">Nutzername</label>
-            <input id="username" name="username" type="text" value="{{.Account.Username}}" list="usernames">
+            <input id="username" name="username" type="text" list="usernames">
             <datalist id="usernames">
                 {{range .AccountUsernames}}
                     <option>{{.}}</option>
@@ -21,27 +48,9 @@
             </datalist>
             <button type="submit">Nutzer suchen</button>
         </form>
-    {{else}}
-        <form hx-post="/edit/account{{.SubmitURL}}" hx-target="#page-body">
-            <label for="name">Anzeigename</label>
-            <input id="name" name="name" type="text" value="{{.Account.Name}}" readonly>
-            <label for="username">Nutzername</label>
-            <input id="username" name="username" type="text" value="{{.Account.Username}}" readonly>
-            <label for="role">Rolle</label>
-            <select id="role" name="role" {{if eq .Account.Role 5}}disabled{{end}}>
-                <option value="4">Nutzer</option>
-                <option value="5" {{if eq .Account.Role 5}}selected{{end}}>Presse-Nutzer</option>
-                <option value="3" {{if eq .Account.Role 3}}selected{{end}}>Presse-Administrator</option>
-                <option value="2" {{if eq .Account.Role 2}}selected{{end}}>Administrator</option>
-                <option value="1" {{if eq .Account.Role 1}}selected{{end}}>Oberadministrator</option>
-            </select>
-            <label for="blocked">Blockiert</label>
-            <input type="checkbox" id="blocked" name="blocked" {{if.Account.Blocked}}checked{{end}}>
-            <button type="submit">Nutzer anpassen</button>
-        </form>
-        {{if ne "" .Message}}
-            <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
-        {{end}}
-        </body>
     {{end}}
+    {{if ne "" .Message}}
+        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
+    {{end}}
+    </body>
 {{end}}

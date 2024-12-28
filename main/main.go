@@ -17,6 +17,7 @@ func main() {
 	http.HandleFunc("POST /create/account", account.PostCreateAccount)
 	http.HandleFunc("GET /edit/account", account.GetEditAccount)
 	http.HandleFunc("POST /edit/account", account.PostEditAccount)
+	http.HandleFunc("POST /edit/account/search", account.PostEditSearchAccount)
 
 	http.HandleFunc("GET /my/profile", account.GetMyProfile)
 	http.HandleFunc("POST /my/profile/password", account.PostUpdateMyPassword)

@@ -124,6 +124,55 @@ func SetPersonalSettings(acc *Account) error {
 	return err
 }
 
+// GetNames returns first an array of Names, then the array of Usernames and then the error, if one occured
+func GetNames() ([]string, []string, error) {
+	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) 
+RETURN a.name AS name, a.username AS username;`,
+		nil, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, nil, err
+	}
+	names := make([]string, len(queryResult.Records))
+	usernames := make([]string, len(queryResult.Records))
+	for i, record := range queryResult.Records {
+		names[i] = record.Values[0].(string)
+		usernames[i] = record.Values[1].(string)
+	}
+
+	return names, usernames, err
+}
+
+func GetNamesForActiveUsers() ([]string, error) {
+	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.role != $role 
+AND a.blocked = false RETURN a.name AS name;`,
+		map[string]any{"role": PressUser}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, len(queryResult.Records))
+	for i, record := range queryResult.Records {
+		names[i] = record.Values[0].(string)
+	}
+	return names, err
+}
+
+func GetOwnerName(acc *Account) (string, error) {
+	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.name = $name 
+MATCH (a)-[:OWNER]->(t:Account) RETURN t.name AS name;`,
+		map[string]any{"role": PressUser}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return "", err
+	}
+
+	if len(queryResult.Records) == 0 {
+		return "", err
+	}
+	return queryResult.Records[0].Values[0].(string), err
+}
 func MakeOwner(ownerName string, targetName string) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Account) WHERE a.name = $owner 
 AND t.name = $target CREATE (a)-[:OWNER]->(t);`,

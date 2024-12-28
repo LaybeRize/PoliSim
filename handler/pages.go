@@ -88,14 +88,13 @@ func (p *MyProfilePage) getPageName() string {
 }
 
 type EditAccountPage struct {
-	NavInfo          NavigationInfo
-	Account          database.Account
-	SearchMode       bool
-	AccountNames     []string
-	AccountUsernames []string
-	SubmitURL        template.URL
-	Message          string
-	IsError          bool
+	NavInfo           NavigationInfo
+	Account           *database.Account
+	LinkedAccountName string
+	AccountNames      []string
+	AccountUsernames  []string
+	Message           string
+	IsError           bool
 }
 
 func (p *EditAccountPage) SetNavInfo(navInfo NavigationInfo) {
@@ -150,6 +149,7 @@ var templateForge map[string]*template.Template = make(map[string]*template.Temp
 
 func init() {
 	_, _ = fmt.Fprintf(os.Stdout, "Reading All Templates\n")
+	templateForge["templates"] = template.Must(template.ParseFS(templates, "*/*"))
 	files, err := pages.ReadDir("_pages")
 	if err != nil {
 		panic(err)
@@ -162,7 +162,6 @@ func init() {
 		}
 		templateForge[name] = template.Must(template.Must(template.ParseFS(templates, "*/*")).Parse(string(page)))
 	}
-	templateForge["templates"] = template.Must(template.ParseFS(templates, "*/*"))
 	_, _ = fmt.Fprintf(os.Stdout, "Successfully created the Template Forge\n")
 }
 
