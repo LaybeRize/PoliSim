@@ -2,18 +2,19 @@
     {{- /*gotype: PoliSim/handler.FullPage */ -}}
     <!DOCTYPE html>
     <html lang="{{.Language}}">
-        {{template "head" .Base}}
+        {{block "head" .Base}}
+            {{- /*gotype: PoliSim/handler.BaseInfo */ -}}
+            <head>
+                <meta charset="UTF-8">
+                <title>{{.Title}}</title>
+                <link rel="shortcut icon" type="image/png" href="/public/{{.Icon}}">
+                <link rel="stylesheet" href="/public/style.css">
+                <script src="/public/htmx.js"></script>
+                <script>
+                    htmx.config.defaultSwapStyle = "outerHTML"
+                </script>
+            </head>
+        {{end}}
         {{template "page" .Content}}
     </html>
-{{end}}
-
-{{define "head"}}
-    {{- /*gotype: PoliSim/handler.BaseInfo */ -}}
-    <head>
-        <meta charset="UTF-8">
-        <title>{{.Title}}</title>
-        <link rel="shortcut icon" type="image/png" href="/public/{{.Icon}}">
-        <link rel="stylesheet" href="/public/style.css">
-        <script src="/public/htmx.js"></script>
-    </head>
 {{end}}

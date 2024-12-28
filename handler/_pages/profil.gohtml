@@ -2,41 +2,37 @@
     {{- /*gotype: PoliSim/handler.MyProfilePage*/ -}}
     <body id="page-body">
         {{template "header" .NavInfo}}
-        {{template "changeMySettings" .Settings}}
-        {{template "changeMyPassword" .Password}}
+        {{block "changeMySettings" .Settings}}
+            {{- /*gotype: PoliSim/handler.ModifyPersonalSettings*/ -}}
+            <div class="wrapper" id="change-personal-settings">
+                <h1 class="section-headline">Persönliche Einstellungen</h1>
+                <form hx-post="/my/profile/settings" hx-target="#change-personal-settings">
+                    <label for="fontScaling">Seitenskalierung (in Prozent)</label>
+                    <input id="fontScaling" name="fontScaling" type="number" value="{{.FontScaling}}">
+                    <button type="submit">Einstellungen speichern</button>
+                </form>
+                {{if ne "" .Message}}
+                    <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
+                {{end}}
+            </div>
+        {{end}}
+        {{block "changeMyPassword" .Password}}
+            {{- /*gotype: PoliSim/handler.ChangePassword*/ -}}
+            <div class="wrapper" id="change-password">
+                <h1 class="section-headline">Passwort ändern</h1>
+                <form hx-post="/my/profile/password" hx-target="#change-password">
+                    <label for="oldPassword">Altes Passwort</label>
+                    <input id="oldPassword" name="oldPassword" type="password" value="{{.OldPassword}}">
+                    <label for="newPassword">Neues Passwort</label>
+                    <input id="newPassword" name="newPassword" type="password" value="{{.NewPassword}}">
+                    <label for="newPasswordRepeat">Neues Passwort wiederholen</label>
+                    <input id="newPasswordRepeat" name="newPasswordRepeat" type="password" value="{{.RepeatNewPassword}}">
+                    <button type="submit">Passwort ändern</button>
+                </form>
+                {{if ne "" .Message}}
+                    <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
+                {{end}}
+            </div>
+        {{end}}
     </body>
-{{end}}
-
-{{define "changeMyPassword"}}
-    {{- /*gotype: PoliSim/handler.ChangePassword*/ -}}
-    <div class="wrapper" id="change-password">
-        <h1 class="section-headline">Passwort ändern</h1>
-        <form hx-post="/my/profile/password" hx-target="#change-password">
-            <label for="oldPassword">Altes Passwort</label>
-            <input id="oldPassword" name="oldPassword" type="password" value="{{.OldPassword}}">
-            <label for="newPassword">Neues Passwort</label>
-            <input id="newPassword" name="newPassword" type="password" value="{{.NewPassword}}">
-            <label for="newPasswordRepeat">Neues Passwort wiederholen</label>
-            <input id="newPasswordRepeat" name="newPasswordRepeat" type="password" value="{{.RepeatNewPassword}}">
-            <button type="submit">Passwort ändern</button>
-        </form>
-    {{if ne "" .Message}}
-        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
-    {{end}}
-    </div>
-{{end}}
-
-{{define "changeMySettings"}}
-    {{- /*gotype: PoliSim/handler.ModifyPersonalSettings*/ -}}
-    <div class="wrapper" id="change-personal-settings">
-        <h1 class="section-headline">Persönliche Einstellungen</h1>
-        <form hx-post="/my/profile/settings" hx-target="#change-personal-settings">
-            <label for="fontScaling">Seitenskalierung (in Prozent)</label>
-            <input id="fontScaling" name="fontScaling" type="number" value="{{.FontScaling}}">
-            <button type="submit">Einstellungen speichern</button>
-        </form>
-    {{if ne "" .Message}}
-        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
-    {{end}}
-    </div>
 {{end}}

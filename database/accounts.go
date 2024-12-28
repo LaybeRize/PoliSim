@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
@@ -122,6 +123,24 @@ func SetPersonalSettings(acc *Account) error {
 		updateAccount(acc)
 	}
 	return err
+}
+
+func GetAccountAndOwnerByAccountName(name string) (account *Account, owner *Account, err error) {
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.name = $name 
+OPTIONAL MATCH (t:Account)-[:OWNER]->(a) RETURN a, t;`,
+		map[string]any{"name": name}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return
+	}
+	account, err = getSingleAccount("a", result.Records)
+	if err != nil {
+		return
+	}
+	owner, err = getSingleAccount("t", result.Records)
+	if errors.Is(err, notFoundError) {
+		err = nil
+	}
+	return
 }
 
 // GetNames returns first an array of Names, then the array of Usernames and then the error, if one occured
@@ -246,7 +265,7 @@ func getSingleAccount(letter string, records []*neo4j.Record) (*Account, error) 
 		return nil, multipleItemsError
 	}
 	result, exists := records[0].Get(letter)
-	if !exists {
+	if !exists || result == nil {
 		return nil, notFoundError
 	}
 	node := result.(neo4j.Node)

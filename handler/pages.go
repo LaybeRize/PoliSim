@@ -93,8 +93,7 @@ type EditAccountPage struct {
 	LinkedAccountName string
 	AccountNames      []string
 	AccountUsernames  []string
-	Message           string
-	IsError           bool
+	MessageUpdate
 }
 
 func (p *EditAccountPage) SetNavInfo(navInfo NavigationInfo) {
@@ -107,6 +106,11 @@ func (p *EditAccountPage) getPageName() string {
 
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
+}
+
+type PartialRedirectStruct interface {
+	getRenderInfo() (string, string) //first the templateForge key, then the definition name
+	targetElement() string
 }
 
 type ChangePassword struct {
@@ -137,6 +141,19 @@ type MarkdownBox struct {
 
 func (p *MarkdownBox) getRenderInfo() (string, string) {
 	return "templates", "markdownBox"
+}
+
+type MessageUpdate struct {
+	Message string
+	IsError bool
+}
+
+func (p *MessageUpdate) getRenderInfo() (string, string) {
+	return "templates", "message"
+}
+
+func (p *MessageUpdate) targetElement() string {
+	return "#message-div"
 }
 
 //go:embed _pages/*
@@ -220,6 +237,21 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 }
 
 func MakeSpecialPagePart(w http.ResponseWriter, data PartialStruct) {
+	pageName, templateName := data.getRenderInfo()
+
+	currentTemplate, exists := templateForge[pageName]
+	if !exists {
+		panic("Could not find a template for partial page data. Page required would be: " + pageName)
+	}
+	err := currentTemplate.ExecuteTemplate(w, templateName, data)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func MakeSpecialPagePartWithRedirect(w http.ResponseWriter, data PartialRedirectStruct) {
+	w.Header().Add("HX-Retarget", data.targetElement())
 	pageName, templateName := data.getRenderInfo()
 
 	currentTemplate, exists := templateForge[pageName]
