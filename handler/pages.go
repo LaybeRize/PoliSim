@@ -104,6 +104,11 @@ func (p *EditAccountPage) getPageName() string {
 	return "editAccount"
 }
 
+type NotesPage struct {
+	NavInfo     NavigationInfo
+	LoadedNotes []string
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }

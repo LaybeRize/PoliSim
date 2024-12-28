@@ -1,0 +1,20 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.NotesPage */ -}}
+    <body id="page-body">
+        <script>
+            let loaded = {{.LoadedNotes}};
+
+            document.body.addEventListener("htmx:afterSwap", function (evt) {
+                document.querySelectorAll("a[data-link='" + evt.detail.elt.id + "']").forEach(
+                    element => {element.href = "#" + evt.detail.elt.id; }
+                );
+                loaded.push(evt.detail.elt.id);
+            });
+
+            document.body.addEventListener("htmx:configRequest", function (evt) {
+                evt.detail.parameters['loaded'] = loaded;
+            })
+        </script>
+    {{template "header" .NavInfo}}
+    </body>
+{{end}}

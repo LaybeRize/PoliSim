@@ -6,7 +6,7 @@
             {{- /*gotype: PoliSim/handler.ModifyPersonalSettings*/ -}}
             <div class="wrapper" id="change-personal-settings">
                 <h1 class="section-headline">Persönliche Einstellungen</h1>
-                <form hx-post="/my/profile/settings" hx-target="#change-personal-settings">
+                <form hx-patch="/my/profile/settings" hx-target="#change-personal-settings">
                     <label for="fontScaling">Seitenskalierung (in Prozent)</label>
                     <input id="fontScaling" name="fontScaling" type="number" value="{{.FontScaling}}">
                     <button type="submit">Einstellungen speichern</button>
@@ -20,7 +20,7 @@
             {{- /*gotype: PoliSim/handler.ChangePassword*/ -}}
             <div class="wrapper" id="change-password">
                 <h1 class="section-headline">Passwort ändern</h1>
-                <form hx-post="/my/profile/password" hx-target="#change-password">
+                <form hx-patch="/my/profile/password" hx-target="#change-password">
                     <label for="oldPassword">Altes Passwort</label>
                     <input id="oldPassword" name="oldPassword" type="password" value="{{.OldPassword}}">
                     <label for="newPassword">Neues Passwort</label>

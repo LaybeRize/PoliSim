@@ -4,7 +4,7 @@
     {{template "header" .NavInfo}}
     {{if .Account.Exists}}
         <a class="button-link" href="/edit/account">Zurück zur Suche</a>
-        <form hx-post="/edit/account?name={{urlquery .Account.Name}}" hx-target="#page-body">
+        <form hx-patch="/edit/account?name={{urlquery .Account.Name}}" hx-target="#page-body">
             <label for="name">Anzeigename</label>
             <input id="name" name="name" type="text" value="{{.Account.Name}}" readonly>
             <label for="username">Nutzername</label>
@@ -31,7 +31,7 @@
             <button type="submit">Nutzer anpassen</button>
         </form>
     {{else}}
-        <form hx-post="/edit/account/search" hx-target="#page-body">
+        <form hx-put="/edit/account/search" hx-target="#page-body">
             <label for="name">Anzeigename</label>
             <input id="name" name="name" type="text" list="names">
             <datalist id="names">

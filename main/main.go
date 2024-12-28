@@ -16,12 +16,12 @@ func main() {
 	http.HandleFunc("GET /create/account", account.GetCreateAccount)
 	http.HandleFunc("POST /create/account", account.PostCreateAccount)
 	http.HandleFunc("GET /edit/account", account.GetEditAccount)
-	http.HandleFunc("POST /edit/account", account.PostEditAccount)
-	http.HandleFunc("POST /edit/account/search", account.PostEditSearchAccount)
+	http.HandleFunc("PATCH /edit/account", account.PostEditAccount)
+	http.HandleFunc("PUT /edit/account/search", account.PostEditSearchAccount)
 
 	http.HandleFunc("GET /my/profile", account.GetMyProfile)
-	http.HandleFunc("POST /my/profile/password", account.PostUpdateMyPassword)
-	http.HandleFunc("POST /my/profile/settings", account.PostUpdateMySettings)
+	http.HandleFunc("PATCH /my/profile/password", account.PostUpdateMyPassword)
+	http.HandleFunc("PATCH /my/profile/settings", account.PostUpdateMySettings)
 
 	http.HandleFunc("POST /login", account.PostLoginAccount)
 	http.HandleFunc("POST /logout", account.PostLogOutAccount)
