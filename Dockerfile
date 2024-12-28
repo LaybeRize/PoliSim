@@ -2,12 +2,10 @@ FROM golang:1.22-alpine
 
 WORKDIR /app
 
-COPY ./handler ./handler
 COPY ./database ./database
-COPY ./templates ./templates
+COPY ./handler ./handler
 COPY ./main ./main
 COPY ./public ./public
-COPY ./resources ./resources
 COPY go.mod .
 RUN go mod tidy
 

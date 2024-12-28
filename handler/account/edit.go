@@ -8,7 +8,7 @@ import (
 
 func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
-	if !loggedIn || acc.Role > database.ADMIN {
+	if !loggedIn || acc.Role > database.Admin {
 		handler.GetNotFoundPage(writer, request)
 		return
 	}
@@ -18,7 +18,7 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 
 func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
-	if !loggedIn || acc.Role > database.ADMIN {
+	if !loggedIn || acc.Role > database.Admin {
 		handler.PartialGetNotFoundPage(writer, request)
 		return
 	}

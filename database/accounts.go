@@ -1,6 +1,8 @@
 package database
 
-import "github.com/neo4j/neo4j-go-driver/v5/neo4j"
+import (
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+)
 
 type AccountRole int
 
@@ -10,31 +12,58 @@ type Account struct {
 	Password string
 	Role     AccountRole
 	Blocked  bool
-	FontSize *int64
+	FontSize int64
+}
+
+func (a *Account) Exists() bool {
+	return a != nil
+}
+
+func (a *Account) IsAtLeastPressAdmin() bool {
+	return a != nil && a.Role <= PressAdmin
+}
+
+func (a *Account) IsAtLeastAdmin() bool {
+	return a != nil && a.Role <= Admin
+}
+
+func (a *Account) IsAtLeastHeadAdmin() bool {
+	return a != nil && a.Role <= HeadAdmin
+}
+
+func (a *Account) IsPressUser() bool {
+	return a != nil && a.Role == PressUser
+}
+
+func (a *Account) IsUser() bool {
+	return a != nil && a.Role == User
+}
+
+func (a *Account) IsPressAdmin() bool {
+	return a != nil && a.Role == PressAdmin
+}
+
+func (a *Account) IsAdmin() bool {
+	return a != nil && a.Role == Admin
+}
+
+func (a *Account) IsHeadAdmin() bool {
+	return a.IsAtLeastHeadAdmin()
 }
 
 const (
-	ROOT_ADMIN AccountRole = iota
-	HEAD_ADMIN
-	ADMIN
-	PRESS_ADMIN
-	USER
-	PRESS_USER
-
-	CON_OWNER = "OWNER"
-
-	DB_ACC_NAME     = "name"
-	DB_ACC_USERNAME = "username"
-	DB_ACC_PASSWORD = "password"
-	DB_ACC_ROLE     = "role"
-	DB_ACC_BLOCKED  = "blocked"
-	DB_ACC_FONTSIZE = "fontSize"
+	RootAdmin AccountRole = iota
+	HeadAdmin
+	Admin
+	PressAdmin
+	User
+	PressUser
 )
 
 func CreateAccount(acc *Account) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
-		`CREATE (:Account {`+DB_ACC_NAME+`: $name , `+DB_ACC_USERNAME+`: $username , `+
-			DB_ACC_PASSWORD+`: $password , `+DB_ACC_ROLE+`: $role , `+DB_ACC_BLOCKED+`: $blocked });`,
+		`CREATE (:Account {name: $name , username: $username ,
+                password: $password , role: $role , blocked: $blocked, fontSize: 100 });`,
 		map[string]any{"name": acc.Name,
 			"username": acc.Username,
 			"password": acc.Password,
@@ -44,7 +73,7 @@ func CreateAccount(acc *Account) error {
 }
 
 func GetAccountByUsername(username string) (*Account, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.`+DB_ACC_USERNAME+` = $name RETURN a;`,
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.username = $name RETURN a;`,
 		map[string]any{"name": username}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {
 		return nil, err
@@ -53,7 +82,7 @@ func GetAccountByUsername(username string) (*Account, error) {
 }
 
 func GetAccountByName(name string) (*Account, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.`+DB_ACC_NAME+` = $name RETURN a;`,
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.name = $name RETURN a;`,
 		map[string]any{"name": name}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {
 		return nil, err
@@ -63,7 +92,7 @@ func GetAccountByName(name string) (*Account, error) {
 
 func UpdateAccount(acc *Account) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
-		`MATCH (a:Account)  WHERE a.`+DB_ACC_NAME+` = $name SET a.`+DB_ACC_BLOCKED+` = $blocked , a.`+DB_ACC_ROLE+` = $role RETURN a;`,
+		`MATCH (a:Account)  WHERE a.name = $name SET a.blocked = $blocked , a.role = $role RETURN a;`,
 		map[string]any{"name": acc.Name,
 			"role":    acc.Role,
 			"blocked": acc.Blocked}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
@@ -74,21 +103,21 @@ func UpdateAccount(acc *Account) error {
 }
 
 func UpdatePassword(acc *Account) error {
-	return setPersonalSettings(acc, DB_ACC_PASSWORD, acc.Password)
+	_, err := neo4j.ExecuteQuery(ctx, driver,
+		`MATCH (a:Account)  WHERE a.name = $name SET a.password = $password RETURN a;`,
+		map[string]any{"name": acc.Name,
+			"password": acc.Password}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	if err == nil {
+		updateAccount(acc)
+	}
+	return err
 }
 
 func SetPersonalSettings(acc *Account) error {
-	if acc.FontSize != nil {
-		return setPersonalSettings(acc, DB_ACC_FONTSIZE, *acc.FontSize)
-	}
-	return nil
-}
-
-func setPersonalSettings(acc *Account, field string, value any) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
-		`MATCH (a:Account)  WHERE a.`+DB_ACC_NAME+` = $name SET a.`+field+` = $value RETURN a;`,
+		`MATCH (a:Account)  WHERE a.name = $name SET a.fontSize = $fontSize RETURN a;`,
 		map[string]any{"name": acc.Name,
-			"value": value}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+			"fontSize": acc.FontSize}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err == nil {
 		updateAccount(acc)
 	}
@@ -96,26 +125,31 @@ func setPersonalSettings(acc *Account, field string, value any) error {
 }
 
 func MakeOwner(ownerName string, targetName string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, "MATCH (a:Account), (t:Account) WHERE a."+DB_ACC_NAME+" = $owner AND t."+
-		DB_ACC_NAME+" = $target CREATE (a)-[:"+CON_OWNER+"]->(t);",
+	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Account) WHERE a.name = $owner 
+AND t.name = $target CREATE (a)-[:OWNER]->(t);`,
 		map[string]any{"owner": ownerName,
 			"target": targetName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	return err
 }
 
 func RemoveOwner(targetName string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, "MATCH (t:Account) WHERE t."+DB_ACC_NAME+" = $target MATCH (a:Account)-[r:"+CON_OWNER+"]->(t) DELETE r;",
-		map[string]any{"target": targetName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (t:Account) WHERE t.name = $target 
+MATCH (a:Account)-[r:OWNER]->(t) DELETE r;`,
+		map[string]any{"target": targetName}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
 	return err
 }
 
 func GetAllowedAsUser(ownerName string, orgName string) ([]Account, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Organisation) WHERE a.`+DB_ORG_NAME+` = $org MATCH (a:Account)-[:`+CON_ADMIN+`|`+CON_USER+`]->(o) 
-WHERE a.`+DB_ACC_NAME+` = $owner
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Organisation) WHERE a.name = $org 
+MATCH (a:Account)-[:ADMIN|USER]->(o) 
+WHERE a.name = $owner 
 RETURN a UNION 
-MATCH (o:Organisation), (acc:Account) WHERE o.`+DB_ORG_NAME+` = $org AND acc.`+DB_ACC_NAME+` = $owner MATCH (acc)-[:`+CON_OWNER+`]->(a:Account)-[:`+CON_ADMIN+`|`+CON_USER+`]->(o) 
-RETURN a ORDER BY a.`+DB_ACC_NAME+`;`,
-		map[string]any{"org": orgName, "owner": ownerName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+MATCH (o:Organisation), (acc:Account) WHERE o.name = $org AND acc.name = $owner 
+MATCH (acc)-[:OWNER]->(a:Account)-[:ADMIN|USER]->(o) 
+RETURN a ORDER BY a.name;`,
+		map[string]any{"org": orgName, "owner": ownerName}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {
 		return nil, err
 	}
@@ -123,12 +157,15 @@ RETURN a ORDER BY a.`+DB_ACC_NAME+`;`,
 }
 
 func GetAllowedAsAdmin(ownerName string, orgName string) ([]Account, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Organisation) WHERE a.`+DB_ORG_NAME+` = $org MATCH (a:Account)-[:`+CON_ADMIN+`]->(o) 
-WHERE a.`+DB_ACC_NAME+` = $owner
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Organisation) 
+WHERE a.name = $org MATCH (a:Account)-[:ADMIN]->(o) 
+WHERE a.name = $owner
 RETURN a UNION 
-MATCH (o:Organisation), (acc:Account) WHERE o.`+DB_ORG_NAME+` = $org AND acc.`+DB_ACC_NAME+` = $owner MATCH (acc)-[:`+CON_OWNER+`]->(a:Account)-[:`+CON_ADMIN+`]->(o) 
-RETURN a ORDER BY a.`+DB_ACC_NAME+`;`,
-		map[string]any{"org": orgName, "owner": ownerName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+MATCH (o:Organisation), (acc:Account) WHERE o.name = $org AND acc.name = $owner 
+MATCH (acc)-[:OWNER]->(a:Account)-[:ADMIN]->(o) 
+RETURN a ORDER BY a.name;`,
+		map[string]any{"org": orgName, "owner": ownerName}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {
 		return nil, err
 	}
@@ -144,11 +181,10 @@ func getArrayOfAccounts(letter string, records []*neo4j.Record) []Account {
 		}
 		node := result.(neo4j.Node)
 		arr = append(arr, Account{
-			Name:     node.Props[DB_ACC_NAME].(string),
-			Username: node.Props[DB_ACC_USERNAME].(string),
-			Password: node.Props[DB_ACC_PASSWORD].(string),
-			Role:     AccountRole(node.Props[DB_ACC_ROLE].(int64)),
-			Blocked:  node.Props[DB_ACC_BLOCKED].(bool),
+			Name:     node.Props["name"].(string),
+			Username: node.Props["username"].(string),
+			Role:     AccountRole(node.Props["role"].(int64)),
+			Blocked:  node.Props["blocked"].(bool),
 		})
 	}
 	return arr
@@ -166,16 +202,12 @@ func getSingleAccount(letter string, records []*neo4j.Record) (*Account, error) 
 	}
 	node := result.(neo4j.Node)
 	acc := &Account{
-		Name:     node.Props[DB_ACC_NAME].(string),
-		Username: node.Props[DB_ACC_USERNAME].(string),
-		Password: node.Props[DB_ACC_PASSWORD].(string),
-		Role:     AccountRole(node.Props[DB_ACC_ROLE].(int64)),
-		Blocked:  node.Props[DB_ACC_BLOCKED].(bool),
-	}
-
-	if fontSize, hasProperty := node.Props[DB_ACC_FONTSIZE]; hasProperty {
-		temp := fontSize.(int64)
-		acc.FontSize = &temp
+		Name:     node.Props["name"].(string),
+		Username: node.Props["username"].(string),
+		Role:     AccountRole(node.Props["role"].(int64)),
+		Blocked:  node.Props["blocked"].(bool),
+		Password: node.Props["password"].(string),
+		FontSize: node.Props["fontSize"].(int64),
 	}
 
 	return acc, nil

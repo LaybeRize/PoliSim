@@ -2,31 +2,33 @@ package handler
 
 import (
 	"PoliSim/database"
+	"embed"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type FullPage struct {
-	Base    BaseInfo
-	Content any
+	Language string
+	Base     BaseInfo
+	Content  PageStruct
 }
 
 type BaseInfo struct {
-	Title    string
-	Language string
-	Icon     string
+	Title string
+	Icon  string
 }
 
 type NavigationInfo struct {
-	Account  *database.Account
-	LoggedIn bool
+	Account *database.Account
 }
 
 type PageStruct interface {
 	SetNavInfo(navInfo NavigationInfo)
+	getPageName() string
 }
 
 type NotFoundPage struct {
@@ -35,6 +37,10 @@ type NotFoundPage struct {
 
 func (p *NotFoundPage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
+}
+
+func (p *NotFoundPage) getPageName() string {
+	return "notFound"
 }
 
 type HomePage struct {
@@ -48,6 +54,10 @@ func (p *HomePage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
 }
 
+func (p *HomePage) getPageName() string {
+	return "home"
+}
+
 type CreateAccountPage struct {
 	NavInfo NavigationInfo
 	Account database.Account
@@ -59,6 +69,10 @@ func (p *CreateAccountPage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
 }
 
+func (p *CreateAccountPage) getPageName() string {
+	return "createAccount"
+}
+
 type MyProfilePage struct {
 	NavInfo  NavigationInfo
 	Settings ModifyPersonalSettings
@@ -67,6 +81,10 @@ type MyProfilePage struct {
 
 func (p *MyProfilePage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
+}
+
+func (p *MyProfilePage) getPageName() string {
+	return "profil"
 }
 
 type EditAccountPage struct {
@@ -84,6 +102,14 @@ func (p *EditAccountPage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
 }
 
+func (p *EditAccountPage) getPageName() string {
+	return "editAccount"
+}
+
+type PartialStruct interface {
+	getRenderInfo() (string, string) //first the templateForge key, then the definition name
+}
+
 type ChangePassword struct {
 	OldPassword       string
 	NewPassword       string
@@ -92,87 +118,78 @@ type ChangePassword struct {
 	IsError           bool
 }
 
+func (p *ChangePassword) getRenderInfo() (string, string) {
+	return "profil", "changeMyPassword"
+}
+
 type ModifyPersonalSettings struct {
 	FontScaling int64
 	Message     string
 	IsError     bool
 }
 
+func (p *ModifyPersonalSettings) getRenderInfo() (string, string) {
+	return "profil", "changeMySettings"
+}
+
 type MarkdownBox struct {
 	Information template.HTML
 }
 
-var templateForge *template.Template = nil
+func (p *MarkdownBox) getRenderInfo() (string, string) {
+	return "templates", "markdownBox"
+}
+
+//go:embed _pages/*
+var pages embed.FS
+
+//go:embed _templates/*
+var templates embed.FS
+
+var templateForge map[string]*template.Template = make(map[string]*template.Template)
 
 func init() {
 	_, _ = fmt.Fprintf(os.Stdout, "Reading All Templates\n")
-	files, err := os.ReadDir("templates")
+	files, err := pages.ReadDir("_pages")
 	if err != nil {
 		panic(err)
 	}
-	filenames := make([]string, len(files))
-	for i, file := range files {
-		filenames[i] = "templates/" + file.Name()
+	for _, file := range files {
+		name := strings.TrimSuffix(file.Name(), ".gohtml")
+		page, pageErr := pages.ReadFile("_pages/" + file.Name())
+		if pageErr != nil {
+			panic(pageErr)
+		}
+		templateForge[name] = template.Must(template.Must(template.ParseFS(templates, "*/*")).Parse(string(page)))
 	}
-	templateForge = template.Must(template.New("").Funcs(template.FuncMap{
-		"isUser": func(acc *database.Account) bool {
-			return acc != nil
-		},
-		"isPressAdmin": func(acc *database.Account) bool {
-			if acc == nil {
-				return false
-			}
-			return acc.Role <= database.PRESS_ADMIN
-		},
-		"isAdmin": func(acc *database.Account) bool {
-			if acc == nil {
-				return false
-			}
-			return acc.Role <= database.ADMIN
-		},
-		"isHeadAdmin": func(acc *database.Account) bool {
-			if acc == nil {
-				return false
-			}
-			return acc.Role <= database.HEAD_ADMIN
-		},
-	}).ParseFiles(filenames...))
+	templateForge["templates"] = template.Must(template.ParseFS(templates, "*/*"))
 	_, _ = fmt.Fprintf(os.Stdout, "Successfully created the Template Forge\n")
 }
 
 func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
-	navInfo := NavigationInfo{
-		Account:  acc,
-		LoggedIn: acc != nil,
-	}
+	navInfo := NavigationInfo{Account: acc}
 	data.SetNavInfo(navInfo)
-	switch data.(type) {
-	case *HomePage:
-		executeTemplate(w, "home", data)
-	case *NotFoundPage:
-		executeTemplate(w, "notFound", data)
-	case *CreateAccountPage:
-		executeTemplate(w, "createAccount", data)
-	case *MyProfilePage:
-		executeTemplate(w, "profile", data)
-	case *EditAccountPage:
-		executeTemplate(w, "editAccount", data)
-	default:
-		panic("Struct given to MakePage() is not registered")
+
+	currentTemplate, exists := templateForge[data.getPageName()]
+	if !exists {
+		panic("Could not find a template for data. Page required would be: " + data.getPageName())
+	}
+
+	err := currentTemplate.ExecuteTemplate(w, "page", data)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
-	navInfo := NavigationInfo{
-		Account:  acc,
-		LoggedIn: acc != nil,
-	}
+	navInfo := NavigationInfo{Account: acc}
 	data.SetNavInfo(navInfo)
 
 	fullPage := FullPage{
+		Language: "de",
 		Base: BaseInfo{
-			Language: "de",
-			Icon:     "fallback_icon.png",
+			Icon: "fallback_icon.png",
 		},
 		Content: data,
 	}
@@ -180,40 +197,44 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	switch data.(type) {
 	case *HomePage:
 		fullPage.Base.Title = "Home"
-		executeTemplate(w, "homeFull", fullPage)
 	case *NotFoundPage:
 		fullPage.Base.Title = "Seite nicht gefunden"
-		executeTemplate(w, "notFoundFull", fullPage)
 	case *CreateAccountPage:
 		fullPage.Base.Title = "Nutzer erstellen"
-		executeTemplate(w, "createAccountFull", fullPage)
 	case *MyProfilePage:
 		fullPage.Base.Title = "Mein Profil"
-		executeTemplate(w, "profileFull", fullPage)
 	case *EditAccountPage:
 		fullPage.Base.Title = "Accounts anpassen"
-		executeTemplate(w, "editAccountFull", fullPage)
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}
-}
 
-type SpecialPage string
-
-const (
-	MARKDOWN        SpecialPage = "markdownBox"
-	PASSWORD_CHANGE SpecialPage = "changeMyPassword"
-	SETTING_CHANGE  SpecialPage = "changeMySettings"
-)
-
-func MakeSpecialPagePart(w http.ResponseWriter, page SpecialPage, data any) {
-	executeTemplate(w, string(page), data)
-}
-
-func executeTemplate(w http.ResponseWriter, name string, data any) {
-	err := templateForge.ExecuteTemplate(w, name, data)
+	currentTemplate, exists := templateForge[data.getPageName()]
+	if !exists {
+		panic("Could not find a template for data. Page required would be: " + data.getPageName())
+	}
+	err := currentTemplate.ExecuteTemplate(w, "fullPage", fullPage)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func MakeSpecialPagePart(w http.ResponseWriter, data PartialStruct) {
+	pageName, templateName := data.getRenderInfo()
+
+	currentTemplate, exists := templateForge[pageName]
+	if !exists {
+		panic("Could not find a template for partial page data. Page required would be: " + pageName)
+	}
+	err := currentTemplate.ExecuteTemplate(w, templateName, data)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func RedirectToErrorPage(w http.ResponseWriter) {
+	w.Header().Add("HX-Redirect", "/page-not-found")
+	w.WriteHeader(http.StatusSeeOther)
 }

@@ -67,7 +67,7 @@ func createRootAccount() {
 			Name:     os.Getenv("NAME"),
 			Username: os.Getenv("USERNAME"),
 			Password: pass,
-			Role:     ROOT_ADMIN,
+			Role:     RootAdmin,
 			Blocked:  false,
 		})
 		if err != nil {
@@ -89,11 +89,12 @@ func createConstraints() {
 	}(session, ctx)
 
 	constraints := []string{
-		"CREATE CONSTRAINT ON (n:Account) ASSERT n." + DB_ACC_NAME + ", n." + DB_ACC_USERNAME + " IS UNIQUE;",
-		"CREATE CONSTRAINT ON (n:Organisation) ASSERT n." + DB_ORG_NAME + " IS UNIQUE;",
-		"CREATE CONSTRAINT ON (n:Account) ASSERT EXISTS (n." + DB_ACC_NAME + ");",
-		"CREATE CONSTRAINT ON (n:Account) ASSERT EXISTS (n." + DB_ACC_USERNAME + ");",
-		"CREATE CONSTRAINT ON (n:Organisation) ASSERT EXISTS (n." + DB_ORG_NAME + ");",
+		"CREATE CONSTRAINT ON (acc:Account) ASSERT acc.name IS UNIQUE;",
+		"CREATE CONSTRAINT ON (acc:Account) ASSERT acc.username IS UNIQUE;",
+		"CREATE CONSTRAINT ON (org:Organisation) ASSERT org.name IS UNIQUE;",
+		"CREATE CONSTRAINT ON (acc:Account) ASSERT exists (acc.name);",
+		"CREATE CONSTRAINT ON (acc:Account) ASSERT exists (acc.username);",
+		"CREATE CONSTRAINT ON (org:Organisation) ASSERT exists (org.name);",
 	}
 
 	for _, constraint := range constraints {

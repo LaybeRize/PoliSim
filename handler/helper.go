@@ -25,7 +25,7 @@ func MakeMarkdown(md string) template.HTML {
 func PostMakeMarkdown(writer http.ResponseWriter, request *http.Request) {
 	err := request.ParseForm()
 	if err != nil {
-		MakeSpecialPagePart(writer, MARKDOWN, MarkdownBox{Information: MakeMarkdown("`Anfrage konnte nicht geparsed werden`")})
+		MakeSpecialPagePart(writer, &MarkdownBox{Information: MakeMarkdown("`Anfrage konnte nicht geparsed werden`")})
 	}
-	MakeSpecialPagePart(writer, MARKDOWN, MarkdownBox{Information: MakeMarkdown(request.Form.Get("markdown"))})
+	MakeSpecialPagePart(writer, &MarkdownBox{Information: MakeMarkdown(request.Form.Get("markdown"))})
 }

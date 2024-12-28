@@ -9,7 +9,7 @@ import (
 
 func GetCreateAccount(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
-	if !loggedIn || acc.Role > database.HEAD_ADMIN {
+	if !loggedIn || acc.Role > database.HeadAdmin {
 		handler.GetNotFoundPage(writer, request)
 		return
 	}
@@ -21,7 +21,7 @@ func GetCreateAccount(writer http.ResponseWriter, request *http.Request) {
 
 func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
-	if !loggedIn || acc.Role > database.HEAD_ADMIN {
+	if !loggedIn || acc.Role > database.HeadAdmin {
 		handler.PartialGetNotFoundPage(writer, request)
 		return
 	}
@@ -52,13 +52,13 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if len(page.Account.Password) < 10 && page.Account.Role != database.PRESS_USER {
+	if len(page.Account.Password) < 10 && page.Account.Role != database.PressUser {
 		page.Message = "Das Password hat weniger als 10 Zeichen"
 		handler.MakePage(writer, acc, &page)
 		return
 	}
 
-	if err != nil || page.Account.Role < database.HEAD_ADMIN || page.Account.Role > database.PRESS_USER {
+	if err != nil || page.Account.Role < database.HeadAdmin || page.Account.Role > database.PressUser {
 		page.Message = "Die ausgewählte Rolle für den Nutzer ist nicht valide"
 		handler.MakePage(writer, acc, &page)
 		return

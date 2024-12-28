@@ -1,15 +1,8 @@
-{{define "homeFull"}}
-    {{- /*gotype: PoliSim/handler.FullPage*/ -}}
-    {{template "pageHeader" .Base}}
-    {{template "home" .Content}}
-    </html>
-{{end}}
-
-{{define "home"}}
+{{define "page"}}
     {{- /*gotype: PoliSim/handler.HomePage */ -}}
     <body id="page-body">
         {{template "header" .NavInfo}}
-        {{if .NavInfo.LoggedIn}}
+        {{if .NavInfo.Account.Exists}}
             <p>Herzlich Willkommen, {{.Account.Name}}</p>
             <button hx-post="/logout" hx-target="#page-body">Abmelden</button>
         {{else}}
