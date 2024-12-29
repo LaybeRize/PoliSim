@@ -3,6 +3,7 @@ package main
 import (
 	"PoliSim/handler"
 	"PoliSim/handler/account"
+	"PoliSim/handler/notes"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,11 +27,16 @@ func main() {
 	http.HandleFunc("POST /login", account.PostLoginAccount)
 	http.HandleFunc("POST /logout", account.PostLogOutAccount)
 
+	http.HandleFunc("GET /notes/request", notes.RequestNote)
+	http.HandleFunc("GET /notes", notes.GetNotesViewPage)
+	http.HandleFunc("GET /create/note", notes.GetNoteCreatePage)
+	http.HandleFunc("POST /create/note", notes.PostNoteCreatePage)
+
 	http.HandleFunc("GET /", handler.GetHomePage)
 
 	http.HandleFunc("/", handler.GetNotFoundPage)
 
-	http.HandleFunc("POST /markdown", handler.PostMakeMarkdown)
+	http.HandleFunc("PUT /markdown", handler.PostMakeMarkdown)
 
 	_, _ = fmt.Fprintf(os.Stdout, "Starting HTML Server: Use http://"+os.Getenv("ADDRESS")+"\n")
 	err := http.ListenAndServe(os.Getenv("ADDRESS"), nil)

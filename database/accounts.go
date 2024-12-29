@@ -180,18 +180,34 @@ AND a.blocked = false RETURN a.name AS name;`,
 
 func GetOwnerName(acc *Account) (string, error) {
 	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.name = $name 
-MATCH (a)-[:OWNER]->(t:Account) RETURN t.name AS name;`,
-		map[string]any{"role": PressUser}, neo4j.EagerResultTransformer,
+MATCH (t:Account)-[:OWNER]->(a) RETURN t.name AS name;`,
+		map[string]any{"name": acc.Name, "role": PressUser}, neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {
 		return "", err
 	}
-
 	if len(queryResult.Records) == 0 {
 		return "", err
 	}
 	return queryResult.Records[0].Values[0].(string), err
 }
+
+func GetOwnedAccountNames(owner *Account) ([]string, error) {
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Account) WHERE o.name = $name 
+MATCH (o)-[:OWNER]->(a:Account) 
+RETURN a.name AS name ORDER BY name;`,
+		map[string]any{"name": owner.Name}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, len(result.Records))
+	for i, record := range result.Records {
+		names[i] = record.Values[0].(string)
+	}
+	return names, err
+}
+
 func MakeOwner(ownerName string, targetName string) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Account) WHERE a.name = $owner 
 AND t.name = $target CREATE (a)-[:OWNER]->(t);`,

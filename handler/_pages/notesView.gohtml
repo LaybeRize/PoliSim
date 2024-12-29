@@ -1,0 +1,76 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.NotesPage */ -}}
+    <body id="page-body">
+        <script>
+            let loaded = {{.LoadedNoteIDs}};
+
+            function updateLinks(id) {
+                document.querySelectorAll("a[data-link='" + id + "']").forEach(
+                    element => {element.removeAttribute("hx-get");
+                        element.removeAttribute("hx-swap");
+                        element.removeAttribute("hx-target");
+                        element.removeAttribute("data-link");
+                        element.setAttribute("href", "#" + id);
+                        htmx.process(element);}
+                );
+            }
+
+            document.body.addEventListener("htmx:afterSwap", function (evt) {
+                loaded.push(evt.detail.elt.previousElementSibling.id);
+                loaded.forEach(element => (updateLinks(element)))
+                evt.detail.elt.previousElementSibling.scrollIntoView({behavior: "smooth"})
+            });
+
+            document.body.addEventListener("htmx:configRequest", function (evt) {
+                evt.detail.parameters['loaded'] = loaded;
+            })
+
+            document.body.addEventListener("htmx:afterRequest", function (evt) {
+                if (evt.failed) {
+                    alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+                }
+            })
+        </script>
+    {{template "header" .NavInfo}}
+    {{range .LoadedNotes}}
+        {{block "singleNote" .}}
+            {{- /*gotype: PoliSim/database.BlackboardNote*/ -}}
+            <div class="wrapper note" id="{{.ID}}">
+                <div class="block-view">
+                <h1>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</h1>
+                <p>
+                    ID: {{.ID}}<br>
+                    Geschrieben von: {{.GetAuthor}}<br>
+                    <i>Veröffentlicht am: {{.PostedAt}}</i>
+                </p>
+                </div>
+                <div class="markdown">{{if .Removed}}<code>[Inhalt wurde entfernt]</code>{{else}}{{.Body}}{{end}}</div>
+                <div class="block-view">
+                {{if .HasParents}}
+                    <h2>Referenzen</h2>
+                    {{range .Parents}}
+                        {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
+                        <a  data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
+                            hx-target="#end-div" hx-swap="beforebegin">
+                            <strong>{{.Title}}</strong> von {{.Author}}</a>
+                    {{end}}
+                {{end}}
+                {{if .HasChildren}}
+                    <h2>Kommentare</h2>
+                    {{range .Children}}
+                        {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
+                        <a  data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
+                            hx-target="#end-div" hx-swap="beforebegin">
+                            <strong>{{.Title}}</strong> von {{.Author}}</a>
+                    {{end}}
+                {{end}}
+                </div>
+            </div>
+        {{end}}
+    {{end}}
+    <div id="end-div" hidden></div>
+    <script>
+        loaded.forEach(element => (updateLinks(element)))
+    </script>
+    </body>
+{{end}}

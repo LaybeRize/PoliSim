@@ -105,8 +105,36 @@ func (p *EditAccountPage) getPageName() string {
 }
 
 type NotesPage struct {
-	NavInfo     NavigationInfo
-	LoadedNotes []string
+	NavInfo       NavigationInfo
+	LoadedNoteIDs []string
+	LoadedNotes   []*database.BlackboardNote
+}
+
+func (p *NotesPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *NotesPage) getPageName() string {
+	return "notesView"
+}
+
+type CreateNotesPage struct {
+	NavInfo         NavigationInfo
+	Refrences       string
+	Title           string
+	Author          string
+	PossibleAuthors []string
+	Body            string
+	MessageUpdate
+	MarkdownBox
+}
+
+func (p *CreateNotesPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *CreateNotesPage) getPageName() string {
+	return "createNotes"
 }
 
 type PartialStruct interface {
@@ -146,6 +174,14 @@ type MarkdownBox struct {
 
 func (p *MarkdownBox) getRenderInfo() (string, string) {
 	return "templates", "markdownBox"
+}
+
+type NotesUpdate struct {
+	database.BlackboardNote
+}
+
+func (p *NotesUpdate) getRenderInfo() (string, string) {
+	return "notesView", "singleNote"
 }
 
 type MessageUpdate struct {
@@ -226,6 +262,10 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Mein Profil"
 	case *EditAccountPage:
 		fullPage.Base.Title = "Accounts anpassen"
+	case *NotesPage:
+		fullPage.Base.Title = "Schwarzes Brett"
+	case *CreateNotesPage:
+		fullPage.Base.Title = "Notiz erstellen"
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}

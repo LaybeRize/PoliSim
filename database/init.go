@@ -91,10 +91,12 @@ func createConstraints() {
 	constraints := []string{
 		"CREATE CONSTRAINT ON (acc:Account) ASSERT acc.name IS UNIQUE;",
 		"CREATE CONSTRAINT ON (acc:Account) ASSERT acc.username IS UNIQUE;",
-		"CREATE CONSTRAINT ON (org:Organisation) ASSERT org.name IS UNIQUE;",
 		"CREATE CONSTRAINT ON (acc:Account) ASSERT exists (acc.name);",
 		"CREATE CONSTRAINT ON (acc:Account) ASSERT exists (acc.username);",
+		"CREATE CONSTRAINT ON (org:Organisation) ASSERT org.name IS UNIQUE;",
 		"CREATE CONSTRAINT ON (org:Organisation) ASSERT exists (org.name);",
+		"CREATE CONSTRAINT ON (note:Note) ASSERT note.id IS UNIQUE;",
+		"CREATE CONSTRAINT ON (note:Note) ASSERT exists (note.id);",
 	}
 
 	for _, constraint := range constraints {

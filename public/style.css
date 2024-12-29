@@ -11,6 +11,15 @@ body {
     display: flex;
 }
 
+div.block-view {
+    background-color: inherit;
+    color: inherit;
+    flex-direction: inherit;
+    align-items: start;
+    display: inherit;
+    width: var(--standard-width);
+}
+
 div.wrapper {
     background-color: inherit;
     color: inherit;
@@ -127,6 +136,18 @@ input {
     font-size: inherit;
 }
 
+textarea {
+    resize: vertical;
+    width: inherit;
+    background-color: rgb(51 65 85);
+    color: white;
+    padding: 0.5rem;
+    font-family: inherit;
+    font-size: inherit;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
 input[type="checkbox"] {
     width: 1.2rem;
     height: 1.2rem;
@@ -149,6 +170,24 @@ a.button-link {
     background-color: rgb(51 65 85);
     color: white;
     padding: 0.5rem;
+}
+
+div.note {
+    a {
+        background-color: rgb(51 65 85);
+        color: rgb(34 211 238);
+        padding: 0.3rem;
+        margin: 0.2rem 0;
+    }
+    h1 {
+        font-size: 2rem;
+        line-height: 2.2rem;
+        color: white;
+    }
+    h2 {
+        font-size: 1.5rem;
+        line-height: 1.7rem;
+    }
 }
 
 /* Markdown stuff */

@@ -21,7 +21,7 @@ const (
 	HIDDEN  OrganisationVisibility = "hidden"
 )
 
-func CreateOrganisation(org Organisation) error {
+func CreateOrganisation(org *Organisation) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
 		`CREATE (:Organisation {name: $name , visibility: $visibility , main_type: $maintype , 
 sub_type: $subtype , flair: $flair});`,

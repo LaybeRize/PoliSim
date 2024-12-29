@@ -8,6 +8,15 @@
             <li>
                 <a href="/">Home</a>
             </li>
+            <li>
+                <a href="/notes">Schwarzes Brett</a>
+                <ul>
+
+                    {{if .Account.Exists}}
+                        <li><a href="/create/note">Notiz erstellen</a></li>
+                    {{end}}
+                </ul>
+            </li>
             {{if .Account.Exists}}
                 <li>
                     <a href="/my/profile">Profil</a>

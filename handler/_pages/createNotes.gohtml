@@ -1,0 +1,29 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.CreateNotesPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <form hx-post="/create/note" hx-target="#page-body">
+        <label for="references">Referenzen (Komma-seperiert)</label>
+        <input id="references" name="references" type="text" value="{{.Refrences}}">
+        <label for="title">Titel</label>
+        <input id="title" name="title" type="text" value="{{.Title}}">
+        <label for="author">Autor</label>
+        <select id="author" name="author">
+            {{$author := .Author}}
+            {{range .PossibleAuthors}}
+                <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
+            {{end}}
+        </select>
+        <label for="markdown">Inhalt</label>
+        <textarea id="markdown" name="markdown" rows="10"
+                  hx-trigger="keyup changed delay:1s" hx-put="/markdown"
+                  hx-target="#markdown-box">
+            {{- .Body -}}
+        </textarea>
+        <button type="submit">Eintrag erstellen</button>
+    </form>
+    {{template "message" .}}
+    <h1>Vorschau</h1>
+    {{template "markdownBox" .}}
+    </body>
+{{end}}
