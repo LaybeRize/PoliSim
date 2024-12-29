@@ -33,7 +33,11 @@ func RequestNote(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
-	arr := append(request.URL.Query()["loaded"], element.ID)
+	loaded, exists := request.URL.Query()["loaded"]
+	if !exists {
+		loaded = make([]string, 0)
+	}
+	arr := append(loaded, element.ID)
 	url := "/notes?"
 	for _, e := range arr {
 		url += "loaded=" + e + "&"

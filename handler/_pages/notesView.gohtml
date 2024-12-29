@@ -15,10 +15,19 @@
                 );
             }
 
+            function updateLinksAllEntriesElement() {
+                if (loaded.length === 0) {
+                    return;
+                }
+                document.querySelector("#link-all-entries").href =
+                    "/create/note?loaded=" + loaded.join("&loaded=");
+            }
+
             document.body.addEventListener("htmx:afterSwap", function (evt) {
                 loaded.push(evt.detail.elt.previousElementSibling.id);
-                loaded.forEach(element => (updateLinks(element)))
-                evt.detail.elt.previousElementSibling.scrollIntoView({behavior: "smooth"})
+                loaded.forEach(element => (updateLinks(element)));
+                updateLinksAllEntriesElement();
+                evt.detail.elt.previousElementSibling.scrollIntoView({behavior: "smooth"});
             });
 
             document.body.addEventListener("htmx:configRequest", function (evt) {
@@ -32,10 +41,14 @@
             })
         </script>
     {{template "header" .NavInfo}}
+        <div class="block-view note">
+            <a href="/create/note" id="link-all-entries" target="_blank">Schreibe eine eigene Notiz zu allen offnen Beiträgen</a>
+        </div>
     {{range .LoadedNotes}}
         {{block "singleNote" .}}
             {{- /*gotype: PoliSim/database.BlackboardNote*/ -}}
             <div class="wrapper note" id="{{.ID}}">
+                <hr style="width: var(--standard-width); margin: 0.3rem 0;">
                 <div class="block-view">
                 <h1>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</h1>
                 <p>
@@ -46,6 +59,7 @@
                 </div>
                 <div class="markdown">{{if .Removed}}<code>[Inhalt wurde entfernt]</code>{{else}}{{.Body}}{{end}}</div>
                 <div class="block-view">
+                    <a href="/create/note?loaded={{.ID}}" target="_blank">Schreibe eine eigene Notiz zu diesem Beitrag</a>
                 {{if .HasParents}}
                     <h2>Referenzen</h2>
                     {{range .Parents}}
@@ -70,7 +84,8 @@
     {{end}}
     <div id="end-div" hidden></div>
     <script>
-        loaded.forEach(element => (updateLinks(element)))
+        loaded.forEach(element => (updateLinks(element)));
+        updateLinksAllEntriesElement();
     </script>
     </body>
 {{end}}

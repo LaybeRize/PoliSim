@@ -170,6 +170,7 @@ a.button-link {
     background-color: rgb(51 65 85);
     color: white;
     padding: 0.5rem;
+    text-decoration: none;
 }
 
 div.note {
@@ -178,6 +179,9 @@ div.note {
         color: rgb(34 211 238);
         padding: 0.3rem;
         margin: 0.2rem 0;
+        text-underline: rgb(34 211 238);
+        text-decoration: none;
+        cursor: pointer;
     }
     h1 {
         font-size: 2rem;

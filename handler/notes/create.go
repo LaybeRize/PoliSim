@@ -16,7 +16,11 @@ func GetNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	loaded, exists := request.URL.Query()["loaded"]
 	page := &handler.CreateNotesPage{}
+	if exists {
+		page.Refrences = strings.Join(loaded, ",")
+	}
 	page.IsError = true
 	page.Message = ""
 
