@@ -9,6 +9,10 @@ type Title struct {
 	Flair    string
 }
 
+func (t *Title) Exists() bool {
+	return t != nil
+}
+
 func CreateTitle(title *Title) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
 		`CREATE (:Title {name: $name , main_type: $maintype , 

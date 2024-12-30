@@ -1,0 +1,49 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.CreateTitlePage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <form hx-post="/create/title" hx-target="#page-body">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" value="{{.Title.Name}}">
+        <label for="username">Hauptgruppe</label>
+        <input id="username" name="username" type="text" value="{{.Title.MainType}}">
+        <label for="password">Untergruppe</label>
+        <input id="password" name="password" type="text" value="{{.Title.SubType}}">
+        <label for="password">Flair</label>
+        <input id="password" name="password" type="text" value="{{.Title.Flair}}">
+        <button type="button" onclick="copy()">Titel-Halter hinzufügen</button>
+        <label for="holder">Titel-Halter</label>
+        <div id="input-for-holder" class="name-list hide">
+            <input id="holder" name="[]holder" type="text" list="holder-names">
+            <button type="button" onclick="destroyParent(this)">X</button>
+        </div>
+        {{range .Holder}}
+            <div class="name-list">
+                <input id="holder" name="[]holder" type="text" value="{{.}}" list="holder-names">
+                <button type="button" onclick="destroyParent(this)">X</button>
+            </div>
+        {{end}}
+        <datalist id="holder-names">
+            {{range .AccountNames}}
+                <option>{{.}}</option>
+            {{end}}
+        </datalist>
+        <button type="submit">Titel erstellen</button>
+    </form>
+    <script>
+
+        function copy() {
+            let copy = document.querySelector("#input-for-holder").cloneNode(true)
+            copy.setAttribute("class", "name-list")
+            copy.removeAttribute("id")
+            document.querySelector("#holder-names").insertAdjacentElement("beforebegin", copy)
+        }
+
+        function destroyParent(self) {
+            self.parentElement.remove()
+        }
+
+        copy()
+    </script>
+    {{template "message" .}}
+{{end}}

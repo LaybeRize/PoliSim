@@ -40,7 +40,7 @@ func (p *NotFoundPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *NotFoundPage) getPageName() string {
-	return "notFound"
+	return "_notFound"
 }
 
 type HomePage struct {
@@ -55,7 +55,7 @@ func (p *HomePage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *HomePage) getPageName() string {
-	return "home"
+	return "_home"
 }
 
 type CreateAccountPage struct {
@@ -70,7 +70,7 @@ func (p *CreateAccountPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *CreateAccountPage) getPageName() string {
-	return "createAccount"
+	return "accountCreate"
 }
 
 type MyProfilePage struct {
@@ -84,7 +84,7 @@ func (p *MyProfilePage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *MyProfilePage) getPageName() string {
-	return "profil"
+	return "_profil"
 }
 
 type EditAccountPage struct {
@@ -101,7 +101,7 @@ func (p *EditAccountPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *EditAccountPage) getPageName() string {
-	return "editAccount"
+	return "accountEdit"
 }
 
 type NotesPage struct {
@@ -115,7 +115,7 @@ func (p *NotesPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *NotesPage) getPageName() string {
-	return "viewNotes"
+	return "notesView"
 }
 
 type CreateNotesPage struct {
@@ -134,7 +134,7 @@ func (p *CreateNotesPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *CreateNotesPage) getPageName() string {
-	return "createNotes"
+	return "noteCreate"
 }
 
 type SearchNotesPage struct {
@@ -160,7 +160,40 @@ func (p *SearchNotesPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *SearchNotesPage) getPageName() string {
-	return "searchNotes"
+	return "notesSearch"
+}
+
+type CreateTitlePage struct {
+	NavInfo      NavigationInfo
+	Title        database.Title
+	Holder       []string
+	AccountNames []string
+	MessageUpdate
+}
+
+func (p *CreateTitlePage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *CreateTitlePage) getPageName() string {
+	return "titleCreate"
+}
+
+type EditTitlePage struct {
+	NavInfo      NavigationInfo
+	Title        *database.Title
+	Holder       []string
+	AccountNames []string
+	Titels       []string
+	MessageUpdate
+}
+
+func (p *EditTitlePage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *EditTitlePage) getPageName() string {
+	return "titleEdit"
 }
 
 type PartialStruct interface {
@@ -181,7 +214,7 @@ type ChangePassword struct {
 }
 
 func (p *ChangePassword) getRenderInfo() (string, string) {
-	return "profil", "changeMyPassword"
+	return "_profil", "changeMyPassword"
 }
 
 type ModifyPersonalSettings struct {
@@ -191,7 +224,7 @@ type ModifyPersonalSettings struct {
 }
 
 func (p *ModifyPersonalSettings) getRenderInfo() (string, string) {
-	return "profil", "changeMySettings"
+	return "_profil", "changeMySettings"
 }
 
 type MarkdownBox struct {
@@ -207,7 +240,7 @@ type NotesUpdate struct {
 }
 
 func (p *NotesUpdate) getRenderInfo() (string, string) {
-	return "viewNotes", "singleNote"
+	return "notesView", "singleNote"
 }
 
 type MessageUpdate struct {
@@ -294,6 +327,10 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Notiz erstellen"
 	case *SearchNotesPage:
 		fullPage.Base.Title = "Notizen durchsuchen"
+	case *CreateTitlePage:
+		fullPage.Base.Title = "Titel erstellen"
+	case *EditTitlePage:
+		fullPage.Base.Title = "Titel bearbeiten"
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}

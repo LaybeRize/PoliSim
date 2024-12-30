@@ -2,8 +2,9 @@ package main
 
 import (
 	"PoliSim/handler"
-	"PoliSim/handler/account"
+	"PoliSim/handler/accounts"
 	"PoliSim/handler/notes"
+	"PoliSim/handler/titles"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,18 +15,23 @@ func main() {
 	fs := http.FileServer(http.Dir("public"))
 	http.Handle("GET /public/*", http.StripPrefix("/public/", fs))
 
-	http.HandleFunc("GET /create/account", account.GetCreateAccount)
-	http.HandleFunc("POST /create/account", account.PostCreateAccount)
-	http.HandleFunc("GET /edit/account", account.GetEditAccount)
-	http.HandleFunc("PATCH /edit/account", account.PostEditAccount)
-	http.HandleFunc("PUT /edit/account/search", account.PostEditSearchAccount)
+	http.HandleFunc("GET /create/account", accounts.GetCreateAccount)
+	http.HandleFunc("POST /create/account", accounts.PostCreateAccount)
+	http.HandleFunc("GET /edit/account", accounts.GetEditAccount)
+	http.HandleFunc("PATCH /edit/account", accounts.PostEditAccount)
+	http.HandleFunc("PUT /edit/account/search", accounts.PostEditSearchAccount)
 
-	http.HandleFunc("GET /my/profile", account.GetMyProfile)
-	http.HandleFunc("PATCH /my/profile/password", account.PostUpdateMyPassword)
-	http.HandleFunc("PATCH /my/profile/settings", account.PostUpdateMySettings)
+	http.HandleFunc("GET /create/title", titles.GetCreateTitlePage)
+	http.HandleFunc("POST /create/title", titles.PostCreateTitlePage)
+	http.HandleFunc("GET /edit/title", titles.GetEditTitlePage)
+	http.HandleFunc("PATCH /edit/title", titles.PatchEditTitlePage)
 
-	http.HandleFunc("POST /login", account.PostLoginAccount)
-	http.HandleFunc("POST /logout", account.PostLogOutAccount)
+	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
+	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)
+	http.HandleFunc("PATCH /my/profile/settings", accounts.PostUpdateMySettings)
+
+	http.HandleFunc("POST /login", accounts.PostLoginAccount)
+	http.HandleFunc("POST /logout", accounts.PostLogOutAccount)
 
 	http.HandleFunc("GET /notes/request", notes.RequestNote)
 	http.HandleFunc("GET /notes", notes.GetNotesViewPage)
