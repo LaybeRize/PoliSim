@@ -115,7 +115,7 @@ func (p *NotesPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *NotesPage) getPageName() string {
-	return "notesView"
+	return "viewNotes"
 }
 
 type CreateNotesPage struct {
@@ -138,7 +138,21 @@ func (p *CreateNotesPage) getPageName() string {
 }
 
 type SearchNotesPage struct {
-	NavInfo NavigationInfo
+	NavInfo     NavigationInfo
+	Query       string
+	Amount      int
+	Page        int
+	HasNext     bool
+	HasPrevious bool
+	Results     []database.TruncatedBlackboardNotes
+}
+
+func (p *SearchNotesPage) NextPage() int {
+	return p.Page + 1
+}
+
+func (p *SearchNotesPage) PreviousPage() int {
+	return p.Page - 1
 }
 
 func (p *SearchNotesPage) SetNavInfo(navInfo NavigationInfo) {
@@ -193,7 +207,7 @@ type NotesUpdate struct {
 }
 
 func (p *NotesUpdate) getRenderInfo() (string, string) {
-	return "notesView", "singleNote"
+	return "viewNotes", "singleNote"
 }
 
 type MessageUpdate struct {

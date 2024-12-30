@@ -3,13 +3,16 @@ package database
 import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
+	"strings"
 	"time"
 )
 
 type TruncatedBlackboardNotes struct {
-	ID     string
-	Title  string
-	Author string
+	ID       string
+	Title    string
+	Author   string
+	Flair    string
+	PostedAt time.Time
 }
 
 func (t *TruncatedBlackboardNotes) IDinArray(arr []string) bool {
@@ -19,6 +22,13 @@ func (t *TruncatedBlackboardNotes) IDinArray(arr []string) bool {
 		}
 	}
 	return false
+}
+
+func (t *TruncatedBlackboardNotes) GetAuthor() string {
+	if t.Flair == "" {
+		return t.Author
+	}
+	return t.Author + "; " + t.Flair
 }
 
 type BlackboardNote struct {
@@ -118,4 +128,43 @@ func queryForRelations(query string, idMap map[string]any) ([]TruncatedBlackboar
 		}
 	}
 	return arr, err
+}
+
+func SearchForNotes(amount int, page int, query string) ([]TruncatedBlackboardNotes, error) {
+	title, author := queryAnalyzer(query)
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (n:Note) 
+WHERE n.removed = false AND n.title CONTAINS $title AND n.author CONTAINS $author 
+RETURN n ORDER BY n.posted_at DESC SKIP $skip LIMIT $amount;`,
+		map[string]any{
+			"amount": amount,
+			"skip":   (page - 1) * amount,
+			"title":  title,
+			"author": author,
+		}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+	arr := make([]TruncatedBlackboardNotes, len(result.Records))
+	for i, record := range result.Records {
+		node := record.Values[0].(neo4j.Node)
+		arr[i] = TruncatedBlackboardNotes{
+			ID:       node.Props["id"].(string),
+			Title:    node.Props["title"].(string),
+			Author:   node.Props["author"].(string),
+			Flair:    node.Props["flair"].(string),
+			PostedAt: node.Props["posted_at"].(time.Time),
+		}
+	}
+	return arr, err
+}
+
+func queryAnalyzer(query string) (title string, author string) {
+	if strings.Contains(query, "BY:") {
+		res := strings.SplitN(query, "BY:", 2)
+		title = strings.TrimSpace(res[0])
+		author = strings.TrimSpace(res[1])
+	} else {
+		title = strings.TrimSpace(query)
+	}
+	return
 }
