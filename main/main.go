@@ -31,6 +31,8 @@ func main() {
 	http.HandleFunc("GET /notes", notes.GetNotesViewPage)
 	http.HandleFunc("GET /create/note", notes.GetNoteCreatePage)
 	http.HandleFunc("POST /create/note", notes.PostNoteCreatePage)
+	http.HandleFunc("GET /search/notes", notes.GetSearchNotePage)
+	http.HandleFunc("PUT /search/notes", notes.PutSearchNotePage)
 
 	http.HandleFunc("GET /", handler.GetHomePage)
 

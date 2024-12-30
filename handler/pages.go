@@ -137,6 +137,18 @@ func (p *CreateNotesPage) getPageName() string {
 	return "createNotes"
 }
 
+type SearchNotesPage struct {
+	NavInfo NavigationInfo
+}
+
+func (p *SearchNotesPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *SearchNotesPage) getPageName() string {
+	return "searchNotes"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -263,9 +275,11 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	case *EditAccountPage:
 		fullPage.Base.Title = "Accounts anpassen"
 	case *NotesPage:
-		fullPage.Base.Title = "Schwarzes Brett"
+		fullPage.Base.Title = "Noitzen anschauen"
 	case *CreateNotesPage:
 		fullPage.Base.Title = "Notiz erstellen"
+	case *SearchNotesPage:
+		fullPage.Base.Title = "Notizen durchsuchen"
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}
