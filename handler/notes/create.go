@@ -3,7 +3,6 @@ package notes
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -51,20 +50,23 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	author, err := database.GetAccountByName(request.Form.Get("author"))
-	fmt.Println("hey")
 	if err != nil || author.Blocked {
-		fmt.Println("hey2", err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der ausgewählte Autor ist nicht valide"})
 		return
 	}
 
-	fmt.Println("he3")
 	ownerName, err := database.GetOwnerName(author)
 	if author.Name != acc.Name && (err != nil || ownerName != acc.Name) {
-		fmt.Println("he5", ownerName, err)
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der ausgewählte Autor ist nicht valide"})
+		return
+	}
+
+	flairString, err := database.GetAccountFlairs(author)
+	if err != nil {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Beim Laden der Informationen für den Author ist ein Fehler aufgetreten"})
 		return
 	}
 
@@ -73,7 +75,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		ID:       handler.GetUniqueID(author.Name),
 		Title:    request.Form.Get("title"),
 		Author:   author.Name,
-		Flair:    "",
+		Flair:    flairString,
 		PostedAt: time.Now().UTC(),
 		Body:     handler.MakeMarkdown(request.Form.Get("markdown")),
 		Removed:  false,

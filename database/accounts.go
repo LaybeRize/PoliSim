@@ -3,6 +3,7 @@ package database
 import (
 	"errors"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"strings"
 )
 
 type AccountRole int
@@ -295,4 +296,26 @@ func getSingleAccount(letter string, records []*neo4j.Record) (*Account, error) 
 	}
 
 	return acc, nil
+}
+
+func GetAccountFlairs(acc *Account) (string, error) {
+	result, err := neo4j.ExecuteQuery(ctx, driver, `CALL {
+MATCH (a:Account)-[:HAS]->(n:Title)
+WHERE a.name = $name
+RETURN n
+UNION
+MATCH (a:Account)-[:USER|ADMIN]->(n:Organisation)
+WHERE a.name = $name
+RETURN n}
+RETURN n.flair AS flair ORDER BY flair;`,
+		map[string]any{"name": acc.Name}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil || len(result.Records) == 0 {
+		return "", err
+	}
+	flairs := make([]string, len(result.Records))
+	for i, record := range result.Records {
+		flairs[i] = record.Values[0].(string)
+	}
+	return strings.Join(flairs, ", "), err
 }

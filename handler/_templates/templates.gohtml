@@ -35,9 +35,11 @@
                             <li><a href="/view/letter">Brief untersuchen</a></li>
                             <li><a href="/edit/account">Nutzer verwalten</a></li>
                             <li><a href="/edit/organisation">Organisation verwalten</a></li>
+                            <li><a href="/edit/title">Titel verwalten</a></li>
                             {{if .Account.IsAtLeastHeadAdmin}}
                                 <li><a href="/create/account">Nutzer erstellen</a></li>
                                 <li><a href="/create/organisation">Organisation erstellen</a></li>
+                                <li><a href="/create/title">Titel erstellen</a></li>
                             {{end}}
                         {{end}}
                     </ul>
