@@ -95,21 +95,16 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = database.CreateNote(note)
+	err = database.CreateNote(note, references)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Es ist ein Fehler beim erstellen der Notiz aufgetreten"})
 		return
 	}
-	err = database.LinkToNotes(references, note.ID)
 
 	page := &handler.CreateNotesPage{Refrences: strings.Join(append(references, note.ID), ","), Author: author.Name}
 	page.IsError = false
 	page.Message = "Notiz erfolgreich erstellt"
-
-	if err != nil {
-		page.Message += ", Verlinkung fehlgeschlagen"
-	}
 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {

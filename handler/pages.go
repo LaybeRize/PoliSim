@@ -264,6 +264,8 @@ var templates embed.FS
 
 var templateForge map[string]*template.Template = make(map[string]*template.Template)
 
+var iconPath = "/public/fallback_icon.png"
+
 func init() {
 	_, _ = fmt.Fprintf(os.Stdout, "Reading All Templates\n")
 	templateForge["templates"] = template.Must(template.ParseFS(templates, "*/*"))
@@ -280,6 +282,9 @@ func init() {
 		templateForge[name] = template.Must(template.Must(template.ParseFS(templates, "*/*")).Parse(string(page)))
 	}
 	_, _ = fmt.Fprintf(os.Stdout, "Successfully created the Template Forge\n")
+	if os.Getenv("ICON_PATH") != "" {
+		iconPath = os.Getenv("ICON_PATH")
+	}
 }
 
 func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
@@ -305,7 +310,7 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	fullPage := FullPage{
 		Language: "de",
 		Base: BaseInfo{
-			Icon: "fallback_icon.png",
+			Icon: iconPath,
 		},
 		Content: data,
 	}

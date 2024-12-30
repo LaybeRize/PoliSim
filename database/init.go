@@ -97,6 +97,8 @@ func createConstraints() {
 		"CREATE CONSTRAINT ON (org:Organisation) ASSERT exists (org.name);",
 		"CREATE CONSTRAINT ON (note:Note) ASSERT note.id IS UNIQUE;",
 		"CREATE CONSTRAINT ON (note:Note) ASSERT exists (note.id);",
+		"CREATE CONSTRAINT ON (title:Title) ASSERT title.name IS UNIQUE;",
+		"CREATE CONSTRAINT ON (title:Title) ASSERT exists (title.name);",
 	}
 
 	for _, constraint := range constraints {
@@ -105,4 +107,8 @@ func createConstraints() {
 			panic(err)
 		}
 	}
+}
+
+func openTransaction() (neo4j.ExplicitTransaction, error) {
+	return driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: ""}).BeginTransaction(ctx)
 }

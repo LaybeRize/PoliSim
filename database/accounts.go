@@ -163,6 +163,23 @@ RETURN a.name AS name, a.username AS username;`,
 	return names, usernames, err
 }
 
+func GetNonBlockedNames() ([]string, error) {
+	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) 
+WHERE a.blocked = false 
+RETURN a.name AS name ORDER BY name;`,
+		nil, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, len(queryResult.Records))
+	for i, record := range queryResult.Records {
+		names[i] = record.Values[0].(string)
+	}
+
+	return names, err
+}
+
 func GetNamesForActiveUsers() ([]string, error) {
 	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.role != $role 
 AND a.blocked = false RETURN a.name AS name;`,

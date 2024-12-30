@@ -58,8 +58,13 @@ func (b *BlackboardNote) GetAuthor() string {
 	return b.Author + "; " + b.Flair
 }
 
-func CreateNote(note *BlackboardNote) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver,
+func CreateNote(note *BlackboardNote, references []string) error {
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Run(ctx,
 		`CREATE (:Note {id: $id , title: $title , author: $Author , flair: $Flair, 
 posted_at: $PostedAt , body: $Body, removed: $Removed});`,
 		map[string]any{"id": note.ID,
@@ -68,18 +73,20 @@ posted_at: $PostedAt , body: $Body, removed: $Removed});`,
 			"Flair":    note.Flair,
 			"PostedAt": note.PostedAt,
 			"Body":     string(note.Body),
-			"Removed":  note.Removed}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
-	return err
-}
-
-func LinkToNotes(parentNoteIDs []string, childNoteID string) error {
-	if len(parentNoteIDs) == 0 {
-		return nil
+			"Removed":  note.Removed})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
 	}
-	_, err := neo4j.ExecuteQuery(ctx, driver,
+	_, err = tx.Run(ctx,
 		`MATCH (c:Note), (p:Note) WHERE c.id = $child AND p.id IN $parent CREATE (c)-[:LINKS]->(p);`,
-		map[string]any{"parent": parentNoteIDs,
-			"child": childNoteID}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+		map[string]any{"parent": references,
+			"child": note.ID})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	err = tx.Commit(ctx)
 	return err
 }
 

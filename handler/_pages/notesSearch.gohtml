@@ -29,7 +29,7 @@
             {{end}}
             {{if or .HasNext .HasPrevious}}
                 <hr style="width: var(--standard-width); margin: 0.3rem 0;">
-                <div class="wrapper note">
+                <div class="wrapper note pager">
                     {{if .HasPrevious}}
                     <a hx-put="/search/notes" hx-include="#search-form"
                        hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">

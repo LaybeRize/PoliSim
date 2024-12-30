@@ -33,19 +33,19 @@ sub_type: $subtype , flair: $flair});`,
 	return err
 }
 
-func CreateUserConnection(orgName string, userName string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (o:Organisation) WHERE a.name = $user_name 
+func CreateUserConnection(orgName string, names []string) error {
+	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (o:Organisation) WHERE a.name IN $user_name 
 AND o.name = $org_name CREATE (a)-[:USER]->(o);`,
 		map[string]any{"org_name": orgName,
-			"user_name": userName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+			"user_name": names}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	return err
 }
 
-func CreateAdminConnection(orgName string, userName string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (o:Organisation) WHERE a.name = $user_name 
+func CreateAdminConnection(orgName string, names []string) error {
+	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (o:Organisation) WHERE a.name IN $user_name 
 AND o.name = $org_name CREATE (a)-[:ADMIN]->(o);`,
 		map[string]any{"org_name": orgName,
-			"user_name": userName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+			"user_name": names}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	return err
 }
 

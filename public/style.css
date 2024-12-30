@@ -36,6 +36,7 @@ div.wrapper {
     width: fit-content;
 }
 
+
 form {
     flex-direction: column;
     align-items: start;
@@ -208,6 +209,13 @@ div.name-list {
         width: 5%;
         margin: 0.5rem 0.2rem;
         background-color: rgb(127 29 29);
+    }
+}
+
+div.pager {
+    flex-direction: row;
+    a {
+        margin: 0.5rem;
     }
 }
 

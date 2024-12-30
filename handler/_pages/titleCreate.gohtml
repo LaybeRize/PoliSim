@@ -5,12 +5,12 @@
     <form hx-post="/create/title" hx-target="#page-body">
         <label for="name">Name</label>
         <input id="name" name="name" type="text" value="{{.Title.Name}}">
-        <label for="username">Hauptgruppe</label>
-        <input id="username" name="username" type="text" value="{{.Title.MainType}}">
-        <label for="password">Untergruppe</label>
-        <input id="password" name="password" type="text" value="{{.Title.SubType}}">
-        <label for="password">Flair</label>
-        <input id="password" name="password" type="text" value="{{.Title.Flair}}">
+        <label for="main-group">Hauptgruppe</label>
+        <input id="main-group" name="main-group" type="text" value="{{.Title.MainType}}">
+        <label for="sub-group">Untergruppe</label>
+        <input id="sub-group" name="sub-group" type="text" value="{{.Title.SubType}}">
+        <label for="flair">Flair</label>
+        <input id="flair" name="flair" type="text" value="{{.Title.Flair}}">
         <button type="button" onclick="copy()">Titel-Halter hinzufügen</button>
         <label for="holder">Titel-Halter</label>
         <div id="input-for-holder" class="name-list hide">
