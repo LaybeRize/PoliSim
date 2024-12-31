@@ -2,6 +2,18 @@
     {{- /*gotype: PoliSim/handler.CreateTitlePage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
+    <script>
+        function copy() {
+            let copy = document.querySelector("#input-for-holder").cloneNode(true)
+            copy.setAttribute("class", "name-list")
+            copy.removeAttribute("id")
+            document.querySelector("#holder-names").insertAdjacentElement("beforebegin", copy)
+        }
+
+        function destroyParent(self) {
+            self.parentElement.remove()
+        }
+    </script>
     <form hx-post="/create/title" hx-target="#page-body">
         <label for="name">Name</label>
         <input id="name" name="name" type="text" value="{{.Title.Name}}">
@@ -30,20 +42,5 @@
         </datalist>
         <button type="submit">Titel erstellen</button>
     </form>
-    <script>
-
-        function copy() {
-            let copy = document.querySelector("#input-for-holder").cloneNode(true)
-            copy.setAttribute("class", "name-list")
-            copy.removeAttribute("id")
-            document.querySelector("#holder-names").insertAdjacentElement("beforebegin", copy)
-        }
-
-        function destroyParent(self) {
-            self.parentElement.remove()
-        }
-
-        copy()
-    </script>
     {{template "message" .}}
 {{end}}

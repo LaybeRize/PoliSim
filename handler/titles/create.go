@@ -14,7 +14,7 @@ func GetCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page := &handler.CreateTitlePage{}
+	page := &handler.CreateTitlePage{Holder: []string{""}}
 	var err error
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
@@ -76,11 +76,12 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 	err = database.CreateTitle(newTitle, names)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Es ist ein Fehler beim erstellen des Titels aufgetreten"})
+			Message: "Es ist ein Fehler beim erstellen des Titels aufgetreten (Überprüf ob der Name des Titel " +
+				"einzigartig ist)"})
 		return
 	}
 
-	page := &handler.CreateTitlePage{}
+	page := &handler.CreateTitlePage{Holder: []string{""}}
 	page.IsError = false
 	page.Message = "Titel erfolgreich erstellt"
 	page.AccountNames, err = database.GetNonBlockedNames()
