@@ -196,6 +196,41 @@ func (p *EditTitlePage) getPageName() string {
 	return "titleEdit"
 }
 
+type CreateOrganisationPage struct {
+	NavInfo      NavigationInfo
+	Organisation database.Organisation
+	User         []string
+	Admin        []string
+	AccountNames []string
+	MessageUpdate
+}
+
+func (p *CreateOrganisationPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *CreateOrganisationPage) getPageName() string {
+	return "organisationCreate"
+}
+
+type EditOrganisationPage struct {
+	NavInfo       NavigationInfo
+	Organisation  *database.Organisation
+	User          []string
+	Admin         []string
+	AccountNames  []string
+	Organisations []string
+	MessageUpdate
+}
+
+func (p *EditOrganisationPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *EditOrganisationPage) getPageName() string {
+	return "organisationEdit"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -336,6 +371,10 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Titel erstellen"
 	case *EditTitlePage:
 		fullPage.Base.Title = "Titel bearbeiten"
+	case *CreateOrganisationPage:
+		fullPage.Base.Title = "Organisation erstellen"
+	case *EditOrganisationPage:
+		fullPage.Base.Title = "Organisation bearbeiten"
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}

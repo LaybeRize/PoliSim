@@ -1,0 +1,92 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.EditOrganisationPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <script>
+        function copy(idFrom, idTo) {
+            let copy = document.querySelector("#"+idFrom).cloneNode(true)
+            copy.setAttribute("class", "name-list")
+            copy.removeAttribute("id")
+            document.querySelector("#"+idTo).insertAdjacentElement("beforebegin", copy)
+        }
+
+        function destroyParent(self) {
+            self.parentElement.remove()
+        }
+    </script>
+    {{if .Organisation.Exists}}
+        <a class="button-link" href="/edit/organisation">Zurück zur Suche</a>
+        <form hx-patch="/edit/organisation" hx-target="#page-body">
+            <label for="oldName">Bisheriger Name</label>
+            <input id="oldName" name="oldName" type="text" value="{{.Organisation.Name}}" readonly>
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" value="{{.Organisation.Name}}">
+            <label for="main-group">Hauptgruppe</label>
+            <input id="main-group" name="main-group" type="text" value="{{.Organisation.MainType}}">
+            <label for="sub-group">Untergruppe</label>
+            <input id="sub-group" name="sub-group" type="text" value="{{.Organisation.SubType}}">
+            <label for="visiblity">Sichtbarkeit</label>
+            <select id="visiblity" name="visiblity">
+                <option value="public">Öffentlich</option>
+                <option value="private" {{if eq .Organisation.Visibility "private"}}selected{{end}}>
+                    Privat
+                </option>
+                <option value="secret" {{if eq .Organisation.Visibility "secret"}}selected{{end}}>
+                    Geheim
+                </option>
+                <option value="hidden" {{if eq .Organisation.Visibility "hidden"}}selected{{end}}>
+                    Versteckt
+                </option>
+            </select>
+            <label for="flair">Flair</label>
+            <input id="flair" name="flair" type="text" value="{{.Organisation.Flair}}">
+            <button type="button" onclick="copy('input-for-user', 'org-admin-adder')">
+                Organisationsmitglied hinzufügen
+            </button>
+            <label for="user">Organisationsmitglieder</label>
+            <div id="input-for-user" class="name-list hide">
+                <input id="user" name="[]user" type="text" list="account-names">
+                <button type="button" onclick="destroyParent(this)">X</button>
+            </div>
+            {{range .User}}
+                <div class="name-list">
+                    <input id="user" name="[]user" type="text" value="{{.}}" list="account-names">
+                    <button type="button" onclick="destroyParent(this)">X</button>
+                </div>
+            {{end}}
+            <button id="org-admin-adder" type="button" onclick="copy('input-for-admin', 'account-names')">
+                Organisationsadministrator hinzufügen
+            </button>
+            <label for="user">Organisationsadministratoren</label>
+            <div id="input-for-admin" class="name-list hide">
+                <input id="user" name="[]admin" type="text" list="account-names">
+                <button type="button" onclick="destroyParent(this)">X</button>
+            </div>
+            {{range .User}}
+                <div class="name-list">
+                    <input id="user" name="[]admin" type="text" value="{{.}}" list="account-names">
+                    <button type="button" onclick="destroyParent(this)">X</button>
+                </div>
+            {{end}}
+            <datalist id="account-names">
+                {{range .AccountNames}}
+                    <option>{{.}}</option>
+                {{end}}
+            </datalist>
+            <button type="submit">Organisation anpassen</button>
+        </form>
+    {{else}}
+        <form hx-put="/edit/title/organisation" hx-target="#page-body">
+            <label for="name">Organisationsname</label>
+            <input id="name" name="name" type="text" list="names">
+            <datalist id="names">
+                {{range .Organisations}}
+                    <option>{{.}}</option>
+                {{end}}
+            </datalist>
+            <button type="submit">Organisation suchen</button>
+        </form>
+    {{end}}
+    {{template "message" .}}
+    </body>
+{{end}}

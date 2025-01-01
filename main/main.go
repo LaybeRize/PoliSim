@@ -4,6 +4,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/handler/accounts"
 	"PoliSim/handler/notes"
+	"PoliSim/handler/organisations"
 	"PoliSim/handler/titles"
 	"fmt"
 	"net/http"
@@ -26,6 +27,12 @@ func main() {
 	http.HandleFunc("GET /edit/title", titles.GetEditTitlePage)
 	http.HandleFunc("PATCH /edit/title", titles.PatchEditTitlePage)
 	http.HandleFunc("PUT /edit/title/search", titles.PutTitleSearchPage)
+
+	http.HandleFunc("GET /create/organisation", organisations.GetCreateOrganisationPage)
+	http.HandleFunc("POST /create/organisation", organisations.PostCreateOrganisationPage)
+	http.HandleFunc("GET /edit/organisation", organisations.GetEditOrgansationPage)
+	http.HandleFunc("PATCH /edit/organisation", organisations.PatchEditOrganisationPage)
+	http.HandleFunc("PUT /edit/organisation/search", organisations.PutOrganisationSearchPage)
 
 	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
 	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)

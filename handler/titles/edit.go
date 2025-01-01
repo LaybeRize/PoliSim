@@ -83,7 +83,7 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 
 	if titleUpdate.Name == "" || len(titleUpdate.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel leer oder länger als 400 Zeichen"})
+			Message: "Titelname leer oder länger als 400 Zeichen"})
 		return
 	}
 
@@ -115,6 +115,9 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	page := &handler.EditTitlePage{Title: titleUpdate, Holder: names}
+	if _, actualHolder, err := database.GetTitleAndHolder(titleUpdate.Name); err == nil {
+		page.Holder = append(actualHolder, "")
+	}
 	page.IsError = false
 	page.Message = "Titel erfolgreich angepasst"
 	page.AccountNames, err = database.GetNonBlockedNames()
@@ -142,7 +145,7 @@ func PutTitleSearchPage(writer http.ResponseWriter, request *http.Request) {
 	_, err = database.GetTitleByName(name)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte keinen Account finden, der den Informationen entspricht"})
+			Message: "Konnte keinen Titel finden, der den Namen trägt"})
 		return
 	}
 

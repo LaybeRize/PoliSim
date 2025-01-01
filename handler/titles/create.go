@@ -51,7 +51,7 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 
 	if newTitle.Name == "" || len(newTitle.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel leer oder länger als 400 Zeichen"})
+			Message: "Titelname leer oder länger als 400 Zeichen"})
 		return
 	}
 
@@ -67,7 +67,9 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if strings.Contains(newTitle.Flair, ",") || strings.Contains(newTitle.Flair, ";") || len(newTitle.Flair) > 200 {
+	if strings.Contains(newTitle.Flair, ",") ||
+		strings.Contains(newTitle.Flair, ";") ||
+		len(newTitle.Flair) > 200 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Flair enthält ein Komma, Semikolon oder ist länger als 200 Zeichen"})
 		return

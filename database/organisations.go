@@ -12,6 +12,11 @@ type Organisation struct {
 	Flair      string
 }
 
+func (o *Organisation) VisibilityIsValid() bool {
+	return o.Visibility == PUBLIC || o.Visibility == PRIVATE ||
+		o.Visibility == SECRET || o.Visibility == HIDDEN
+}
+
 type OrganisationVisibility string
 
 const (
@@ -21,46 +26,154 @@ const (
 	HIDDEN  OrganisationVisibility = "hidden"
 )
 
-func CreateOrganisation(org *Organisation) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver,
+func CreateOrganisation(org *Organisation, userNames []string, adminNames []string) error {
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Run(ctx,
 		`CREATE (:Organisation {name: $name , visibility: $visibility , main_type: $maintype , 
 sub_type: $subtype , flair: $flair});`,
 		map[string]any{"name": org.Name,
 			"visibility": org.Visibility,
 			"maintype":   org.MainType,
 			"subtype":    org.SubType,
-			"flair":      org.Flair}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+			"flair":      org.Flair})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	_, err = tx.Run(ctx, `
+MATCH (o:Organisation) WHERE o.name = $org 
+MATCH (a:Account) WHERE a.name IN $aNames 
+MATCH (u:Account) WHERE u.name IN $uNames AND NOT u.name IN $aNames 
+CREATE (a)-[:ADMIN]->(o) 
+CREATE (u)-[:USER]->(o);`, map[string]any{
+		"org":    org.Name,
+		"uNames": userNames,
+		"aNames": adminNames})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	err = tx.Commit(ctx)
 	return err
 }
 
-func CreateUserConnection(orgName string, names []string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (o:Organisation) WHERE a.name IN $user_name 
-AND o.name = $org_name CREATE (a)-[:USER]->(o);`,
-		map[string]any{"org_name": orgName,
-			"user_name": names}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+func UpdateOrganisation(oldName string, org *Organisation, userNames []string, adminNames []string) error {
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Run(ctx,
+		`MATCH (o:Organisation) WHERE o.name = $oldName 
+SET o.name = $name , o.main_type = $maintype , o.visibility = $visibility, 
+o.sub_type = $subtype , o.flair = $flair;`,
+		map[string]any{
+			"oldName":    oldName,
+			"name":       org.Name,
+			"visibility": org.Visibility,
+			"maintype":   org.MainType,
+			"subtype":    org.SubType,
+			"flair":      org.Flair})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	_, err = tx.Run(ctx, `
+MATCH (:Account)-[r:ADMIN|USER]->(o:Organisation) WHERE o.name = $org 
+DELETE r;`, map[string]any{"org": org.Name})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	if org.Visibility == HIDDEN {
+		_, err = tx.Run(ctx, `
+MATCH (:Account)-[r:FAVORITE]->(o:Organisation) WHERE o.name = $org 
+DELETE r;`, map[string]any{"org": org.Name})
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return err
+		}
+	} else {
+		_, err = tx.Run(ctx, `
+MATCH (o:Organisation) WHERE o.name = $org 
+MATCH (a:Account) WHERE a.name IN $aNames 
+MATCH (u:Account) WHERE u.name IN $uNames AND NOT u.name IN $aNames 
+CREATE (a)-[:ADMIN]->(o) 
+CREATE (u)-[:USER]->(o);`, map[string]any{
+			"org":    org.Name,
+			"uNames": userNames,
+			"aNames": adminNames})
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return err
+		}
+	}
+
+	err = tx.Commit(ctx)
 	return err
 }
 
-func CreateAdminConnection(orgName string, names []string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (o:Organisation) WHERE a.name IN $user_name 
-AND o.name = $org_name CREATE (a)-[:ADMIN]->(o);`,
-		map[string]any{"org_name": orgName,
-			"user_name": names}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
-	return err
+func GetFullOrganisationInfo(name string) (*Organisation, []string, []string, error) {
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (t:Organisation) WHERE t.name = $name RETURN t;`,
+		map[string]any{"name": name}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	organisation, err := getSingleOrganisation("t", result.Records)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	result, err = neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account)-[:USER]->(t:Organisation) 
+WHERE t.name = $name RETURN a.name AS name;`,
+		map[string]any{"name": name}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	user := make([]string, len(result.Records))
+	for i, record := range result.Records {
+		user[i] = record.Values[0].(string)
+	}
+	result, err = neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account)-[:ADMIN]->(t:Organisation) 
+WHERE t.name = $name RETURN a.name AS name;`,
+		map[string]any{"name": name}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	admin := make([]string, len(result.Records))
+	for i, record := range result.Records {
+		admin[i] = record.Values[0].(string)
+	}
+	return organisation, user, admin, err
 }
 
-func DeleteAllConnectionsToOrganisation(orgName string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Organisation) WHERE o.name = $org_name 
-MATCH (a:Account)-[r]->(o) DELETE r;`,
-		map[string]any{"org_name": orgName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
-	return err
+func GetOrganisationByName(name string) (*Organisation, error) {
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (t:Organisation) WHERE t.name = $name RETURN t;`,
+		map[string]any{"name": name}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+	return getSingleOrganisation("t", result.Records)
 }
 
-func DeleteUserConnectionsToOrganisation(orgName string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Organisation) WHERE o.name = $org_name 
-MATCH (a:Account)-[r:USER]->(o) DELETE r;`,
-		map[string]any{"org_name": orgName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
-	return err
+func GetOrganisationNameList() ([]string, error) {
+	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (t:Organisation) RETURN t.name AS name;`,
+		nil, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, len(queryResult.Records))
+	for i, record := range queryResult.Records {
+		names[i] = record.Values[0].(string)
+	}
+	return names, err
 }
 
 func GetOrganisationsForUserView(name string) ([]Organisation, error) {
@@ -104,6 +217,28 @@ ORDER BY o.main_type, o.sub_type, o.name;`,
 	}
 
 	return getArrayOfOrganisations("o", result.Records), err
+}
+
+func getSingleOrganisation(letter string, records []*neo4j.Record) (*Organisation, error) {
+	if len(records) == 0 {
+		return nil, notFoundError
+	} else if len(records) > 1 {
+		return nil, multipleItemsError
+	}
+	result, exists := records[0].Get(letter)
+	if !exists || result == nil {
+		return nil, notFoundError
+	}
+	node := result.(neo4j.Node)
+	title := &Organisation{
+		Name:       node.Props["name"].(string),
+		Visibility: OrganisationVisibility(node.Props["visibility"].(string)),
+		MainType:   node.Props["main_type"].(string),
+		SubType:    node.Props["sub_type"].(string),
+		Flair:      node.Props["flair"].(string),
+	}
+
+	return title, nil
 }
 
 func getArrayOfOrganisations(letter string, records []*neo4j.Record) []Organisation {
