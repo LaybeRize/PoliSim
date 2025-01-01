@@ -1,6 +1,8 @@
 package database
 
-import "github.com/neo4j/neo4j-go-driver/v5/neo4j"
+import (
+	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+)
 
 type Title struct {
 	Name     string
@@ -49,9 +51,9 @@ func UpdateTitle(oldtitle string, title *Title, holderNames []string) error {
 		return err
 	}
 	_, err = tx.Run(ctx,
-		`MATCH (t:Title) WHERE name = $oldName 
-SET name = $name , main_type = $maintype , 
-sub_type = $subtype , flair = $flair;`,
+		`MATCH (t:Title) WHERE t.name = $oldName 
+SET t.name = $name , t.main_type = $maintype , 
+t.sub_type = $subtype , t.flair = $flair;`,
 		map[string]any{
 			"oldName":  oldtitle,
 			"name":     title.Name,
@@ -62,7 +64,7 @@ sub_type = $subtype , flair = $flair;`,
 		_ = tx.Rollback(ctx)
 		return err
 	}
-	_, err = tx.Run(ctx, `MATCH (:Account)-[r]->(t:Title) WHERE t.name = $title 
+	_, err = tx.Run(ctx, `MATCH (:Account)-[r:HAS]->(t:Title) WHERE t.name = $title 
 DELETE r;`, map[string]any{"title": title.Name})
 	if err != nil {
 		_ = tx.Rollback(ctx)
@@ -115,7 +117,7 @@ func GetTitleAndHolder(name string) (*Title, []string, error) {
 		return title, nil, err
 	}
 	result, err = neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account)-[:HAS]->(t:Title) 
-WHERE t.name != $name RETURN a.name AS name;`,
+WHERE t.name = $name RETURN a.name AS name;`,
 		map[string]any{"name": name}, neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {

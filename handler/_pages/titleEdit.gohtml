@@ -16,7 +16,7 @@
     </script>
     {{if .Title.Exists}}
         <a class="button-link" href="/edit/title">Zurück zur Suche</a>
-        <form hx-patch="/edit/account?name={{urlquery .Title.Name}}" hx-target="#page-body">
+        <form hx-patch="/edit/title" hx-target="#page-body">
             <label for="oldName">Bisheriger Name</label>
             <input id="oldName" name="oldName" type="text" value="{{.Title.Name}}" readonly>
             <label for="name">Name</label>

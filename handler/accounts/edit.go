@@ -24,7 +24,6 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 
 		page.IsError = true
 		if err != nil {
-			print(err.Error())
 			page.Account = nil
 			page.Message = "Der gesuchte Name ist mit keinem Account verbunden"
 			page.AccountNames, page.AccountUsernames, err = database.GetNames()

@@ -133,7 +133,8 @@ input {
     user-select: none;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
-    width: inherit;
+    width: 100%;
+    box-sizing:border-box;
     border: none;
     font-family: inherit;
     font-size: inherit;
@@ -141,7 +142,8 @@ input {
 
 textarea {
     resize: vertical;
-    width: inherit;
+    width: 100%;
+    box-sizing:border-box;
     background-color: rgb(51 65 85);
     color: white;
     padding: 0.5rem;
@@ -206,6 +208,7 @@ div.name-list {
         width: 95%;
     }
     button {
+        box-sizing:border-box;
         width: 5%;
         margin: 0.5rem 0.2rem;
         background-color: rgb(127 29 29);

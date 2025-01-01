@@ -23,7 +23,6 @@ func GetEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 
 		page.IsError = true
 		if err != nil {
-			print(err.Error())
 			page.Title = nil
 			page.Holder = nil
 			page.Message = "Der gesuchte Name ist mit keinem Titel verbunden"
@@ -122,6 +121,7 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		page.Message += "\nEs ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
 	}
+	handler.MakePage(writer, acc, page)
 }
 
 func PutTitleSearchPage(writer http.ResponseWriter, request *http.Request) {
@@ -146,6 +146,6 @@ func PutTitleSearchPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	writer.Header().Add("HX-Redirect", "/edit/account?name="+url.QueryEscape(name))
+	writer.Header().Add("HX-Redirect", "/edit/title?name="+url.QueryEscape(name))
 	writer.WriteHeader(http.StatusFound)
 }
