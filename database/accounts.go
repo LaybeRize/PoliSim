@@ -330,9 +330,11 @@ RETURN n.flair AS flair ORDER BY flair;`,
 	if err != nil || len(result.Records) == 0 {
 		return "", err
 	}
-	flairs := make([]string, len(result.Records))
-	for i, record := range result.Records {
-		flairs[i] = record.Values[0].(string)
+	flairs := make([]string, 0, len(result.Records))
+	for _, record := range result.Records {
+		if flair := strings.TrimSpace(record.Values[0].(string)); flair != "" {
+			flairs = append(flairs, flair)
+		}
 	}
 	return strings.Join(flairs, ", "), err
 }
