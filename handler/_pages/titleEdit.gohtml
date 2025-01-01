@@ -1,5 +1,63 @@
 {{define "page"}}
-    {{- /*gotype: PoliSim/handler.EditAccountPage*/ -}}
+    {{- /*gotype: PoliSim/handler.EditTitlePage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
+    <script>
+        function copy() {
+            let copy = document.querySelector("#input-for-holder").cloneNode(true)
+            copy.setAttribute("class", "name-list")
+            copy.removeAttribute("id")
+            document.querySelector("#holder-names").insertAdjacentElement("beforebegin", copy)
+        }
+
+        function destroyParent(self) {
+            self.parentElement.remove()
+        }
+    </script>
+    {{if .Title.Exists}}
+        <a class="button-link" href="/edit/title">Zurück zur Suche</a>
+        <form hx-patch="/edit/account?name={{urlquery .Title.Name}}" hx-target="#page-body">
+            <label for="oldName">Bisheriger Name</label>
+            <input id="oldName" name="oldName" type="text" value="{{.Title.Name}}" readonly>
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" value="{{.Title.Name}}">
+            <label for="main-group">Hauptgruppe</label>
+            <input id="main-group" name="main-group" type="text" value="{{.Title.MainType}}">
+            <label for="sub-group">Untergruppe</label>
+            <input id="sub-group" name="sub-group" type="text" value="{{.Title.SubType}}">
+            <label for="flair">Flair</label>
+            <input id="flair" name="flair" type="text" value="{{.Title.Flair}}">
+            <button type="button" onclick="copy()">Titel-Halter hinzufügen</button>
+            <label for="holder">Titel-Halter</label>
+            <div id="input-for-holder" class="name-list hide">
+                <input id="holder" name="[]holder" type="text" list="holder-names">
+                <button type="button" onclick="destroyParent(this)">X</button>
+            </div>
+            {{range .Holder}}
+                <div class="name-list">
+                    <input id="holder" name="[]holder" type="text" value="{{.}}" list="holder-names">
+                    <button type="button" onclick="destroyParent(this)">X</button>
+                </div>
+            {{end}}
+            <datalist id="holder-names">
+                {{range .AccountNames}}
+                    <option>{{.}}</option>
+                {{end}}
+            </datalist>
+            <button type="submit">Titel anpassen</button>
+        </form>
+    {{else}}
+        <form hx-put="/edit/title/search" hx-target="#page-body">
+            <label for="name">Titelname</label>
+            <input id="name" name="name" type="text" list="names">
+            <datalist id="names">
+                {{range .Titels}}
+                    <option>{{.}}</option>
+                {{end}}
+            </datalist>
+            <button type="submit">Titel suchen</button>
+        </form>
+    {{end}}
+    {{template "message" .}}
+    </body>
 {{end}}

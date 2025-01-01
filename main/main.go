@@ -25,6 +25,7 @@ func main() {
 	http.HandleFunc("POST /create/title", titles.PostCreateTitlePage)
 	http.HandleFunc("GET /edit/title", titles.GetEditTitlePage)
 	http.HandleFunc("PATCH /edit/title", titles.PatchEditTitlePage)
+	http.HandleFunc("PUT /edit/title/search", titles.PutTitleSearchPage)
 
 	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
 	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)

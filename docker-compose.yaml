@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   db:
-    image: memgraph/memgraph-mage:latest
+    image: memgraph/memgraph:latest
+    command: memgraph --storage-mode=ON_DISK_TRANSACTIONAL
     environment:
       - MEMGRAPH_USER=${DB_USER}
       - MEMGRAPH_PASSWORD=${DB_PASSWORD}
