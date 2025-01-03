@@ -28,11 +28,11 @@ func (o *Organisation) HasFlair() bool {
 func (o *Organisation) GetClassType() string {
 	switch o.Visibility {
 	case PUBLIC:
-		return "bi-eye-fill"
+		return "bi-public"
 	case PRIVATE:
-		return "bi-eye-slash-fill"
+		return "bi-private"
 	case SECRET:
-		return "bi-shield-lock-fill"
+		return "bi-secret"
 	}
 	return ""
 }

@@ -8,10 +8,10 @@
 
         <div class="wrapper hierarchy-view">
         {{range $MainGroupName, $SubGroupMap := .Hierarchy}}
-            <a _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a>
+            <a _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a><br>
             <div class="hide">
             {{range $SubGroupName, $Organisations := $SubGroupMap}}
-                <a _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a>
+                <a _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a><br>
                 <div class="hide">
                 {{range $Organisations}}
                     {{- /*gotype: PoliSim/database.Organisation*/ -}}

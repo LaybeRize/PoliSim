@@ -27,7 +27,11 @@ func GetSingleOrganisationView(writer http.ResponseWriter, request *http.Request
 	var user []string
 	var admin []string
 	var err error
-	part.Organisation, user, admin, err = database.GetFullOrganisationInfoForUserView(acc, part.Name)
+	if acc.Exists() && acc.Role <= database.Admin {
+		part.Organisation, user, admin, err = database.GetFullOrganisationInfo(part.Name)
+	} else {
+		part.Organisation, user, admin, err = database.GetFullOrganisationInfoForUserView(acc, part.Name)
+	}
 	if err == nil {
 		if len(user) == 0 {
 			part.User = "Diese Organisation hat keine Mitglieder"

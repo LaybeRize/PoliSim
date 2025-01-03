@@ -437,7 +437,11 @@ div.markdown del {
     -moz-osx-font-smoothing: grayscale;
 }
 
-.bi-123::before { content: "\f67f"; }
+.bi-public::before { content: "\f33e"; }
+.bi-private::before { content: "\f537\f33e"; }
+.bi-secret::before { content: "\f33f"; }
+
+/*.bi-123::before { content: "\f67f"; }
 .bi-alarm-fill::before { content: "\f101"; }
 .bi-alarm::before { content: "\f102"; }
 .bi-align-bottom::before { content: "\f103"; }
@@ -2120,4 +2124,4 @@ div.markdown del {
 .bi-wrench-adjustable::before { content: "\f790"; }
 .bi-filetype-json::before { content: "\f791"; }
 .bi-filetype-pptx::before { content: "\f792"; }
-.bi-filetype-xlsx::before { content: "\f793"; }
+.bi-filetype-xlsx::before { content: "\f793"; }*/

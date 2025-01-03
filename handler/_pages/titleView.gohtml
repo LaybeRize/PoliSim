@@ -7,10 +7,10 @@
     {{else}}
         <div class="wrapper hierarchy-view">
         {{range $MainGroupName, $SubGroupMap := .TitleHierarchy}}
-            <a _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a>
+            <a _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a><br>
             <div class="hide">
             {{range $SubGroupName, $TitleNames := $SubGroupMap}}
-                <a _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a>
+                <a _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a><br>
                 <div class="hide">
                 {{range $Title := $TitleNames}}
                     <div>
