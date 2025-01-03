@@ -89,6 +89,8 @@ func PostCreateOrganisationPage(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
+	newOrganisation.ClearInvalidFlair()
+
 	err = database.CreateOrganisation(newOrganisation, userNames, adminNames)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

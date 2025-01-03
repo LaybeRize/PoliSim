@@ -21,6 +21,12 @@ func (o *Organisation) VisibilityIsValid() bool {
 		o.Visibility == SECRET || o.Visibility == HIDDEN
 }
 
+func (o *Organisation) ClearInvalidFlair() {
+	if o.Visibility == SECRET || o.Visibility == HIDDEN {
+		o.Flair = ""
+	}
+}
+
 func (o *Organisation) HasFlair() bool {
 	return o.Flair != ""
 }

@@ -118,6 +118,8 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
+	organisationUpdate.ClearInvalidFlair()
+
 	err = database.UpdateOrganisation(oldOrganisationName, organisationUpdate)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
