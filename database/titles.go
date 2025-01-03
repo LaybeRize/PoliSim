@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"slices"
 )
 
 type Title struct {
@@ -13,6 +14,43 @@ type Title struct {
 
 func (t *Title) Exists() bool {
 	return t != nil
+}
+
+var TitleMap = make(map[string]map[string][]string)
+
+func init() {
+	titles, err := GetAllTitles()
+	if err != nil {
+		panic(err.Error())
+	}
+	for _, title := range titles {
+		addTitleToMap(&title)
+	}
+}
+
+func addTitleToMap(title *Title) {
+	if _, exists := TitleMap[title.MainType]; !exists {
+		TitleMap[title.MainType] = make(map[string][]string)
+	}
+	if _, exists := TitleMap[title.MainType][title.SubType]; !exists {
+		TitleMap[title.MainType][title.SubType] = make([]string, 0)
+	}
+	TitleMap[title.MainType][title.SubType] = append(TitleMap[title.MainType][title.SubType], title.Name)
+	slices.Sort(TitleMap[title.MainType][title.SubType])
+}
+
+func removeOldTitleFromMap(titleName string) {
+	for mainKey, mainMap := range TitleMap {
+		for subKey, subMap := range mainMap {
+			for index, str := range subMap {
+				if titleName == str {
+					TitleMap[mainKey][subKey] = append(TitleMap[mainKey][subKey][:index],
+						TitleMap[mainKey][subKey][index+1:]...)
+					return
+				}
+			}
+		}
+	}
 }
 
 func CreateTitle(title *Title, holderNames []string) error {
@@ -41,10 +79,13 @@ AND t.name = $title CREATE (a)-[:HAS]->(t);`, map[string]any{
 		return err
 	}
 	err = tx.Commit(ctx)
+	if err == nil {
+		addTitleToMap(title)
+	}
 	return err
 }
 
-func UpdateTitle(oldtitle string, title *Title, holderNames []string) error {
+func UpdateTitle(oldtitle string, title *Title) error {
 	tx, err := openTransaction()
 	defer tx.Close(ctx)
 	if err != nil {
@@ -64,21 +105,25 @@ t.sub_type = $subtype , t.flair = $flair;`,
 		_ = tx.Rollback(ctx)
 		return err
 	}
-	_, err = tx.Run(ctx, `MATCH (:Account)-[r:HAS]->(t:Title) WHERE t.name = $title 
+	_, err = tx.Run(ctx, `MATCH (a:Account)-[r:HAS]->(t:Title) WHERE t.name = $title 
 DELETE r;`, map[string]any{"title": title.Name})
 	if err != nil {
 		_ = tx.Rollback(ctx)
 		return err
 	}
-	_, err = tx.Run(ctx, `MATCH (a:Account), (t:Title) WHERE a.name IN $names  
-AND t.name = $title CREATE (a)-[:HAS]->(t);`, map[string]any{
-		"title": title.Name,
-		"names": holderNames})
-	if err != nil {
-		_ = tx.Rollback(ctx)
-		return err
-	}
 	err = tx.Commit(ctx)
+	if err == nil {
+		removeOldTitleFromMap(oldtitle)
+		addTitleToMap(title)
+	}
+	return err
+}
+
+func AddTitleHolder(title *Title, holderNames []string) error {
+	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Title) WHERE a.name IN $names  
+AND t.name = $title CREATE (a)-[r:HAS]->(t);`,
+		map[string]any{"title": title.Name, "names": holderNames}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
 	return err
 }
 
@@ -149,4 +194,23 @@ func getSingleTitle(letter string, records []*neo4j.Record) (*Title, error) {
 	}
 
 	return title, nil
+}
+
+func GetAllTitles() ([]Title, error) {
+	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (t:Title) RETURN t;`,
+		nil, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+	titles := make([]Title, len(queryResult.Records))
+	for i, record := range queryResult.Records {
+		node := record.Values[0].(neo4j.Node)
+		titles[i] = Title{
+			Name:     node.Props["name"].(string),
+			SubType:  node.Props["sub_type"].(string),
+			MainType: node.Props["main_type"].(string),
+		}
+	}
+	return titles, err
 }

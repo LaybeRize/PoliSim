@@ -1,0 +1,43 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.ViewTitlePage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    {{if eq (len .TitleHierarchy) 0}}
+        <p>Es existieren keine Titel</p>
+    {{else}}
+        <div class="wrapper hierarchy-view">
+        {{range $MainGroupName, $SubGroupMap := .TitleHierarchy}}
+            <a _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a>
+            <div class="hide">
+            {{range $SubGroupName, $TitleNames := $SubGroupMap}}
+                <a _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a>
+                <div class="hide">
+                {{range $Title := $TitleNames}}
+                    <div>
+                        <a hx-get="/single/view/title?name={{urlquery $Title}}" hx-target="closest div">{{$Title}}</a>
+                    </div>
+                {{end}}
+                </div>
+            {{end}}
+            </div>
+        {{end}}
+        </div>
+    {{end}}
+    </body>
+{{end}}
+
+{{define "singleTitle"}}
+    {{- /*gotype: PoliSim/handler.SingleTitelUpdate*/ -}}
+    <div>
+        <a _="on click toggle .hide on the next <div/>">{{.Title}}</a>
+        <div class="">
+            {{if .Found}}
+                {{if .HasFlair}}<i>Flair: {{.Flair}}</i>
+                {{else}}<i>Kein Flair</i>{{end}}
+                <p>{{.Holder}}</p>
+            {{else}}
+                <i class="alert-red">Titelinformationen nicht gefunden</i>
+            {{end}}
+        </div>
+    </div>
+{{end}}

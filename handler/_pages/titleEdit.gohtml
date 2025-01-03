@@ -31,12 +31,12 @@
             <label for="holder">Titel-Halter</label>
             <div id="input-for-holder" class="name-list hide">
                 <input id="holder" name="[]holder" type="text" list="holder-names">
-                <button type="button" onclick="destroyParent(this)">X</button>
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
             </div>
             {{range .Holder}}
                 <div class="name-list">
                     <input id="holder" name="[]holder" type="text" value="{{.}}" list="holder-names">
-                    <button type="button" onclick="destroyParent(this)">X</button>
+                    <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
                 </div>
             {{end}}
             <datalist id="holder-names">

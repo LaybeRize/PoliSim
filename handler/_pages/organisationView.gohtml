@@ -1,0 +1,50 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.ViewOrganisationPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    {{if .HadError}}
+        <i class="alert-red">Fehler beim Laden der Organisationen</i>
+    {{else}}
+
+        <div class="wrapper hierarchy-view">
+        {{range $MainGroupName, $SubGroupMap := .Hierarchy}}
+            <a _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a>
+            <div class="hide">
+            {{range $SubGroupName, $Organisations := $SubGroupMap}}
+                <a _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a>
+                <div class="hide">
+                {{range $Organisations}}
+                    {{- /*gotype: PoliSim/database.Organisation*/ -}}
+                    <div>
+                        <a hx-get="/single/view/organisation?name={{urlquery .Name}}"
+                           hx-target="closest div"><i class="bi {{.GetClassType}}"></i> {{.Name}}</a>
+                    </div>
+                {{end}}
+                </div>
+            {{end}}
+            </div>
+        {{end}}
+        </div>
+    {{end}}
+    </body>
+{{end}}
+
+{{define "singleOrganisation"}}
+    {{- /*gotype: PoliSim/handler.SingleOrganisationUpdate*/ -}}
+    <div>
+        {{if .Organisation.Exists}}
+            <a _="on click toggle .hide on the next <div/>"
+            ><i class="bi {{.Organisation.GetClassType}}"></i> {{.Organisation.Name}}</a>
+            <div class="">
+                {{if .Organisation.HasFlair}}<i>Flair: {{.Organisation.Flair}}</i>
+                {{else}}<i>Kein Flair</i>{{end}}
+                <p>{{.User}}<br>{{.Admin}}</p>
+            </div>
+        {{else}}
+            <a _="on click toggle .hide on the next <div/>"><i class="bi bi-question-diamond-fill"></i> {{.Name}}</a>
+            <div class="">
+                <i class="alert-red">Titelinformationen nicht gefunden</i>
+            </div>
+        {{end}}
+    </div>
+{{end}}

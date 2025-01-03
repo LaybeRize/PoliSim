@@ -107,10 +107,17 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = database.UpdateTitle(oldTitleName, titleUpdate, names)
+	err = database.UpdateTitle(oldTitleName, titleUpdate)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Es ist ein Fehler beim überarbeiten des Titels aufgetreten"})
+		return
+	}
+
+	err = database.AddTitleHolder(titleUpdate, names)
+	if err != nil {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Konnte Titel-Halter nicht erfolgreich updaten"})
 		return
 	}
 

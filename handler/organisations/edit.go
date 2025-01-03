@@ -118,10 +118,17 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	err = database.UpdateOrganisation(oldOrganisationName, organisationUpdate, userNames, adminNames)
+	err = database.UpdateOrganisation(oldOrganisationName, organisationUpdate)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Es ist ein Fehler beim überarbeiten der Organisation aufgetreten"})
+		return
+	}
+
+	err = database.AddOrganisationMember(organisationUpdate, userNames, adminNames)
+	if err != nil {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Konnte Organisationsmitglieder nicht erfolgreich updaten"})
 		return
 	}
 

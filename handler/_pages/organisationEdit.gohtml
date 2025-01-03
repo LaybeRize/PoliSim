@@ -46,12 +46,12 @@
             <label for="user">Organisationsmitglieder</label>
             <div id="input-for-user" class="name-list hide">
                 <input id="user" name="[]user" type="text" list="account-names">
-                <button type="button" onclick="destroyParent(this)">X</button>
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
             </div>
             {{range .User}}
                 <div class="name-list">
                     <input id="user" name="[]user" type="text" value="{{.}}" list="account-names">
-                    <button type="button" onclick="destroyParent(this)">X</button>
+                    <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
                 </div>
             {{end}}
             <button id="org-admin-adder" type="button" onclick="copy('input-for-admin', 'account-names')">
@@ -60,12 +60,12 @@
             <label for="user">Organisationsadministratoren</label>
             <div id="input-for-admin" class="name-list hide">
                 <input id="user" name="[]admin" type="text" list="account-names">
-                <button type="button" onclick="destroyParent(this)">X</button>
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
             </div>
-            {{range .User}}
+            {{range .Admin}}
                 <div class="name-list">
                     <input id="user" name="[]admin" type="text" value="{{.}}" list="account-names">
-                    <button type="button" onclick="destroyParent(this)">X</button>
+                    <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
                 </div>
             {{end}}
             <datalist id="account-names">
@@ -76,7 +76,7 @@
             <button type="submit">Organisation anpassen</button>
         </form>
     {{else}}
-        <form hx-put="/edit/title/organisation" hx-target="#page-body">
+        <form hx-put="/edit/organisation/search" hx-target="#page-body">
             <label for="name">Organisationsname</label>
             <input id="name" name="name" type="text" list="names">
             <datalist id="names">

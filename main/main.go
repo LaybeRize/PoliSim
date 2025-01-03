@@ -28,11 +28,17 @@ func main() {
 	http.HandleFunc("PATCH /edit/title", titles.PatchEditTitlePage)
 	http.HandleFunc("PUT /edit/title/search", titles.PutTitleSearchPage)
 
+	http.HandleFunc("GET /view/titles", titles.GetTitleView)
+	http.HandleFunc("GET /single/view/title", titles.GetSingleViewTitle)
+
 	http.HandleFunc("GET /create/organisation", organisations.GetCreateOrganisationPage)
 	http.HandleFunc("POST /create/organisation", organisations.PostCreateOrganisationPage)
 	http.HandleFunc("GET /edit/organisation", organisations.GetEditOrgansationPage)
 	http.HandleFunc("PATCH /edit/organisation", organisations.PatchEditOrganisationPage)
 	http.HandleFunc("PUT /edit/organisation/search", organisations.PutOrganisationSearchPage)
+
+	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
+	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)
 
 	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
 	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)

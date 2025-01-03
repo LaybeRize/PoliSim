@@ -196,6 +196,19 @@ func (p *EditTitlePage) getPageName() string {
 	return "titleEdit"
 }
 
+type ViewTitlePage struct {
+	NavInfo        NavigationInfo
+	TitleHierarchy map[string]map[string][]string
+}
+
+func (p *ViewTitlePage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *ViewTitlePage) getPageName() string {
+	return "titleView"
+}
+
 type CreateOrganisationPage struct {
 	NavInfo      NavigationInfo
 	Organisation database.Organisation
@@ -229,6 +242,20 @@ func (p *EditOrganisationPage) SetNavInfo(navInfo NavigationInfo) {
 
 func (p *EditOrganisationPage) getPageName() string {
 	return "organisationEdit"
+}
+
+type ViewOrganisationPage struct {
+	NavInfo   NavigationInfo
+	Hierarchy map[string]map[string][]database.Organisation
+	HadError  bool
+}
+
+func (p *ViewOrganisationPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *ViewOrganisationPage) getPageName() string {
+	return "organisationView"
 }
 
 type PartialStruct interface {
@@ -276,6 +303,32 @@ type NotesUpdate struct {
 
 func (p *NotesUpdate) getRenderInfo() (string, string) {
 	return "notesView", "singleNote"
+}
+
+type SingleTitelUpdate struct {
+	Found  bool
+	Title  string
+	Flair  string
+	Holder string
+}
+
+func (p *SingleTitelUpdate) HasFlair() bool {
+	return p.Flair != ""
+}
+
+func (p *SingleTitelUpdate) getRenderInfo() (string, string) {
+	return "titleView", "singleTitle"
+}
+
+type SingleOrganisationUpdate struct {
+	Name         string
+	Organisation *database.Organisation
+	User         string
+	Admin        string
+}
+
+func (p *SingleOrganisationUpdate) getRenderInfo() (string, string) {
+	return "organisationView", "singleOrganisation"
 }
 
 type MessageUpdate struct {
@@ -375,6 +428,10 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Organisation erstellen"
 	case *EditOrganisationPage:
 		fullPage.Base.Title = "Organisation bearbeiten"
+	case *ViewTitlePage:
+		fullPage.Base.Title = "Titelübersicht"
+	case *ViewOrganisationPage:
+		fullPage.Base.Title = "Organisationsübersicht"
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}

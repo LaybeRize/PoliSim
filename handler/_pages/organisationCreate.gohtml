@@ -21,7 +21,6 @@
         <input id="main-group" name="main-group" type="text" value="{{.Organisation.MainType}}">
         <label for="sub-group">Untergruppe</label>
         <input id="sub-group" name="sub-group" type="text" value="{{.Organisation.SubType}}">
-        <label for="flair">Flair</label>
         <label for="visiblity">Sichtbarkeit</label>
         <select id="visiblity" name="visiblity">
             <option value="public">Öffentlich</option>
@@ -35,6 +34,7 @@
                 Versteckt
             </option>
         </select>
+        <label for="flair">Flair</label>
         <input id="flair" name="flair" type="text" value="{{.Organisation.Flair}}">
         <button type="button" onclick="copy('input-for-user', 'org-admin-adder')">
             Organisationsmitglied hinzufügen
@@ -42,12 +42,12 @@
         <label for="user">Organisationsmitglieder</label>
         <div id="input-for-user" class="name-list hide">
             <input id="user" name="[]user" type="text" list="account-names">
-            <button type="button" onclick="destroyParent(this)">X</button>
+            <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
         </div>
         {{range .User}}
             <div class="name-list">
                 <input id="user" name="[]user" type="text" value="{{.}}" list="account-names">
-                <button type="button" onclick="destroyParent(this)">X</button>
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
             </div>
         {{end}}
         <button id="org-admin-adder" type="button" onclick="copy('input-for-admin', 'account-names')">
@@ -56,12 +56,12 @@
         <label for="user">Organisationsadministratoren</label>
         <div id="input-for-admin" class="name-list hide">
             <input id="user" name="[]admin" type="text" list="account-names">
-            <button type="button" onclick="destroyParent(this)">X</button>
+            <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
         </div>
         {{range .User}}
             <div class="name-list">
                 <input id="user" name="[]admin" type="text" value="{{.}}" list="account-names">
-                <button type="button" onclick="destroyParent(this)">X</button>
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
             </div>
         {{end}}
         <datalist id="account-names">
@@ -69,7 +69,7 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
-        <button type="submit">Titel erstellen</button>
+        <button type="submit">Organisation erstellen</button>
     </form>
     {{template "message" .}}
 {{end}}
