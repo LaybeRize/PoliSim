@@ -29,7 +29,6 @@ func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	var err error
 	page.Results, err = database.SearchForNotes(page.Amount+1, page.Page, page.Query)
 	if err != nil {
-		print(err.Error())
 		page.Results = make([]database.TruncatedBlackboardNotes, 0)
 	}
 	if len(page.Results) > page.Amount {
@@ -60,7 +59,6 @@ func PutSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	var err error
 	page.Results, err = database.SearchForNotes(page.Amount+1, page.Page, page.Query)
 	if err != nil {
-		print(err.Error())
 		page.Results = make([]database.TruncatedBlackboardNotes, 0)
 	}
 	if len(page.Results) > page.Amount {
