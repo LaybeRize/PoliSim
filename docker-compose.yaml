@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: memgraph/memgraph:latest
+    image: memgraph/memgraph
     environment:
       - MEMGRAPH_USER=${DB_USER}
       - MEMGRAPH_PASSWORD=${DB_PASSWORD}
@@ -11,6 +11,9 @@ services:
       - mg_log:/var/log/memgraph
       - mg_etc:/etc/memgraph
     command: ["--log-level=TRACE", "--storage-mode=ON_DISK_TRANSACTIONAL"]
+    ports:
+      - "7687:7687"
+      - "7444:7444"
   web:
     depends_on:
       - db
