@@ -84,7 +84,7 @@ func (p *MyProfilePage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *MyProfilePage) getPageName() string {
-	return "_profil"
+	return "personalProfil"
 }
 
 type EditAccountPage struct {
@@ -276,7 +276,7 @@ type ChangePassword struct {
 }
 
 func (p *ChangePassword) getRenderInfo() (string, string) {
-	return "_profil", "changeMyPassword"
+	return "personalProfil", "changeMyPassword"
 }
 
 type ModifyPersonalSettings struct {
@@ -286,7 +286,7 @@ type ModifyPersonalSettings struct {
 }
 
 func (p *ModifyPersonalSettings) getRenderInfo() (string, string) {
-	return "_profil", "changeMySettings"
+	return "personalProfil", "changeMySettings"
 }
 
 type MarkdownBox struct {

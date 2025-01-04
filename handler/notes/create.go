@@ -3,6 +3,7 @@ package notes
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 	"strings"
 	"time"
@@ -70,9 +71,9 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	references := handler.MakeCommaSeperatedStringToList(request.Form.Get("references"))
+	references := helper.MakeCommaSeperatedStringToList(request.Form.Get("references"))
 	note := &database.BlackboardNote{
-		ID:       handler.GetUniqueID(author.Name),
+		ID:       helper.GetUniqueID(author.Name),
 		Title:    request.Form.Get("title"),
 		Author:   author.Name,
 		Flair:    flairString,

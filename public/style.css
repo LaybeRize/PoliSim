@@ -443,6 +443,8 @@ div.markdown del {
 .bi-public::before { content: "\f33e"; }
 .bi-private::before { content: "\f537\f33e"; }
 .bi-secret::before { content: "\f33f"; }
+.bi-x-lg::before { content: "\f659"; }
+.bi-question-diamond-fill::before { content: "\f506"; }
 
 /*.bi-123::before { content: "\f67f"; }
 .bi-alarm-fill::before { content: "\f101"; }

@@ -40,6 +40,10 @@ func main() {
 	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)
 
+	http.HandleFunc("GET /search/newspapers", accounts.GetMyProfile)
+	http.HandleFunc("GET /check/newspapers", accounts.PostUpdateMyPassword)
+	http.HandleFunc("GET /create/article", accounts.PostUpdateMySettings)
+
 	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
 	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)
 	http.HandleFunc("PATCH /my/profile/settings", accounts.PostUpdateMySettings)

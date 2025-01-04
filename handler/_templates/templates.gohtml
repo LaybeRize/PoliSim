@@ -17,6 +17,14 @@
                 </ul>
             </li>
             <li>
+                <a href="/search/newspapers">Notizen</a>
+                <ul>
+                    {{if .Account.Exists}}
+                        <li><a href="/create/article">Notiz erstellen</a></li>
+                    {{end}}
+                </ul>
+            </li>
+            <li>
                 <a>Übersichten</a>
                 <ul>
                     <li><a href="/view/titles">Titelübersicht</a></li>
@@ -36,7 +44,7 @@
                 <li>
                     <a>Adminstration</a>
                     <ul>
-                        <li><a href="/my/letter">Zeitung überprüfen</a></li>
+                        <li><a href="/check/newspapers">Zeitung überprüfen</a></li>
                         {{if .Account.IsAtLeastAdmin}}
                             <li><a href="/view/letter">Brief untersuchen</a></li>
                             <li><a href="/edit/account">Nutzer verwalten</a></li>
