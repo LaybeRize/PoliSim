@@ -3,6 +3,7 @@ package titles
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 	"strings"
 )
@@ -40,14 +41,11 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	newTitle := &database.Title{}
-	newTitle.Name = request.Form.Get("name")
-	newTitle.MainType = request.Form.Get("main-group")
-	newTitle.SubType = request.Form.Get("sub-group")
-	newTitle.Flair = request.Form.Get("flair")
-	names := request.Form["[]holder"]
-	if names == nil {
-		names = []string{""}
-	}
+	newTitle.Name = helper.GetFormEntry(request, "name")
+	newTitle.MainType = helper.GetFormEntry(request, "main-group")
+	newTitle.SubType = helper.GetFormEntry(request, "sub-group")
+	newTitle.Flair = helper.GetFormEntry(request, "flair")
+	names := helper.GetFormList(request, "[]holder")
 
 	if newTitle.Name == "" || len(newTitle.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

@@ -3,6 +3,7 @@ package notes
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -45,9 +46,9 @@ func PutSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	page := &handler.SearchNotesPage{}
-	page.Query = request.Form.Get("query")
-	page.Amount, _ = strconv.Atoi(request.Form.Get("amount"))
-	page.Page, _ = strconv.Atoi(request.Form.Get("page"))
+	page.Query = helper.GetFormEntry(request, "query")
+	page.Amount, _ = strconv.Atoi(helper.GetFormEntry(request, "amount"))
+	page.Page, _ = strconv.Atoi(helper.GetFormEntry(request, "page"))
 	if page.Page < 1 {
 		page.Page = 1
 	}

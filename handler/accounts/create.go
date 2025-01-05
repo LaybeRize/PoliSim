@@ -3,6 +3,7 @@ package accounts
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 	"strconv"
 )
@@ -34,10 +35,10 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page.Account.Name = request.Form.Get("name")
-	page.Account.Username = request.Form.Get("username")
-	page.Account.Password = request.Form.Get("password")
-	role, err := strconv.Atoi(request.Form.Get("role"))
+	page.Account.Name = helper.GetFormEntry(request, "name")
+	page.Account.Username = helper.GetFormEntry(request, "username")
+	page.Account.Password = helper.GetFormEntry(request, "password")
+	role, err := strconv.Atoi(helper.GetFormEntry(request, "role"))
 	page.Account.Role = database.AccountRole(role)
 
 	if page.Account.Name == "" || len(page.Account.Name) > 200 {

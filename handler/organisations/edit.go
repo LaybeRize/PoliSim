@@ -3,6 +3,7 @@ package organisations
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 	"net/url"
 	"strings"
@@ -70,21 +71,15 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	oldOrganisationName := request.Form.Get("oldName")
+	oldOrganisationName := helper.GetFormEntry(request, "oldName")
 	organisationUpdate := &database.Organisation{}
-	organisationUpdate.Name = request.Form.Get("name")
-	organisationUpdate.Visibility = database.OrganisationVisibility(request.Form.Get("visiblity"))
-	organisationUpdate.MainType = request.Form.Get("main-group")
-	organisationUpdate.SubType = request.Form.Get("sub-group")
-	organisationUpdate.Flair = request.Form.Get("flair")
-	userNames := request.Form["[]user"]
-	if userNames == nil {
-		userNames = []string{""}
-	}
-	adminNames := request.Form["[]admin"]
-	if adminNames == nil {
-		adminNames = []string{""}
-	}
+	organisationUpdate.Name = helper.GetFormEntry(request, "name")
+	organisationUpdate.Visibility = database.OrganisationVisibility(helper.GetFormEntry(request, "visiblity"))
+	organisationUpdate.MainType = helper.GetFormEntry(request, "main-group")
+	organisationUpdate.SubType = helper.GetFormEntry(request, "sub-group")
+	organisationUpdate.Flair = helper.GetFormEntry(request, "flair")
+	userNames := helper.GetFormList(request, "[]user")
+	adminNames := helper.GetFormList(request, "[]admin")
 
 	if organisationUpdate.Name == "" || len(organisationUpdate.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -162,7 +157,7 @@ func PutOrganisationSearchPage(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	name := request.Form.Get("name")
+	name := helper.GetFormEntry(request, "name")
 	_, err = database.GetOrganisationByName(name)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

@@ -3,6 +3,7 @@ package organisations
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 	"strings"
 )
@@ -43,19 +44,13 @@ func PostCreateOrganisationPage(writer http.ResponseWriter, request *http.Reques
 	}
 
 	newOrganisation := &database.Organisation{}
-	newOrganisation.Name = request.Form.Get("name")
-	newOrganisation.Visibility = database.OrganisationVisibility(request.Form.Get("visiblity"))
-	newOrganisation.MainType = request.Form.Get("main-group")
-	newOrganisation.SubType = request.Form.Get("sub-group")
-	newOrganisation.Flair = request.Form.Get("flair")
-	userNames := request.Form["[]user"]
-	if userNames == nil {
-		userNames = []string{""}
-	}
-	adminNames := request.Form["[]admin"]
-	if adminNames == nil {
-		adminNames = []string{""}
-	}
+	newOrganisation.Name = helper.GetFormEntry(request, "name")
+	newOrganisation.Visibility = database.OrganisationVisibility(helper.GetFormEntry(request, "visiblity"))
+	newOrganisation.MainType = helper.GetFormEntry(request, "main-group")
+	newOrganisation.SubType = helper.GetFormEntry(request, "sub-group")
+	newOrganisation.Flair = helper.GetFormEntry(request, "flair")
+	userNames := helper.GetFormList(request, "[]user")
+	adminNames := helper.GetFormList(request, "[]admin")
 
 	if newOrganisation.Name == "" || len(newOrganisation.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

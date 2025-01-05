@@ -3,6 +3,7 @@ package accounts
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -78,7 +79,8 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	var role int
 
 	var ownerAccount *database.Account
-	page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(request.Form.Get("name"))
+	page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(
+		helper.GetFormEntry(request, "name"))
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Konnte keinen Account zum modifizieren finden"})
@@ -95,7 +97,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	role, err = strconv.Atoi(request.Form.Get("role"))
+	role, err = strconv.Atoi(helper.GetFormEntry(request, "role"))
 	// First checks if the account is not a PressUser because then changing roles is not allowed
 	// and then if the role is valid (lower boundary is set, upper boundary is set by modifying users role)
 	if page.Account.Role != database.PressUser && role <= int(database.User) && role > int(acc.Role) {
@@ -106,7 +108,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page.Account.Blocked = "true" == request.Form.Get("blocked")
+	page.Account.Blocked = "true" == helper.GetFormEntry(request, "blocked")
 	err = database.UpdateAccount(page.Account)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -114,7 +116,8 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if ownerAccount, err = database.GetAccountByName(request.Form.Get("linked")); err == nil && page.Account.Role == database.PressUser {
+	if ownerAccount, err = database.GetAccountByName(helper.GetFormEntry(request, "linked")); err == nil &&
+		page.Account.Role == database.PressUser {
 		if ownerAccount.Role == database.PressUser {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 				Message: "Ein Presse-Nutzer kann kein Besitzer eines anderen Presse-Nutzers sein"})
@@ -136,7 +139,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		page.LinkedAccountName = ownerAccount.Name
 	}
 
-	if page.Account.Role == database.PressUser && request.Form.Get("linked") == "" {
+	if page.Account.Role == database.PressUser && helper.GetFormEntry(request, "linked") == "" {
 		err = database.RemoveOwner(page.Account.Name)
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -167,8 +170,8 @@ func PostEditSearchAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	accountByName, nameErr := database.GetAccountByName(request.Form.Get("name"))
-	accountByUsername, usernameErr := database.GetAccountByUsername(request.Form.Get("username"))
+	accountByName, nameErr := database.GetAccountByName(helper.GetFormEntry(request, "name"))
+	accountByUsername, usernameErr := database.GetAccountByUsername(helper.GetFormEntry(request, "username"))
 	var name string
 
 	switch true {

@@ -258,6 +258,20 @@ func (p *ViewOrganisationPage) getPageName() string {
 	return "organisationView"
 }
 
+type ManageNewspaperPage struct {
+	NavInfo      NavigationInfo
+	AccountNames []string
+	MessageUpdate
+}
+
+func (p *ManageNewspaperPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *ManageNewspaperPage) getPageName() string {
+	return "newspaperManage"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -432,6 +446,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Titelübersicht"
 	case *ViewOrganisationPage:
 		fullPage.Base.Title = "Organisationsübersicht"
+	case *ManageNewspaperPage:
+		fullPage.Base.Title = "Zeitungen verwalten"
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}

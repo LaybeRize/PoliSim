@@ -57,15 +57,16 @@ published: $published, published_date: $publishedDate})-[:PUBLISHED]->(t);`,
 		_ = tx.Rollback(ctx)
 		return err
 	}
-
-	_, err = tx.Run(ctx, `MATCH (a:Account), (t:Newspaper) WHERE a.name IN $names  
-AND t.name = $newspaper CREATE (a)-[:AUTHOR]->(t);`, map[string]any{
-		"newspaper": newspaper.Name,
-		"names":     newspaper.Authors})
-	if err != nil {
-		_ = tx.Rollback(ctx)
-		return err
-	}
+	/*
+			_, err = tx.Run(ctx, `MATCH (a:Account), (t:Newspaper) WHERE a.name IN $names
+		AND t.name = $newspaper CREATE (a)-[:AUTHOR]->(t);`, map[string]any{
+				"newspaper": newspaper.Name,
+				"names":     newspaper.Authors})
+			if err != nil {
+				_ = tx.Rollback(ctx)
+				return err
+			}
+	*/
 	err = tx.Commit(ctx)
 	return err
 }

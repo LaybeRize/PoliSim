@@ -3,6 +3,7 @@ package main
 import (
 	"PoliSim/handler"
 	"PoliSim/handler/accounts"
+	"PoliSim/handler/newspaper"
 	"PoliSim/handler/notes"
 	"PoliSim/handler/organisations"
 	"PoliSim/handler/titles"
@@ -40,9 +41,10 @@ func main() {
 	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)
 
-	http.HandleFunc("GET /search/newspapers", accounts.GetMyProfile)
-	http.HandleFunc("GET /check/newspapers", accounts.PostUpdateMyPassword)
-	http.HandleFunc("GET /create/article", accounts.PostUpdateMySettings)
+	http.HandleFunc("GET /search/newspapers", newspaper.GetManageNewspaperPage)
+	http.HandleFunc("GET /check/newspapers", newspaper.GetManageNewspaperPage)
+	http.HandleFunc("GET /create/article", newspaper.GetManageNewspaperPage)
+	http.HandleFunc("POST /newspaper/create", newspaper.PostCreateNewspaperPage)
 
 	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
 	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)

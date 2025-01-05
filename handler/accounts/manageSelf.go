@@ -3,6 +3,7 @@ package accounts
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 	"strconv"
 )
@@ -34,7 +35,7 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	newSize, err := strconv.Atoi(request.Form.Get("fontScaling"))
+	newSize, err := strconv.Atoi(helper.GetFormEntry(request, "fontScaling"))
 	if err != nil {
 		page.Message = "Die Seitenskalierung ist keine valide Zahl"
 		handler.MakeSpecialPagePart(writer, &page)
@@ -76,7 +77,7 @@ func PostUpdateMyPassword(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page.OldPassword = request.Form.Get("oldPassword")
+	page.OldPassword = helper.GetFormEntry(request, "oldPassword")
 	page.NewPassword = request.Form.Get("newPassword")
 	page.RepeatNewPassword = request.Form.Get("newPasswordRepeat")
 	if !database.VerifyPassword(acc.Password, page.OldPassword) {

@@ -50,7 +50,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	author, err := database.GetAccountByName(request.Form.Get("author"))
+	author, err := database.GetAccountByName(helper.GetFormEntry(request, "author"))
 	if err != nil || author.Blocked {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der ausgewählte Autor ist nicht valide"})
@@ -71,10 +71,10 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	references := helper.MakeCommaSeperatedStringToList(request.Form.Get("references"))
+	references := helper.MakeCommaSeperatedStringToList(helper.GetFormEntry(request, "references"))
 	note := &database.BlackboardNote{
 		ID:       helper.GetUniqueID(author.Name),
-		Title:    request.Form.Get("title"),
+		Title:    helper.GetFormEntry(request, "title"),
 		Author:   author.Name,
 		Flair:    flairString,
 		PostedAt: time.Now().UTC(),

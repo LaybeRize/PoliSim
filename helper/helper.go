@@ -2,6 +2,7 @@ package helper
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -32,4 +33,21 @@ func MakeCommaSeperatedStringToList(input string) []string {
 		}
 	}
 	return result
+}
+
+// GetFormEntry strips the whitespace from the response and returns the result
+func GetFormEntry(request *http.Request, field string) string {
+	return strings.TrimSpace(request.Form.Get(field))
+}
+
+// GetFormList returns the list
+func GetFormList(request *http.Request, field string) []string {
+	userNames := request.Form[field]
+	if userNames == nil {
+		return []string{""}
+	}
+	for i, str := range userNames {
+		userNames[i] = strings.TrimSpace(str)
+	}
+	return userNames
 }

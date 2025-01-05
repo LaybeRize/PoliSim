@@ -1,0 +1,32 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.ManageNewspaperPage*/ -}}
+    <body id="page-body">
+        {{template "header" .NavInfo}}
+        {{if .NavInfo.Account.IsAtLeastAdmin}}
+        <div class="block-view">
+            <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me toggle .bi-list-opened
+                     then tell next <form/> toggle .hide">
+                <i class="bi bi-list-closed"></i> Zeitung erstellen
+            </a>
+            <form class="hide" hx-post="/newspaper/create" hx-target="#message-div">
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" value="">
+                <button>Zeitung erstellen</button>
+            </form>
+        </div>
+        {{end}}
+        <div id="change-newspaper" class="block-view">
+            <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me toggle .bi-list-opened
+                         then tell next <form/> toggle .hide">
+                <i class="bi bi-list-closed"></i> Zeitung verändern
+            </a>
+            <form class="hide">
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" value="">
+                <button>Zeitung suchen</button>
+                <button>Zeitung anpassen</button>
+            </form>
+            {{template "message" .}}
+        </div>
+    </body>
+{{end}}

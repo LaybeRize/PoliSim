@@ -178,6 +178,16 @@ a.button-link {
     text-decoration: none;
 }
 
+a.dropdown {
+    background-color: inherit;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 0.3rem;
+    margin: 0.2rem 0;
+    cursor: pointer;
+}
+
 div.note {
     a {
         background-color: rgb(51 65 85);
@@ -445,6 +455,8 @@ div.markdown del {
 .bi-secret::before { content: "\f33f"; }
 .bi-x-lg::before { content: "\f659"; }
 .bi-question-diamond-fill::before { content: "\f506"; }
+.bi-list-closed::before { content: "\f22d"; }
+.bi-list-opened::before { content: "\f229"; }
 
 /*.bi-123::before { content: "\f67f"; }
 .bi-alarm-fill::before { content: "\f101"; }

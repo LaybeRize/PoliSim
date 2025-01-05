@@ -3,6 +3,7 @@ package titles
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 	"net/url"
 	"strings"
@@ -70,16 +71,13 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	oldTitleName := request.Form.Get("oldName")
+	oldTitleName := helper.GetFormEntry(request, "oldName")
 	titleUpdate := &database.Title{}
-	titleUpdate.Name = request.Form.Get("name")
-	titleUpdate.MainType = request.Form.Get("main-group")
-	titleUpdate.SubType = request.Form.Get("sub-group")
-	titleUpdate.Flair = request.Form.Get("flair")
-	names := request.Form["[]holder"]
-	if names == nil {
-		names = []string{""}
-	}
+	titleUpdate.Name = helper.GetFormEntry(request, "name")
+	titleUpdate.MainType = helper.GetFormEntry(request, "main-group")
+	titleUpdate.SubType = helper.GetFormEntry(request, "sub-group")
+	titleUpdate.Flair = helper.GetFormEntry(request, "flair")
+	names := helper.GetFormList(request, "[]holder")
 
 	if titleUpdate.Name == "" || len(titleUpdate.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
