@@ -1,7 +1,4 @@
-{{define "page"}}
-    {{- /*gotype: PoliSim/handler.EditTitlePage*/ -}}
-    <body id="page-body">
-    {{template "header" .NavInfo}}
+{{define "pageScript"}}
     <script>
         function copy() {
             let copy = document.querySelector("#input-for-holder").cloneNode(true)
@@ -14,6 +11,11 @@
             self.parentElement.remove()
         }
     </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.EditTitlePage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
     {{if .Title.Exists}}
         <a class="button-link" href="/edit/title">Zurück zur Suche</a>
         <form hx-patch="/edit/title" hx-target="#page-body">

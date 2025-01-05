@@ -457,6 +457,7 @@ div.markdown del {
 .bi-question-diamond-fill::before { content: "\f506"; }
 .bi-list-closed::before { content: "\f22d"; }
 .bi-list-opened::before { content: "\f229"; }
+.bi-important::before { content: "\f281"; }
 
 /*.bi-123::before { content: "\f67f"; }
 .bi-alarm-fill::before { content: "\f101"; }

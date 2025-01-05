@@ -45,6 +45,8 @@ func main() {
 	http.HandleFunc("GET /check/newspapers", newspaper.GetManageNewspaperPage)
 	http.HandleFunc("GET /create/article", newspaper.GetManageNewspaperPage)
 	http.HandleFunc("POST /newspaper/create", newspaper.PostCreateNewspaperPage)
+	http.HandleFunc("PATCH /newspaper/update", newspaper.PatchUpdateNewspaperPage)
+	http.HandleFunc("PUT /newspaper/search", newspaper.PutSearchNewspaperPage)
 
 	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
 	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)

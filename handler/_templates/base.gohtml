@@ -14,6 +14,7 @@
                 <script>
                     htmx.config.defaultSwapStyle = "outerHTML"
                 </script>
+                {{block "pageScript" .}}{{end}}
             </head>
         {{end}}
         {{template "page" .Content}}

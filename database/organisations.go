@@ -342,20 +342,6 @@ ORDER BY o.main_type, o.sub_type, o.name;`,
 	return getArrayOfOrganisations("o", result.Records), err
 }
 
-func GetAllInvisibleOrganisations() ([]Organisation, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver,
-		`MATCH (o:Organisation) WHERE o.visibility = $hidden RETURN o 
-ORDER BY o.main_type, o.sub_type, o.name;`,
-		map[string]any{
-			"hidden": HIDDEN,
-		}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
-	if err != nil {
-		return nil, err
-	}
-
-	return getArrayOfOrganisations("o", result.Records), err
-}
-
 func getSingleOrganisation(letter string, records []*neo4j.Record) (*Organisation, error) {
 	if len(records) == 0 {
 		return nil, notFoundError

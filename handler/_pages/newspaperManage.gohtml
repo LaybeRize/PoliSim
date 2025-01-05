@@ -1,3 +1,35 @@
+{{define "pageScript"}}
+    <script>
+        function copy() {
+            let copy = document.querySelector("#input-for-holder").cloneNode(true)
+            copy.setAttribute("class", "name-list")
+            copy.removeAttribute("id")
+            document.querySelector("#account-names").insertAdjacentElement("beforebegin", copy)
+        }
+
+        function destroyParent(self) {
+            self.parentElement.remove()
+        }
+
+        let classList = ["", "", "", ""]
+
+        window.onload = function () {
+            document.body.addEventListener("htmx:afterSettle", function (evt) {
+                document.querySelector("#indicator-change-newspaper").className = classList[0];
+                document.querySelector("#form-change-newspaper").className = classList[1];
+                document.querySelector("#indicator-create-newspaper").className = classList[2];
+                document.querySelector("#form-create-newspaper").className = classList[3];
+            });
+
+            document.body.addEventListener("htmx:configRequest", function (evt) {
+                classList[0] = document.querySelector("#indicator-change-newspaper").className;
+                classList[1] = document.querySelector("#form-change-newspaper").className;
+                classList[2] = document.querySelector("#indicator-create-newspaper").className;
+                classList[3] = document.querySelector("#form-create-newspaper").className;
+            });
+        };
+    </script>
+{{end}}
 {{define "page"}}
     {{- /*gotype: PoliSim/handler.ManageNewspaperPage*/ -}}
     <body id="page-body">
@@ -6,27 +38,66 @@
         <div class="block-view">
             <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me toggle .bi-list-opened
                      then tell next <form/> toggle .hide">
-                <i class="bi bi-list-closed"></i> Zeitung erstellen
+                <i id="indicator-create-newspaper" class="bi bi-list-closed"></i> Zeitung erstellen
             </a>
-            <form class="hide" hx-post="/newspaper/create" hx-target="#message-div">
+            <form id="form-create-newspaper" class="hide" hx-post="/newspaper/create" hx-target="#page-body">
                 <label for="name">Name</label>
                 <input id="name" name="name" type="text" value="">
                 <button>Zeitung erstellen</button>
             </form>
         </div>
         {{end}}
+        {{block "updateNewspaper" .}}
         <div id="change-newspaper" class="block-view">
             <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me toggle .bi-list-opened
                          then tell next <form/> toggle .hide">
-                <i class="bi bi-list-closed"></i> Zeitung verändern
+                <i id="indicator-change-newspaper" class="bi bi-list-closed"></i> Zeitung verändern
             </a>
-            <form class="hide">
+            <form id="form-change-newspaper" class="hide" hx-patch="/newspaper/update" hx-target="#change-newspaper">
                 <label for="name">Name</label>
-                <input id="name" name="name" type="text" value="">
-                <button>Zeitung suchen</button>
+                <input id="name" name="name" type="text" value="{{.Newspaper.Name}}">
+                <button type="button" onclick="copy()">
+                    Autor hinzufügen
+                </button>
+                <label for="author">Autoren</label>
+                <div id="input-for-holder" class="name-list hide">
+                    <input id="author" name="[]author" type="text" list="account-names">
+                    <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+                {{range .Newspaper.Authors}}
+                    <div class="name-list">
+                        <input id="author" name="[]author" type="text" value="{{.}}" list="account-names">
+                        <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                {{end}}
+                <datalist id="account-names">
+                    {{range .AccountNames}}
+                        <option>{{.}}</option>
+                    {{end}}
+                </datalist>
+                <button hx-put="/newspaper/search">Zeitung suchen</button>
                 <button>Zeitung anpassen</button>
             </form>
             {{template "message" .}}
+        </div>
+        {{end}}
+        <div class="wrapper note">
+            {{if .HadError}}
+                <p>Es ist ein Fehler beim Suchen der Publikationen aufgetreten</p>
+            {{else}}
+            {{if eq (len .Publications) 0}}
+                <p>Es konnten keine Publikationen gefunden werden</p>
+            {{else}}
+                {{range .Publications}}
+                    {{- /*gotype: PoliSim/database.Publication*/ -}}
+                    <a href="/publication/view/{{.ID}}" target="_blank">{{if .Special -}}
+                            <i class="bi bi-important"></i>
+                        {{- end }} Zeitung: <strong>{{.NewspaperName}}</strong><br>
+                        <i>Erstellt am: {{.PublishedDate}}</i>
+                    </a>
+                {{end}}
+            {{end}}
+            {{end}}
         </div>
     </body>
 {{end}}

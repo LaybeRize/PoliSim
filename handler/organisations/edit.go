@@ -28,7 +28,7 @@ func GetEditOrgansationPage(writer http.ResponseWriter, request *http.Request) {
 			page.Message = "Der gesuchte Name ist mit keiner Organisation verbunden"
 			page.Organisations, err = database.GetOrganisationNameList()
 			if err != nil {
-				page.Message += "\nEs ist ein Fehler bei der Suche nach der Organisationsamensliste aufgetreten"
+				page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Organisationsamensliste aufgetreten"
 			}
 			handler.MakeFullPage(writer, acc, page)
 			return
@@ -41,7 +41,7 @@ func GetEditOrgansationPage(writer http.ResponseWriter, request *http.Request) {
 
 		page.AccountNames, err = database.GetNonBlockedNames()
 		if err != nil {
-			page.Message += "\nEs ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
+			page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
 		}
 
 		handler.MakeFullPage(writer, acc, page)
@@ -138,7 +138,7 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 	page.Message = "Organisation erfolgreich angepasst"
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		page.Message += "\nEs ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
+		page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
 	}
 	handler.MakePage(writer, acc, page)
 }

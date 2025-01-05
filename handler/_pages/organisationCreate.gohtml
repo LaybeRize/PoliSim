@@ -1,7 +1,4 @@
-{{define "page"}}
-    {{- /*gotype: PoliSim/handler.CreateOrganisationPage*/ -}}
-    <body id="page-body">
-    {{template "header" .NavInfo}}
+{{define "pageScript"}}
     <script>
         function copy(idFrom, idTo) {
             let copy = document.querySelector("#"+idFrom).cloneNode(true)
@@ -14,6 +11,11 @@
             self.parentElement.remove()
         }
     </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.CreateOrganisationPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
     <form hx-post="/create/organisation" hx-target="#page-body">
         <label for="name">Name</label>
         <input id="name" name="name" type="text" value="{{.Organisation.Name}}">

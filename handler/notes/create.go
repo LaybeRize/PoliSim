@@ -109,7 +109,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
-		page.Message += "\nHinweis: Konnte nicht alle möglichen Autoren finden"
+		page.Message += "\n" + "Hinweis: Konnte nicht alle möglichen Autoren finden"
 		arr = make([]string, 0, 1)
 	}
 	arr = append([]string{acc.Name}, arr...)

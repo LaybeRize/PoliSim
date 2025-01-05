@@ -99,6 +99,12 @@ func createConstraints() {
 		"CREATE CONSTRAINT ON (note:Note) ASSERT exists (note.id);",
 		"CREATE CONSTRAINT ON (title:Title) ASSERT title.name IS UNIQUE;",
 		"CREATE CONSTRAINT ON (title:Title) ASSERT exists (title.name);",
+		"CREATE CONSTRAINT ON (news:Newspaper) ASSERT news.name IS UNIQUE;",
+		"CREATE CONSTRAINT ON (news:Newspaper) ASSERT exists (news.name);",
+		"CREATE CONSTRAINT ON (pub:Publication) ASSERT pub.id IS UNIQUE;",
+		"CREATE CONSTRAINT ON (pub:Publication) ASSERT exists (pub.id);",
+		"CREATE CONSTRAINT ON (art:Article) ASSERT art.id IS UNIQUE;",
+		"CREATE CONSTRAINT ON (art:Article) ASSERT exists (art.id);",
 	}
 
 	for _, constraint := range constraints {

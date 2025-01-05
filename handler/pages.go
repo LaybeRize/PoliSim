@@ -260,7 +260,10 @@ func (p *ViewOrganisationPage) getPageName() string {
 
 type ManageNewspaperPage struct {
 	NavInfo      NavigationInfo
+	Newspaper    database.Newspaper
 	AccountNames []string
+	Publications []database.Publication
+	HadError     bool
 	MessageUpdate
 }
 
@@ -270,6 +273,10 @@ func (p *ManageNewspaperPage) SetNavInfo(navInfo NavigationInfo) {
 
 func (p *ManageNewspaperPage) getPageName() string {
 	return "newspaperManage"
+}
+
+func (p *ManageNewspaperPage) getRenderInfo() (string, string) {
+	return "newspaperManage", "updateNewspaper"
 }
 
 type PartialStruct interface {

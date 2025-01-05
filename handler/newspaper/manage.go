@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	"log/slog"
 	"net/http"
 )
 
@@ -19,8 +20,15 @@ func GetManageNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
+		slog.Debug("Search Account: ", err.Error())
 		page.IsError = true
 		page.Message = "Konnte Accountnamen nicht laden"
+	}
+
+	page.Publications, err = database.GetUnpublishedPublications()
+	if err != nil {
+		page.HadError = true
+		slog.Debug("Search Pub: ", err)
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -29,13 +37,15 @@ func GetManageNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	if !acc.IsAtLeastAdmin() {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true, Message: "Fehlende Berechtigung"})
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehlende Berechtigung"})
 		return
 	}
 
 	err := request.ParseForm()
 	if err != nil {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
+		slog.Debug("Parse Form: ", err.Error())
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
@@ -46,10 +56,120 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 	}
 	err = database.CreateNewspaper(newspaper)
 	if err != nil {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
+		slog.Error(err.Error())
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim Erstellen der Zeitung (überprüfe ob die Zeitung bereits existiert)"})
 		return
 	}
 
-	handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: false, Message: "Zeitung erfolgreich erstellt"})
+	page := &handler.ManageNewspaperPage{MessageUpdate: handler.MessageUpdate{IsError: false,
+		Message: "Zeitung erfolgreich erstellt"}, HadError: false}
+
+	page.AccountNames, err = database.GetNonBlockedNames()
+	if err != nil {
+		slog.Debug("Search Account: ", err.Error())
+		page.Message = "\n" + "Konnte Accountnamen nicht laden"
+	}
+
+	page.Publications, err = database.GetUnpublishedPublications()
+	if err != nil {
+		page.HadError = true
+		slog.Debug("Search Pub: ", err)
+	}
+
+	handler.MakePage(writer, acc, page)
+}
+
+func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	if !acc.IsAtLeastPressAdmin() {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehlende Berechtigung"})
+		return
+	}
+
+	err := request.ParseForm()
+	if err != nil {
+		slog.Debug("Parse Form: ", err.Error())
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim parsen der Informationen"})
+		return
+	}
+
+	page := &handler.ManageNewspaperPage{}
+	page.IsError = false
+
+	newspaper, err := database.GetFullNewspaperInfo(helper.GetFormEntry(request, "name"))
+	if err != nil {
+		slog.Error(err.Error())
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler bei der Suche der Zeitung"})
+		return
+	}
+
+	page.Message = "Zeitung gefunden"
+	newspaper.Authors = append(newspaper.Authors, "")
+	page.Newspaper = *newspaper
+
+	page.AccountNames, err = database.GetNonBlockedNames()
+	if err != nil {
+		slog.Debug("Search Account: ", err.Error())
+		page.IsError = true
+		page.Message = "\n" + "Konnte Accountnamen nicht laden"
+	}
+
+	handler.MakeSpecialPagePart(writer, page)
+}
+
+func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	if !acc.IsAtLeastPressAdmin() {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehlende Berechtigung"})
+		return
+	}
+
+	err := request.ParseForm()
+	if err != nil {
+		slog.Debug("Parse Form: ", err.Error())
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim parsen der Informationen"})
+		return
+	}
+
+	page := &handler.ManageNewspaperPage{Newspaper: database.Newspaper{
+		Name:    helper.GetFormEntry(request, "name"),
+		Authors: helper.GetFormList(request, "[]author"),
+	}}
+	page.IsError = false
+
+	err = database.RemoveAccountsFromNewspaper(&page.Newspaper)
+	if err != nil {
+		slog.Error(err.Error())
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim Anpassen der Zeitung"})
+		return
+	}
+	err = database.UpdateNewspaper(&page.Newspaper)
+	if err != nil {
+		slog.Error(err.Error())
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim hinzufügen der neuen Autoren zur Zeitung"})
+		return
+	}
+
+	if newspaper, err := database.GetFullNewspaperInfo(page.Newspaper.Name); err == nil {
+		newspaper.Authors = append(newspaper.Authors, "")
+		page.Newspaper = *newspaper
+	}
+
+	page.Message = "Zeitung angepasst"
+	page.AccountNames, err = database.GetNonBlockedNames()
+	if err != nil {
+		slog.Debug("Search Account: ", err.Error())
+		page.IsError = true
+		page.Message = "\n" + "Konnte Accountnamen nicht laden"
+	}
+
+	handler.MakeSpecialPagePart(writer, page)
 }

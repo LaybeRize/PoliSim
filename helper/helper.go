@@ -2,10 +2,21 @@ package helper
 
 import (
 	"fmt"
+	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
+
+func init() {
+	log.SetOutput(os.Stdout)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	if os.Getenv("LOG_LEVEL") == "DEBUG" {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
+}
 
 func GetUniqueID(author string) string {
 	authorRunes := []rune(author)

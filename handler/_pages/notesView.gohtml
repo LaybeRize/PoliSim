@@ -1,27 +1,30 @@
+{{define "pageScript"}}
+    <script>
+        function updateLinks(id) {
+            document.querySelectorAll("a[data-link='" + id + "']").forEach(
+                element => {element.removeAttribute("hx-get");
+                    element.removeAttribute("hx-swap");
+                    element.removeAttribute("hx-target");
+                    element.removeAttribute("data-link");
+                    element.setAttribute("href", "#" + id);
+                    htmx.process(element);}
+            );
+        }
+
+        function updateLinksAllEntriesElement() {
+            if (loaded.length === 0) {
+                return;
+            }
+            document.querySelector("#link-all-entries").href =
+                "/create/note?loaded=" + loaded.join("&loaded=");
+        }
+    </script>
+{{end}}
 {{define "page"}}
     {{- /*gotype: PoliSim/handler.NotesPage */ -}}
     <body id="page-body">
         <script>
             let loaded = {{.LoadedNoteIDs}};
-
-            function updateLinks(id) {
-                document.querySelectorAll("a[data-link='" + id + "']").forEach(
-                    element => {element.removeAttribute("hx-get");
-                        element.removeAttribute("hx-swap");
-                        element.removeAttribute("hx-target");
-                        element.removeAttribute("data-link");
-                        element.setAttribute("href", "#" + id);
-                        htmx.process(element);}
-                );
-            }
-
-            function updateLinksAllEntriesElement() {
-                if (loaded.length === 0) {
-                    return;
-                }
-                document.querySelector("#link-all-entries").href =
-                    "/create/note?loaded=" + loaded.join("&loaded=");
-            }
 
             document.body.addEventListener("htmx:afterSwap", function (evt) {
                 loaded.push(evt.detail.elt.previousElementSibling.id);
