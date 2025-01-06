@@ -1,2 +1,40 @@
 {{define "page"}}
+    {{- /*gotype: PoliSim/handler.CreateNotesPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <form hx-post="/create/note" hx-target="#page-body">
+        <label for="title">Titel</label>
+        <input id="title" name="title" type="text" value="{{.Title}}">
+        <label for="title">Untertitel</label>
+        <input id="title" name="title" type="text" value="{{.Subtitle}}">
+        <label for="author">Autor</label>
+        <select id="author" name="author" hx-get="/newspaper/for/account" hx-trigger="change" hx-target="#newspaper">
+            {{$author := .Author}}
+            {{range .PossibleAuthors}}
+                <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
+            {{end}}
+        </select>
+        <label for="newspaper">Zeitung</label>
+        {{block "newspaperDropdown" .}}
+        <select id="newspaper" name="newspaper">
+            <option value="" selected>-- Zeitung auswählen --</option>
+            {{range .PossibleNewspaper}}
+                <option value="{{.}}">{{.}}</option>
+            {{end}}
+        </select>
+        {{end}}
+        <label for="special">Eilmeldung</label>
+        <input type="checkbox" id="special" name="special" value="true" {{if .Special}}checked{{end}}>
+        <label for="markdown">Inhalt</label>
+        <textarea id="markdown" name="markdown" rows="10"
+                  hx-trigger="keyup changed delay:1s" hx-put="/markdown"
+                  hx-target="#markdown-box">
+            {{- .Body -}}
+        </textarea>
+        <button type="submit">Artikel erstellen</button>
+    </form>
+    {{template "message" .}}
+    <h1>Vorschau</h1>
+    {{template "markdownBox" .}}
+    </body>
 {{end}}

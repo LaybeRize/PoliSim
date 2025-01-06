@@ -6,6 +6,7 @@ import (
 	"PoliSim/helper"
 	"log/slog"
 	"net/http"
+	"strings"
 )
 
 func GetManageNewspaperPage(writer http.ResponseWriter, request *http.Request) {
@@ -20,15 +21,23 @@ func GetManageNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		slog.Debug("Search Account: ", err.Error())
+		slog.Debug(err.Error())
 		page.IsError = true
 		page.Message = "Konnte Accountnamen nicht laden"
+	}
+
+	page.NewspaperNames, err = database.GetNewspaperNameList()
+	if err != nil {
+		slog.Debug(err.Error())
+		page.IsError = true
+		page.Message = "\n" + "Konnte Zeitungsnamen nicht laden"
+		page.Message = strings.TrimSpace(page.Message)
 	}
 
 	page.Publications, err = database.GetUnpublishedPublications()
 	if err != nil {
 		page.HadError = true
-		slog.Debug("Search Pub: ", err)
+		slog.Debug(err.Error())
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -44,7 +53,7 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 
 	err := request.ParseForm()
 	if err != nil {
-		slog.Debug("Parse Form: ", err.Error())
+		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
@@ -67,14 +76,14 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		slog.Debug("Search Account: ", err.Error())
+		slog.Debug(err.Error())
 		page.Message = "\n" + "Konnte Accountnamen nicht laden"
 	}
 
 	page.Publications, err = database.GetUnpublishedPublications()
 	if err != nil {
 		page.HadError = true
-		slog.Debug("Search Pub: ", err)
+		slog.Debug(err.Error())
 	}
 
 	handler.MakePage(writer, acc, page)
@@ -90,7 +99,7 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 
 	err := request.ParseForm()
 	if err != nil {
-		slog.Debug("Parse Form: ", err.Error())
+		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
@@ -113,9 +122,16 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		slog.Debug("Search Account: ", err.Error())
+		slog.Debug(err.Error())
 		page.IsError = true
 		page.Message = "\n" + "Konnte Accountnamen nicht laden"
+	}
+
+	page.NewspaperNames, err = database.GetNewspaperNameList()
+	if err != nil {
+		slog.Debug(err.Error())
+		page.IsError = true
+		page.Message = "\n" + "Konnte Zeitungsnamen nicht laden"
 	}
 
 	handler.MakeSpecialPagePart(writer, page)
@@ -131,7 +147,7 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 
 	err := request.ParseForm()
 	if err != nil {
-		slog.Debug("Parse Form: ", err.Error())
+		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
@@ -166,9 +182,16 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 	page.Message = "Zeitung angepasst"
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		slog.Debug("Search Account: ", err.Error())
+		slog.Debug(err.Error())
 		page.IsError = true
 		page.Message = "\n" + "Konnte Accountnamen nicht laden"
+	}
+
+	page.NewspaperNames, err = database.GetNewspaperNameList()
+	if err != nil {
+		slog.Debug(err.Error())
+		page.IsError = true
+		page.Message = "\n" + "Konnte Zeitungsnamen nicht laden"
 	}
 
 	handler.MakeSpecialPagePart(writer, page)

@@ -1,7 +1,7 @@
 {{define "pageScript"}}
     <script>
         function copy() {
-            let copy = document.querySelector("#input-for-holder").cloneNode(true)
+            let copy = document.querySelector("#input-for-author").cloneNode(true)
             copy.setAttribute("class", "name-list")
             copy.removeAttribute("id")
             document.querySelector("#account-names").insertAdjacentElement("beforebegin", copy)
@@ -55,12 +55,17 @@
             </a>
             <form id="form-change-newspaper" class="hide" hx-patch="/newspaper/update" hx-target="#change-newspaper">
                 <label for="name">Name</label>
-                <input id="name" name="name" type="text" value="{{.Newspaper.Name}}">
+                <input id="name" name="name" type="text" value="{{.Newspaper.Name}}" list="newspaper-names">
+                <datalist id="newspaper-names">
+                    {{range .NewspaperNames}}
+                        <option>{{.}}</option>
+                    {{end}}
+                </datalist>
                 <button type="button" onclick="copy()">
                     Autor hinzufügen
                 </button>
                 <label for="author">Autoren</label>
-                <div id="input-for-holder" class="name-list hide">
+                <div id="input-for-author" class="name-list hide">
                     <input id="author" name="[]author" type="text" list="account-names">
                     <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
                 </div>

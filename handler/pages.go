@@ -259,11 +259,12 @@ func (p *ViewOrganisationPage) getPageName() string {
 }
 
 type ManageNewspaperPage struct {
-	NavInfo      NavigationInfo
-	Newspaper    database.Newspaper
-	AccountNames []string
-	Publications []database.Publication
-	HadError     bool
+	NavInfo        NavigationInfo
+	Newspaper      database.Newspaper
+	AccountNames   []string
+	NewspaperNames []string
+	Publications   []database.Publication
+	HadError       bool
 	MessageUpdate
 }
 
@@ -277,6 +278,31 @@ func (p *ManageNewspaperPage) getPageName() string {
 
 func (p *ManageNewspaperPage) getRenderInfo() (string, string) {
 	return "newspaperManage", "updateNewspaper"
+}
+
+type CreateArticlePage struct {
+	NavInfo           NavigationInfo
+	Title             string
+	Subtitle          string
+	Author            string
+	PossibleAuthors   []string
+	PossibleNewspaper []string
+	Special           bool
+	Body              string
+	MessageUpdate
+	MarkdownBox
+}
+
+func (p *CreateArticlePage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *CreateArticlePage) getPageName() string {
+	return "newspaperCreate"
+}
+
+func (p *CreateArticlePage) getRenderInfo() (string, string) {
+	return "newspaperCreate", "newspaperDropdown"
 }
 
 type PartialStruct interface {
@@ -455,6 +481,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Organisationsübersicht"
 	case *ManageNewspaperPage:
 		fullPage.Base.Title = "Zeitungen verwalten"
+	case *CreateArticlePage:
+		fullPage.Base.Title = "Artikel erstellen"
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}
