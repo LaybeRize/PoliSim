@@ -4,6 +4,7 @@ import (
 	"PoliSim/helper"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
+	"log/slog"
 	"time"
 )
 
@@ -18,6 +19,20 @@ type NewspaperArticle struct {
 	Body     template.HTML
 }
 
+func (n *NewspaperArticle) GetAuthor() string {
+	if n.Flair == "" {
+		return n.Author
+	}
+	return n.Author + "; " + n.Flair
+}
+
+func (n *NewspaperArticle) GetTimeWritten(a *Account) string {
+	if a.Exists() {
+		return n.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+	}
+	return n.Written.Format("2006-01-02 15:04:05 MST")
+}
+
 type Newspaper struct {
 	Name    string
 	Authors []string
@@ -29,6 +44,13 @@ type Publication struct {
 	Special       bool
 	Published     bool
 	PublishedDate time.Time
+}
+
+func (n *Publication) GetPublishedDate(a *Account) string {
+	if a.Exists() {
+		return n.PublishedDate.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+	}
+	return n.PublishedDate.Format("2006-01-02 15:04:05 MST")
 }
 
 func CreateNewspaper(newspaper *Newspaper) error {
@@ -163,17 +185,19 @@ func CreateArticle(article *NewspaperArticle, special bool, newspaperName string
 
 	var id string
 	result, err := tx.Run(ctx, `MATCH (t:Newspaper)-[:PUBLISHED]->(p:Publication) WHERE t.name = $newspaper 
-AND p.special = $special AND p.published = false RETURN p;`,
+AND p.special = $special AND p.published = false RETURN p.id;`,
 		map[string]any{"newspaper": newspaperName, "special": special})
 
-	if result.Record() == nil || err != nil {
+	if err != nil {
 		_ = tx.Rollback(ctx)
-		return notFoundError
-	} else if result.Record() == nil && special {
+		return err
+	} else if result.Next(ctx); result.Record() == nil && special {
 		id, err = createSpecialPublication(tx, newspaperName)
 		if err != nil {
 			return err
 		}
+	} else if result.Record() == nil {
+		return notFoundError
 	} else {
 		id = result.Record().Values[0].(string)
 	}
@@ -204,7 +228,7 @@ func createSpecialPublication(tx neo4j.ExplicitTransaction, name string) (string
 	result, err := tx.Run(ctx, `MATCH (t:Newspaper) WHERE t.name = $newspaper 
 RETURN t;`,
 		map[string]any{"newspaper": name})
-	if result.Record() == nil || err != nil {
+	if result.Next(ctx); result.Record() == nil || err != nil {
 		_ = tx.Rollback(ctx)
 		return "", notFoundError
 	}
@@ -237,7 +261,7 @@ func PublishPublication(id string) error {
 WHERE p.id = $id SET p.published = true, 
  p.published_date = $publishedDate RETURN p.special, n.name;`,
 		map[string]any{"id": id, "publishedDate": time.Now().UTC()})
-	if result.Record() == nil || err != nil {
+	if result.Next(ctx); result.Record() == nil || err != nil {
 		_ = tx.Rollback(ctx)
 		return notFoundError
 	}
@@ -262,6 +286,50 @@ MERGE (n)-[:PUBLISHED]->(p);`, map[string]any{
 
 	err = tx.Commit(ctx)
 	return err
+}
+
+func GetPublicationForUser(id string, isAdmin bool) (bool, error) {
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (p:Publication) 
+WHERE p.id = $id AND (p.published = true OR $admin = true) RETURN p;`, map[string]any{
+		"id":    id,
+		"admin": isAdmin}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	return len(result.Records) == 1, err
+}
+
+func GetPublication(id string) (*Publication, []NewspaperArticle, error) {
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	result, err := tx.Run(ctx,
+		`MATCH (t:Newspaper)-[:PUBLISHED]->(p:Publication) 
+WHERE p.id = $id 
+RETURN t, p;`, map[string]any{
+			"id": id})
+	if result.Next(ctx); err != nil || result.Record() == nil {
+		slog.Debug("", "Error", err, "ID", id)
+		_ = tx.Rollback(ctx)
+		return nil, nil, notFoundError
+	}
+	pub := getArrayOfPublications("p", "t", []*neo4j.Record{result.Record()})[0]
+	result, err = tx.Run(ctx,
+		`MATCH (a:Article)-[:IN]->(p:Publication) 
+WHERE p.id = $id 
+RETURN a;`, map[string]any{
+			"id": id})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return nil, nil, err
+	}
+
+	results := make([]*neo4j.Record, 0)
+	for result.Next(ctx) {
+		results = append(results, result.Record())
+	}
+
+	err = tx.Commit(ctx)
+	return &pub, getArrayOfArticles("a", results), err
 }
 
 func GetUnpublishedPublications() ([]Publication, error) {
@@ -304,6 +372,30 @@ func getArrayOfPublications(pubLetter string, newsLetter string, records []*neo4
 			Special:       node.Props["special"].(bool),
 			Published:     node.Props["published"].(bool),
 			PublishedDate: node.Props["published_date"].(time.Time),
+		})
+	}
+	return arr
+}
+
+func getArrayOfArticles(letter string, records []*neo4j.Record) []NewspaperArticle {
+	arr := make([]NewspaperArticle, 0, len(records))
+	for _, record := range records {
+		if record == nil {
+			continue
+		}
+		result, exists := record.Get(letter)
+		if !exists {
+			continue
+		}
+		node := result.(neo4j.Node)
+		arr = append(arr, NewspaperArticle{
+			ID:       node.Props["id"].(string),
+			Title:    node.Props["title"].(string),
+			Subtitle: node.Props["subtitle"].(string),
+			Author:   node.Props["author"].(string),
+			Flair:    node.Props["flair"].(string),
+			Body:     template.HTML(node.Props["body"].(string)),
+			Written:  node.Props["written"].(time.Time),
 		})
 	}
 	return arr

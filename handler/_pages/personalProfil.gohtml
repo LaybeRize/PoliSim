@@ -9,6 +9,9 @@
                 <form hx-patch="/my/profile/settings" hx-target="#change-personal-settings">
                     <label for="fontScaling">Seitenskalierung (in Prozent)</label>
                     <input id="fontScaling" name="fontScaling" type="number" value="{{.FontScaling}}">
+                    <label for="timeZone">Persönliche Zeitzone</label>
+                    <input id="timeZone" name="timeZone" type="text" value="{{.TimeZone}}" list="timezone-names">
+                    {{.TimeZoneOptions}}
                     <button type="submit">Einstellungen speichern</button>
                 </form>
                 {{if ne "" .Message}}

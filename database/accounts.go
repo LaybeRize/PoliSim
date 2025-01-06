@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"strings"
+	"time"
 )
 
 type AccountRole int
@@ -15,6 +16,7 @@ type Account struct {
 	Role     AccountRole
 	Blocked  bool
 	FontSize int64
+	TimeZone *time.Location
 }
 
 func (a *Account) Exists() bool {
@@ -65,7 +67,7 @@ const (
 func CreateAccount(acc *Account) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
 		`CREATE (:Account {name: $name , username: $username ,
-                password: $password , role: $role , blocked: $blocked, fontSize: 100 });`,
+                password: $password , role: $role , blocked: $blocked, fontSize: 100, timezone: 'UTC' });`,
 		map[string]any{"name": acc.Name,
 			"username": acc.Username,
 			"password": acc.Password,
@@ -117,9 +119,10 @@ func UpdatePassword(acc *Account) error {
 
 func SetPersonalSettings(acc *Account) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
-		`MATCH (a:Account)  WHERE a.name = $name SET a.fontSize = $fontSize RETURN a;`,
+		`MATCH (a:Account)  WHERE a.name = $name SET a.fontSize = $fontSize, a.timezone = $timezone RETURN a;`,
 		map[string]any{"name": acc.Name,
-			"fontSize": acc.FontSize}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+			"fontSize": acc.FontSize,
+			"timezone": acc.TimeZone.String()}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err == nil {
 		updateAccount(acc)
 	}
@@ -311,6 +314,7 @@ func getSingleAccount(letter string, records []*neo4j.Record) (*Account, error) 
 		Password: node.Props["password"].(string),
 		FontSize: node.Props["fontSize"].(int64),
 	}
+	acc.TimeZone, _ = time.LoadLocation(node.Props["timezone"].(string))
 
 	return acc, nil
 }

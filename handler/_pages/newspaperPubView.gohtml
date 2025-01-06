@@ -1,0 +1,28 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.ViewPublicationPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    {{$acc := .NavInfo.Account}}
+    {{if .QueryError}}
+        <p>Es ist ein Fehler beim Verarbeiten der Publikation für den Nutzer aufgetreten</p>
+    {{else}}
+        <h1 class="big-header">{{.Publication.NewspaperName}} | Ausgabe vom {{.Publication.GetPublishedDate $acc}}</h1>
+    {{if eq (len .Articles) 0}}<p>Für diese Publikation existieren noch keine Artikel</p>{{end}}
+    {{range .Articles}}
+        {{- /*gotype: PoliSim/database.NewspaperArticle*/ -}}
+        <div class="wrapper article">
+                <hr>
+                <div class="block-view">
+                    <h1>{{.Title}}</h1>
+                    <h2>{{.Subtitle}}</h2>
+                    <p>
+                        Geschrieben von: {{.GetAuthor}}<br>
+                        <i>Verfasst am: {{.GetTimeWritten $acc}}</i>
+                    </p>
+                </div>
+                <div class="markdown">{{.Body}}</div>
+            </div>
+    {{end}}
+    {{end}}
+    </body>
+{{end}}

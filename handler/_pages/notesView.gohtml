@@ -50,6 +50,7 @@
     {{range .LoadedNotes}}
         {{block "singleNote" .}}
             {{- /*gotype: PoliSim/database.BlackboardNote*/ -}}
+            {{$acc := .Viewer}}
             <div class="wrapper note" id="{{.ID}}">
                 <hr style="width: var(--standard-width); margin: 0.3rem 0;">
                 <div class="block-view">
@@ -57,7 +58,7 @@
                 <p>
                     ID: {{.ID}}<br>
                     Geschrieben von: {{.GetAuthor}}<br>
-                    <i>Veröffentlicht am: {{.PostedAt}}</i>
+                    <i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>
                 </p>
                 </div>
                 <div class="markdown">{{if .Removed}}<code>[Inhalt wurde entfernt]</code>{{else}}{{.Body}}{{end}}</div>

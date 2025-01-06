@@ -305,6 +305,21 @@ func (p *CreateArticlePage) getRenderInfo() (string, string) {
 	return "newspaperCreate", "newspaperDropdown"
 }
 
+type ViewPublicationPage struct {
+	NavInfo     NavigationInfo
+	QueryError  bool
+	Publication database.Publication
+	Articles    []database.NewspaperArticle
+}
+
+func (p *ViewPublicationPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *ViewPublicationPage) getPageName() string {
+	return "newspaperPubView"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -327,9 +342,11 @@ func (p *ChangePassword) getRenderInfo() (string, string) {
 }
 
 type ModifyPersonalSettings struct {
-	FontScaling int64
-	Message     string
-	IsError     bool
+	FontScaling     int64
+	TimeZone        string
+	TimeZoneOptions template.HTML
+	Message         string
+	IsError         bool
 }
 
 func (p *ModifyPersonalSettings) getRenderInfo() (string, string) {
@@ -483,6 +500,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Zeitungen verwalten"
 	case *CreateArticlePage:
 		fullPage.Base.Title = "Artikel erstellen"
+	case *ViewPublicationPage:
+		fullPage.Base.Title = "Zeitung"
 	default:
 		panic("Struct given to MakeFullPage() is not registered")
 	}

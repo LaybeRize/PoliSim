@@ -20,6 +20,7 @@ func GetNotesViewPage(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			continue
 		}
+		element.Viewer = acc
 		page.LoadedNoteIDs = append(page.LoadedNoteIDs, loadElement)
 		page.LoadedNotes = append(page.LoadedNotes, element)
 	}
@@ -28,6 +29,7 @@ func GetNotesViewPage(writer http.ResponseWriter, request *http.Request) {
 }
 
 func RequestNote(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
 	element, err := database.GetNote(request.URL.Query().Get("request"))
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
@@ -37,6 +39,7 @@ func RequestNote(writer http.ResponseWriter, request *http.Request) {
 	if !exists {
 		loaded = make([]string, 0)
 	}
+	element.Viewer = acc
 	arr := append(loaded, element.ID)
 	url := "/notes?"
 	for _, e := range arr {

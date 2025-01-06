@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -21,6 +22,7 @@ func GetCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
+		slog.Debug(err.Error())
 		page.Message = "Konnte nicht alle möglichen Autoren finden"
 		arr = make([]string, 0)
 	}
@@ -29,6 +31,7 @@ func GetCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	page.PossibleAuthors = arr
 	page.PossibleNewspaper, err = database.GetNewspaperNameListForAccount(acc.Name)
 	if err != nil {
+		slog.Debug(err.Error())
 		page.Message = "\n" + "Konnte nicht alle möglichen Zeitungen für ausgewählten Account finden"
 		page.Message = strings.TrimSpace(page.Message)
 	}
@@ -45,6 +48,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	err := request.ParseForm()
 	if err != nil {
+		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim Parsen der Informationen"})
 		return
@@ -79,6 +83,9 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	allowed, err := database.CheckIfUserAllowedInNewspaper(acc, article.Author, newspaper)
 	if !allowed || err != nil {
+		if err != nil {
+			slog.Debug(err.Error())
+		}
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehlende Berechtigung um mit diesem Account in dieser Zeitung zu posten"})
 		return
@@ -87,6 +94,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	article.Flair, err = database.GetAccountFlairs(&database.Account{Name: article.Author})
 	article.Body = handler.MakeMarkdown(article.RawBody)
 	if err != nil {
+		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim laden der Flairs für den Autor"})
 		return
@@ -94,6 +102,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	err = database.CreateArticle(article, isSpecial, newspaper)
 	if err != nil {
+		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim erstellen des Artikels"})
 		return
@@ -105,6 +114,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
+		slog.Debug(err.Error())
 		page.Message = "\n" + "Konnte nicht alle möglichen Autoren finden"
 		arr = make([]string, 0)
 	}
@@ -130,6 +140,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 
 	err := request.ParseForm()
 	if err != nil {
+		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim Parsen der Informationen"})
 		return
@@ -137,6 +148,9 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 
 	baseAcc, owner, err := database.GetAccountAndOwnerByAccountName(helper.GetFormEntry(request, "author"))
 	if !((baseAcc.Exists() && baseAcc.Name == acc.Name) || (owner.Exists() && owner.Name == acc.Name)) || err != nil {
+		if err != nil {
+			slog.Error(err.Error())
+		}
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehlende Berechtigung um die Informationen für diesen Account anzufordern"})
 		return
@@ -145,6 +159,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 	page := &handler.CreateArticlePage{}
 	page.PossibleNewspaper, err = database.GetNewspaperNameListForAccount(baseAcc.Name)
 	if err != nil {
+		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Konnte nicht alle möglichen Zeitungen für ausgewählten Account finden"})
 		return

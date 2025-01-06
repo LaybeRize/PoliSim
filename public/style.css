@@ -285,6 +285,28 @@ div.hierarchy-view {
     }
 }
 
+div.article {
+    hr {
+        width: var(--standard-width);
+        margin: 0.3rem 0;
+    }
+    h1 {
+        font-size: 2rem;
+        line-height: 2.2rem;
+        color: white;
+    }
+    h2 {
+        font-size: 1.5rem;
+        line-height: 1.7rem;
+    }
+}
+
+h1.big-header {
+    font-size: 3rem;
+    line-height: 3.2rem;
+    color: white;
+}
+
 .hide {
     display: none !important;
 }

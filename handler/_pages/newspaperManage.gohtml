@@ -34,6 +34,7 @@
     {{- /*gotype: PoliSim/handler.ManageNewspaperPage*/ -}}
     <body id="page-body">
         {{template "header" .NavInfo}}
+        {{$acc := .NavInfo.Account}}
         {{if .NavInfo.Account.IsAtLeastAdmin}}
         <div class="block-view">
             <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me toggle .bi-list-opened
@@ -98,7 +99,7 @@
                     <a href="/publication/view/{{.ID}}" target="_blank">{{if .Special -}}
                             <i class="bi bi-important"></i>
                         {{- end }} Zeitung: <strong>{{.NewspaperName}}</strong><br>
-                        <i>Erstellt am: {{.PublishedDate}}</i>
+                        <i>Erstellt am: {{.GetPublishedDate $acc}}</i>
                     </a>
                 {{end}}
             {{end}}

@@ -42,6 +42,7 @@ func main() {
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)
 
 	http.HandleFunc("GET /search/newspapers", newspaper.GetManageNewspaperPage)
+	http.HandleFunc("GET /publication/view/{id}", newspaper.GetSpecificPublicationPage)
 
 	http.HandleFunc("GET /create/article", newspaper.GetCreateArticlePage)
 	http.HandleFunc("GET /newspaper/for/account", newspaper.GetFindNewspaperForAccountPage)

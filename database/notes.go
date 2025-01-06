@@ -15,6 +15,13 @@ type TruncatedBlackboardNotes struct {
 	PostedAt time.Time
 }
 
+func (t *TruncatedBlackboardNotes) GetTimePostedAt(a *Account) string {
+	if a.Exists() {
+		return t.PostedAt.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+	}
+	return t.PostedAt.Format("2006-01-02 15:04:05 MST")
+}
+
 func (t *TruncatedBlackboardNotes) IDinArray(arr []string) bool {
 	for _, e := range arr {
 		if e == t.ID {
@@ -41,6 +48,7 @@ type BlackboardNote struct {
 	Removed  bool
 	Parents  []TruncatedBlackboardNotes
 	Children []TruncatedBlackboardNotes
+	Viewer   *Account
 }
 
 func (b *BlackboardNote) HasChildren() bool {
@@ -56,6 +64,13 @@ func (b *BlackboardNote) GetAuthor() string {
 		return b.Author
 	}
 	return b.Author + "; " + b.Flair
+}
+
+func (b *BlackboardNote) GetTimePostedAt(a *Account) string {
+	if a.Exists() {
+		return b.PostedAt.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+	}
+	return b.PostedAt.Format("2006-01-02 15:04:05 MST")
 }
 
 func CreateNote(note *BlackboardNote, references []string) error {

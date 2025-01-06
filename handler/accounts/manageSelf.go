@@ -6,6 +6,7 @@ import (
 	"PoliSim/helper"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func GetMyProfile(writer http.ResponseWriter, request *http.Request) {
@@ -15,7 +16,8 @@ func GetMyProfile(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	setting := handler.ModifyPersonalSettings{FontScaling: acc.FontSize}
+	setting := handler.ModifyPersonalSettings{FontScaling: acc.FontSize, TimeZone: acc.TimeZone.String(),
+		TimeZoneOptions: helper.TimeZoneList}
 
 	handler.MakeFullPage(writer, acc, &handler.MyProfilePage{Settings: setting})
 }
@@ -26,7 +28,8 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 		handler.RedirectToErrorPage(writer)
 		return
 	}
-	page := handler.ModifyPersonalSettings{IsError: true, FontScaling: acc.FontSize}
+	page := handler.ModifyPersonalSettings{IsError: true, FontScaling: acc.FontSize, TimeZone: acc.TimeZone.String(),
+		TimeZoneOptions: helper.TimeZoneList}
 
 	err := request.ParseForm()
 	if err != nil {
@@ -46,12 +49,20 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 		handler.MakeSpecialPagePart(writer, &page)
 		return
 	}
+	newTimeZone, err := time.LoadLocation(helper.GetFormEntry(request, "timeZone"))
+	if err != nil {
+		page.Message = "Die ausgewählte Zeitzone ist nicht valide"
+		handler.MakeSpecialPagePart(writer, &page)
+		return
+	}
 
+	page.TimeZone = newTimeZone.String()
 	page.FontScaling = int64(newSize)
+	acc.TimeZone = newTimeZone
 	acc.FontSize = page.FontScaling
 	err = database.SetPersonalSettings(acc)
 	if err != nil {
-		page.Message = "Fehler beim speichern der persönlichen"
+		page.Message = "Fehler beim speichern der persönlichen Informationen"
 		handler.MakeSpecialPagePart(writer, &page)
 		return
 	}
