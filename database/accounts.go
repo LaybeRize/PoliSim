@@ -323,7 +323,7 @@ RETURN n
 UNION
 MATCH (a:Account)-[:USER|ADMIN]->(n:Organisation)
 WHERE a.name = $name
-RETURN n}
+RETURN n }
 RETURN n.flair AS flair ORDER BY flair;`,
 		map[string]any{"name": acc.Name}, neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(""))

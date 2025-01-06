@@ -134,6 +134,26 @@ func UpdateNewspaper(newspaper *Newspaper) error {
 	return err
 }
 
+func CheckIfUserAllowedInNewspaper(acc *Account, author string, newspaper string) (bool, error) {
+	var result *neo4j.EagerResult
+	var err error
+	if acc.Name == author {
+		result, err = neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account)-[:AUTHOR]->(t:Newspaper) 
+WHERE t.name = $newspaper AND a.name = $author RETURN a, t;`, map[string]any{
+			"newspaper": newspaper,
+			"author":    author}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	} else {
+		result, err = neo4j.ExecuteQuery(ctx, driver, `
+MATCH (b:Account)-[:OWNER]->(a:Account)-[:AUTHOR]->(t:Newspaper) 
+WHERE t.name = $newspaper AND a.name = $author AND b.name = $owner 
+RETURN b, a, t;`, map[string]any{
+			"newspaper": newspaper,
+			"author":    author,
+			"owner":     acc.Name}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	}
+	return len(result.Records) == 1, err
+}
+
 func CreateArticle(article *NewspaperArticle, special bool, newspaperName string) error {
 	tx, err := openTransaction()
 	defer tx.Close(ctx)
@@ -169,7 +189,7 @@ MERGE (a)-[:IN]->(p);`, map[string]any{
 			"subtitle":  article.Subtitle,
 			"Author":    article.Author,
 			"Flair":     article.Flair,
-			"written":   article.Written,
+			"written":   time.Now().UTC(),
 			"rawbody":   article.RawBody,
 			"Body":      article.Body})
 	if err != nil {

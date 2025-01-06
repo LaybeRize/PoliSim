@@ -5,8 +5,8 @@
     <form hx-post="/create/note" hx-target="#page-body">
         <label for="title">Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
-        <label for="title">Untertitel</label>
-        <input id="title" name="title" type="text" value="{{.Subtitle}}">
+        <label for="subtitle">Untertitel</label>
+        <input id="subtitle" name="subtitle" type="text" value="{{.Subtitle}}">
         <label for="author">Autor</label>
         <select id="author" name="author" hx-get="/newspaper/for/account" hx-trigger="change" hx-target="#newspaper">
             {{$author := .Author}}
