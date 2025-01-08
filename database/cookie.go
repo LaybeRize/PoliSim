@@ -5,8 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 )
@@ -26,7 +26,7 @@ const updateTime = 30 * time.Minute
 const cookieName = "poli_sim_cookie"
 
 func init() {
-	_, _ = fmt.Fprintf(os.Stdout, "Starting Cookie Cleanup Routine\n")
+	log.Println("Starting Cookie Cleanup Routine")
 	go startCleanup()
 }
 

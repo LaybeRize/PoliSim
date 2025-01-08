@@ -3,7 +3,6 @@ package handler
 import (
 	"PoliSim/database"
 	"embed"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -342,11 +341,10 @@ func (p *ChangePassword) getRenderInfo() (string, string) {
 }
 
 type ModifyPersonalSettings struct {
-	FontScaling     int64
-	TimeZone        string
-	TimeZoneOptions template.HTML
-	Message         string
-	IsError         bool
+	FontScaling int64
+	TimeZone    string
+	Message     string
+	IsError     bool
 }
 
 func (p *ModifyPersonalSettings) getRenderInfo() (string, string) {
@@ -414,29 +412,48 @@ var pages embed.FS
 //go:embed _templates/*
 var templates embed.FS
 
-var templateForge map[string]*template.Template = make(map[string]*template.Template)
+var templateForge = make(map[string]*template.Template)
 
 var iconPath = "/public/fallback_icon.png"
 
 func init() {
-	_, _ = fmt.Fprintf(os.Stdout, "Reading All Templates\n")
-	templateForge["templates"] = template.Must(template.ParseFS(templates, "*/*"))
+	log.Println("Reading All Templates")
+	templateString := getTemplatesAsSingleString()
+	templateForge["templates"] = template.Must(template.New("").Parse(templateString))
 	files, err := pages.ReadDir("_pages")
 	if err != nil {
-		panic(err)
+		log.Fatalf("Pages read directory error: %v", err)
 	}
 	for _, file := range files {
 		name := strings.TrimSuffix(file.Name(), ".gohtml")
 		page, pageErr := pages.ReadFile("_pages/" + file.Name())
 		if pageErr != nil {
-			panic(pageErr)
+			log.Fatalf("page read content error: %v", pageErr)
 		}
-		templateForge[name] = template.Must(template.Must(template.ParseFS(templates, "*/*")).Parse(string(page)))
+		templateForge[name] = template.Must(
+			template.Must(template.New("").Parse(templateString)).Parse(
+				string(page)))
 	}
-	_, _ = fmt.Fprintf(os.Stdout, "Successfully created the Template Forge\n")
+	log.Println("Successfully created the Template Forge")
 	if os.Getenv("ICON_PATH") != "" {
 		iconPath = os.Getenv("ICON_PATH")
 	}
+}
+
+func getTemplatesAsSingleString() string {
+	files, err := templates.ReadDir("_templates")
+	if err != nil {
+		log.Fatalf("Templates read directory error: %v", err)
+	}
+	arr := make([]string, len(files))
+	for i, file := range files {
+		temp, templateErr := templates.ReadFile("_templates/" + file.Name())
+		if templateErr != nil {
+			log.Fatalf("template read content error: %v", templateErr)
+		}
+		arr[i] = string(temp)
+	}
+	return strings.Join(arr, "\n")
 }
 
 func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
@@ -445,7 +462,7 @@ func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
 
 	currentTemplate, exists := templateForge[data.getPageName()]
 	if !exists {
-		panic("Could not find a template for data. Page required would be: " + data.getPageName())
+		log.Fatalf("Could not find a template for data. Page required would be: %s", data.getPageName())
 	}
 
 	err := currentTemplate.ExecuteTemplate(w, "page", data)
@@ -503,12 +520,12 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	case *ViewPublicationPage:
 		fullPage.Base.Title = "Zeitung"
 	default:
-		panic("Struct given to MakeFullPage() is not registered")
+		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}
 
 	currentTemplate, exists := templateForge[data.getPageName()]
 	if !exists {
-		panic("Could not find a template for data. Page required would be: " + data.getPageName())
+		log.Fatalf("Could not find a template for data. Page required would be: %s", data.getPageName())
 	}
 	err := currentTemplate.ExecuteTemplate(w, "fullPage", fullPage)
 	if err != nil {
@@ -522,7 +539,7 @@ func MakeSpecialPagePart(w http.ResponseWriter, data PartialStruct) {
 
 	currentTemplate, exists := templateForge[pageName]
 	if !exists {
-		panic("Could not find a template for partial page data. Page required would be: " + pageName)
+		log.Fatalf("Could not find a template for data. Page required would be: %s", pageName)
 	}
 	err := currentTemplate.ExecuteTemplate(w, templateName, data)
 	if err != nil {
@@ -537,7 +554,7 @@ func MakeSpecialPagePartWithRedirect(w http.ResponseWriter, data PartialRedirect
 
 	currentTemplate, exists := templateForge[pageName]
 	if !exists {
-		panic("Could not find a template for partial page data. Page required would be: " + pageName)
+		log.Fatalf("Could not find a template for data. Page required would be: %s", pageName)
 	}
 	err := currentTemplate.ExecuteTemplate(w, templateName, data)
 	if err != nil {

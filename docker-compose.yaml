@@ -2,18 +2,17 @@ version: '3.8'
 
 services:
   db:
-    image: memgraph/memgraph
-    environment:
-      - MEMGRAPH_USER=${DB_USER}
-      - MEMGRAPH_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - mg_lib:/var/lib/memgraph
-      - mg_log:/var/log/memgraph
-      - mg_etc:/etc/memgraph
-    command: ["--log-level=TRACE", "--storage-mode=ON_DISK_TRANSACTIONAL"]
+    image: neo4j:5.26.0
+    container_name: neo4j
     ports:
       - "7687:7687"
-      - "7444:7444"
+    environment:
+      - NEO4J_AUTH=neo4j/${DB_PASSWORD}
+    volumes:
+      - neo_data:/data
+      - neo_logs:/logs
+    restart: always
+
   web:
     depends_on:
       - db
@@ -26,6 +25,5 @@ services:
 
 
 volumes:
-  mg_lib:
-  mg_log:
-  mg_etc:
+  neo_data:
+  neo_logs:

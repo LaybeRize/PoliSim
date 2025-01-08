@@ -6,15 +6,20 @@
     {{if .QueryError}}
         <p>Es ist ein Fehler beim Verarbeiten der Publikation für den Nutzer aufgetreten</p>
     {{else}}
-        <h1 class="big-header">{{.Publication.NewspaperName}} | Ausgabe vom {{.Publication.GetPublishedDate $acc}}</h1>
-    {{if eq (len .Articles) 0}}<p>Für diese Publikation existieren noch keine Artikel</p>{{end}}
+        <h1 class="big-header">{{.Publication.NewspaperName}} | {{if .Publication.Special -}}
+            Sonderausgabe vom {{.Publication.GetPublishedDate $acc}}{{- else -}}
+            Ausgabe vom {{.Publication.GetPublishedDate $acc}}{{- end -}}</h1>
+    {{if eq (len .Articles) 0}}<p>Für diese Publikation existieren noch keine Artikel</p>
+    {{- else -}}<button hx-patch="/publicate/{{.Publication.ID}}" hx-target="#page-body">
+        Publikation freigeben
+    </button>{{end}}
     {{range .Articles}}
         {{- /*gotype: PoliSim/database.NewspaperArticle*/ -}}
         <div class="wrapper article">
                 <hr>
                 <div class="block-view">
                     <h1>{{.Title}}</h1>
-                    <h2>{{.Subtitle}}</h2>
+                    {{if .HasSubtitle}}<h2>{{.Subtitle}}</h2>{{end}}
                     <p>
                         Geschrieben von: {{.GetAuthor}}<br>
                         <i>Verfasst am: {{.GetTimeWritten $acc}}</i>

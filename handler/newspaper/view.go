@@ -30,3 +30,16 @@ func GetSpecificPublicationPage(writer http.ResponseWriter, request *http.Reques
 
 	handler.MakeFullPage(writer, acc, page)
 }
+
+func PatchPublishPublication(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	pubID := request.PathValue("id")
+	found, err := database.GetPublicationForUser(pubID, acc.IsAtLeastPressAdmin())
+	if !found || err != nil {
+		if err != nil {
+			slog.Error(err.Error())
+		}
+		handler.PartialGetNotFoundPage(writer, request)
+		return
+	}
+}

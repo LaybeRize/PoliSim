@@ -10,7 +10,7 @@ COPY ./helper ./helper
 COPY go.mod .
 RUN go mod tidy
 
-RUN go build -o /poliSim /app/main
+RUN go build -o -tags DE /poliSim /app/main
 
 EXPOSE 8080
 

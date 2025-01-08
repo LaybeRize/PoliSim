@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"log"
 	"slices"
 )
 
@@ -21,7 +22,7 @@ var TitleMap = make(map[string]map[string][]string)
 func init() {
 	titles, err := GetAllTitles()
 	if err != nil {
-		panic(err.Error())
+		log.Fatalf("Titel query error: %v", err)
 	}
 	for _, title := range titles {
 		addTitleToMap(&title)
@@ -121,7 +122,7 @@ DELETE r;`, map[string]any{"title": title.Name})
 
 func AddTitleHolder(title *Title, holderNames []string) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Title) WHERE a.name IN $names  
-AND t.name = $title CREATE (a)-[r:HAS]->(t);`,
+AND t.name = $title MERGE (a)-[r:HAS]->(t);`,
 		map[string]any{"title": title.Name, "names": holderNames}, neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(""))
 	return err

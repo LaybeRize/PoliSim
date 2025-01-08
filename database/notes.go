@@ -80,8 +80,10 @@ func CreateNote(note *BlackboardNote, references []string) error {
 		return err
 	}
 	_, err = tx.Run(ctx,
-		`CREATE (:Note {id: $id , title: $title , author: $Author , flair: $Flair, 
-posted_at: $PostedAt , body: $Body, removed: $Removed});`,
+		`MATCH (a:Account) WHERE a.name = $Author
+CREATE (n:Note {id: $id , title: $title , author: $Author , flair: $Flair, 
+posted_at: $PostedAt , body: $Body, removed: $Removed}) 
+MERGE (a)-[:WRITTEN]->(n);`,
 		map[string]any{"id": note.ID,
 			"title":    note.Title,
 			"Author":   note.Author,
@@ -94,7 +96,7 @@ posted_at: $PostedAt , body: $Body, removed: $Removed});`,
 		return err
 	}
 	_, err = tx.Run(ctx,
-		`MATCH (c:Note), (p:Note) WHERE c.id = $child AND p.id IN $parent CREATE (c)-[:LINKS]->(p);`,
+		`MATCH (c:Note), (p:Note) WHERE c.id = $child AND p.id IN $parent MERGE (c)-[:LINKS]->(p);`,
 		map[string]any{"parent": references,
 			"child": note.ID})
 	if err != nil {

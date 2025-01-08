@@ -1,19 +1,25 @@
 package main
 
 import (
+	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/handler/accounts"
 	"PoliSim/handler/newspaper"
 	"PoliSim/handler/notes"
 	"PoliSim/handler/organisations"
 	"PoliSim/handler/titles"
-	"fmt"
+	"context"
+	"errors"
+	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
-	_, _ = fmt.Fprintf(os.Stdout, "Registering all Pages\n")
+	log.Println("Registering all Pages")
 	fs := http.FileServer(http.Dir("public"))
 	http.Handle("GET /public/*", http.StripPrefix("/public/", fs))
 
@@ -41,8 +47,10 @@ func main() {
 	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)
 
-	http.HandleFunc("GET /search/newspapers", newspaper.GetManageNewspaperPage)
+	http.HandleFunc("GET /search/newspapers", newspaper.GetSearchPublicationsPage)
+	http.HandleFunc("PUT /search/newspapers", newspaper.PutSearchPublicationPage)
 	http.HandleFunc("GET /publication/view/{id}", newspaper.GetSpecificPublicationPage)
+	http.HandleFunc("PATCH /publicate/{id}", newspaper.PatchPublishPublication)
 
 	http.HandleFunc("GET /create/article", newspaper.GetCreateArticlePage)
 	http.HandleFunc("GET /newspaper/for/account", newspaper.GetFindNewspaperForAccountPage)
@@ -73,9 +81,32 @@ func main() {
 
 	http.HandleFunc("PUT /markdown", handler.PostMakeMarkdown)
 
-	_, _ = fmt.Fprintf(os.Stdout, "Starting HTML Server: Use http://"+os.Getenv("ADDRESS")+"\n")
-	err := http.ListenAndServe(os.Getenv("ADDRESS"), nil)
-	if err != nil {
-		panic(err)
+	log.Println("Starting HTML Server: Use http://" + os.Getenv("ADDRESS"))
+	serverHandling()
+}
+
+func serverHandling() {
+	server := &http.Server{
+		Addr: os.Getenv("ADDRESS"),
 	}
+
+	go func() {
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("HTTP server error: %v", err)
+		}
+		log.Println("Stopped serving new connections.")
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+
+	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownRelease()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("HTTP shutdown error: %v", err)
+	}
+	database.Shutdown()
+	log.Println("Graceful shutdown complete.")
 }

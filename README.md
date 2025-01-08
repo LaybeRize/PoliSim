@@ -36,11 +36,14 @@ as sparking discussions in the organisations.
 
 The container composition needs the following environment information to run:
 `````
-DB_PASSWORD=test
-DB_USER=memgraph_user
+DB_PASSWORD=[test]
+DB_USER=neo4j
 DB_ADDRESS=db:7687
-ADDRESS=0.0.0.0:8080
-NAME=Your Name Here
-USERNAME=Your Username Here
-PASSWORD=test
+ADDRESS=0.0.0.0:[8080]
+NAME=[Your Name Here]
+USERNAME=[Your Username Here]
+PASSWORD=[test]
+LOG_LEVEL=DEBUG
 `````
+`LOG_LEVEL` can be ommitted and everything in [] can be customized, the rest is either required to stay that way, or should
+stay that way if the docker-compose.yaml is used.

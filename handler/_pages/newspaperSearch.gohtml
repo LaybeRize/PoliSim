@@ -1,2 +1,51 @@
 {{define "page"}}
+    <!-- Todo: make this work -->
+    {{- /*gotype: PoliSim/handler.SearchNotesPage*/ -}}
+    <body id="page-body">
+    <script>
+        document.body.addEventListener("htmx:afterRequest", function (evt) {
+            if (evt.failed) {
+                alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+            }
+        })
+    </script>
+    {{template "header" .NavInfo}}
+    {{$acc := .NavInfo.Account}}
+    <form id="search-form" hx-put="/search/notes" hx-target="#page-body">
+        <label for="query">Suche</label>
+        <input id="query" name="query" type="text" value="{{.Query}}">
+        <label for="amount">Anzahl der Ergebnisse</label>
+        <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
+        <button>Suchen</button>
+    </form>
+    <div class="wrapper note">
+        {{if eq (len .Results) 0}}
+            <p>Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
+        {{else}}
+            {{range .Results}}
+                {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
+                <a href="/notes?loaded={{.ID}}" target="_blank"><strong>{{.Title}}</strong> von {{.GetAuthor}}<br>
+                    <i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>
+                </a>
+            {{end}}
+        {{end}}
+        {{if or .HasNext .HasPrevious}}
+            <hr style="width: var(--standard-width); margin: 0.3rem 0;">
+            <div class="wrapper note pager">
+                {{if .HasPrevious}}
+                    <a hx-put="/search/notes" hx-include="#search-form"
+                       hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
+                        &laquo; Vorherige Seite
+                    </a>
+                {{end}}
+                {{if .HasNext}}
+                    <a hx-put="/search/notes" hx-include="#search-form"
+                       hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
+                        Nächste Seite &raquo;
+                    </a>
+                {{end}}
+            </div>
+        {{end}}
+    </div>
+    </body>
 {{end}}

@@ -72,8 +72,8 @@ sub_type: $subtype , flair: $flair});`,
 	}
 	_, err = tx.Run(ctx, `
 MATCH (o:Organisation) WHERE o.name = $org 
-MATCH (a:Account) WHERE a.name IN $aNames
-CREATE (a)-[:ADMIN]->(o);`, map[string]any{
+MATCH (a:Account) WHERE a.name IN $aNames 
+MERGE (a)-[:ADMIN]->(o);`, map[string]any{
 		"org":    org.Name,
 		"aNames": adminNames})
 	if err != nil {
@@ -81,9 +81,9 @@ CREATE (a)-[:ADMIN]->(o);`, map[string]any{
 		return err
 	}
 	_, err = tx.Run(ctx, `
-MATCH (o:Organisation) WHERE o.name = $org
-MATCH (u:Account) WHERE u.name IN $uNames AND (NOT u.name IN $aNames)
-CREATE (u)-[:USER]->(o);`, map[string]any{
+MATCH (o:Organisation) WHERE o.name = $org 
+MATCH (u:Account) WHERE u.name IN $uNames AND (NOT u.name IN $aNames) 
+MERGE (u)-[:USER]->(o);`, map[string]any{
 		"org":    org.Name,
 		"uNames": userNames,
 		"aNames": adminNames})
@@ -150,7 +150,7 @@ func AddOrganisationMember(org *Organisation, userNames []string, adminNames []s
 	_, err = tx.Run(ctx, `
 MATCH (o:Organisation) WHERE o.name = $org 
 MATCH (a:Account) WHERE a.name IN $aNames
-CREATE (a)-[:ADMIN]->(o);`, map[string]any{
+MERGE (a)-[:ADMIN]->(o);`, map[string]any{
 		"org":    org.Name,
 		"aNames": adminNames})
 	if err != nil {
@@ -160,7 +160,7 @@ CREATE (a)-[:ADMIN]->(o);`, map[string]any{
 	_, err = tx.Run(ctx, `
 MATCH (o:Organisation) WHERE o.name = $org
 MATCH (u:Account) WHERE u.name IN $uNames AND (NOT u.name IN $aNames)
-CREATE (u)-[:USER]->(o);`, map[string]any{
+MERGE (u)-[:USER]->(o);`, map[string]any{
 		"org":    org.Name,
 		"uNames": userNames,
 		"aNames": adminNames})

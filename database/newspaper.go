@@ -26,6 +26,10 @@ func (n *NewspaperArticle) GetAuthor() string {
 	return n.Author + "; " + n.Flair
 }
 
+func (n *NewspaperArticle) HasSubtitle() bool {
+	return n.Subtitle != ""
+}
+
 func (n *NewspaperArticle) GetTimeWritten(a *Account) string {
 	if a.Exists() {
 		return n.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
@@ -150,7 +154,7 @@ WHERE t.name = $newspaper DELETE r;`, map[string]any{
 
 func UpdateNewspaper(newspaper *Newspaper) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Newspaper) WHERE a.name IN $names
-		AND t.name = $newspaper CREATE (a)-[:AUTHOR]->(t);`, map[string]any{
+		AND t.name = $newspaper MERGE (a)-[:AUTHOR]->(t);`, map[string]any{
 		"newspaper": newspaper.Name,
 		"names":     newspaper.Authors}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	return err
@@ -204,9 +208,11 @@ AND p.special = $special AND p.published = false RETURN p.id;`,
 
 	_, err = tx.Run(ctx,
 		`MATCH (p:Publication) WHERE p.id = $id
+MATCH (acc:Account) WHERE acc.name = $Author
 CREATE (a:Article {id: $articleID, title: $title , subtitle: $subtitle , author: $Author , flair: $Flair, 
 written: $written , raw_body: $rawbody , body: $Body})
-MERGE (a)-[:IN]->(p);`, map[string]any{
+MERGE (a)-[:IN]->(p) 
+MERGE (acc)-[:WRITTEN]->(a);`, map[string]any{
 			"id":        id,
 			"articleID": helper.GetUniqueID(article.Author),
 			"title":     article.Title,
@@ -258,7 +264,7 @@ func PublishPublication(id string) error {
 	}
 
 	result, err := tx.Run(ctx, `MATCH (n:Newspaper)-[:PUBLISHED]->(p:Publication) 
-WHERE p.id = $id SET p.published = true, 
+WHERE p.id = $id AND p.published = false SET p.published = true, 
  p.published_date = $publishedDate RETURN p.special, n.name;`,
 		map[string]any{"id": id, "publishedDate": time.Now().UTC()})
 	if result.Next(ctx); result.Record() == nil || err != nil {
@@ -286,6 +292,23 @@ MERGE (n)-[:PUBLISHED]->(p);`, map[string]any{
 
 	err = tx.Commit(ctx)
 	return err
+}
+
+func RejectableArticle(id string, reason string) (*NewspaperArticle, string, error) {
+	result, err := neo4j.ExecuteQuery(ctx, driver, `
+MATCH (a:Article)-[:IN]->(p:Publication)<-[:PUBLISHED]-(n:Newspaper) 
+WHERE a.id = $id AND p.published = false RETURN a, n;`, map[string]any{
+
+		"id":     id,
+		"reason": reason}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, "", err
+	} else if len(result.Records) != 1 {
+		return nil, "", notFoundError
+	} else {
+		name, _ := result.Records[0].Get("n")
+		return &getArrayOfArticles("a", result.Records)[0], name.(neo4j.Node).Props["name"].(string), nil
+	}
 }
 
 func GetPublicationForUser(id string, isAdmin bool) (bool, error) {
@@ -334,7 +357,7 @@ RETURN a;`, map[string]any{
 
 func GetUnpublishedPublications() ([]Publication, error) {
 	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (t:Newspaper)-[:PUBLISHED]->(p:Publication) 
-WHERE p.published = false RETURN p, t  ORDER BY p.special, p.published_date;`,
+WHERE p.published = false RETURN p, t  ORDER BY p.special DESC, p.published_date;`,
 		nil, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {
 		return nil, err

@@ -16,8 +16,7 @@ func GetMyProfile(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	setting := handler.ModifyPersonalSettings{FontScaling: acc.FontSize, TimeZone: acc.TimeZone.String(),
-		TimeZoneOptions: helper.TimeZoneList}
+	setting := handler.ModifyPersonalSettings{FontScaling: acc.FontSize, TimeZone: acc.TimeZone.String()}
 
 	handler.MakeFullPage(writer, acc, &handler.MyProfilePage{Settings: setting})
 }
@@ -28,8 +27,7 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 		handler.RedirectToErrorPage(writer)
 		return
 	}
-	page := handler.ModifyPersonalSettings{IsError: true, FontScaling: acc.FontSize, TimeZone: acc.TimeZone.String(),
-		TimeZoneOptions: helper.TimeZoneList}
+	page := handler.ModifyPersonalSettings{IsError: true, FontScaling: acc.FontSize, TimeZone: acc.TimeZone.String()}
 
 	err := request.ParseForm()
 	if err != nil {

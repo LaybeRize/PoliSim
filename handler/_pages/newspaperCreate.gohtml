@@ -2,7 +2,7 @@
     {{- /*gotype: PoliSim/handler.CreateNotesPage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
-    <form hx-post="/create/note" hx-target="#page-body">
+    <form hx-post="/create/article" hx-target="#page-body">
         <label for="title">Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
         <label for="subtitle">Untertitel</label>

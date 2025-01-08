@@ -231,7 +231,7 @@ RETURN a.name AS name ORDER BY name;`,
 
 func MakeOwner(ownerName string, targetName string) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Account) WHERE a.name = $owner 
-AND t.name = $target CREATE (a)-[:OWNER]->(t);`,
+AND t.name = $target MERGE (a)-[:OWNER]->(t);`,
 		map[string]any{"owner": ownerName,
 			"target": targetName}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	return err

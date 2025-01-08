@@ -3,9 +3,9 @@ package database
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"os"
 )
 
@@ -40,42 +40,44 @@ func init() {
 	err = driver.VerifyConnectivity(ctx)
 	if err != nil {
 		closeErr := driver.Close(ctx)
-		addition := ""
-		if closeErr != nil {
-			addition = "\n\nError while closing the driver: " + closeErr.Error()
-		}
-		panic(err.Error() + addition)
+		log.Fatalf("DB connection error: %v | Driver close error: %v", err, closeErr)
 	}
 
-	_, _ = fmt.Fprintf(os.Stdout, "Opened connection to the DB\n")
+	log.Println("Opened connection to the DB")
 	createConstraints()
 	createRootAccount()
+}
 
+func Shutdown() {
+	err := driver.Close(ctx)
+	if err != nil {
+		log.Fatalf("DB close error: %v", err)
+	}
 }
 
 func createRootAccount() {
 	acc, err := GetAccountByUsername(os.Getenv("USERNAME"))
 	if err == nil && acc != nil {
-		_, _ = fmt.Fprintf(os.Stdout, "Head Admin Account already exists\n")
+		log.Println("Head Admin Account already exists")
 		return
 	} else if errors.Is(err, notFoundError) && acc == nil {
-		pass, err := HashPassword(os.Getenv("PASSWORD"))
-		if err != nil {
-			panic(err)
+		pass, hashError := HashPassword(os.Getenv("PASSWORD"))
+		if hashError != nil {
+			log.Fatalf("password hashing error for root account: %v", hashError)
 		}
-		err = CreateAccount(&Account{
+		createError := CreateAccount(&Account{
 			Name:     os.Getenv("NAME"),
 			Username: os.Getenv("USERNAME"),
 			Password: pass,
 			Role:     RootAdmin,
 			Blocked:  false,
 		})
-		if err != nil {
-			panic(err)
+		if createError != nil {
+			log.Fatalf("root account creation error: %v", createError)
 		}
-		_, _ = fmt.Fprintf(os.Stdout, "Head Admin Account successfully created\n")
+		log.Println("Head Admin Account successfully created")
 	} else {
-		panic(err)
+		log.Fatalf("root account search error: %v", err)
 	}
 }
 
@@ -84,33 +86,33 @@ func createConstraints() {
 	defer func(session neo4j.SessionWithContext, ctx context.Context) {
 		err := session.Close(ctx)
 		if err != nil {
-			panic(err)
+			log.Fatalf("session close error: %v", err)
 		}
 	}(session, ctx)
 
 	constraints := []string{
-		"CREATE CONSTRAINT ON (acc:Account) ASSERT acc.name IS UNIQUE;",
-		"CREATE CONSTRAINT ON (acc:Account) ASSERT acc.username IS UNIQUE;",
-		"CREATE CONSTRAINT ON (acc:Account) ASSERT exists (acc.name);",
-		"CREATE CONSTRAINT ON (acc:Account) ASSERT exists (acc.username);",
-		"CREATE CONSTRAINT ON (org:Organisation) ASSERT org.name IS UNIQUE;",
-		"CREATE CONSTRAINT ON (org:Organisation) ASSERT exists (org.name);",
-		"CREATE CONSTRAINT ON (note:Note) ASSERT note.id IS UNIQUE;",
-		"CREATE CONSTRAINT ON (note:Note) ASSERT exists (note.id);",
-		"CREATE CONSTRAINT ON (title:Title) ASSERT title.name IS UNIQUE;",
-		"CREATE CONSTRAINT ON (title:Title) ASSERT exists (title.name);",
-		"CREATE CONSTRAINT ON (news:Newspaper) ASSERT news.name IS UNIQUE;",
-		"CREATE CONSTRAINT ON (news:Newspaper) ASSERT exists (news.name);",
-		"CREATE CONSTRAINT ON (pub:Publication) ASSERT pub.id IS UNIQUE;",
-		"CREATE CONSTRAINT ON (pub:Publication) ASSERT exists (pub.id);",
-		"CREATE CONSTRAINT ON (art:Article) ASSERT art.id IS UNIQUE;",
-		"CREATE CONSTRAINT ON (art:Article) ASSERT exists (art.id);",
+		"CREATE CONSTRAINT u_acc_name IF NOT exists FOR (acc:Account) REQUIRE acc.name IS UNIQUE;",
+		"CREATE CONSTRAINT u_acc_username IF NOT exists FOR (acc:Account) REQUIRE acc.username IS UNIQUE;",
+		//"CREATE CONSTRAINT r_acc_name IF NOT EXISTS FOR (acc:Account) REQUIRE acc.name IS NOT NULL;",
+		//"CREATE CONSTRAINT r_acc_username IF NOT EXISTS FOR (acc:Account) REQUIRE acc.username IS NOT NULL;",
+		"CREATE CONSTRAINT u_org_name IF NOT exists FOR (org:Organisation) REQUIRE org.name IS UNIQUE;",
+		//"CREATE CONSTRAINT r_org_name IF NOT EXISTS FOR (org:Organisation) REQUIRE org.name IS NOT NULL;",
+		"CREATE CONSTRAINT u_note_id IF NOT exists FOR (note:Note) REQUIRE note.id IS UNIQUE;",
+		//"CREATE CONSTRAINT r_note_id IF NOT EXISTS FOR (note:Note) REQUIRE note.id IS NOT NULL;",
+		"CREATE CONSTRAINT u_title_name IF NOT exists FOR (title:Title) REQUIRE title.name IS UNIQUE;",
+		//"CREATE CONSTRAINT r_title_name IF NOT EXISTS FOR (title:Title) REQUIRE title.name IS NOT NULL;",
+		"CREATE CONSTRAINT u_news_name IF NOT exists FOR (news:Newspaper) REQUIRE news.name IS UNIQUE;",
+		//"CREATE CONSTRAINT r_news_name IF NOT EXISTS FOR (news:Newspaper) REQUIRE exists (news.name IS NOT NULL;",
+		"CREATE CONSTRAINT u_pub_id IF NOT exists FOR (pub:Publication) REQUIRE pub.id IS UNIQUE;",
+		//"CREATE CONSTRAINT r_pub_id IF NOT EXISTS FOR (pub:Publication) REQUIRE pub.id IS NOT NULL;",
+		"CREATE CONSTRAINT u_art_id IF NOT exists FOR (art:Article) REQUIRE art.id IS UNIQUE;",
+		//"CREATE CONSTRAINT r_art_id IF NOT EXISTS FOR (art:Article) REQUIRE art.id IS NOT NULL;",
 	}
 
 	for _, constraint := range constraints {
 		_, err := session.Run(ctx, constraint, nil)
 		if err != nil {
-			panic(err)
+			log.Fatalf("constraint run error: %v", err)
 		}
 	}
 }

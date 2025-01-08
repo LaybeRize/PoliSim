@@ -63,7 +63,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	isSpecial := helper.GetFormEntry(request, "special") == "true"
 	newspaper := helper.GetFormEntry(request, "newspaper")
 
-	if article.Title == "" || article.Body == "" {
+	if article.Title == "" || article.RawBody == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Titel oder Inhalt sind leer"})
 		return
