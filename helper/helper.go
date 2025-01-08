@@ -12,7 +12,7 @@ import (
 
 func init() {
 	log.SetOutput(os.Stdout)
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Llongfile)
 	if os.Getenv("LOG_LEVEL") == "DEBUG" {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}

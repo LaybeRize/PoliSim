@@ -309,6 +309,7 @@ type ViewPublicationPage struct {
 	QueryError  bool
 	Publication database.Publication
 	Articles    []database.NewspaperArticle
+	MessageUpdate
 }
 
 func (p *ViewPublicationPage) SetNavInfo(navInfo NavigationInfo) {
@@ -317,6 +318,32 @@ func (p *ViewPublicationPage) SetNavInfo(navInfo NavigationInfo) {
 
 func (p *ViewPublicationPage) getPageName() string {
 	return "newspaperPubView"
+}
+
+type SearchPublicationsPage struct {
+	NavInfo     NavigationInfo
+	Query       string
+	Amount      int
+	Page        int
+	HasNext     bool
+	HasPrevious bool
+	Results     []database.Publication
+}
+
+func (p *SearchPublicationsPage) NextPage() int {
+	return p.Page + 1
+}
+
+func (p *SearchPublicationsPage) PreviousPage() int {
+	return p.Page - 1
+}
+
+func (p *SearchPublicationsPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *SearchPublicationsPage) getPageName() string {
+	return "newspaperSearch"
 }
 
 type PartialStruct interface {
@@ -519,6 +546,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Artikel erstellen"
 	case *ViewPublicationPage:
 		fullPage.Base.Title = "Zeitung"
+	case *SearchPublicationsPage:
+		fullPage.Base.Title = "Zeitungen durchsuchen"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

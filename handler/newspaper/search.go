@@ -10,13 +10,11 @@ import (
 	"strconv"
 )
 
-//Todo: make this
-
 func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	query := request.URL.Query()
 
-	page := &handler.SearchNotesPage{
+	page := &handler.SearchPublicationsPage{
 		Query: query.Get("query"),
 	}
 	page.Amount, _ = strconv.Atoi(query.Get("amount"))
@@ -30,9 +28,9 @@ func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request
 
 	page.HasPrevious = page.Page > 1
 	var err error
-	page.Results, err = database.SearchForNotes(page.Amount+1, page.Page, page.Query)
+	page.Results, err = database.GetPublishedNewspaper(page.Amount+1, page.Page, page.Query)
 	if err != nil {
-		page.Results = make([]database.TruncatedBlackboardNotes, 0)
+		page.Results = make([]database.Publication, 0)
 	}
 	if len(page.Results) > page.Amount {
 		page.HasNext = true
@@ -47,7 +45,7 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	page := &handler.SearchNotesPage{}
+	page := &handler.SearchPublicationsPage{}
 	page.Query = helper.GetFormEntry(request, "query")
 	page.Amount, _ = strconv.Atoi(helper.GetFormEntry(request, "amount"))
 	page.Page, _ = strconv.Atoi(helper.GetFormEntry(request, "page"))
@@ -60,15 +58,15 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 
 	page.HasPrevious = page.Page > 1
 	var err error
-	page.Results, err = database.SearchForNotes(page.Amount+1, page.Page, page.Query)
+	page.Results, err = database.GetPublishedNewspaper(page.Amount+1, page.Page, page.Query)
 	if err != nil {
-		page.Results = make([]database.TruncatedBlackboardNotes, 0)
+		page.Results = make([]database.Publication, 0)
 	}
 	if len(page.Results) > page.Amount {
 		page.HasNext = true
 		page.Results = page.Results[:page.Amount]
 	}
-	writer.Header().Add("Hx-Push-Url", "/search/notes?query="+url.QueryEscape(page.Query)+
+	writer.Header().Add("Hx-Push-Url", "/search/publications?query="+url.QueryEscape(page.Query)+
 		fmt.Sprintf("&amount=%d&page=%d", page.Amount, page.Page))
 	handler.MakePage(writer, acc, page)
 }

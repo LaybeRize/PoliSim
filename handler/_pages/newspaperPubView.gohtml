@@ -3,6 +3,7 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     {{$acc := .NavInfo.Account}}
+    {{$published := .Publication.Published}}
     {{if .QueryError}}
         <p>Es ist ein Fehler beim Verarbeiten der Publikation für den Nutzer aufgetreten</p>
     {{else}}
@@ -10,9 +11,14 @@
             Sonderausgabe vom {{.Publication.GetPublishedDate $acc}}{{- else -}}
             Ausgabe vom {{.Publication.GetPublishedDate $acc}}{{- end -}}</h1>
     {{if eq (len .Articles) 0}}<p>Für diese Publikation existieren noch keine Artikel</p>
-    {{- else -}}<button hx-patch="/publicate/{{.Publication.ID}}" hx-target="#page-body">
-        Publikation freigeben
-    </button>{{end}}
+    {{- else -}}
+        {{if not $published}}
+            <button hx-patch="/publicate/{{.Publication.ID}}" hx-target="#page-body">
+            Publikation freigeben
+            </button>
+            {{template "message" .}}
+        {{end}}
+    {{end}}
     {{range .Articles}}
         {{- /*gotype: PoliSim/database.NewspaperArticle*/ -}}
         <div class="wrapper article">
@@ -26,6 +32,17 @@
                     </p>
                 </div>
                 <div class="markdown">{{.Body}}</div>
+                {{if not $published}}
+                    <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me
+                                           toggle .bi-list-opened then tell next <form/> toggle .hide">
+                        <i id="indicator-create-newspaper" class="bi bi-list-closed"></i> Artikel zurückweisen
+                    </a>
+                    <form class="hide" hx-delete="/article/{{.ID}}" hx-target="#page-body">
+                        <label for="rejection">Name</label>
+                        <textarea id="rejection" name="rejection" rows="3"></textarea>
+                        <button>Artikel zurückweisen</button>
+                    </form>
+                {{end}}
             </div>
     {{end}}
     {{end}}

@@ -263,7 +263,7 @@ func PublishPublication(id string) error {
 		return err
 	}
 
-	result, err := tx.Run(ctx, `MATCH (n:Newspaper)-[:PUBLISHED]->(p:Publication) 
+	result, err := tx.Run(ctx, `MATCH (n:Newspaper)-[:PUBLISHED]->(p:Publication)<-[:IN]-(:Article)
 WHERE p.id = $id AND p.published = false SET p.published = true, 
  p.published_date = $publishedDate RETURN p.special, n.name;`,
 		map[string]any{"id": id, "publishedDate": time.Now().UTC()})
@@ -292,23 +292,6 @@ MERGE (n)-[:PUBLISHED]->(p);`, map[string]any{
 
 	err = tx.Commit(ctx)
 	return err
-}
-
-func RejectableArticle(id string, reason string) (*NewspaperArticle, string, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver, `
-MATCH (a:Article)-[:IN]->(p:Publication)<-[:PUBLISHED]-(n:Newspaper) 
-WHERE a.id = $id AND p.published = false RETURN a, n;`, map[string]any{
-
-		"id":     id,
-		"reason": reason}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
-	if err != nil {
-		return nil, "", err
-	} else if len(result.Records) != 1 {
-		return nil, "", notFoundError
-	} else {
-		name, _ := result.Records[0].Get("n")
-		return &getArrayOfArticles("a", result.Records)[0], name.(neo4j.Node).Props["name"].(string), nil
-	}
 }
 
 func GetPublicationForUser(id string, isAdmin bool) (bool, error) {
@@ -367,7 +350,7 @@ WHERE p.published = false RETURN p, t  ORDER BY p.special DESC, p.published_date
 
 func GetPublishedNewspaper(amount int, page int, newspaper string) ([]Publication, error) {
 	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (t:Newspaper)-[:PUBLISHED]->(p:Publication) 
-WHERE t.name CONTAINS $newspaper 
+WHERE t.name CONTAINS $newspaper AND p.published = true 
 RETURN t, p ORDER BY p.published_date DESC SKIP $skip LIMIT $amount;`,
 		map[string]any{
 			"amount":    amount,
@@ -422,4 +405,80 @@ func getArrayOfArticles(letter string, records []*neo4j.Record) []NewspaperArtic
 		})
 	}
 	return arr
+}
+
+type ArticleRejectionTransaction struct {
+	tx            neo4j.ExplicitTransaction
+	NewspaperName string
+	Article       NewspaperArticle
+	// Todo: add letter here and also a function to create it
+}
+
+func RejectableArticle(id string) (*ArticleRejectionTransaction, error) {
+	reject := &ArticleRejectionTransaction{}
+	var err error
+	reject.tx, err = openTransaction()
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := reject.tx.Run(ctx, `
+MATCH (a:Article)-[:IN]->(p:Publication)<-[:PUBLISHED]-(n:Newspaper) 
+WHERE a.id = $id AND p.published = false RETURN a, n;`, map[string]any{
+
+		"id": id})
+	if err != nil {
+		_ = reject.tx.Rollback(ctx)
+		_ = reject.tx.Close(ctx)
+		return nil, err
+	} else if !result.Next(ctx) {
+		_ = reject.tx.Rollback(ctx)
+		_ = reject.tx.Close(ctx)
+		return nil, notFoundError
+	}
+
+	name, _ := result.Record().Get("n")
+	reject.Article = getArrayOfArticles("a", []*neo4j.Record{result.Record()})[0]
+	reject.NewspaperName = name.(neo4j.Node).Props["name"].(string)
+
+	return reject, nil
+}
+
+func (a *ArticleRejectionTransaction) DeleteArticle() error {
+	result, err := a.tx.Run(ctx, `MATCH (a:Article)-[:IN]->(:Publication)<-[:IN]-(r:Article) 
+WHERE a.id = $id 
+RETURN r;`, map[string]any{"id": a.Article.ID})
+	if err != nil {
+		_ = a.tx.Rollback(ctx)
+		_ = a.tx.Close(ctx)
+		return err
+	} else if result.Next(ctx) {
+		_, err = a.tx.Run(ctx, `MATCH (a:Article) 
+WHERE a.id = $id 
+DETACH DELETE a;`, map[string]any{"id": a.Article.ID})
+		if err != nil {
+			_ = a.tx.Rollback(ctx)
+			_ = a.tx.Close(ctx)
+			return err
+		}
+	} else {
+		_, err = a.tx.Run(ctx, `MATCH (a:Article) WHERE a.id = $id 
+OPTIONAL MATCH (a)-[:IN]->(p:Publication) WHERE p.special = true
+DETACH DELETE a 
+DETACH DELETE p;`, map[string]any{"id": a.Article.ID})
+		if err != nil {
+			_ = a.tx.Rollback(ctx)
+			_ = a.tx.Close(ctx)
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *ArticleRejectionTransaction) CreateLetter() error {
+	defer a.tx.Close(ctx)
+	var err error
+
+	err = a.tx.Commit(ctx)
+	return err
 }
