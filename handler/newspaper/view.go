@@ -3,6 +3,9 @@ package newspaper
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
+	loc "PoliSim/localisation"
+	"fmt"
 	"log/slog"
 	"net/http"
 )
@@ -80,6 +83,14 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 		})
 		return
 	}
+	rejectionText := helper.GetFormEntry(request, "rejection")
+	if rejectionText == "" {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
+			Message: "Der Zurückweisungsgrund darf nicht leer sein",
+			IsError: true,
+		})
+		return
+	}
 
 	transaction, err := database.RejectableArticle(request.PathValue("id"))
 	if err != nil {
@@ -99,8 +110,20 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 		})
 		return
 	}
-	// Todo add logic for letter information
-	err = transaction.CreateLetter()
+
+	letter := &database.Letter{
+		Title: fmt.Sprintf("Zurückweisung des Artikels '%s' geschrieben für %s",
+			transaction.Article.Title, transaction.NewspaperName),
+		Author:   loc.AdminstrationName,
+		Flair:    "",
+		Signable: false,
+		Body: handler.MakeMarkdown(fmt.Sprintf("# Zurückweisungsgrund\n\n%s\n\n# Artikelinhalt\n\n```%s```",
+			rejectionText, transaction.Article.RawBody)),
+		Reader: []string{transaction.Article.Author},
+	}
+	letter.ID = helper.GetUniqueID(letter.Author)
+
+	err = transaction.CreateLetter(letter)
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{

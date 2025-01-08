@@ -411,7 +411,6 @@ type ArticleRejectionTransaction struct {
 	tx            neo4j.ExplicitTransaction
 	NewspaperName string
 	Article       NewspaperArticle
-	// Todo: add letter here and also a function to create it
 }
 
 func RejectableArticle(id string) (*ArticleRejectionTransaction, error) {
@@ -475,9 +474,14 @@ DETACH DELETE p;`, map[string]any{"id": a.Article.ID})
 	return nil
 }
 
-func (a *ArticleRejectionTransaction) CreateLetter() error {
+func (a *ArticleRejectionTransaction) CreateLetter(letter *Letter) error {
 	defer a.tx.Close(ctx)
-	var err error
+
+	_, err := a.tx.Run(ctx, letterCreation, letter.GetCreationMap())
+	if err != nil {
+		_ = a.tx.Rollback(ctx)
+		return err
+	}
 
 	err = a.tx.Commit(ctx)
 	return err

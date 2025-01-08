@@ -47,7 +47,6 @@
                 <button>Zeitung erstellen</button>
             </form>
         </div>
-        {{end}}
         {{block "updateNewspaper" .}}
         <div id="change-newspaper" class="block-view">
             <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me toggle .bi-list-opened
@@ -86,6 +85,7 @@
             </form>
             {{template "message" .}}
         </div>
+        {{end}}
         {{end}}
         <div class="wrapper note">
             {{if .HadError}}

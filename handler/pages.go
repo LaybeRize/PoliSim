@@ -2,6 +2,7 @@ package handler
 
 import (
 	"PoliSim/database"
+	loc "PoliSim/localisation"
 	"embed"
 	"html/template"
 	"log"
@@ -459,7 +460,7 @@ func init() {
 		}
 		templateForge[name] = template.Must(
 			template.Must(template.New("").Parse(templateString)).Parse(
-				string(page)))
+				loc.LocaliseTemplateString(page)))
 	}
 	log.Println("Successfully created the Template Forge")
 	if os.Getenv("ICON_PATH") != "" {
@@ -478,7 +479,7 @@ func getTemplatesAsSingleString() string {
 		if templateErr != nil {
 			log.Fatalf("template read content error: %v", templateErr)
 		}
-		arr[i] = string(temp)
+		arr[i] = loc.LocaliseTemplateString(temp)
 	}
 	return strings.Join(arr, "\n")
 }

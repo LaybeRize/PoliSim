@@ -1,6 +1,7 @@
 package database
 
 import (
+	loc "PoliSim/localisation"
 	"errors"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"strings"
@@ -65,6 +66,9 @@ const (
 )
 
 func CreateAccount(acc *Account) error {
+	if acc.Name == loc.AdminstrationName {
+		return notFoundError
+	}
 	_, err := neo4j.ExecuteQuery(ctx, driver,
 		`CREATE (:Account {name: $name , username: $username ,
                 password: $password , role: $role , blocked: $blocked, fontSize: 100, timezone: 'UTC' });`,

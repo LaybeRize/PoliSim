@@ -107,6 +107,8 @@ func createConstraints() {
 		//"CREATE CONSTRAINT r_pub_id IF NOT EXISTS FOR (pub:Publication) REQUIRE pub.id IS NOT NULL;",
 		"CREATE CONSTRAINT u_art_id IF NOT exists FOR (art:Article) REQUIRE art.id IS UNIQUE;",
 		//"CREATE CONSTRAINT r_art_id IF NOT EXISTS FOR (art:Article) REQUIRE art.id IS NOT NULL;",
+		"CREATE CONSTRAINT u_letter_id IF NOT exists FOR (letter:Letter) REQUIRE letter.id IS UNIQUE;",
+		//"CREATE CONSTRAINT r_letter_id IF NOT EXISTS FOR (letter:Letter) REQUIRE letter.id IS NOT NULL;",
 	}
 
 	for _, constraint := range constraints {
@@ -119,4 +121,9 @@ func createConstraints() {
 
 func openTransaction() (neo4j.ExplicitTransaction, error) {
 	return driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: ""}).BeginTransaction(ctx)
+}
+
+func makeRequest(query string, parameter map[string]any) (*neo4j.EagerResult, error) {
+	return neo4j.ExecuteQuery(ctx, driver, query, parameter,
+		neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 }
