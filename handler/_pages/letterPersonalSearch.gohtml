@@ -1,0 +1,60 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.SearchLetterPage*/ -}}
+    <body id="page-body">
+    <script>
+        document.body.addEventListener("htmx:afterRequest", function (evt) {
+            if (evt.failed) {
+                alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+            }
+        })
+    </script>
+    {{template "header" .NavInfo}}
+    {{$acc := .NavInfo.Account}}
+    <form id="search-form" hx-put="/my/letter" hx-target="#page-body">
+        <label for="account">Account</label>
+        <select id="account" name="account">
+            {{$account := .Account}}
+            {{range .PossibleAccounts}}
+                <option value="{{.}}" {{if eq . $account}}selected{{end}}>{{.}}</option>
+            {{end}}
+        </select>
+        <label for="amount">Anzahl der Ergebnisse</label>
+        <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
+        <button>Suchen</button>
+    </form>
+    <div class="wrapper note">
+        {{if eq (len .Results) 0}}
+            <p>Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
+        {{else}}
+            {{range .Results}}
+                {{- /*gotype: PoliSim/database.ReducedLetter*/ -}}
+                <a href="/letter/{{.ID}}?viewer={{urlquery .Recipent}}" target="_blank"
+                   {{if .Viewed}}class="read"{{end}}>
+                    {{- if .Viewed -}}<i class="bi bi-letter-open"></i>
+                    {{- else -}}<i class="bi bi-letter-closed"></i>
+                    {{- end}} <strong>{{.Title}}</strong> von {{.Author}}<br>
+                    Empfänger: {{.Recipent}}<br>
+                    <i>Versendet am: {{.GetTimeWritten $acc}}</i>
+                </a>
+            {{end}}
+        {{end}}
+        {{if or .HasNext .HasPrevious}}
+            <hr style="width: var(--standard-width); margin: 0.3rem 0;">
+            <div class="wrapper note pager">
+                {{if .HasPrevious}}
+                    <a hx-put="/my/letter" hx-include="#search-form"
+                       hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
+                        &laquo; Vorherige Seite
+                    </a>
+                {{end}}
+                {{if .HasNext}}
+                    <a hx-put="/my/letter" hx-include="#search-form"
+                       hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
+                        Nächste Seite &raquo;
+                    </a>
+                {{end}}
+            </div>
+        {{end}}
+    </div>
+    </body>
+{{end}}

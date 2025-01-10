@@ -25,6 +25,7 @@ type ReducedLetter struct {
 	ID       string
 	Title    string
 	Author   string
+	Flair    string
 	Written  time.Time
 	Recipent string
 	Viewed   bool
@@ -35,6 +36,13 @@ func (r *ReducedLetter) GetTimeWritten(a *Account) string {
 		return r.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
 	}
 	return r.Written.Format("2006-01-02 15:04:05 MST")
+}
+
+func (r *ReducedLetter) GetAuthor() string {
+	if r.Flair == "" {
+		return r.Author
+	}
+	return r.Author + "; " + r.Flair
 }
 
 type Letter struct {
@@ -70,6 +78,13 @@ func (l *Letter) GetCreationMap() map[string]any {
 		"reader":     l.Reader,
 		"signature":  signature,
 		"authorSign": authorSign}
+}
+
+func (l *Letter) GetAuthor() string {
+	if l.Flair == "" {
+		return l.Author
+	}
+	return l.Author + "; " + l.Flair
 }
 
 func (l *Letter) GetTimeWritten(a *Account) string {
@@ -165,6 +180,29 @@ RETURN a.name, r.signature;`, map[string]any{"id": id})
 	return letter, err
 }
 
-func GetLetterList(viewer []string) ([]ReducedLetter, error) {
+func GetLetterList(viewer []string, amount int, page int) ([]ReducedLetter, error) {
+	result, err := makeRequest(`MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter) 
+WHERE a.name IN $viewer 
+RETURN l.id, l.title, l.author, l.flair, l.written, a.name, r.viewed 
+ORDER BY l.written DESC, a.name SKIP $skip LIMIT $amount;`,
+		map[string]any{"viewer": viewer,
+			"skip":   (page - 1) * amount,
+			"amount": amount,
+		})
+	if err != nil {
+		return nil, err
+	}
+	list := make([]ReducedLetter, len(result.Records))
+	for i, record := range result.Records {
+		list[i] = ReducedLetter{
+			ID:       record.Values[0].(string),
+			Title:    record.Values[1].(string),
+			Author:   record.Values[2].(string),
+			Flair:    record.Values[3].(string),
+			Written:  record.Values[4].(time.Time),
+			Recipent: record.Values[5].(string),
+			Viewed:   record.Values[6].(bool),
+		}
+	}
 	return nil, nil
 }

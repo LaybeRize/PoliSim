@@ -347,6 +347,33 @@ func (p *SearchPublicationsPage) getPageName() string {
 	return "newspaperSearch"
 }
 
+type SearchLetterPage struct {
+	NavInfo          NavigationInfo
+	Account          string
+	PossibleAccounts []string
+	Amount           int
+	Page             int
+	HasNext          bool
+	HasPrevious      bool
+	Results          []database.ReducedLetter
+}
+
+func (p *SearchLetterPage) NextPage() int {
+	return p.Page + 1
+}
+
+func (p *SearchLetterPage) PreviousPage() int {
+	return p.Page - 1
+}
+
+func (p *SearchLetterPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *SearchLetterPage) getPageName() string {
+	return "letterPersonalSearch"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -549,6 +576,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Zeitung"
 	case *SearchPublicationsPage:
 		fullPage.Base.Title = "Zeitungen durchsuchen"
+	case *SearchLetterPage:
+		fullPage.Base.Title = "Briefe durchsuchen"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

@@ -31,8 +31,8 @@ func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	page.Results, err = database.SearchForNotes(page.Amount+1, page.Page, page.Query)
 	if err != nil {
 		page.Results = make([]database.TruncatedBlackboardNotes, 0)
-	}
-	if len(page.Results) > page.Amount {
+
+	} else if len(page.Results) > page.Amount {
 		page.HasNext = true
 		page.Results = page.Results[:page.Amount]
 	}

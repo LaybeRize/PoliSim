@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/handler/accounts"
+	"PoliSim/handler/letter"
 	"PoliSim/handler/newspaper"
 	"PoliSim/handler/notes"
 	"PoliSim/handler/organisations"
@@ -76,6 +77,10 @@ func main() {
 	http.HandleFunc("GET /search/notes", notes.GetSearchNotePage)
 	http.HandleFunc("PUT /search/notes", notes.PutSearchNotePage)
 	http.HandleFunc("PATCH /change/blocked/note/{id}", notes.UnBlockNote)
+
+	http.HandleFunc("GET /my/letter", letter.GetPagePersonalLetter)
+	http.HandleFunc("PUT /my/letter", letter.PutPagePersonalLetter)
+	http.HandleFunc("GET /view/letter", letter.GetAdminLetterViewPage)
 
 	http.HandleFunc("GET /", handler.GetHomePage)
 

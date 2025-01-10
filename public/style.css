@@ -198,6 +198,15 @@ div.note {
         text-decoration: none;
         cursor: pointer;
     }
+    a.read {
+        background-color: rgb(15 23 42);
+        color: white;
+        padding: 0.3rem;
+        margin: 0.2rem 0;
+        text-underline: white;
+        text-decoration: none;
+        cursor: pointer;
+    }
     h1 {
         font-size: 2rem;
         line-height: 2.2rem;
@@ -480,3 +489,5 @@ div.markdown del {
 .bi-list-closed::before { content: "\f22d"; }
 .bi-list-opened::before { content: "\f229"; }
 .bi-important::before { content: "\f281"; }
+.bi-letter-closed::before { content: "\f32c"; }
+.bi-letter-open::before { content: "\f32d"; }
