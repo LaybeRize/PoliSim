@@ -149,7 +149,7 @@ func AddOrganisationMember(org *Organisation, userNames []string, adminNames []s
 	}
 	_, err = tx.Run(ctx, `
 MATCH (o:Organisation) WHERE o.name = $org 
-MATCH (a:Account) WHERE a.name IN $aNames
+MATCH (a:Account) WHERE a.name IN $aNames AND a.blocked = false
 MERGE (a)-[:ADMIN]->(o);`, map[string]any{
 		"org":    org.Name,
 		"aNames": adminNames})
@@ -159,7 +159,7 @@ MERGE (a)-[:ADMIN]->(o);`, map[string]any{
 	}
 	_, err = tx.Run(ctx, `
 MATCH (o:Organisation) WHERE o.name = $org
-MATCH (u:Account) WHERE u.name IN $uNames AND (NOT u.name IN $aNames)
+MATCH (u:Account) WHERE u.name IN $uNames AND (NOT u.name IN $aNames) AND u.blocked = false
 MERGE (u)-[:USER]->(o);`, map[string]any{
 		"org":    org.Name,
 		"uNames": userNames,

@@ -121,8 +121,9 @@ DELETE r;`, map[string]any{"title": title.Name})
 }
 
 func AddTitleHolder(title *Title, holderNames []string) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Title) WHERE a.name IN $names  
-AND t.name = $title MERGE (a)-[r:HAS]->(t);`,
+	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Title) 
+WHERE a.name IN $names AND a.blocked = false AND t.name = $title 
+MERGE (a)-[r:HAS]->(t);`,
 		map[string]any{"title": title.Name, "names": holderNames}, neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(""))
 	return err

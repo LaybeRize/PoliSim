@@ -75,6 +75,7 @@ func main() {
 	http.HandleFunc("POST /create/note", notes.PostNoteCreatePage)
 	http.HandleFunc("GET /search/notes", notes.GetSearchNotePage)
 	http.HandleFunc("PUT /search/notes", notes.PutSearchNotePage)
+	http.HandleFunc("PATCH /change/blocked/note/{id}", notes.UnBlockNote)
 
 	http.HandleFunc("GET /", handler.GetHomePage)
 

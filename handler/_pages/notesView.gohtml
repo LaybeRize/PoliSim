@@ -54,34 +54,37 @@
             <div class="wrapper note" id="{{.ID}}">
                 <hr style="width: var(--standard-width); margin: 0.3rem 0;">
                 <div class="block-view">
-                <h1>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</h1>
-                <p>
-                    ID: {{.ID}}<br>
-                    Geschrieben von: {{.GetAuthor}}<br>
-                    <i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>
-                </p>
+                    <h1>{{.Title}}</h1>
+                    <p>
+                        ID: {{.ID}}<br>
+                        Geschrieben von: {{.GetAuthor}}<br>
+                        <i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>
+                    </p>
+                    {{if $acc.IsAtLeastAdmin}}
+                        <a hx-patch="/change/blocked/note/{{.ID}}" target="#{{.ID}}">{{if .Removed}}Notiz wieder freigeben{{else}}Notiz blockieren{{end}}</a>
+                    {{end}}
                 </div>
                 <div class="markdown">{{if .Removed}}<code>[Inhalt wurde entfernt]</code>{{else}}{{.Body}}{{end}}</div>
                 <div class="block-view">
                     <a href="/create/note?loaded={{.ID}}" target="_blank">Schreibe eine eigene Notiz zu diesem Beitrag</a>
-                {{if .HasParents}}
-                    <h2>Referenzen</h2>
-                    {{range .Parents}}
-                        {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
-                        <a  data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
-                            hx-target="#end-div" hx-swap="beforebegin">
-                            <strong>{{.Title}}</strong> von {{.Author}}</a>
+                    {{if .HasParents}}
+                        <h2>Referenzen</h2>
+                        {{range .Parents}}
+                            {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
+                            <a  data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
+                                hx-target="#end-div" hx-swap="beforebegin">
+                                <strong>{{.Title}}</strong> von {{.Author}}</a>
+                        {{end}}
                     {{end}}
-                {{end}}
-                {{if .HasChildren}}
-                    <h2>Kommentare</h2>
-                    {{range .Children}}
-                        {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
-                        <a  data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
-                            hx-target="#end-div" hx-swap="beforebegin">
-                            <strong>{{.Title}}</strong> von {{.Author}}</a>
+                    {{if .HasChildren}}
+                        <h2>Kommentare</h2>
+                        {{range .Children}}
+                            {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
+                            <a  data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
+                                hx-target="#end-div" hx-swap="beforebegin">
+                                <strong>{{.Title}}</strong> von {{.Author}}</a>
+                        {{end}}
                     {{end}}
-                {{end}}
                 </div>
             </div>
         {{end}}

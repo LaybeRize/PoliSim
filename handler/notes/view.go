@@ -48,3 +48,20 @@ func RequestNote(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Add("Hx-Push-Url", strings.TrimSuffix(url, "&"))
 	handler.MakeSpecialPagePart(writer, &handler.NotesUpdate{BlackboardNote: *element})
 }
+
+func UnBlockNote(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	element, err := database.GetNote(request.PathValue("id"))
+	if !acc.IsAtLeastAdmin() || err != nil {
+		writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+	element.Removed = !element.Removed
+	err = database.UpdateNoteRemovedStatus(element)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	element.Viewer = acc
+	handler.MakeSpecialPagePart(writer, &handler.NotesUpdate{BlackboardNote: *element})
+}

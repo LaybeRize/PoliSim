@@ -12,6 +12,8 @@ import (
 var ctx context.Context
 var driver neo4j.DriverWithContext
 var notFoundError = errors.New("item not found")
+var notAllowedError = errors.New("action is for user not allowed")
+var notRecipientFoundError = errors.New("no recipient found for letter")
 var multipleItemsError = errors.New("more then one item found")
 
 // HashPassword creates a hash of the given password, for later verification

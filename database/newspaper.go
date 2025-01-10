@@ -153,8 +153,9 @@ WHERE t.name = $newspaper DELETE r;`, map[string]any{
 }
 
 func UpdateNewspaper(newspaper *Newspaper) error {
-	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Newspaper) WHERE a.name IN $names
-		AND t.name = $newspaper MERGE (a)-[:AUTHOR]->(t);`, map[string]any{
+	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Newspaper) 
+WHERE a.name IN $names AND a.blocked = false AND t.name = $newspaper 
+MERGE (a)-[:AUTHOR]->(t);`, map[string]any{
 		"newspaper": newspaper.Name,
 		"names":     newspaper.Authors}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	return err
@@ -204,6 +205,16 @@ AND p.special = $special AND p.published = false RETURN p.id;`,
 		return notFoundError
 	} else {
 		id = result.Record().Values[0].(string)
+	}
+
+	result, err = tx.Run(ctx, `MATCH (acc:Account) WHERE acc.name = $Author AND acc.blocked = false 
+RETURN acc;`,
+		map[string]any{"Author": article.Author})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	} else if result.Next(ctx); result.Record() == nil {
+		return notAllowedError
 	}
 
 	_, err = tx.Run(ctx,

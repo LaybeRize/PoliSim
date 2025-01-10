@@ -67,7 +67,7 @@ const (
 
 func CreateAccount(acc *Account) error {
 	if acc.Name == loc.AdminstrationName {
-		return notFoundError
+		return notAllowedError
 	}
 	_, err := neo4j.ExecuteQuery(ctx, driver,
 		`CREATE (:Account {name: $name , username: $username ,
@@ -100,7 +100,11 @@ func GetAccountByName(name string) (*Account, error) {
 
 func UpdateAccount(acc *Account) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver,
-		`MATCH (a:Account)  WHERE a.name = $name SET a.blocked = $blocked , a.role = $role RETURN a;`,
+		`MATCH (a:Account)  WHERE a.name = $name 
+MATCH (s:Account)-[r]->() WHERE s.name = $name AND type(r) <> 'WRITTEN' AND $blocked 
+DELETE r 
+SET a.blocked = $blocked , a.role = $role 
+RETURN a;`,
 		map[string]any{"name": acc.Name,
 			"role":    acc.Role,
 			"blocked": acc.Blocked}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))

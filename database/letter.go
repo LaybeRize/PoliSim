@@ -12,12 +12,12 @@ const (
 	NoDecision     = "no_decision"
 	NoSignPossible = "no_sign"
 
-	letterCreation = `MATCH (a:Account) WHERE a.name IN $reader 
+	letterCreation = `MATCH (a:Account) WHERE a.name IN $reader AND a.blocked = false
 MATCH (aut:Account) WHERE a.name = $Author 
 CREATE (l:Letter {id: $id, title: $title , author: $Author , flair: $Flair, 
 written: $written , signable: $signable , body: $Body}) 
-MERGE (a)-[:RECIPIENT {signature: $signature, viewed: false}]->(l) 
-MERGE (aut)-[:RECIPIENT {signature: $authorSign, viewed: true}]->(l) 
+MERGE (a)<-[:RECIPIENT {signature: $signature, viewed: false}]-(l) 
+MERGE (aut)<-[:RECIPIENT {signature: $authorSign, viewed: true}]-(l) 
 MERGE (aut)-[:WRITTEN]->(l);`
 )
 
@@ -80,7 +80,38 @@ func (l *Letter) GetTimeWritten(a *Account) string {
 }
 
 func CreateLetter(letter *Letter) error {
-	_, err := makeRequest(letterCreation, letter.GetCreationMap())
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return err
+	}
+
+	result, err := tx.Run(ctx, `MATCH (acc:Account) WHERE acc.name = $Author AND acc.blocked = false 
+RETURN acc;`,
+		map[string]any{"Author": letter.Author})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	} else if result.Next(ctx); result.Record() == nil {
+		return notAllowedError
+	}
+
+	result, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name IN $reader AND acc.blocked = false 
+RETURN a;`,
+		map[string]any{"reader": letter.Reader})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	} else if result.Next(ctx); result.Record() == nil {
+		return notRecipientFoundError
+	}
+
+	_, err = tx.Run(ctx, letterCreation, letter.GetCreationMap())
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+	err = tx.Commit(ctx)
 	return err
 }
 

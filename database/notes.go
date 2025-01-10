@@ -107,6 +107,13 @@ MERGE (a)-[:WRITTEN]->(n);`,
 	return err
 }
 
+func UpdateNoteRemovedStatus(note *BlackboardNote) error {
+	_, err := makeRequest(`MATCH (n:Note) WHERE n.id = $id 
+SET n.removed = $removed
+RETURN n;`, map[string]any{"id": note.ID, "removed": note.Removed})
+	return err
+}
+
 func GetNote(id string) (*BlackboardNote, error) {
 	idMap := map[string]any{"id": id}
 	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (n:Note) WHERE n.id = $id RETURN n;`,
