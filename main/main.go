@@ -80,7 +80,12 @@ func main() {
 
 	http.HandleFunc("GET /my/letter", letter.GetPagePersonalLetter)
 	http.HandleFunc("PUT /my/letter", letter.PutPagePersonalLetter)
-	http.HandleFunc("GET /view/letter", letter.GetAdminLetterViewPage)
+	http.HandleFunc("GET /create/letter", letter.GetCreateLetterPage)
+	http.HandleFunc("POST /create/letter", letter.PostCreateLetterPage)
+	http.HandleFunc("PATCH /check/create/letter", letter.PatchCheckCreateLetterPage)
+	http.HandleFunc("GET /admin/letter/search", letter.GetAdminLetterSearchPage)
+	http.HandleFunc("GET /view/letter/{id}", letter.GetLetterViewPage)
+	http.HandleFunc("PATCH /view/letter/{id}", letter.PatchLetterViewPage)
 
 	http.HandleFunc("GET /", handler.GetHomePage)
 

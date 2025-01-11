@@ -24,7 +24,7 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	}
 	page.Amount, _ = strconv.Atoi(query.Get("amount"))
 	page.Page, _ = strconv.Atoi(query.Get("page"))
-	page.PossibleAccounts, err = database.GetOwnedAccountNames(acc)
+	page.PossibleAccounts, err = database.GetMyAccountNames(acc)
 
 	if err != nil {
 		page.PossibleAccounts = []string{acc.Name}
@@ -37,17 +37,9 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	}
 	accounts := page.PossibleAccounts
 
-	if page.Account == acc.Name {
-		accounts = []string{acc.Name}
-	} else {
-		var target *database.Account
-		var owner *database.Account
-		target, owner, err = database.GetAccountAndOwnerByAccountName(page.Account)
-		if err == nil && !owner.Exists() && owner.Name == acc.Name {
-			accounts = []string{target.Name}
-		} else {
-			accounts = append(accounts, acc.Name)
-		}
+	allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account)
+	if allowed {
+		accounts = []string{page.Account}
 	}
 
 	page.Results, err = database.GetLetterList(accounts, page.Amount+1, page.Page)
@@ -74,7 +66,7 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	page.Account = helper.GetFormEntry(request, "account")
 	page.Amount, _ = strconv.Atoi(helper.GetFormEntry(request, "amount"))
 	page.Page, _ = strconv.Atoi(helper.GetFormEntry(request, "page"))
-	page.PossibleAccounts, err = database.GetOwnedAccountNames(acc)
+	page.PossibleAccounts, err = database.GetMyAccountNames(acc)
 
 	if err != nil {
 		page.PossibleAccounts = []string{acc.Name}
@@ -87,17 +79,9 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	}
 	accounts := page.PossibleAccounts
 
-	if page.Account == acc.Name {
-		accounts = []string{acc.Name}
-	} else {
-		var target *database.Account
-		var owner *database.Account
-		target, owner, err = database.GetAccountAndOwnerByAccountName(page.Account)
-		if err == nil && !owner.Exists() && owner.Name == acc.Name {
-			accounts = []string{target.Name}
-		} else {
-			accounts = append(accounts, acc.Name)
-		}
+	allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account)
+	if allowed {
+		accounts = []string{page.Account}
 	}
 
 	page.Results, err = database.GetLetterList(accounts, page.Amount+1, page.Page)

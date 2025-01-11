@@ -1,0 +1,61 @@
+{{define "pageScript"}}
+    <script>
+        function copy() {
+            let copy = document.querySelector("#input-for-recipient").cloneNode(true)
+            copy.setAttribute("class", "name-list")
+            copy.removeAttribute("id")
+            document.querySelector("#recipient-names").insertAdjacentElement("beforebegin", copy)
+        }
+
+        function destroyParent(self) {
+            self.parentElement.remove()
+        }
+    </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.CreateLetterPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <form hx-post="/create/letter" hx-target="#page-body">
+        <label for="title">Titel</label>
+        <input id="title" name="title" type="text" value="{{.Title}}">
+        <label for="author">Autor</label>
+        <select id="author" name="author" hx-get="/newspaper/for/account" hx-trigger="change" hx-target="#newspaper">
+            {{$author := .Author}}
+            {{range .PossibleAuthors}}
+                <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
+            {{end}}
+        </select>
+        <button type="button" onclick="copy()">Empfänger hinzufügen</button>
+        <label for="recipient">Empfänger</label>
+        <div id="input-for-recipient" class="name-list hide">
+            <input id="recipient" name="[]recipient" type="text" list="recipient-names">
+            <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+        </div>
+        {{range .Recipients}}
+            <div class="name-list">
+                <input id="recipient" name="[]recipient" type="text" value="{{.}}" list="recipient-names">
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
+        {{end}}
+        <datalist id="recipient-names">
+            {{range .AccountNames}}
+                <option>{{.}}</option>
+            {{end}}
+        </datalist>
+        <label for="signable">Mit Unterschrift</label>
+        <input type="checkbox" id="signable" name="signable" value="true" {{if .Signable}}checked{{end}}>
+        <label for="markdown">Inhalt</label>
+        <textarea id="markdown" name="markdown" rows="10"
+                  hx-trigger="keyup changed delay:1s" hx-put="/markdown"
+                  hx-target="#markdown-box">
+            {{- .Body -}}
+        </textarea>
+        <button hx-patch="/check/create/letter">Brief überprüfen</button>
+        <button type="submit">Brief erstellen</button>
+    </form>
+    {{template "message" .}}
+    <h1>Vorschau</h1>
+    {{template "markdownBox" .}}
+    </body>
+{{end}}

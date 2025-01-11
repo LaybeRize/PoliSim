@@ -146,8 +146,10 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	baseAcc, owner, err := database.GetAccountAndOwnerByAccountName(helper.GetFormEntry(request, "author"))
-	if !((baseAcc.Exists() && baseAcc.Name == acc.Name) || (owner.Exists() && owner.Name == acc.Name)) || err != nil {
+	page := &handler.CreateArticlePage{}
+	page.Author = helper.GetFormEntry(request, "author")
+	allowed, err := database.IsAccountAllowedToPostWith(acc, page.Author)
+	if !allowed || err != nil {
 		if err != nil {
 			slog.Error(err.Error())
 		}
@@ -156,8 +158,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	page := &handler.CreateArticlePage{}
-	page.PossibleNewspaper, err = database.GetNewspaperNameListForAccount(baseAcc.Name)
+	page.PossibleNewspaper, err = database.GetNewspaperNameListForAccount(page.Author)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

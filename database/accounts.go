@@ -155,7 +155,19 @@ OPTIONAL MATCH (t:Account)-[:OWNER]->(a) RETURN a, t;`,
 	return
 }
 
-// GetNames returns first an array of Names, then the array of Usernames and then the error, if one occured
+func IsAccountAllowedToPostWith(user *Account, poster string) (bool, error) {
+	if user.Name == poster {
+		return true, nil
+	}
+	result, err := makeRequest(`MATCH (t:Account)-[:OWNER]->(a:Account) 
+WHERE a.name = $name AND t.name = $owner RETURN a;`, map[string]any{"name": poster, "owner": user.Name})
+	if err != nil {
+		return false, err
+	}
+	return len(result.Records) >= 1, err
+}
+
+// GetNames returns first an array of Names, then the array of Usernames and then the error, if one occurred
 func GetNames() ([]string, []string, error) {
 	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) 
 RETURN a.name AS name, a.username AS username;`,
@@ -179,6 +191,23 @@ func GetNonBlockedNames() ([]string, error) {
 WHERE a.blocked = false 
 RETURN a.name AS name ORDER BY name;`,
 		nil, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, len(queryResult.Records))
+	for i, record := range queryResult.Records {
+		names[i] = record.Values[0].(string)
+	}
+
+	return names, err
+}
+
+func FilterNameListForNonBlocked(list []string) ([]string, error) {
+	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) 
+WHERE a.blocked = false AND a.name IN $list
+RETURN a.name AS name ORDER BY name;`,
+		map[string]any{"list": list}, neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {
 		return nil, err
@@ -237,6 +266,23 @@ RETURN a.name AS name ORDER BY name;`,
 	return names, err
 }
 
+func GetMyAccountNames(owner *Account) ([]string, error) {
+	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Account) WHERE o.name = $name 
+MATCH (o)-[:OWNER]->(a:Account) 
+RETURN a.name AS name ORDER BY name;`,
+		map[string]any{"name": owner.Name}, neo4j.EagerResultTransformer,
+		neo4j.ExecuteQueryWithDatabase(""))
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, len(result.Records)+1)
+	names[0] = owner.Name
+	for i, record := range result.Records {
+		names[i+1] = record.Values[0].(string)
+	}
+	return names, err
+}
+
 func MakeOwner(ownerName string, targetName string) error {
 	_, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account), (t:Account) WHERE a.name = $owner 
 AND t.name = $target MERGE (a)-[:OWNER]->(t);`,
@@ -251,56 +297,6 @@ MATCH (a:Account)-[r:OWNER]->(t) DELETE r;`,
 		map[string]any{"target": targetName}, neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(""))
 	return err
-}
-
-func GetAllowedAsUser(ownerName string, orgName string) ([]Account, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Organisation) WHERE a.name = $org 
-MATCH (a:Account)-[:ADMIN|USER]->(o) 
-WHERE a.name = $owner 
-RETURN a UNION 
-MATCH (o:Organisation), (acc:Account) WHERE o.name = $org AND acc.name = $owner 
-MATCH (acc)-[:OWNER]->(a:Account)-[:ADMIN|USER]->(o) 
-RETURN a ORDER BY a.name;`,
-		map[string]any{"org": orgName, "owner": ownerName}, neo4j.EagerResultTransformer,
-		neo4j.ExecuteQueryWithDatabase(""))
-	if err != nil {
-		return nil, err
-	}
-	return getArrayOfAccounts("a", result.Records), err
-}
-
-func GetAllowedAsAdmin(ownerName string, orgName string) ([]Account, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (o:Organisation) 
-WHERE a.name = $org MATCH (a:Account)-[:ADMIN]->(o) 
-WHERE a.name = $owner
-RETURN a UNION 
-MATCH (o:Organisation), (acc:Account) WHERE o.name = $org AND acc.name = $owner 
-MATCH (acc)-[:OWNER]->(a:Account)-[:ADMIN]->(o) 
-RETURN a ORDER BY a.name;`,
-		map[string]any{"org": orgName, "owner": ownerName}, neo4j.EagerResultTransformer,
-		neo4j.ExecuteQueryWithDatabase(""))
-	if err != nil {
-		return nil, err
-	}
-	return getArrayOfAccounts("a", result.Records), err
-}
-
-func getArrayOfAccounts(letter string, records []*neo4j.Record) []Account {
-	arr := make([]Account, 0, len(records))
-	for _, record := range records {
-		result, exists := record.Get(letter)
-		if !exists {
-			continue
-		}
-		node := result.(neo4j.Node)
-		arr = append(arr, Account{
-			Name:     node.Props["name"].(string),
-			Username: node.Props["username"].(string),
-			Role:     AccountRole(node.Props["role"].(int64)),
-			Blocked:  node.Props["blocked"].(bool),
-		})
-	}
-	return arr
 }
 
 func getSingleAccount(letter string, records []*neo4j.Record) (*Account, error) {

@@ -3,6 +3,7 @@ package accounts
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
 )
 
@@ -25,14 +26,14 @@ func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	username := request.Form.Get("username")
+	username := helper.GetFormEntry(request, "username")
 	loginAcc, accErr := database.GetAccountByUsername(username)
 	page.Message = "Nutzername oder Passwort falsch"
 	if accErr != nil {
 		handler.MakePage(writer, acc, &page)
 		return
 	}
-	correctPassword := database.VerifyPassword(loginAcc.Password, request.Form.Get("password"))
+	correctPassword := database.VerifyPassword(loginAcc.Password, helper.GetPureFormEntry(request, "password"))
 	if !correctPassword || loginAcc.Role == database.PressUser {
 		handler.MakePage(writer, acc, &page)
 		return

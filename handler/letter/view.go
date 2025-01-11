@@ -2,6 +2,14 @@ package letter
 
 import "net/http"
 
-func GetAdminLetterViewPage(writer http.ResponseWriter, request *http.Request) {
+func GetAdminLetterSearchPage(writer http.ResponseWriter, request *http.Request) {
+
+}
+
+func GetLetterViewPage(writer http.ResponseWriter, request *http.Request) {
+
+}
+
+func PatchLetterViewPage(writer http.ResponseWriter, request *http.Request) {
 
 }

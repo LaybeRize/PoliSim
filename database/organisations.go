@@ -70,26 +70,28 @@ sub_type: $subtype , flair: $flair});`,
 		_ = tx.Rollback(ctx)
 		return err
 	}
-	_, err = tx.Run(ctx, `
+	if org.Visibility != HIDDEN {
+		_, err = tx.Run(ctx, `
 MATCH (o:Organisation) WHERE o.name = $org 
 MATCH (a:Account) WHERE a.name IN $aNames 
 MERGE (a)-[:ADMIN]->(o);`, map[string]any{
-		"org":    org.Name,
-		"aNames": adminNames})
-	if err != nil {
-		_ = tx.Rollback(ctx)
-		return err
-	}
-	_, err = tx.Run(ctx, `
+			"org":    org.Name,
+			"aNames": adminNames})
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return err
+		}
+		_, err = tx.Run(ctx, `
 MATCH (o:Organisation) WHERE o.name = $org 
 MATCH (u:Account) WHERE u.name IN $uNames AND (NOT u.name IN $aNames) 
 MERGE (u)-[:USER]->(o);`, map[string]any{
-		"org":    org.Name,
-		"uNames": userNames,
-		"aNames": adminNames})
-	if err != nil {
-		_ = tx.Rollback(ctx)
-		return err
+			"org":    org.Name,
+			"uNames": userNames,
+			"aNames": adminNames})
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return err
+		}
 	}
 	err = tx.Commit(ctx)
 	return err

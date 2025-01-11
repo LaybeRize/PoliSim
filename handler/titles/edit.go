@@ -146,7 +146,7 @@ func PutTitleSearchPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	name := request.Form.Get("name")
+	name := helper.GetFormEntry(request, "name")
 	_, err = database.GetTitleByName(name)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

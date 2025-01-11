@@ -78,7 +78,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		Author:   author.Name,
 		Flair:    flairString,
 		PostedAt: time.Now().UTC(),
-		Body:     handler.MakeMarkdown(request.Form.Get("markdown")),
+		Body:     handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
 		Removed:  false,
 		Parents:  nil,
 		Children: nil,

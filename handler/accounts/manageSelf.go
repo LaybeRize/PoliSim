@@ -86,9 +86,9 @@ func PostUpdateMyPassword(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page.OldPassword = helper.GetFormEntry(request, "oldPassword")
-	page.NewPassword = request.Form.Get("newPassword")
-	page.RepeatNewPassword = request.Form.Get("newPasswordRepeat")
+	page.OldPassword = helper.GetPureFormEntry(request, "oldPassword")
+	page.NewPassword = helper.GetPureFormEntry(request, "newPassword")
+	page.RepeatNewPassword = helper.GetPureFormEntry(request, "newPasswordRepeat")
 	if !database.VerifyPassword(acc.Password, page.OldPassword) {
 		page.Message = "Das alte Passwort ist falsch"
 		handler.MakeSpecialPagePart(writer, page)

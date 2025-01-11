@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"PoliSim/helper"
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/microcosm-cc/bluemonday"
@@ -27,5 +28,5 @@ func PostMakeMarkdown(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		MakeSpecialPagePart(writer, &MarkdownBox{Information: MakeMarkdown("`Anfrage konnte nicht geparsed werden`")})
 	}
-	MakeSpecialPagePart(writer, &MarkdownBox{Information: MakeMarkdown(request.Form.Get("markdown"))})
+	MakeSpecialPagePart(writer, &MarkdownBox{Information: MakeMarkdown(helper.GetFormEntry(request, "markdown"))})
 }
