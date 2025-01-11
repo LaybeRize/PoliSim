@@ -1,13 +1,17 @@
-{{define "page"}}
-    {{- /*gotype: PoliSim/handler.SearchNotesPage*/ -}}
-    <body id="page-body">
-        <script>
+{{define "pageScript"}}
+    <script>
+        window.onload = function () {
             document.body.addEventListener("htmx:afterRequest", function (evt) {
                 if (evt.failed) {
                     alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
                 }
             })
-        </script>
+        }
+    </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.SearchNotesPage*/ -}}
+    <body id="page-body">
         {{template "header" .NavInfo}}
         {{$acc := .NavInfo.Account}}
         <form id="search-form" hx-put="/search/notes" hx-target="#page-body">

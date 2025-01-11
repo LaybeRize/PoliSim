@@ -3,6 +3,7 @@ package organisations
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -13,6 +14,7 @@ func GetOrganisationView(writer http.ResponseWriter, request *http.Request) {
 	var err error
 	page.Hierarchy, err = database.GetOrganisationMapForUser(acc)
 	if err != nil {
+		slog.Debug(err.Error())
 		page.HadError = true
 	}
 	handler.MakeFullPage(writer, acc, page)

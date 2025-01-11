@@ -192,7 +192,7 @@ RETURN a.name AS name ORDER BY name;`,
 }
 
 func GetNamesForActiveUsers() ([]string, error) {
-	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.role != $role 
+	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.role <> $role 
 AND a.blocked = false RETURN a.name AS name;`,
 		map[string]any{"role": PressUser}, neo4j.EagerResultTransformer,
 		neo4j.ExecuteQueryWithDatabase(""))

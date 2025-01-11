@@ -11,21 +11,18 @@
             self.parentElement.remove()
         }
 
-        let classList = ["", "", "", ""]
+        let newspaperCreate = false;
+        let newspaperChange = false;
 
         window.onload = function () {
-            document.body.addEventListener("htmx:afterSettle", function (evt) {
-                document.querySelector("#indicator-change-newspaper").className = classList[0];
-                document.querySelector("#form-change-newspaper").className = classList[1];
-                document.querySelector("#indicator-create-newspaper").className = classList[2];
-                document.querySelector("#form-create-newspaper").className = classList[3];
+            document.body.addEventListener("htmx:afterSwap", function (evt) {
+                if (newspaperCreate) {document.querySelector("#newspaper-create").setAttribute("open", '')}
+                if (newspaperChange) {document.querySelector("#newspaper-change").setAttribute("open", '')}
             });
 
             document.body.addEventListener("htmx:configRequest", function (evt) {
-                classList[0] = document.querySelector("#indicator-change-newspaper").className;
-                classList[1] = document.querySelector("#form-change-newspaper").className;
-                classList[2] = document.querySelector("#indicator-create-newspaper").className;
-                classList[3] = document.querySelector("#form-create-newspaper").className;
+                newspaperCreate = document.querySelector("#newspaper-create").hasAttribute("open")
+                newspaperChange = document.querySelector("#newspaper-change").hasAttribute("open")
             });
         };
     </script>
@@ -37,52 +34,50 @@
         {{$acc := .NavInfo.Account}}
         {{if .NavInfo.Account.IsAtLeastAdmin}}
         <div class="block-view">
-            <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me toggle .bi-list-opened
-                     then tell next <form/> toggle .hide">
-                <i id="indicator-create-newspaper" class="bi bi-list-closed"></i> Zeitung erstellen
-            </a>
-            <form id="form-create-newspaper" class="hide" hx-post="/newspaper/create" hx-target="#page-body">
-                <label for="name">Name</label>
-                <input id="name" name="name" type="text" value="">
-                <button>Zeitung erstellen</button>
-            </form>
+            <details id="newspaper-create">
+                <summary>Zeitung erstellen</summary>
+                <form id="form-create-newspaper" hx-post="/newspaper/create" hx-target="#page-body">
+                    <label for="name">Name</label>
+                    <input id="name" name="name" type="text" value="">
+                    <button>Zeitung erstellen</button>
+                </form>
+            </details>
         </div>
         {{block "updateNewspaper" .}}
         <div id="change-newspaper" class="block-view">
-            <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me toggle .bi-list-opened
-                         then tell next <form/> toggle .hide">
-                <i id="indicator-change-newspaper" class="bi bi-list-closed"></i> Zeitung verändern
-            </a>
-            <form id="form-change-newspaper" class="hide" hx-patch="/newspaper/update" hx-target="#change-newspaper">
-                <label for="name">Name</label>
-                <input id="name" name="name" type="text" value="{{.Newspaper.Name}}" list="newspaper-names">
-                <datalist id="newspaper-names">
-                    {{range .NewspaperNames}}
-                        <option>{{.}}</option>
-                    {{end}}
-                </datalist>
-                <button type="button" onclick="copy()">
-                    Autor hinzufügen
-                </button>
-                <label for="author">Autoren</label>
-                <div id="input-for-author" class="name-list hide">
-                    <input id="author" name="[]author" type="text" list="account-names">
-                    <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
-                </div>
-                {{range .Newspaper.Authors}}
-                    <div class="name-list">
-                        <input id="author" name="[]author" type="text" value="{{.}}" list="account-names">
+            <details id="newspaper-change">
+                <summary>Zeitung verändern</summary>
+                <form hx-patch="/newspaper/update" hx-target="#change-newspaper">
+                    <label for="name">Name</label>
+                    <input id="name" name="name" type="text" value="{{.Newspaper.Name}}" list="newspaper-names">
+                    <datalist id="newspaper-names">
+                        {{range .NewspaperNames}}
+                            <option>{{.}}</option>
+                        {{end}}
+                    </datalist>
+                    <button type="button" onclick="copy()">
+                        Autor hinzufügen
+                    </button>
+                    <label for="author">Autoren</label>
+                    <div id="input-for-author" class="name-list hide">
+                        <input id="author" name="[]author" type="text" list="account-names">
                         <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
                     </div>
-                {{end}}
-                <datalist id="account-names">
-                    {{range .AccountNames}}
-                        <option>{{.}}</option>
+                    {{range .Newspaper.Authors}}
+                        <div class="name-list">
+                            <input id="author" name="[]author" type="text" value="{{.}}" list="account-names">
+                            <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+                        </div>
                     {{end}}
-                </datalist>
-                <button hx-put="/newspaper/search">Zeitung suchen</button>
-                <button>Zeitung anpassen</button>
-            </form>
+                    <datalist id="account-names">
+                        {{range .AccountNames}}
+                            <option>{{.}}</option>
+                        {{end}}
+                    </datalist>
+                    <button hx-put="/newspaper/search">Zeitung suchen</button>
+                    <button>Zeitung anpassen</button>
+                </form>
+            </details>
             {{template "message" .}}
         </div>
         {{end}}

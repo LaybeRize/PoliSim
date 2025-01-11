@@ -18,14 +18,8 @@
             document.querySelector("#link-all-entries").href =
                 "/create/note?loaded=" + loaded.join("&loaded=");
         }
-    </script>
-{{end}}
-{{define "page"}}
-    {{- /*gotype: PoliSim/handler.NotesPage */ -}}
-    <body id="page-body">
-        <script>
-            let loaded = {{.LoadedNoteIDs}};
 
+        window.onload = function () {
             document.body.addEventListener("htmx:afterSwap", function (evt) {
                 loaded.push(evt.detail.elt.previousElementSibling.id);
                 loaded.forEach(element => (updateLinks(element)));
@@ -42,7 +36,12 @@
                     alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
                 }
             })
-        </script>
+        }
+    </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.NotesPage */ -}}
+    <body id="page-body">
     {{template "header" .NavInfo}}
         <div class="block-view note">
             <a href="/create/note" id="link-all-entries" target="_blank">Schreibe eine eigene Notiz zu allen offenen Beiträgen</a>
@@ -91,6 +90,8 @@
     {{end}}
     <div id="end-div" hidden></div>
     <script>
+        let loaded = {{.LoadedNoteIDs}};
+
         loaded.forEach(element => (updateLinks(element)));
         updateLinksAllEntriesElement();
     </script>

@@ -330,7 +330,7 @@ func GetOrganisationMapForUser(account *Account) (map[string]map[string][]Organi
 
 func GetAllVisibleOrganisations() ([]Organisation, error) {
 	result, err := neo4j.ExecuteQuery(ctx, driver,
-		`MATCH (o:Organisation) WHERE o.visibility != $hidden RETURN o 
+		`MATCH (o:Organisation) WHERE o.visibility <> $hidden RETURN o 
 ORDER BY o.main_type, o.sub_type, o.name;`,
 		map[string]any{
 			"hidden": HIDDEN,

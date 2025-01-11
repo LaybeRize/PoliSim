@@ -5,7 +5,9 @@
     {{if .HadError}}
         <i class="alert-red">Fehler beim Laden der Organisationen</i>
     {{else}}
-
+        {{if eq (len .Hierarchy) 0}}
+            <p>Es existieren keine Organisationen</p>
+        {{else}}
         <div class="wrapper hierarchy-view">
         {{range $MainGroupName, $SubGroupMap := .Hierarchy}}
             <a _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a><br>
@@ -25,6 +27,7 @@
             </div>
         {{end}}
         </div>
+        {{end}}
     {{end}}
     </body>
 {{end}}
