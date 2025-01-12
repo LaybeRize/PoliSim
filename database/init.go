@@ -1,6 +1,7 @@
 package database
 
 import (
+	loc "PoliSim/localisation"
 	"context"
 	"errors"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -13,7 +14,7 @@ var ctx context.Context
 var driver neo4j.DriverWithContext
 var notFoundError = errors.New("item not found")
 var notAllowedError = errors.New("action is for user not allowed")
-var notRecipientFoundError = errors.New("no recipient found for letter")
+var noRecipientFoundError = errors.New("no recipient found for letter")
 var multipleItemsError = errors.New("more then one item found")
 
 // HashPassword creates a hash of the given password, for later verification
@@ -48,6 +49,7 @@ func init() {
 	log.Println("Opened connection to the DB")
 	createConstraints()
 	createRootAccount()
+	createAdminstrationAccount()
 }
 
 func Shutdown() {
@@ -80,6 +82,28 @@ func createRootAccount() {
 		log.Println("Head Admin Account successfully created")
 	} else {
 		log.Fatalf("root account search error: %v", err)
+	}
+}
+
+func createAdminstrationAccount() {
+	acc, err := GetAccountByName(loc.AdminstrationAccountName)
+	if err == nil && acc != nil {
+		log.Println("administration account already exists")
+		return
+	} else if errors.Is(err, notFoundError) && acc == nil {
+		createError := CreateAccount(&Account{
+			Name:     loc.AdminstrationAccountName,
+			Username: loc.AdminstrationAccountUsername,
+			Password: loc.AdminstrationAccountPassword,
+			Role:     Special,
+			Blocked:  false,
+		})
+		if createError != nil {
+			log.Fatalf("root account creation error: %v", createError)
+		}
+		log.Println("administration account successfully created")
+	} else {
+		log.Fatalf("administration account search error: %v", err)
 	}
 }
 

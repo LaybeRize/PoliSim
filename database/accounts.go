@@ -57,7 +57,8 @@ func (a *Account) IsHeadAdmin() bool {
 }
 
 const (
-	RootAdmin AccountRole = iota
+	Special AccountRole = iota - 1
+	RootAdmin
 	HeadAdmin
 	Admin
 	PressAdmin
@@ -81,6 +82,9 @@ func CreateAccount(acc *Account) error {
 }
 
 func GetAccountByUsername(username string) (*Account, error) {
+	if username == loc.AdminstrationAccountUsername {
+		return nil, notFoundError
+	}
 	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.username = $name RETURN a;`,
 		map[string]any{"name": username}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	if err != nil {

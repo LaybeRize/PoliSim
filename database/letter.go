@@ -1,6 +1,7 @@
 package database
 
 import (
+	loc "PoliSim/localisation"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
 	"time"
@@ -12,13 +13,14 @@ const (
 	NoDecision     = "no_decision"
 	NoSignPossible = "no_sign"
 
-	letterCreation = `MATCH (a:Account) WHERE a.name IN $reader AND a.blocked = false
-MATCH (aut:Account) WHERE a.name = $Author 
+	letterCreation = `MATCH (aut:Account) WHERE aut.name = $Author
 CREATE (l:Letter {id: $id, title: $title , author: $Author , flair: $Flair, 
 written: $written , signable: $signable , body: $Body}) 
-MERGE (a)<-[:RECIPIENT {signature: $signature, viewed: false}]-(l) 
-MERGE (aut)<-[:RECIPIENT {signature: $authorSign, viewed: true}]-(l) 
-MERGE (aut)-[:WRITTEN]->(l);`
+CREATE (aut)<-[:RECIPIENT {signature: $authorSign, viewed: true}]-(l) 
+CREATE (aut)-[:WRITTEN]->(l);`
+	letterLinkage = `MATCH (l:Letter), (a:Account) 
+WHERE l.id = $id AND a.name IN $reader AND a.blocked = false AND a.name <> $Author
+CREATE (a)<-[:RECIPIENT {signature: $signature, viewed: false}]-(l);`
 )
 
 type ReducedLetter struct {
@@ -53,7 +55,8 @@ type Letter struct {
 	Signable   bool
 	Written    time.Time
 	Body       template.HTML
-	Recipent   string
+	Recipient  string
+	HasSigned  bool
 	Reader     []string
 	Agreed     []string
 	Declined   []string
@@ -111,14 +114,14 @@ RETURN acc;`,
 		return notAllowedError
 	}
 
-	result, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name IN $reader AND acc.blocked = false 
+	result, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name IN $reader AND a.blocked = false 
 RETURN a;`,
 		map[string]any{"reader": letter.Reader})
 	if err != nil {
 		_ = tx.Rollback(ctx)
 		return err
 	} else if result.Next(ctx); result.Record() == nil {
-		return notRecipientFoundError
+		return noRecipientFoundError
 	}
 
 	_, err = tx.Run(ctx, letterCreation, letter.GetCreationMap())
@@ -126,58 +129,15 @@ RETURN a;`,
 		_ = tx.Rollback(ctx)
 		return err
 	}
+
+	_, err = tx.Run(ctx, letterLinkage, letter.GetCreationMap())
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+
 	err = tx.Commit(ctx)
 	return err
-}
-
-func GetLetter(id string, viewer string) (*Letter, error) {
-	result, err := makeRequest(`MATCH (a:Account)-[:RECIPIENT]->(l:Letter) 
-WHERE l.id = $id AND a.name = $viewer
-RETURN l;`, map[string]any{"id": id, "viewer": viewer})
-	if err != nil {
-		return nil, err
-	}
-	if len(result.Records) != 1 {
-		return nil, notFoundError
-	}
-
-	node := result.Records[0].Values[0].(neo4j.Node).Props
-	letter := &Letter{
-		ID:         node["id"].(string),
-		Title:      node["title"].(string),
-		Author:     node["author"].(string),
-		Flair:      node["flair"].(string),
-		Signable:   node["signable"].(bool),
-		Written:    node["written"].(time.Time),
-		Body:       template.HTML(node["body"].(string)),
-		Recipent:   viewer,
-		Reader:     []string{},
-		Agreed:     []string{},
-		Declined:   []string{},
-		NoDecision: []string{},
-	}
-
-	result, err = makeRequest(`MATCH (a:Account)-[r:RECIPIENT]->(l:Letter) 
-WHERE l.id = $id
-RETURN a.name, r.signature;`, map[string]any{"id": id})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, record := range result.Records {
-		name := record.Values[0].(string)
-		letter.Reader = append(letter.Reader, name)
-		switch record.Values[1].(string) {
-		case Agreed:
-			letter.Agreed = append(letter.Agreed, name)
-		case Declined:
-			letter.Declined = append(letter.Declined, name)
-		case NoDecision:
-			letter.NoDecision = append(letter.NoDecision, name)
-		}
-	}
-
-	return letter, err
 }
 
 func GetLetterList(viewer []string, amount int, page int) ([]ReducedLetter, error) {
@@ -204,5 +164,100 @@ ORDER BY l.written DESC, a.name SKIP $skip LIMIT $amount;`,
 			Viewed:   record.Values[6].(bool),
 		}
 	}
-	return nil, nil
+	return list, nil
+}
+
+func GetLetterForReader(id string, reader string) (*Letter, error) {
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var result neo4j.ResultWithContext
+
+	if reader == loc.AdminstrationName {
+		result, err = tx.Run(ctx, `MATCH (l:Letter)
+WHERE l.id = $id
+RETURN l;`,
+			map[string]any{"id": id})
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return nil, err
+		} else if result.Next(ctx); result.Record() == nil {
+			_ = tx.Rollback(ctx)
+			return nil, notFoundError
+		}
+	} else {
+		result, err = tx.Run(ctx, `MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter)
+WHERE a.name = $reader AND l.id = $id 
+SET r.viewed = true 
+RETURN l, r.signature;`,
+			map[string]any{"id": id, "reader": reader})
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return nil, err
+		} else if result.Next(ctx); result.Record() == nil {
+			_ = tx.Rollback(ctx)
+			return nil, notFoundError
+		}
+	}
+
+	nodeTitle := result.Record().Values[0].(neo4j.Node)
+	letter := &Letter{Recipient: reader}
+	if reader == loc.AdminstrationName {
+		letter.HasSigned = true
+	} else {
+		letter.HasSigned = result.Record().Values[1].(string) != NoDecision
+	}
+	letter.ID = id
+	letter.Title = nodeTitle.Props["title"].(string)
+	letter.Author = nodeTitle.Props["author"].(string)
+	letter.Flair = nodeTitle.Props["flair"].(string)
+	letter.Written = nodeTitle.Props["written"].(time.Time)
+	letter.Signable = nodeTitle.Props["signable"].(bool)
+	letter.Body = template.HTML(nodeTitle.Props["body"].(string))
+	letter.Reader = make([]string, 0)
+	if letter.Signable {
+		letter.Agreed = make([]string, 0)
+		letter.Declined = make([]string, 0)
+		letter.NoDecision = make([]string, 0)
+	}
+
+	result, err = tx.Run(ctx, `MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter) 
+WHERE l.id = $id 
+RETURN a.name, r.signature;`,
+		map[string]any{"id": id})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return letter, err
+	}
+	for result.Next(ctx) {
+		name := result.Record().Values[0].(string)
+		letter.Reader = append(letter.Reader, name)
+		switch result.Record().Values[1].(string) {
+		case NoDecision:
+			letter.NoDecision = append(letter.NoDecision, name)
+		case Agreed:
+			letter.Agreed = append(letter.Agreed, name)
+		case Declined:
+			letter.Declined = append(letter.Declined, name)
+		}
+	}
+
+	err = tx.Commit(ctx)
+	return letter, err
+}
+
+func UpdateSingatureStatus(id string, reader string, agree bool) error {
+	newStatus := Declined
+	if agree {
+		newStatus = Agreed
+	}
+	_, err := makeRequest(`MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter) 
+WHERE l.id = $id AND a.name = $reader AND r.signature = $oldStatus 
+SET r.signature = $status;`,
+		map[string]any{"id": id, "reader": reader,
+			"oldStatus": NoDecision,
+			"status":    newStatus})
+	return err
 }

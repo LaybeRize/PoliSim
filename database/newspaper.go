@@ -494,6 +494,12 @@ func (a *ArticleRejectionTransaction) CreateLetter(letter *Letter) error {
 		return err
 	}
 
+	_, err = a.tx.Run(ctx, letterLinkage, letter.GetCreationMap())
+	if err != nil {
+		_ = a.tx.Rollback(ctx)
+		return err
+	}
+
 	err = a.tx.Commit(ctx)
 	return err
 }

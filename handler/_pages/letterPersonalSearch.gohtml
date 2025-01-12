@@ -17,6 +17,7 @@
     <form id="search-form" hx-put="/my/letter" hx-target="#page-body">
         <label for="account">Account</label>
         <select id="account" name="account">
+            <option value="">-- Alle Accounts --</option>
             {{$account := .Account}}
             {{range .PossibleAccounts}}
                 <option value="{{.}}" {{if eq . $account}}selected{{end}}>{{.}}</option>

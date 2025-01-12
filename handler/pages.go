@@ -395,6 +395,32 @@ func (p *CreateLetterPage) getPageName() string {
 	return "letterCreate"
 }
 
+type ViewLetterPage struct {
+	NavInfo NavigationInfo
+	database.Letter
+}
+
+func (p *ViewLetterPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *ViewLetterPage) getPageName() string {
+	return "letterView"
+}
+
+type AdminSearchLetterPage struct {
+	NavInfo          NavigationInfo
+	AccountNameToUse string
+}
+
+func (p *AdminSearchLetterPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *AdminSearchLetterPage) getPageName() string {
+	return "letterAdminSearch"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -601,6 +627,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Briefe durchsuchen"
 	case *CreateLetterPage:
 		fullPage.Base.Title = "Brief erstellen"
+	case *AdminSearchLetterPage:
+		fullPage.Base.Title = "Briefsuche mit ID"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

@@ -4,7 +4,9 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -29,6 +31,9 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		page.PossibleAccounts = []string{acc.Name}
 	}
+	if acc.IsAtLeastAdmin() {
+		page.PossibleAccounts = append(page.PossibleAccounts, loc.AdminstrationAccountName)
+	}
 	if page.Page < 1 {
 		page.Page = 1
 	}
@@ -37,14 +42,17 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	}
 	accounts := page.PossibleAccounts
 
-	allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account)
-	if allowed {
+	if acc.IsAtLeastAdmin() && page.Account == loc.AdminstrationAccountName {
+		accounts = []string{page.Account}
+	} else if allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account); allowed {
 		accounts = []string{page.Account}
 	}
+	slog.Debug("Accounts", "list", accounts, "account", page.Account)
 
 	page.Results, err = database.GetLetterList(accounts, page.Amount+1, page.Page)
 	page.HasPrevious = page.Page > 1
 	if err != nil {
+		slog.Error(err.Error())
 		page.Results = make([]database.ReducedLetter, 0)
 	} else if len(page.Results) > page.Amount {
 		page.HasNext = true
@@ -61,7 +69,13 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var err error
+	err := request.ParseForm()
+	if err != nil {
+		slog.Debug(err.Error())
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	page := &handler.SearchLetterPage{}
 	page.Account = helper.GetFormEntry(request, "account")
 	page.Amount, _ = strconv.Atoi(helper.GetFormEntry(request, "amount"))
@@ -71,6 +85,9 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		page.PossibleAccounts = []string{acc.Name}
 	}
+	if acc.IsAtLeastAdmin() {
+		page.PossibleAccounts = append(page.PossibleAccounts, loc.AdminstrationAccountName)
+	}
 	if page.Page < 1 {
 		page.Page = 1
 	}
@@ -79,14 +96,17 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	}
 	accounts := page.PossibleAccounts
 
-	allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account)
-	if allowed {
+	if acc.IsAtLeastAdmin() && page.Account == loc.AdminstrationAccountName {
+		accounts = []string{page.Account}
+	} else if allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account); allowed {
 		accounts = []string{page.Account}
 	}
+	slog.Debug("Accounts", "list", accounts, "account", page.Account)
 
 	page.Results, err = database.GetLetterList(accounts, page.Amount+1, page.Page)
 	page.HasPrevious = page.Page > 1
 	if err != nil {
+		slog.Error(err.Error())
 		page.Results = make([]database.ReducedLetter, 0)
 	} else if len(page.Results) > page.Amount {
 		page.HasNext = true

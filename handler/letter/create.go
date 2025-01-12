@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -15,7 +16,7 @@ func GetCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		handler.GetNotFoundPage(writer, request)
 		return
 	}
-	page := &handler.CreateLetterPage{}
+	page := &handler.CreateLetterPage{Recipients: []string{""}}
 	page.IsError = true
 	page.Author = acc.Name
 
@@ -31,6 +32,9 @@ func GetCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		page.Message += "\n" + "Konnte mögliche Empfängernamen nicht laden"
 	}
 
+	if acc.IsAtLeastAdmin() {
+		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdminstrationAccountName)
+	}
 	page.Message = strings.TrimSpace(page.Message)
 	handler.MakeFullPage(writer, acc, page)
 }
@@ -54,7 +58,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		Author:   helper.GetFormEntry(request, "author"),
 		Signable: helper.GetFormEntry(request, "signable") == "true",
 		Body:     handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
-		Reader:   helper.GetFormList(request, "recipient"),
+		Reader:   helper.GetFormList(request, "[]recipient"),
 	}
 	letter.ID = helper.GetUniqueID(letter.Author)
 	letter.Flair, err = database.GetAccountFlairs(&database.Account{Name: letter.Author})
@@ -77,8 +81,8 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	allowed, err := database.IsAccountAllowedToPostWith(acc, letter.Author)
-	if err == nil && !allowed {
+	allowed, _ := database.IsAccountAllowedToPostWith(acc, letter.Author)
+	if !allowed && !(acc.IsAtLeastAdmin() && letter.Author == loc.AdminstrationAccountName) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"})
 		return
@@ -105,7 +109,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page := &handler.CreateLetterPage{Author: letter.Author}
+	page := &handler.CreateLetterPage{Author: letter.Author, Recipients: []string{""}}
 	page.IsError = false
 	page.Message = "Brief erfolgreich erstellt"
 
@@ -120,6 +124,9 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		page.Message += "\n" + "Konnte mögliche Empfängernamen nicht laden"
 	}
 
+	if acc.IsAtLeastAdmin() {
+		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdminstrationAccountName)
+	}
 	handler.MakePage(writer, acc, page)
 }
 
@@ -143,7 +150,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 		Author:     helper.GetFormEntry(request, "author"),
 		Body:       helper.GetFormEntry(request, "markdown"),
 		Signable:   helper.GetFormEntry(request, "signable") == "true",
-		Recipients: helper.GetFormList(request, "recipient"),
+		Recipients: helper.GetFormList(request, "[]recipient"),
 	}
 	page.Information = handler.MakeMarkdown(page.Body)
 	page.IsError = true
@@ -160,8 +167,8 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	allowed, err := database.IsAccountAllowedToPostWith(acc, page.Author)
-	if err == nil && !allowed {
+	allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Author)
+	if !allowed && !(acc.IsAtLeastAdmin() && page.Author == loc.AdminstrationAccountName) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"})
 		return
@@ -175,7 +182,11 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 	}
 
 	if len(page.Recipients) == 0 {
+		page.Recipients = []string{""}
 		page.Message = "Die Anzahl an Empfängern für den Brief darf nicht 0 sein"
+	} else {
+		page.IsError = false
+		page.Message = "Der Brief darf so versendet werden"
 	}
 
 	page.PossibleAuthors, err = database.GetMyAccountNames(acc)
@@ -189,6 +200,9 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 		page.Message += "\n" + "Konnte mögliche Empfängernamen nicht laden"
 	}
 
+	if acc.IsAtLeastAdmin() {
+		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdminstrationAccountName)
+	}
 	page.Message = strings.TrimSpace(page.Message)
 	handler.MakePage(writer, acc, page)
 }

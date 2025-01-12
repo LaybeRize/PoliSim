@@ -7,6 +7,7 @@ COPY ./handler ./handler
 COPY ./main ./main
 COPY ./public ./public
 COPY ./helper ./helper
+COPY ./localisation ./localisation
 COPY go.mod .
 RUN go mod tidy
 
