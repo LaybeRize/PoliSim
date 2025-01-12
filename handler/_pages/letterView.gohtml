@@ -2,5 +2,32 @@
     {{- /*gotype: PoliSim/handler.ViewLetterPage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
+        <div class="wrapper article">
+            <div class="block-view">
+                <h1>{{.Letter.Title}}</h1>
+                <p>
+                    Geschrieben von: {{.Letter.GetAuthor}}<br>
+                    <i>Verfasst am: {{.Letter.GetTimeWritten .NavInfo.Account}}</i><br><br>
+                    {{.Letter.GetReader}}{{if .Letter.Signable}}<br>
+                        {{.Letter.GetAgreed}}<br>
+                        {{.Letter.GetDeclined}}<br>
+                        {{.Letter.GetNoDecision}}
+                    {{end}}
+                </p>
+            </div>
+            <div class="markdown">{{.Letter.Body}}</div>
+            {{if not .Letter.HasSigned}}
+                <div class="wrapper note pager">
+                    <a hx-patch="/view/letter/{{.Letter.ID}}?viewer={{urlquery .Letter.Recipient}}&decision=accept"
+                       hx-target="#page-body">
+                        Als {{.Letter.Recipient}} zustimmen
+                    </a>
+                    <a hx-patch="/view/letter/{{.Letter.ID}}?viewer={{urlquery .Letter.Recipient}}&decision=decline"
+                       hx-target="#page-body">
+                        Als {{.Letter.Recipient}} ablehnen
+                    </a>
+                </div>
+            {{end}}
+        </div>
     </body>
 {{end}}

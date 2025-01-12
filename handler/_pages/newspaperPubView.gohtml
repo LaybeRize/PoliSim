@@ -22,28 +22,27 @@
     {{range .Articles}}
         {{- /*gotype: PoliSim/database.NewspaperArticle*/ -}}
         <div class="wrapper article">
-                <hr>
-                <div class="block-view">
-                    <h1>{{.Title}}</h1>
-                    {{if .HasSubtitle}}<h2>{{.Subtitle}}</h2>{{end}}
-                    <p>
-                        Geschrieben von: {{.GetAuthor}}<br>
-                        <i>Verfasst am: {{.GetTimeWritten $acc}}</i>
-                    </p>
-                </div>
-                <div class="markdown">{{.Body}}</div>
-                {{if not $published}}
-                    <a class="dropdown" _="on click tell <i/> in me toggle .bi-list-closed then tell <i/> in me
-                                           toggle .bi-list-opened then tell next <form/> toggle .hide">
-                        <i id="indicator-create-newspaper" class="bi bi-list-closed"></i> Artikel zurückweisen
-                    </a>
+            <hr>
+            <div class="block-view">
+                <h1>{{.Title}}</h1>
+                {{if .HasSubtitle}}<h2>{{.Subtitle}}</h2>{{end}}
+                <p>
+                    Geschrieben von: {{.GetAuthor}}<br>
+                    <i>Verfasst am: {{.GetTimeWritten $acc}}</i>
+                </p>
+            </div>
+            <div class="markdown">{{.Body}}</div>
+            {{if not $published}}
+                <details>
+                    <summary>Artikel zurückweisen</summary>
                     <form class="hide" hx-delete="/article/{{.ID}}" hx-target="#page-body">
                         <label for="rejection">Zurückweisungsgrund</label>
                         <textarea id="rejection" name="rejection" rows="3"></textarea>
                         <button>Artikel zurückweisen</button>
                     </form>
-                {{end}}
-            </div>
+                </details>
+            {{end}}
+        </div>
     {{end}}
     {{end}}
     </body>

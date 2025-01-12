@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	loc "PoliSim/localisation"
+	"log/slog"
 	"net/http"
 )
 
@@ -25,6 +26,7 @@ func GetLetterViewPage(writer http.ResponseWriter, request *http.Request) {
 	}
 	id := request.PathValue("id")
 	reader := request.URL.Query().Get("viewer")
+	slog.Debug("information", "id", id, "reader", reader)
 	if allowed, err := database.IsAccountAllowedToPostWith(acc, reader); !checkValidSpecialAccounts(acc, reader) &&
 		(!allowed || err != nil) {
 		handler.GetNotFoundPage(writer, request)

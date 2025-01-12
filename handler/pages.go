@@ -629,6 +629,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Brief erstellen"
 	case *AdminSearchLetterPage:
 		fullPage.Base.Title = "Briefsuche mit ID"
+	case *ViewLetterPage:
+		fullPage.Base.Title = "Briefansicht"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

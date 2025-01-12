@@ -33,7 +33,7 @@
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.ReducedLetter*/ -}}
-                <a href="/letter/{{.ID}}?viewer={{urlquery .Recipent}}" target="_blank"
+                <a href="/view/letter/{{.ID}}?viewer={{urlquery .Recipent}}" target="_blank"
                    {{if .Viewed}}class="read"{{end}}>
                     {{- if .Viewed -}}<i class="bi bi-letter-open"></i>
                     {{- else -}}<i class="bi bi-letter-closed"></i>

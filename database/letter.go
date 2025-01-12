@@ -2,8 +2,10 @@ package database
 
 import (
 	loc "PoliSim/localisation"
+	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
+	"strings"
 	"time"
 )
 
@@ -63,6 +65,43 @@ type Letter struct {
 	NoDecision []string
 }
 
+func (l *Letter) GetReader() string {
+	return fmt.Sprintf("Empfänger: %s", strings.Join(l.Reader, ", "))
+}
+
+func (l *Letter) GetAgreed() string {
+	return fmt.Sprintf("Zugestimmt: %s", strings.Join(l.Agreed, ", "))
+}
+
+func (l *Letter) GetDeclined() string {
+	if len(l.Declined) == 0 {
+		return "Niemand hat abgelehnt"
+	}
+	return fmt.Sprintf("Abgelehnt: %s", strings.Join(l.Declined, ", "))
+}
+
+func (l *Letter) SomeoneHasntDecidedYet() bool {
+	return len(l.NoDecision) != 0
+}
+
+func (l *Letter) GetNoDecision() string {
+	return fmt.Sprintf("Keine Entscheidung: %s", strings.Join(l.NoDecision, ", "))
+}
+
+func (l *Letter) GetAuthor() string {
+	if l.Flair == "" {
+		return l.Author
+	}
+	return l.Author + "; " + l.Flair
+}
+
+func (l *Letter) GetTimeWritten(a *Account) string {
+	if a.Exists() {
+		return l.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+	}
+	return l.Written.Format("2006-01-02 15:04:05 MST")
+}
+
 func (l *Letter) GetCreationMap() map[string]any {
 	signature := NoDecision
 	authorSign := Agreed
@@ -81,20 +120,6 @@ func (l *Letter) GetCreationMap() map[string]any {
 		"reader":     l.Reader,
 		"signature":  signature,
 		"authorSign": authorSign}
-}
-
-func (l *Letter) GetAuthor() string {
-	if l.Flair == "" {
-		return l.Author
-	}
-	return l.Author + "; " + l.Flair
-}
-
-func (l *Letter) GetTimeWritten(a *Account) string {
-	if a.Exists() {
-		return l.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
-	}
-	return l.Written.Format("2006-01-02 15:04:05 MST")
 }
 
 func CreateLetter(letter *Letter) error {
@@ -225,7 +250,7 @@ RETURN l, r.signature;`,
 
 	result, err = tx.Run(ctx, `MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter) 
 WHERE l.id = $id 
-RETURN a.name, r.signature;`,
+RETURN a.name, r.signature ORDER BY a.name;`,
 		map[string]any{"id": id})
 	if err != nil {
 		_ = tx.Rollback(ctx)
