@@ -10,8 +10,8 @@
                     <i>Verfasst am: {{.Letter.GetTimeWritten .NavInfo.Account}}</i><br><br>
                     {{.Letter.GetReader}}{{if .Letter.Signable}}<br>
                         {{.Letter.GetAgreed}}<br>
-                        {{.Letter.GetDeclined}}<br>
-                        {{.Letter.GetNoDecision}}
+                        {{.Letter.GetDeclined}}{{if .Letter.SomeoneHasntDecidedYet}}<br>
+                        {{.Letter.GetNoDecision}}{{end}}
                     {{end}}
                 </p>
             </div>
