@@ -1,0 +1,50 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <div class="wrapper">
+        <div class="aside-tags">
+            {{ range $tag := .Document.Tags}}
+                <div style="--background: {{$tag.BackgroundColor}};
+                            --text: {{$tag.TextColor}};
+                            --link: {{$tag.LinkColor}};"
+                     class="tag-holder" id="{{$tag.ID}}">{{$tag.Text}}<br>
+                    <i>Hinzugefügt am {{$tag.GetTimeWritten .NavInfo.Account}}</i><br>
+                    {{range $link := $tag.Links}}
+                    <a href="view/document/{{$link}}?viewer={{.NavInfo.Account.GetName}}">{{$link}}</a>
+                    {{end}}
+                </div>
+            {{end}}
+        </div>
+        <div class="block-view">
+            <h1>{{.Document.Title}}</h1>
+            <p>
+                Geschrieben von: {{.Document.GetAuthor}}<br>
+                Veröffentlicht in: {{.Document.Organisation}}<br>
+                <i>Verfasst am: {{.Document.GetTimeWritten .NavInfo.Account}}</i><br><br>
+                {{.Document.GetReader}}<br>
+                {{.Document.GetParticipants}}
+            </p>
+        </div>
+        <div class="markdown">{{.Document.Body}}</div>
+        {{if .Document.IsDiscussion}}{{template "discussion" .}}{{end}}
+        {{if .Document.IsVote}}{{template "vote" .}}{{end}}
+    </div>
+    </body>
+{{end}}
+{{define "discussion"}}
+    {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
+    {{range $comment := .Document.Comments}}
+        <hr class="splitter">
+        <div class="block-view">
+            Geschrieben von: {{$comment.GetAuthor}}<br>
+            <i>Verfasst am: {{$comment.GetTimeWritten .NavInfo.Account}}</i>
+        </div>
+        <div class="markdown">{{$comment.Body}}</div>
+    {{end}}
+{{end}}
+{{define "vote"}}
+    {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
+    <div class="block-view">
+    </div>
+{{end}}

@@ -421,6 +421,19 @@ func (p *AdminSearchLetterPage) getPageName() string {
 	return "letterAdminSearch"
 }
 
+type DocumentViewPage struct {
+	NavInfo  NavigationInfo
+	Document *database.Document
+}
+
+func (p *DocumentViewPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *DocumentViewPage) getPageName() string {
+	return "documentView"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -631,6 +644,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Briefsuche mit ID"
 	case *ViewLetterPage:
 		fullPage.Base.Title = "Briefansicht"
+	case *DocumentViewPage:
+		fullPage.Base.Title = "Dokumentansicht"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

@@ -316,6 +316,33 @@ h1.big-header {
     color: white;
 }
 
+div.aside-tags {
+    position: absolute;
+    top: 12rem;
+    left: calc(50vw + 2rem + (var(--standard-width) / 2));
+    width: var(--standard-small-width);
+}
+
+div.tag-holder {
+    max-width: var(--standard-small-width);
+    box-sizing:border-box;
+    overflow-wrap:break-word;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    background-color: var(--background);
+    color: var(--text);
+    a {
+        background-color: inherit;
+        color: var(--link);
+    }
+}
+
+hr.splitter {
+    width: var(--standard-width);
+    margin: 0.3rem 0;
+}
+
 .hide {
     display: none !important;
 }

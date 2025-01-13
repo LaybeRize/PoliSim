@@ -20,6 +20,13 @@ type Account struct {
 	TimeZone *time.Location
 }
 
+func (a *Account) GetName() string {
+	if a.Exists() {
+		return a.Name
+	}
+	return ""
+}
+
 func (a *Account) Exists() bool {
 	return a != nil
 }
