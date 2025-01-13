@@ -21,7 +21,16 @@
             <p>
                 Geschrieben von: {{.Document.GetAuthor}}<br>
                 Veröffentlicht in: {{.Document.Organisation}}<br>
-                <i>Verfasst am: {{.Document.GetTimeWritten .NavInfo.Account}}</i><br><br>
+                <i>Verfasst am: {{.Document.GetTimeWritten .NavInfo.Account}}</i>
+                {{if not .Document.IsPost}}<br>
+                    {{if .Document.Ended}}
+                        <i>Die {{if .Document.IsDiscussion}}Diskussion{{else}}Abstimmung{{end}} ist bereits vorbei.<br>
+                        Ende war am {{.Document.GetTimeEnd .NavInfo.Account}}</i>
+                    {{else}}
+                        <i>Endet: {{.Document.GetTimeEnd .NavInfo.Account}}</i>
+                    {{end}}
+                {{end}}
+                <br><br>
                 {{.Document.GetReader}}<br>
                 {{.Document.GetParticipants}}
             </p>
@@ -42,9 +51,17 @@
         </div>
         <div class="markdown">{{$comment.Body}}</div>
     {{end}}
+    {{if not .Document.Ended}}
+    {{end}}
 {{end}}
 {{define "vote"}}
     {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
     <div class="block-view">
+        {{range $link := .Document.Links}}
+            <a href="view/vote/{{$link}}?viewer={{.NavInfo.Account.GetName}}"
+               class="button-link">
+                {{$link}}
+            </a>
+        {{end}}
     </div>
 {{end}}
