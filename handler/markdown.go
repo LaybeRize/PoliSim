@@ -17,6 +17,9 @@ var extensions = parser.NoIntraEmphasis | parser.Tables | parser.FencedCode |
 var policy = bluemonday.UGCPolicy().AllowAttrs("class").OnElements("div")
 
 func MakeMarkdown(md string) template.HTML {
+	if md == "" {
+		return ""
+	}
 	intermediate := markdown.NormalizeNewlines([]byte(md))
 	maybeUnsafeHTML := markdown.ToHTML(intermediate, parser.NewWithExtensions(extensions), nil)
 	htmlResult := string(policy.SanitizeBytes(maybeUnsafeHTML))

@@ -120,7 +120,7 @@ func (p *NotesPage) getPageName() string {
 
 type CreateNotesPage struct {
 	NavInfo         NavigationInfo
-	Refrences       string
+	References      string
 	Title           string
 	Author          string
 	PossibleAuthors []string
@@ -422,8 +422,10 @@ func (p *AdminSearchLetterPage) getPageName() string {
 }
 
 type DocumentViewPage struct {
-	NavInfo  NavigationInfo
-	Document *database.Document
+	NavInfo       NavigationInfo
+	Document      *database.Document
+	Commentator   []string
+	ColorPalettes []database.ColorPalette
 }
 
 func (p *DocumentViewPage) SetNavInfo(navInfo NavigationInfo) {
@@ -432,6 +434,29 @@ func (p *DocumentViewPage) SetNavInfo(navInfo NavigationInfo) {
 
 func (p *DocumentViewPage) getPageName() string {
 	return "documentView"
+}
+
+type CreateDocumentPage struct {
+	NavInfo               NavigationInfo
+	Title                 string
+	Author                string
+	PossibleAuthors       []string
+	PossibleOrganisations []string
+	Body                  string
+	MessageUpdate
+	MarkdownBox
+}
+
+func (p *CreateDocumentPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *CreateDocumentPage) getPageName() string {
+	return "documentCreate"
+}
+
+func (p *CreateDocumentPage) getRenderInfo() (string, string) {
+	return "documentCreate", "organisationDropdown"
 }
 
 type PartialStruct interface {
@@ -611,7 +636,7 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	case *EditAccountPage:
 		fullPage.Base.Title = "Accounts anpassen"
 	case *NotesPage:
-		fullPage.Base.Title = "Noitzen anschauen"
+		fullPage.Base.Title = "Notizen anschauen"
 	case *CreateNotesPage:
 		fullPage.Base.Title = "Notiz erstellen"
 	case *SearchNotesPage:
@@ -646,6 +671,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Briefansicht"
 	case *DocumentViewPage:
 		fullPage.Base.Title = "Dokumentansicht"
+	case *CreateDocumentPage:
+		fullPage.Base.Title = "Dokument erstellen"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

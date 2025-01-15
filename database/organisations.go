@@ -254,6 +254,19 @@ MATCH (o:Organisation) WHERE o.visibility = $public OR o.visibility = $private R
 	return getArrayOfOrganisations("o", result.Records), err
 }
 
+func GetOrganisationNamesAdminIn(name string) ([]string, error) {
+	result, err := makeRequest(`MATCH (a:Account)-[:ADMIN]->(o:Organisation) 
+WHERE a.name = $name RETURN o.name;`, map[string]any{"name": name})
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, len(result.Records))
+	for i, record := range result.Records {
+		names[i] = record.Values[0].(string)
+	}
+	return names, err
+}
+
 func GetFullOrganisationInfoForUserView(account *Account, orgName string) (*Organisation, []string, []string, error) {
 	name := ""
 	if account.Exists() {

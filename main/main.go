@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/handler/accounts"
+	"PoliSim/handler/documents"
 	"PoliSim/handler/letter"
 	"PoliSim/handler/newspaper"
 	"PoliSim/handler/notes"
@@ -44,6 +45,14 @@ func main() {
 	http.HandleFunc("GET /edit/organisation", organisations.GetEditOrgansationPage)
 	http.HandleFunc("PATCH /edit/organisation", organisations.PatchEditOrganisationPage)
 	http.HandleFunc("PUT /edit/organisation/search", organisations.PutOrganisationSearchPage)
+
+	http.HandleFunc("GET /create/document", documents.GetCreateDocumentPage)
+	http.HandleFunc("POST /create/document", documents.PostCreateDocumentPage)
+	//http.HandleFunc("GET /create/discussion", documents.GetCreateDocumentPage)
+	//http.HandleFunc("POST /create/discussion", documents.PostCreateDocumentPage)
+	//http.HandleFunc("GET /create/vote", documents.GetCreateDocumentPage)
+	//http.HandleFunc("POST /create/vote", documents.PostCreateDocumentPage)
+	http.HandleFunc("GET /organisations/for/account", documents.GetFindOrganisationForAccountPage)
 
 	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)

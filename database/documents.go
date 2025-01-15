@@ -7,15 +7,17 @@ import (
 	"time"
 )
 
+type DocumentType string
+
 const (
-	DocTypePost       = "post"
-	DocTypeDiscussion = "discussion"
-	DocTypeVote       = "vote"
+	DocTypePost       DocumentType = "post"
+	DocTypeDiscussion DocumentType = "discussion"
+	DocTypeVote       DocumentType = "vote"
 )
 
 type Document struct {
 	ID                  string
-	Type                string
+	Type                DocumentType
 	Organisation        string
 	Title               string
 	Author              string
@@ -23,6 +25,7 @@ type Document struct {
 	Written             time.Time
 	Body                template.HTML
 	Public              bool
+	Removed             bool
 	Reader              []string
 	MemberParticipation bool
 	AdminParticipation  bool
@@ -108,6 +111,7 @@ type DocumentComment struct {
 	Flair   string
 	Written time.Time
 	Body    template.HTML
+	Removed bool
 }
 
 func (c *DocumentComment) GetTimeWritten(a *Account) string {
@@ -124,6 +128,13 @@ func (c *DocumentComment) GetAuthor() string {
 	return c.Author + "; " + c.Flair
 }
 
+type ColorPalette struct {
+	Name       string
+	Background string
+	Text       string
+	Link       string
+}
+
 func CreateDocument(document *Document) error {
 	tx, err := openTransaction()
 	defer tx.Close(ctx)
@@ -131,30 +142,24 @@ func CreateDocument(document *Document) error {
 		return err
 	}
 
-	// Add validation logic for author/organisation etc.
-	/*result, err := tx.Run(ctx, `MATCH (acc:Account) WHERE acc.name = $Author AND acc.blocked = false
-	RETURN acc;`,
-			map[string]any{"Author": letter.Author})
-		if err != nil {
-			_ = tx.Rollback(ctx)
-			return err
-		} else if result.Next(ctx); result.Record() == nil {
-			return notAllowedError
-		}
-
-		result, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name IN $reader AND a.blocked = false
-	RETURN a;`,
-			map[string]any{"reader": letter.Reader})
-		if err != nil {
-			_ = tx.Rollback(ctx)
-			return err
-		} else if result.Next(ctx); result.Record() == nil {
-			return noRecipientFoundError
-		}*/
+	result, err := tx.Run(ctx, `MATCH (acc:Account)-[:ADMIN]->(o:Organisation) 
+WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation
+	RETURN o.visibility;`,
+		map[string]any{"Author": document.Author, "organisation": document.Organisation})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	} else if result.Next(ctx); result.Record() == nil {
+		_ = tx.Rollback(ctx)
+		return notAllowedError
+	} else if result.Record().Values[0].(string) == string(SECRET) {
+		_ = tx.Rollback(ctx)
+		return notAllowedError
+	}
 
 	_, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name = $author 
 MATCH (o:Organisation) WHERE o.name = $organisation 
-CREATE (d:Document {id: $id, title: $title, type: $type, author: $author, flair: $flair, body: $body,
+CREATE (d:Document {id: $id, title: $title, type: $type, author: $author, flair: $flair, body: $body, removed: false,
 end_time: $end_time, written: $written, public: $public, member_part: $member_part, admin_part: $admin_part}) 
 MERGE (a)-[:WRITTEN]->(d)
 MERGE (d)-[:IN]->(o);`, map[string]any{
@@ -164,7 +169,7 @@ MERGE (d)-[:IN]->(o);`, map[string]any{
 		"type":         document.Type,
 		"author":       document.Author,
 		"end_time":     document.End,
-		"written":      document.Written,
+		"written":      time.Now().UTC(),
 		"body":         document.Body,
 		"flair":        document.Flair,
 		"public":       document.Public,
@@ -186,6 +191,56 @@ CREATE (a)<-[:READER]-(d);`, map[string]any{"reader": document.Reader, "id": doc
 
 	_, err = tx.Run(ctx, `MATCH (a:Account), (d:Document) WHERE a.name IN $user AND d.id = $id 
 CREATE (a)<-[:PARTICIPANT]-(d);`, map[string]any{"user": document.Participants, "id": document.ID})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	}
+
+	err = tx.Commit(ctx)
+	return err
+}
+
+func CreateDocumentComment(documentId string, comment *DocumentComment) error {
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return err
+	}
+
+	result, err := tx.Run(ctx, `CALL {
+MATCH (a:Account)<-[:PARTICIPANT]-(d:Document) 
+WHERE a.name = $author AND a.blocked = false AND d.id = $id 
+RETURN a 
+UNION 
+MATCH (a:Account)-[:USER|ADMIN]->(:Organisation)<-[:IN]-(d:Document) 
+WHERE a.name = $author AND a.blocked = false AND d.id = $id AND d.member_part = true 
+RETURN a 
+UNION 
+MATCH (a:Account)-[:ADMIN]->(:Organisation)<-[:IN]-(d:Document) 
+WHERE a.name = $author AND a.blocked = false AND d.id = $id AND d.admin_part = true 
+RETURN a 
+} 
+RETURN a;`,
+		map[string]any{"id": documentId, "author": comment.Author})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	} else if result.Next(ctx); result.Record() == nil {
+		_ = tx.Rollback(ctx)
+		return notAllowedError
+	}
+
+	_, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name = $author 
+MATCH (d:Document) WHERE d.id = $doc_ID 
+CREATE (c:Document {id: $id, author: $author, flair: $flair, body: $body, removed: false, written: $written}) 
+MERGE (a)-[:WRITTEN]->(c)
+MERGE (c)-[:ON]->(d);`, map[string]any{
+		"doc_ID":  documentId,
+		"id":      comment.ID,
+		"author":  comment.Author,
+		"flair":   comment.Flair,
+		"written": comment.Written,
+		"body":    comment.Body})
 	if err != nil {
 		_ = tx.Rollback(ctx)
 		return err

@@ -1,26 +1,33 @@
 {{define "page"}}
-    {{- /*gotype: PoliSim/handler.CreateNotesPage*/ -}}
+    {{- /*gotype: PoliSim/handler.CreateDocumentPage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
-    <form hx-post="/create/note" hx-target="#page-body">
-        <label for="references">Referenzen (Komma-seperiert)</label>
-        <input id="references" name="references" type="text" value="{{.References}}">
+    <form hx-post="/create/document" hx-target="#page-body">
         <label for="title">Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
         <label for="author">Autor</label>
-        <select id="author" name="author">
+        <select id="author" name="author" hx-get="/organisations/for/account" hx-trigger="change" hx-target="#organisation">
             {{$author := .Author}}
             {{range .PossibleAuthors}}
                 <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
+        <label for="organisation">Zeitung</label>
+        {{block "organisationDropdown" .}}
+        <select id="organisation" name="organisation">
+            <option value="" selected>-- Organisation auswählen --</option>
+            {{range .PossibleOrganisations}}
+                <option value="{{.}}">{{.}}</option>
+            {{end}}
+        </select>
+        {{end}}
         <label for="markdown">Inhalt</label>
         <textarea id="markdown" name="markdown" rows="10"
                   hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                   hx-target="#markdown-box">
             {{- .Body -}}
         </textarea>
-        <button type="submit">Eintrag erstellen</button>
+        <button type="submit">Dokument erstellen</button>
     </form>
     {{template "message" .}}
     <h1>Vorschau</h1>

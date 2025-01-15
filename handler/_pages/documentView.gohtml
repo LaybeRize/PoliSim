@@ -11,7 +11,7 @@
                      class="tag-holder" id="{{$tag.ID}}">{{$tag.Text}}<br>
                     <i>Hinzugefügt am {{$tag.GetTimeWritten .NavInfo.Account}}</i><br>
                     {{range $link := $tag.Links}}
-                    <a href="view/document/{{$link}}?viewer={{.NavInfo.Account.GetName}}">{{$link}}</a>
+                    <a href="/view/document/{{$link}}?viewer={{.NavInfo.Account.GetName}}">{{$link}}</a>
                     {{end}}
                 </div>
             {{end}}

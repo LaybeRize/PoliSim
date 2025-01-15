@@ -19,7 +19,7 @@ func GetNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 	loaded, exists := request.URL.Query()["loaded"]
 	page := &handler.CreateNotesPage{}
 	if exists {
-		page.Refrences = strings.Join(loaded, ",")
+		page.References = strings.Join(loaded, ",")
 	}
 	page.IsError = true
 	page.Message = ""
@@ -103,7 +103,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page := &handler.CreateNotesPage{Refrences: strings.Join(append(references, note.ID), ", "), Author: author.Name}
+	page := &handler.CreateNotesPage{References: strings.Join(append(references, note.ID), ", "), Author: author.Name}
 	page.IsError = false
 	page.Message = "Notiz erfolgreich erstellt"
 
