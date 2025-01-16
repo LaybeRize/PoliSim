@@ -143,16 +143,18 @@ func CreateDocument(document *Document) error {
 	}
 
 	result, err := tx.Run(ctx, `MATCH (acc:Account)-[:ADMIN]->(o:Organisation) 
-WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation
+WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation AND o.visibility <> $hidden
 	RETURN o.visibility;`,
-		map[string]any{"Author": document.Author, "organisation": document.Organisation})
+		map[string]any{"Author": document.Author,
+			"organisation": document.Organisation,
+			"hidden":       HIDDEN})
 	if err != nil {
 		_ = tx.Rollback(ctx)
 		return err
 	} else if result.Next(ctx); result.Record() == nil {
 		_ = tx.Rollback(ctx)
 		return notAllowedError
-	} else if result.Record().Values[0].(string) == string(SECRET) {
+	} else if result.Record().Values[0].(string) == string(SECRET) && document.Public {
 		_ = tx.Rollback(ctx)
 		return notAllowedError
 	}

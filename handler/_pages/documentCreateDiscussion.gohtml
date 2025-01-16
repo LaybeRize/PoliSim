@@ -1,0 +1,95 @@
+{{define "pageScript"}}
+    <script>
+        function copy(idFrom, idTo) {
+            let copy = document.querySelector("#"+idFrom).cloneNode(true)
+            copy.setAttribute("class", "name-list")
+            copy.removeAttribute("id")
+            document.querySelector("#"+idTo).insertAdjacentElement("beforebegin", copy)
+        }
+
+        function destroyParent(self) {
+            self.parentElement.remove()
+        }
+    </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.CreateDiscussionPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <form hx-post="/create/discussion" hx-target="#page-body">
+        <label for="title">Titel</label>
+        <input id="title" name="title" type="text" value="{{.Title}}">
+        <label for="author">Autor</label>
+        <select id="author" name="author" hx-get="/organisations/for/account" hx-trigger="change" hx-target="#organisation">
+            {{$author := .Author}}
+            {{range .PossibleAuthors}}
+                <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
+            {{end}}
+        </select>
+        <label for="organisation">Zeitung</label>
+        <select id="organisation" name="organisation">
+            <option value="" selected>-- Organisation auswählen --</option>
+            {{range .PossibleOrganisations}}
+                <option value="{{.}}">{{.}}</option>
+            {{end}}
+        </select>
+        <label for="public">Diskussion ist öffentlich</label>
+        <input type="checkbox" id="public" name="public" value="true" {{if .Public}}checked{{end}}>
+        <label for="member">Alle Mitglieder dürfen teilnehmen</label>
+        <input type="checkbox" id="member" name="member" value="true" {{if .LetMemberParticipate}}checked{{end}}>
+        <label for="admin">Alle Administratoren drüfen teilnehmen</label>
+        <input type="checkbox" id="admin" name="admin" value="true" {{if .LetAdminsParticipate}}checked{{end}}>
+        {{block "readerAndParticipants" .}}
+        <div id="reader-and-participants">
+            <button type="button" onclick="copy('input-for-reader', 'participants-adder')">
+                Leser hinzufügen
+            </button>
+            <label for="reader">Leser</label>
+            <div id="input-for-reader" class="name-list hide">
+                <input id="reader" name="[]reader" type="text" list="account-names">
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
+            {{range .Reader}}
+                <div class="name-list">
+                    <input id="reader" name="[]reader" type="text" value="{{.}}" list="account-names">
+                    <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            {{end}}
+            <button id="participants-adder" type="button" onclick="copy('input-for-participants', 'block-end-div')">
+                Teilnehmer hinzufügen
+            </button>
+            <label for="participants">Teilnehmer</label>
+            <div id="input-for-participants" class="name-list hide">
+                <input id="participants" name="[]participants" type="text" list="account-names">
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
+            {{range .Participants}}
+                <div class="name-list">
+                    <input id="participants" name="[]participants" type="text" value="{{.}}" list="account-names">
+                    <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+                </div>
+            {{end}}
+            <div id="block-end-div" class="hide"></div>
+        </div>
+        {{end}}
+        <datalist id="account-names">
+            {{range .AccountNames}}
+                <option>{{.}}</option>
+            {{end}}
+        </datalist>
+        <label for="markdown">Inhalt</label>
+        <textarea id="markdown" name="markdown" rows="10"
+                  hx-trigger="keyup changed delay:1s" hx-put="/markdown"
+                  hx-target="#markdown-box">
+            {{- .Body -}}
+        </textarea>
+        <button hx-patch="/check/reader/and/participants" hx-target="#reader-and-participants">
+            Leser und Teilnehmer überprüfen
+        </button>
+        <button type="submit">Dokument erstellen</button>
+    </form>
+    {{template "message" .}}
+    <h1>Vorschau</h1>
+    {{template "markdownBox" .}}
+    </body>
+{{end}}

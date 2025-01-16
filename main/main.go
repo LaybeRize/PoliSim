@@ -48,11 +48,12 @@ func main() {
 
 	http.HandleFunc("GET /create/document", documents.GetCreateDocumentPage)
 	http.HandleFunc("POST /create/document", documents.PostCreateDocumentPage)
-	//http.HandleFunc("GET /create/discussion", documents.GetCreateDocumentPage)
-	//http.HandleFunc("POST /create/discussion", documents.PostCreateDocumentPage)
+	http.HandleFunc("GET /create/discussion", documents.GetCreateDiscussionPage)
+	http.HandleFunc("POST /create/discussion", documents.PostCreateDiscussionPage)
 	//http.HandleFunc("GET /create/vote", documents.GetCreateDocumentPage)
 	//http.HandleFunc("POST /create/vote", documents.PostCreateDocumentPage)
 	http.HandleFunc("GET /organisations/for/account", documents.GetFindOrganisationForAccountPage)
+	http.HandleFunc("PATCH /check/reader/and/participants", documents.PatchFixUserList)
 
 	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)

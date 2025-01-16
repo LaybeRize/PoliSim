@@ -459,6 +459,35 @@ func (p *CreateDocumentPage) getRenderInfo() (string, string) {
 	return "documentCreate", "organisationDropdown"
 }
 
+type CreateDiscussionPage struct {
+	NavInfo               NavigationInfo
+	Title                 string
+	Author                string
+	PossibleAuthors       []string
+	PossibleOrganisations []string
+	AccountNames          []string
+	Public                bool
+	LetMemberParticipate  bool
+	LetAdminsParticipate  bool
+	Reader                []string
+	Participants          []string
+	Body                  string
+	MessageUpdate
+	MarkdownBox
+}
+
+func (p *CreateDiscussionPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *CreateDiscussionPage) getPageName() string {
+	return "documentCreateDiscussion"
+}
+
+func (p *CreateDiscussionPage) getRenderInfo() (string, string) {
+	return "documentCreateDiscussion", "readerAndParticipants"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }

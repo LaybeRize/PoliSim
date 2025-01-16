@@ -12,14 +12,14 @@ import (
 	"time"
 )
 
-func GetCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
+func GetCreateDiscussionPage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
 		handler.GetNotFoundPage(writer, request)
 		return
 	}
 
-	page := &handler.CreateDocumentPage{}
+	page := &handler.CreateDiscussionPage{}
 	page.IsError = true
 	page.Message = ""
 
@@ -36,13 +36,18 @@ func GetCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		page.Message = "\n" + "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"
-		page.Message = strings.TrimSpace(page.Message)
+	}
+	page.AccountNames, err = database.GetNonBlockedNames()
+	if err != nil {
+		slog.Debug(err.Error())
+		page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
 	}
 
+	page.Message = strings.TrimSpace(page.Message)
 	handler.MakeFullPage(writer, acc, page)
 }
 
-func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
+func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
 		handler.PartialGetNotFoundPage(writer, request)
@@ -63,10 +68,12 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 		Title:               helper.GetFormEntry(request, "title"),
 		Author:              helper.GetFormEntry(request, "author"),
 		Body:                handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
-		Public:              true,
+		Public:              helper.GetFormEntry(request, "public") == "true",
 		Removed:             false,
-		MemberParticipation: false,
-		AdminParticipation:  false,
+		MemberParticipation: helper.GetFormEntry(request, "member") == "true",
+		AdminParticipation:  helper.GetFormEntry(request, "admin") == "true",
+		Participants:        helper.GetFormList(request, "[]participants"),
+		Reader:              helper.GetFormList(request, "[]reader"),
 		End:                 time.Time{},
 	}
 
@@ -114,8 +121,8 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusFound)
 }
 
-func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http.Request) {
-	acc, loggedIn := database.RefreshSession(writer, request)
+func PatchFixUserList(writer http.ResponseWriter, request *http.Request) {
+	_, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehlende Berechtigung"})
@@ -130,23 +137,23 @@ func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http
 		return
 	}
 
-	page := &handler.CreateDocumentPage{}
-	page.Author = helper.GetFormEntry(request, "author")
-	allowed, err := database.IsAccountAllowedToPostWith(acc, page.Author)
-	if !allowed || err != nil {
-		if err != nil {
-			slog.Error(err.Error())
-		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung um die Informationen für diesen Account anzufordern"})
-		return
+	page := &handler.CreateDiscussionPage{
+		Participants: helper.GetFormList(request, "[]participants"),
+		Reader:       helper.GetFormList(request, "[]reader"),
 	}
 
-	page.PossibleOrganisations, err = database.GetOrganisationNamesAdminIn(page.Author)
+	page.Reader, err = database.FilterNameListForNonBlocked(page.Reader, 1)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"})
+			Message: "Konnte Lesernamensliste nicht filtern"})
+		return
+	}
+	page.Participants, err = database.FilterNameListForNonBlocked(page.Participants, 1)
+	if err != nil {
+		slog.Debug(err.Error())
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Konnte Teilnehmernamensliste nicht filtern"})
 		return
 	}
 

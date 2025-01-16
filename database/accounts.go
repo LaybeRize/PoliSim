@@ -214,7 +214,7 @@ RETURN a.name AS name ORDER BY name;`,
 	return names, err
 }
 
-func FilterNameListForNonBlocked(list []string) ([]string, error) {
+func FilterNameListForNonBlocked(list []string, extraEmptyEntries int) ([]string, error) {
 	queryResult, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) 
 WHERE a.blocked = false AND a.name IN $list
 RETURN a.name AS name ORDER BY name;`,
@@ -223,7 +223,7 @@ RETURN a.name AS name ORDER BY name;`,
 	if err != nil {
 		return nil, err
 	}
-	names := make([]string, len(queryResult.Records))
+	names := make([]string, len(queryResult.Records)+extraEmptyEntries)
 	for i, record := range queryResult.Records {
 		names[i] = record.Values[0].(string)
 	}

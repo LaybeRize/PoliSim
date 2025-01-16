@@ -88,7 +88,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	letter.Reader, err = database.FilterNameListForNonBlocked(letter.Reader)
+	letter.Reader, err = database.FilterNameListForNonBlocked(letter.Reader, 0)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Konnte Empfängerliste nicht validieren"})
@@ -174,7 +174,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	page.Recipients, err = database.FilterNameListForNonBlocked(page.Recipients)
+	page.Recipients, err = database.FilterNameListForNonBlocked(page.Recipients, 0)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Konnte Empfängerliste nicht validieren"})
