@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 )
@@ -102,7 +101,7 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = database.CreateDocument(doc)
+	err = database.CreateDocument(doc, acc)
 	if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -110,7 +109,7 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	writer.Header().Add("HX-Redirect", fmt.Sprintf("/view/document/%s?viewer=%s", doc.ID, url.QueryEscape(doc.Author)))
+	writer.Header().Add("HX-Redirect", fmt.Sprintf("/view/document/%s", doc.ID))
 	writer.WriteHeader(http.StatusFound)
 }
 

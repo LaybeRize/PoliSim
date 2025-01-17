@@ -25,14 +25,14 @@
         <input id="sub-group" name="sub-group" type="text" value="{{.Organisation.SubType}}">
         <label for="visiblity">Sichtbarkeit</label>
         <select id="visiblity" name="visiblity">
-            <option value="public">Öffentlich</option>
-            <option value="private" {{if eq .Organisation.Visibility "private"}}selected{{end}}>
+            <option value="0">Öffentlich</option>
+            <option value="1" {{if .Organisation.IsPrivate}}selected{{end}}>
                 Privat
             </option>
-            <option value="secret" {{if eq .Organisation.Visibility "secret"}}selected{{end}}>
+            <option value="2" {{if .Organisation.IsSecret}}selected{{end}}>
                 Geheim
             </option>
-            <option value="hidden" {{if eq .Organisation.Visibility "hidden"}}selected{{end}}>
+            <option value="3" {{if .Organisation.IsHidden}}selected{{end}}>
                 Versteckt
             </option>
         </select>

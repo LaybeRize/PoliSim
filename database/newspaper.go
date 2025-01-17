@@ -75,16 +75,7 @@ published: $published, published_date: $publishedDate});`, map[string]any{
 		_ = tx.Rollback(ctx)
 		return err
 	}
-	/*
-			_, err = tx.Run(ctx, `MATCH (a:Account), (t:Newspaper) WHERE a.name IN $names
-		AND t.name = $newspaper CREATE (a)-[:AUTHOR]->(t);`, map[string]any{
-				"newspaper": newspaper.Name,
-				"names":     newspaper.Authors})
-			if err != nil {
-				_ = tx.Rollback(ctx)
-				return err
-			}
-	*/
+
 	err = tx.Commit(ctx)
 	return err
 }
@@ -178,7 +169,7 @@ RETURN b, a, t;`, map[string]any{
 			"author":    author,
 			"owner":     acc.Name}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 	}
-	return len(result.Records) == 1, err
+	return result != nil && len(result.Records) == 1, err
 }
 
 func CreateArticle(article *NewspaperArticle, special bool, newspaperName string) error {
@@ -310,7 +301,7 @@ func GetPublicationForUser(id string, isAdmin bool) (bool, error) {
 WHERE p.id = $id AND (p.published = true OR $admin = true) RETURN p;`, map[string]any{
 		"id":    id,
 		"admin": isAdmin}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
-	return len(result.Records) == 1, err
+	return result.Records != nil && len(result.Records) == 1, err
 }
 
 func GetPublication(id string) (*Publication, []NewspaperArticle, error) {

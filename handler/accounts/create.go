@@ -5,7 +5,6 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	"net/http"
-	"strconv"
 )
 
 func GetCreateAccount(writer http.ResponseWriter, request *http.Request) {
@@ -38,8 +37,7 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 	page.Account.Name = helper.GetFormEntry(request, "name")
 	page.Account.Username = helper.GetFormEntry(request, "username")
 	page.Account.Password = helper.GetFormEntry(request, "password")
-	role, err := strconv.Atoi(helper.GetFormEntry(request, "role"))
-	page.Account.Role = database.AccountRole(role)
+	database.GetIntegerFormEntry(request, "role", &page.Account.Role)
 
 	if page.Account.Name == "" || len(page.Account.Name) > 200 {
 		page.Message = "Der Anzeigename des Accounts ist entweder leer oder überschreitet das 200 Zeichenlimit"

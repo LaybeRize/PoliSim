@@ -7,7 +7,9 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"net/http"
 	"os"
+	"strconv"
 )
 
 var ctx context.Context
@@ -135,6 +137,10 @@ func createConstraints() {
 		//"CREATE CONSTRAINT r_art_id IF NOT EXISTS FOR (art:Article) REQUIRE art.id IS NOT NULL;",
 		"CREATE CONSTRAINT u_letter_id IF NOT exists FOR (letter:Letter) REQUIRE letter.id IS UNIQUE;",
 		//"CREATE CONSTRAINT r_letter_id IF NOT EXISTS FOR (letter:Letter) REQUIRE letter.id IS NOT NULL;",
+		"CREATE CONSTRAINT u_document_id IF NOT exists FOR (doc:Document) REQUIRE doc.id IS UNIQUE;",
+		//"CREATE CONSTRAINT r_document_id IF NOT EXISTS FOR (doc:Document) REQUIRE doc.id IS NOT NULL;",
+		"CREATE CONSTRAINT u_vote_id IF NOT exists FOR (vote:Vote) REQUIRE vote.id IS UNIQUE;",
+		//"CREATE CONSTRAINT r_vote_id IF NOT EXISTS FOR (vote:Vote) REQUIRE vote.id IS NOT NULL;",
 	}
 
 	for _, constraint := range constraints {
@@ -152,4 +158,16 @@ func openTransaction() (neo4j.ExplicitTransaction, error) {
 func makeRequest(query string, parameter map[string]any) (*neo4j.EagerResult, error) {
 	return neo4j.ExecuteQuery(ctx, driver, query, parameter,
 		neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+}
+
+type DatabaseType interface {
+	VoteType | AccountRole | DocumentType | LetterStatus | OrganisationVisibility
+}
+
+func GetIntegerFormEntry[T DatabaseType](request *http.Request, field string, writeTo *T) {
+	temp, err := strconv.Atoi(request.Form.Get(field))
+	if err != nil {
+		*writeTo = T(-1)
+	}
+	*writeTo = T(temp)
 }

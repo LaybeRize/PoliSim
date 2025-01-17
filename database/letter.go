@@ -9,13 +9,13 @@ import (
 	"time"
 )
 
-type LetterStatus string
+type LetterStatus int
 
 const (
-	Agreed         LetterStatus = "agreed"
-	Declined       LetterStatus = "declined"
-	NoDecision     LetterStatus = "no_decision"
-	NoSignPossible LetterStatus = "no_sign"
+	Agreed LetterStatus = iota
+	Declined
+	NoDecision
+	NoSignPossible
 
 	letterCreation = `MATCH (aut:Account) WHERE aut.name = $Author
 CREATE (l:Letter {id: $id, title: $title , author: $Author , flair: $Flair, 
@@ -234,7 +234,7 @@ RETURN l, r.signature;`,
 	if reader == loc.AdminstrationName {
 		letter.HasSigned = true
 	} else {
-		letter.HasSigned = result.Record().Values[1].(string) != string(NoDecision)
+		letter.HasSigned = result.Record().Values[1].(int) != int(NoDecision)
 	}
 	letter.ID = id
 	letter.Title = nodeTitle.Props["title"].(string)
@@ -261,13 +261,14 @@ RETURN a.name, r.signature ORDER BY a.name;`,
 	for result.Next(ctx) {
 		name := result.Record().Values[0].(string)
 		letter.Reader = append(letter.Reader, name)
-		switch LetterStatus(result.Record().Values[1].(string)) {
+		switch LetterStatus(result.Record().Values[1].(int)) {
 		case NoDecision:
 			letter.NoDecision = append(letter.NoDecision, name)
 		case Agreed:
 			letter.Agreed = append(letter.Agreed, name)
 		case Declined:
 			letter.Declined = append(letter.Declined, name)
+		default:
 		}
 	}
 

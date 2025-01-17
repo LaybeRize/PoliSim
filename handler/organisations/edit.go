@@ -74,7 +74,7 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 	oldOrganisationName := helper.GetFormEntry(request, "oldName")
 	organisationUpdate := &database.Organisation{}
 	organisationUpdate.Name = helper.GetFormEntry(request, "name")
-	organisationUpdate.Visibility = database.OrganisationVisibility(helper.GetFormEntry(request, "visiblity"))
+	database.GetIntegerFormEntry(request, "visiblity", &organisationUpdate.Visibility)
 	organisationUpdate.MainType = helper.GetFormEntry(request, "main-group")
 	organisationUpdate.SubType = helper.GetFormEntry(request, "sub-group")
 	organisationUpdate.Flair = helper.GetFormEntry(request, "flair")

@@ -17,8 +17,7 @@ func (o *Organisation) Exists() bool {
 }
 
 func (o *Organisation) VisibilityIsValid() bool {
-	return o.Visibility == PUBLIC || o.Visibility == PRIVATE ||
-		o.Visibility == SECRET || o.Visibility == HIDDEN
+	return o.Visibility >= PUBLIC && o.Visibility <= HIDDEN
 }
 
 func (o *Organisation) ClearInvalidFlair() {
@@ -39,17 +38,31 @@ func (o *Organisation) GetClassType() string {
 		return "bi-private"
 	case SECRET:
 		return "bi-secret"
+	default:
+		return ""
 	}
-	return ""
 }
 
-type OrganisationVisibility string
+func (o *Organisation) IsPublic() bool {
+	return o.Visibility == PUBLIC
+}
+func (o *Organisation) IsPrivate() bool {
+	return o.Visibility == PRIVATE
+}
+func (o *Organisation) IsSecret() bool {
+	return o.Visibility == SECRET
+}
+func (o *Organisation) IsHidden() bool {
+	return o.Visibility == HIDDEN
+}
+
+type OrganisationVisibility int
 
 const (
-	PUBLIC  OrganisationVisibility = "public"
-	PRIVATE OrganisationVisibility = "private"
-	SECRET  OrganisationVisibility = "secret"
-	HIDDEN  OrganisationVisibility = "hidden"
+	PUBLIC OrganisationVisibility = iota
+	PRIVATE
+	SECRET
+	HIDDEN
 )
 
 func CreateOrganisation(org *Organisation, userNames []string, adminNames []string) error {
@@ -370,7 +383,7 @@ func getSingleOrganisation(letter string, records []*neo4j.Record) (*Organisatio
 	node := result.(neo4j.Node)
 	title := &Organisation{
 		Name:       node.Props["name"].(string),
-		Visibility: OrganisationVisibility(node.Props["visibility"].(string)),
+		Visibility: OrganisationVisibility(node.Props["visibility"].(int)),
 		MainType:   node.Props["main_type"].(string),
 		SubType:    node.Props["sub_type"].(string),
 		Flair:      node.Props["flair"].(string),
@@ -389,7 +402,7 @@ func getArrayOfOrganisations(letter string, records []*neo4j.Record) []Organisat
 		node := result.(neo4j.Node)
 		arr = append(arr, Organisation{
 			Name:       node.Props["name"].(string),
-			Visibility: OrganisationVisibility(node.Props["visibility"].(string)),
+			Visibility: OrganisationVisibility(node.Props["visibility"].(int)),
 			MainType:   node.Props["main_type"].(string),
 			SubType:    node.Props["sub_type"].(string),
 			Flair:      node.Props["flair"].(string),

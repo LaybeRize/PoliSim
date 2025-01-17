@@ -45,7 +45,7 @@ func PostCreateOrganisationPage(writer http.ResponseWriter, request *http.Reques
 
 	newOrganisation := &database.Organisation{}
 	newOrganisation.Name = helper.GetFormEntry(request, "name")
-	newOrganisation.Visibility = database.OrganisationVisibility(helper.GetFormEntry(request, "visiblity"))
+	database.GetIntegerFormEntry(request, "visiblity", &newOrganisation.Visibility)
 	newOrganisation.MainType = helper.GetFormEntry(request, "main-group")
 	newOrganisation.SubType = helper.GetFormEntry(request, "sub-group")
 	newOrganisation.Flair = helper.GetFormEntry(request, "flair")

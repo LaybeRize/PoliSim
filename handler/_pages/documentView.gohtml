@@ -11,7 +11,7 @@
                      class="tag-holder" id="{{$tag.ID}}">{{$tag.Text}}<br>
                     <i>Hinzugefügt am {{$tag.GetTimeWritten .NavInfo.Account}}</i><br>
                     {{range $link := $tag.Links}}
-                    <a href="/view/document/{{$link}}?viewer={{.NavInfo.Account.GetName}}">{{$link}}</a>
+                    <a href="/view/document/{{$link}}">{{$link}}</a>
                     {{end}}
                 </div>
             {{end}}
@@ -52,15 +52,16 @@
         <div class="markdown">{{$comment.Body}}</div>
     {{end}}
     {{if not .Document.Ended}}
+        <!--Todo: add comment form here-->
     {{end}}
 {{end}}
 {{define "vote"}}
     {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
     <div class="block-view">
         {{range $link := .Document.Links}}
-            <a href="view/vote/{{$link}}?viewer={{.NavInfo.Account.GetName}}"
+            <a href="view/vote/{{$link.ID}}"
                class="button-link">
-                {{$link}}
+                {{$link.Question}}
             </a>
         {{end}}
     </div>

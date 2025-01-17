@@ -1,6 +1,6 @@
 module PoliSim
 
-go 1.22.3
+go 1.23.5
 
 require (
 	github.com/gomarkdown/markdown v0.0.0-20241205020045-f7e15b2f3e62

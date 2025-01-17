@@ -6,7 +6,6 @@ import (
 	"PoliSim/helper"
 	"net/http"
 	"net/url"
-	"strconv"
 )
 
 func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
@@ -76,7 +75,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	page := &handler.EditAccountPage{Account: nil}
-	var role int
+	var role database.AccountRole
 
 	var ownerAccount *database.Account
 	page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(
@@ -97,10 +96,10 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	role, err = strconv.Atoi(helper.GetFormEntry(request, "role"))
+	database.GetIntegerFormEntry(request, "role", &role)
 	// First checks if the account is not a PressUser because then changing roles is not allowed
 	// and then if the role is valid (lower boundary is set, upper boundary is set by modifying users role)
-	if page.Account.Role != database.PressUser && role <= int(database.User) && role > int(acc.Role) {
+	if page.Account.Role != database.PressUser && role <= database.User && role > acc.Role {
 		page.Account.Role = database.AccountRole(role)
 	} else if page.Account.Role != database.PressUser {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

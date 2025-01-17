@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-type DocumentType string
+type DocumentType int
 
 const (
-	DocTypePost       DocumentType = "post"
-	DocTypeDiscussion DocumentType = "discussion"
-	DocTypeVote       DocumentType = "vote"
+	DocTypePost DocumentType = iota
+	DocTypeDiscussion
+	DocTypeVote
 )
 
 type Document struct {
@@ -32,7 +32,8 @@ type Document struct {
 	End                 time.Time
 	Participants        []string
 	Tags                []DocumentTag
-	Links               []string
+	Links               []VoteInfo
+	VoteIDs             []string
 	Comments            []DocumentComment
 }
 
@@ -135,7 +136,7 @@ type ColorPalette struct {
 	Link       string
 }
 
-func CreateDocument(document *Document) error {
+func CreateDocument(document *Document, acc *Account) error {
 	tx, err := openTransaction()
 	defer tx.Close(ctx)
 	if err != nil {
@@ -154,7 +155,7 @@ WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation AND 
 	} else if result.Next(ctx); result.Record() == nil {
 		_ = tx.Rollback(ctx)
 		return notAllowedError
-	} else if result.Record().Values[0].(string) == string(SECRET) && document.Public {
+	} else if result.Record().Values[0].(int) == int(SECRET) && document.Public {
 		_ = tx.Rollback(ctx)
 		return notAllowedError
 	}
@@ -188,6 +189,25 @@ CREATE (a)<-[:READER]-(d);`, map[string]any{"reader": document.Reader, "id": doc
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return err
+		}
+	}
+
+	if document.Type == DocTypeVote {
+		result, err = tx.Run(ctx, `
+MATCH (a:Account)-[r:MANAGES]->(v:Vote) WHERE a.name = $user AND v.id = $ids 
+MATCH (d:Document) WHERE d.id = $id 
+DELETE r 
+MERGE (d)-[:LINKS]->(v) 
+RETURN v.id;`, map[string]any{
+			"user": acc.Name,
+			"ids":  document.VoteIDs,
+			"id":   document.ID})
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return err
+		} else if result.Next(ctx); result.Record() == nil {
+			_ = tx.Rollback(ctx)
+			return notAllowedError
 		}
 	}
 
