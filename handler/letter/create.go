@@ -56,7 +56,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	letter := &database.Letter{
 		Title:    helper.GetFormEntry(request, "title"),
 		Author:   helper.GetFormEntry(request, "author"),
-		Signable: helper.GetFormEntry(request, "signable") == "true",
+		Signable: helper.GetBoolFormEntry(request, "signable"),
 		Body:     handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
 		Reader:   helper.GetFormList(request, "[]recipient"),
 	}
@@ -149,7 +149,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 		Title:      helper.GetFormEntry(request, "title"),
 		Author:     helper.GetFormEntry(request, "author"),
 		Body:       helper.GetFormEntry(request, "markdown"),
-		Signable:   helper.GetFormEntry(request, "signable") == "true",
+		Signable:   helper.GetBoolFormEntry(request, "signable"),
 		Recipients: helper.GetFormList(request, "[]recipient"),
 	}
 	page.Information = handler.MakeMarkdown(page.Body)

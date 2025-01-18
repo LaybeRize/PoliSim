@@ -488,6 +488,22 @@ func (p *CreateDiscussionPage) getRenderInfo() (string, string) {
 	return "documentCreateDiscussion", "readerAndParticipants"
 }
 
+type CreateVoteElementPage struct {
+	NavInfo     NavigationInfo
+	VoteNumbers []int
+	CurrNumber  int
+	Vote        *database.VoteInstance
+	MessageUpdate
+}
+
+func (p *CreateVoteElementPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *CreateVoteElementPage) getPageName() string {
+	return "documentCreateVoteElement"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -702,6 +718,10 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Dokumentansicht"
 	case *CreateDocumentPage:
 		fullPage.Base.Title = "Dokument erstellen"
+	case *CreateDiscussionPage:
+		fullPage.Base.Title = "Diskussion erstellen"
+	case *CreateVoteElementPage:
+		fullPage.Base.Title = "Abstimmungen verwalten"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

@@ -47,8 +47,8 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 	}
 	page := &handler.SearchPublicationsPage{}
 	page.Query = helper.GetFormEntry(request, "query")
-	page.Amount, _ = strconv.Atoi(helper.GetFormEntry(request, "amount"))
-	page.Page, _ = strconv.Atoi(helper.GetFormEntry(request, "page"))
+	database.GetIntegerFormEntry(request, "amount", &page.Amount)
+	database.GetIntegerFormEntry(request, "page", &page.Page)
 	if page.Page < 1 {
 		page.Page = 1
 	}

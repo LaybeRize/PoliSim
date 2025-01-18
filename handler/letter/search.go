@@ -78,8 +78,8 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 
 	page := &handler.SearchLetterPage{}
 	page.Account = helper.GetFormEntry(request, "account")
-	page.Amount, _ = strconv.Atoi(helper.GetFormEntry(request, "amount"))
-	page.Page, _ = strconv.Atoi(helper.GetFormEntry(request, "page"))
+	database.GetIntegerFormEntry(request, "amount", &page.Amount)
+	database.GetIntegerFormEntry(request, "page", &page.Page)
 	page.PossibleAccounts, err = database.GetMyAccountNames(acc)
 
 	if err != nil {

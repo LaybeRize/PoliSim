@@ -160,11 +160,11 @@ func makeRequest(query string, parameter map[string]any) (*neo4j.EagerResult, er
 		neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 }
 
-type DatabaseType interface {
-	VoteType | AccountRole | DocumentType | LetterStatus | OrganisationVisibility
+type NumberTypes interface {
+	int | VoteType | AccountRole | DocumentType | LetterStatus | OrganisationVisibility
 }
 
-func GetIntegerFormEntry[T DatabaseType](request *http.Request, field string, writeTo *T) {
+func GetIntegerFormEntry[T NumberTypes](request *http.Request, field string, writeTo *T) {
 	temp, err := strconv.Atoi(request.Form.Get(field))
 	if err != nil {
 		*writeTo = T(-1)

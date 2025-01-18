@@ -60,7 +60,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 		Author:   helper.GetFormEntry(request, "author"),
 		RawBody:  helper.GetFormEntry(request, "markdown"),
 	}
-	isSpecial := helper.GetFormEntry(request, "special") == "true"
+	isSpecial := helper.GetBoolFormEntry(request, "special")
 	newspaper := helper.GetFormEntry(request, "newspaper")
 
 	if article.Title == "" || article.RawBody == "" {

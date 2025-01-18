@@ -81,3 +81,7 @@ func GetFormList(request *http.Request, field string) []string {
 	}
 	return userNames
 }
+
+func GetBoolFormEntry(request *http.Request, field string) bool {
+	return GetFormEntry(request, field) == "true"
+}
