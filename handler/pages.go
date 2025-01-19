@@ -533,6 +533,31 @@ func (p *CreateVoteElementPage) getPageName() string {
 	return "documentCreateVoteElement"
 }
 
+type SearchDocumentsPage struct {
+	NavInfo     NavigationInfo
+	Amount      int
+	Page        int
+	HasNext     bool
+	HasPrevious bool
+	Results     []database.SmallDocument
+}
+
+func (p *SearchDocumentsPage) NextPage() int {
+	return p.Page + 1
+}
+
+func (p *SearchDocumentsPage) PreviousPage() int {
+	return p.Page - 1
+}
+
+func (p *SearchDocumentsPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *SearchDocumentsPage) getPageName() string {
+	return "documentSearch"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -770,6 +795,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Abstimmungen verwalten"
 	case *CreateVotePage:
 		fullPage.Base.Title = "Abstimmungsdokument erstellen"
+	case *SearchDocumentsPage:
+		fullPage.Base.Title = "Dokumente durchsuchen"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

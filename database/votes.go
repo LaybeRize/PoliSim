@@ -45,8 +45,8 @@ func (v *VoteInstance) HasValidType() bool { return v.Type >= SingleVote && v.Ty
 
 func (v *VoteInstance) AnswerIterator() func(func(int, string) bool) {
 	return func(yield func(int, string) bool) {
-		for i, v := range v.IterableAnswers {
-			if !yield(i, v.(string)) {
+		for i, str := range v.IterableAnswers {
+			if !yield(i, str.(string)) {
 				return
 			}
 		}

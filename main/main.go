@@ -60,6 +60,8 @@ func main() {
 	http.HandleFunc("PATCH /check/reader/and/participants", documents.PatchFixUserList)
 
 	http.HandleFunc("GET /view/document/{id}", documents.GetDocumentViewPage)
+	http.HandleFunc("GET /search/documents", documents.GetSearchDocumentsPage)
+	http.HandleFunc("PUT /search/documents", documents.PutSearchDocumentsPage)
 
 	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)

@@ -3,6 +3,7 @@ package documents
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"log/slog"
 	"net/http"
 )
 
@@ -22,6 +23,7 @@ func getDocumentPageObject(acc *database.Account, request *http.Request) *handle
 	page := &handler.DocumentViewPage{}
 	page.Document, page.Commentator, err = database.GetDocumentForUser(id, acc)
 	if err != nil {
+		slog.Error(err.Error())
 		return nil
 	}
 

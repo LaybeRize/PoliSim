@@ -518,3 +518,6 @@ div.markdown del {
 .bi-important::before { content: "\f281"; }
 .bi-letter-closed::before { content: "\f32c"; }
 .bi-letter-open::before { content: "\f32d"; }
+.bi-discussion::before { content: "\f249"; }
+.bi-post::before { content: "\f38a"; }
+.bi-vote::before { content: "\f270"; }

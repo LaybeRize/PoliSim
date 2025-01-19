@@ -1,0 +1,59 @@
+{{define "pageScript"}}
+    <script>
+        window.onload = function () {
+            document.body.addEventListener("htmx:afterRequest", function (evt) {
+                if (evt.failed) {
+                    alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+                }
+            })
+        }
+    </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.SearchDocumentsPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    {{$acc := .NavInfo.Account}}
+    <form id="search-form" hx-put="/search/documents" hx-target="#page-body">
+        <label for="amount">Anzahl der Ergebnisse</label>
+        <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
+        <button>Suchen</button>
+    </form>
+    <div class="wrapper note">
+        {{if eq (len .Results) 0}}
+            <p>Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
+        {{else}}
+            {{range .Results}}
+                {{- /*gotype: PoliSim/database.SmallDocument*/ -}}
+                <a href="/view/document/{{.ID}}" target="_blank">{{- if .IsPost -}}
+                        <i class="bi bi-post"></i>
+                    {{- end }}{{- if .IsDiscussion -}}
+                        <i class="bi bi-discussion"></i>
+                    {{- end }}{{- if .IsVote -}}
+                        <i class="bi bi-vote"></i>
+                    {{- end }} <strong>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</strong><br>
+                    <i>Veröffentlicht am: {{.GetTimeWritten $acc}}</i><br>
+                    Veröffentlicht von {{.Author}} in {{.Organisation}}
+                </a>
+            {{end}}
+        {{end}}
+        {{if or .HasNext .HasPrevious}}
+            <hr style="width: var(--standard-width); margin: 0.3rem 0;">
+            <div class="wrapper note pager">
+                {{if .HasPrevious}}
+                    <a hx-put="/search/documents" hx-include="#search-form"
+                       hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
+                        &laquo; Vorherige Seite
+                    </a>
+                {{end}}
+                {{if .HasNext}}
+                    <a hx-put="/search/documents" hx-include="#search-form"
+                       hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
+                        Nächste Seite &raquo;
+                    </a>
+                {{end}}
+            </div>
+        {{end}}
+    </div>
+    </body>
+{{end}}

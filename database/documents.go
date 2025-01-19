@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"golang.org/x/net/idna"
 	"html/template"
 	"strings"
 	"time"
@@ -16,26 +17,50 @@ const (
 	DocTypeVote
 )
 
-type Document struct {
-	ID                  string
-	Type                DocumentType
-	Organisation        string
-	Title               string
-	Author              string
-	Flair               string
-	Written             time.Time
-	Body                template.HTML
-	Public              bool
-	Removed             bool
-	MemberParticipation bool
-	AdminParticipation  bool
-	End                 time.Time
-	Reader              []string
-	Participants        []string
-	Tags                []DocumentTag
-	Links               []VoteInfo
-	VoteIDs             []string
-	Comments            []DocumentComment
+type (
+	Document struct {
+		ID                  string
+		Type                DocumentType
+		Organisation        string
+		Title               string
+		Author              string
+		Flair               string
+		Written             time.Time
+		Body                template.HTML
+		Public              bool
+		Removed             bool
+		MemberParticipation bool
+		AdminParticipation  bool
+		End                 time.Time
+		Reader              []string
+		Participants        []string
+		Tags                []DocumentTag
+		Links               []VoteInfo
+		VoteIDs             []string
+		Comments            []DocumentComment
+	}
+	SmallDocument struct {
+		ID           string
+		Type         DocumentType
+		Organisation string
+		Title        string
+		Author       string
+		Written      time.Time
+		Removed      bool
+	}
+)
+
+func (s *SmallDocument) IsPost() bool { return s.Type == DocTypePost }
+
+func (s *SmallDocument) IsDiscussion() bool { return s.Type == DocTypeDiscussion }
+
+func (s *SmallDocument) IsVote() bool { return s.Type == DocTypeVote }
+
+func (s *SmallDocument) GetTimeWritten(a *Account) string {
+	if a.Exists() {
+		return s.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+	}
+	return s.Written.Format("2006-01-02 15:04:05 MST")
 }
 
 func (d *Document) GetTimeWritten(a *Account) string {
@@ -230,27 +255,9 @@ func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
 		return nil, nil, err
 	}
 
-	name := ""
-	if acc.Exists() {
-		name = acc.Name
-	}
-	query := `
-MATCH (n:Account)-[:OWNER*0..]->(a:Account) WHERE n.name = $user 
-CALL {
-MATCH (a)-[:USER|ADMIN]->(o:Organisation)<-[:IN]-(d:Document) WHERE d.id = $id 
-RETURN d, o 
-UNION 
-MATCH (o:Organisation)<-[:IN]-(d:Document)-[:PARTICIPANT|READER]->(a) WHERE d.id = $id 
-RETURN d, o 
-}
-RETURN d, o.name;`
-	if acc.IsAtLeastAdmin() {
-		query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.id = $id 
-RETURN d, o.name;`
-	}
-	result, err := tx.Run(ctx, query, map[string]any{
-		"user": name,
-		"id":   id})
+	result, err := tx.Run(ctx, `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.id = $id 
+RETURN d, o.name;`, map[string]any{
+		"id": id})
 	if err != nil {
 		_ = tx.Rollback(ctx)
 		return nil, nil, err
@@ -259,6 +266,27 @@ RETURN d, o.name;`
 		return nil, nil, notAllowedError
 	}
 	props := result.Record().Values[0].(neo4j.Node).Props
+	public := props["public"].(bool)
+
+	if !public && !acc.Exists() {
+		_ = tx.Rollback(ctx)
+		return nil, nil, notAllowedError
+	} else if !public && !acc.IsAtLeastAdmin() {
+		var userCheck neo4j.ResultWithContext
+		userCheck, err = tx.Run(ctx, `
+MATCH (a:Account)-[*..]-(d:Document) WHERE a.name = $name AND d.id = $id 
+RETURN d.id;`, map[string]any{
+			"id":   id,
+			"name": acc.Name})
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return nil, nil, err
+		} else if userCheck.Next(ctx); userCheck.Record() == nil {
+			_ = tx.Rollback(ctx)
+			return nil, nil, notAllowedError
+		}
+	}
+
 	doc := &Document{
 		ID:                  id,
 		Type:                DocumentType(props["type"].(int64)),
@@ -268,12 +296,11 @@ RETURN d, o.name;`
 		Flair:               props["flair"].(string),
 		Written:             props["written"].(time.Time),
 		Body:                template.HTML(props["body"].(string)),
-		Public:              props["public"].(bool),
+		Public:              public,
 		Removed:             props["removed"].(bool),
 		MemberParticipation: props["member_part"].(bool),
 		AdminParticipation:  props["admin_part"].(bool),
 		End:                 props["end_time"].(time.Time),
-		Participants:        make([]string, 0),
 	}
 	var commentator []string
 
@@ -328,20 +355,9 @@ WHERE d.id = $id RETURN c.id, c.author, c.flair, c.written, c.body, c.removed;`,
 
 	if doc.Type == DocTypeDiscussion && !doc.Ended() && acc.Exists() {
 		commentator = make([]string, 0)
-		result, err = tx.Run(ctx, `CALL {
-MATCH (n:Account)-[:OWNER*0..]->(a:Account)<-[:PARTICIPANT]-(d:Document) 
-WHERE n.name = $name AND a.blocked = false AND d.id = $id
-RETURN a.name AS name 
-UNION 
-MATCH (n:Account)-[:OWNER*0..]->(a:Account)-[:USER|ADMIN]->(:Organisation)<-[:IN]-(d:Document) 
-WHERE n.name = $name AND a.blocked = false AND d.id = $id AND d.member_part = true
-RETURN a.name AS name 
-UNION 
-MATCH (n:Account)-[:OWNER*0..]->(a:Account)-[:ADMIN]->(:Organisation)<-[:IN]-(d:Document) 
-WHERE n.name = $name AND a.blocked = false AND d.id = $id AND d.admin_part = true
-RETURN a.name AS name 
-} 
-RETURN name;`,
+		result, err = tx.Run(ctx, `
+MATCH (n:Account)-[:OWNER*0..]->(a:Account) WHERE n.name = $name 
+RETURN a.name;`,
 			map[string]any{"id": id, "name": acc.Name})
 		if err != nil {
 			_ = tx.Rollback(ctx)
@@ -421,4 +437,44 @@ MERGE (c)-[:ON]->(d);`, map[string]any{
 
 	err = tx.Commit(ctx)
 	return err
+}
+
+func GetDocumentList(amount int, page int, acc *Account) ([]SmallDocument, error) {
+	var query string
+	if !acc.Exists() {
+		query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true `
+	} else if !acc.IsAtLeastAdmin() {
+		query = `CALL { MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true 
+RETURN d, o
+UNION
+MATCH (o:Organisation)<-[:IN]-(d:Document)-[*..]-(a:Account) WHERE d.public = false AND a.name = $name 
+RETURN d, o 
+} `
+	} else {
+		query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE true `
+	}
+
+	result, err := makeRequest(query+`RETURN d.id, d.type, o.name, d.title, d.author, d.written, d.removed 
+ORDER BY d.written DESC SKIP $skip LIMIT $amount;`,
+		map[string]any{
+			"amount": amount,
+			"skip":   (page - 1) * amount,
+			"name":   acc.GetName(),
+		})
+	if err != nil {
+		return nil, err
+	}
+	arr := make([]SmallDocument, 0, len(result.Records))
+	for _, record := range result.Records {
+		arr = append(arr, SmallDocument{
+			ID:           record.Values[0].(string),
+			Type:         DocumentType(record.Values[1].(int64)),
+			Organisation: record.Values[2].(string),
+			Title:        record.Values[3].(string),
+			Author:       record.Values[4].(string),
+			Written:      record.Values[5].(time.Time),
+			Removed:      record.Values[6].(bool),
+		})
+	}
+	return arr, nil
 }
