@@ -230,6 +230,10 @@ func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
 		return nil, nil, err
 	}
 
+	name := ""
+	if acc.Exists() {
+		name = acc.Name
+	}
 	query := `
 MATCH (n:Account)-[:OWNER*0..]->(a:Account) WHERE n.name = $user 
 CALL {
@@ -245,7 +249,7 @@ RETURN d, o.name;`
 RETURN d, o.name;`
 	}
 	result, err := tx.Run(ctx, query, map[string]any{
-		"user": acc.Name,
+		"user": name,
 		"id":   id})
 	if err != nil {
 		_ = tx.Rollback(ctx)

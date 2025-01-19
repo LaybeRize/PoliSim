@@ -20,8 +20,9 @@
         <label for="number">Abstimmungsnummer</label>
         <select id="number" name="number" hx-patch="/retrieve/vote/element" hx-trigger="change" hx-target="#page-body"
                 hx-confirm="Sicher, dass du die Abstimmung wechseln willst?">
-            {{range $num := .VoteNumbers}}
-                <option value="{{$num}}" {{if eq .CurrNumber $num}}selected{{end}}>{{$num}}</option>
+            {{$num := .CurrNumber}}
+            {{range .VoteNumbers}}
+                <option value="{{.}}" {{if eq $num .}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
         <label for="id">Abstimmungs ID</label>

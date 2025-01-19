@@ -161,7 +161,7 @@ func makeRequest(query string, parameter map[string]any) (*neo4j.EagerResult, er
 }
 
 type NumberTypes interface {
-	int | VoteType | AccountRole | DocumentType | LetterStatus | OrganisationVisibility
+	int64 | int | VoteType | AccountRole | DocumentType | LetterStatus | OrganisationVisibility
 }
 
 func GetIntegerFormEntry[T NumberTypes](request *http.Request, field string, writeTo *T) {

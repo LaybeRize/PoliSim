@@ -29,6 +29,8 @@ func GetCreateDiscussionPage(writer http.ResponseWriter, request *http.Request) 
 		MinTime:  locTime.Add(addMin).Format("2006-01-02T15:04"),
 		MaxTime:  locTime.Add(addMax).Format("2006-01-02T15:04"),
 	}
+	page.Reader = []string{""}
+	page.Participants = []string{""}
 	page.IsError = true
 	page.Message = ""
 

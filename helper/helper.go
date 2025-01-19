@@ -86,6 +86,16 @@ func GetFormList(request *http.Request, field string) []string {
 	return userNames
 }
 
+func FilterList(list []string) []string {
+	result := make([]string, 0, len(list))
+	for _, element := range list {
+		if strings.TrimSpace(element) != "" {
+			result = append(result, element)
+		}
+	}
+	return result
+}
+
 func GetBoolFormEntry(request *http.Request, field string) bool {
 	return GetFormEntry(request, field) == "true"
 }

@@ -66,7 +66,7 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 	page.Vote = &database.VoteInstance{
 		ID:                    helper.GetUniqueID(acc.Name),
 		Question:              helper.GetFormEntry(request, "question"),
-		Answers:               helper.GetFormList(request, "[]answers"),
+		Answers:               helper.FilterList(helper.GetFormList(request, "[]answers")),
 		ShowVotesDuringVoting: helper.GetBoolFormEntry(request, "show-during"),
 		Anonymous:             helper.GetBoolFormEntry(request, "anonymous"),
 	}

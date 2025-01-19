@@ -20,7 +20,7 @@ type (
 		Answers               []string
 		IterableAnswers       []any
 		Type                  VoteType
-		MaxVotes              int
+		MaxVotes              int64
 		ShowVotesDuringVoting bool
 		Anonymous             bool
 		EndDate               time.Time
@@ -135,8 +135,8 @@ RETURN v;`, map[string]any{"name": acc.Name, "position": number})
 		ID:                    record.Props["id"].(string),
 		Question:              record.Props["question"].(string),
 		IterableAnswers:       record.Props["answers"].([]any),
-		Type:                  VoteType(record.Props["type"].(int)),
-		MaxVotes:              record.Props["max_votes"].(int),
+		Type:                  VoteType(record.Props["type"].(int64)),
+		MaxVotes:              record.Props["max_votes"].(int64),
 		ShowVotesDuringVoting: record.Props["show_during"].(bool),
 		Anonymous:             record.Props["anonymous"].(bool),
 	}, nil

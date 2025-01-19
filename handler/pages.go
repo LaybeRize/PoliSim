@@ -768,6 +768,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Diskussion erstellen"
 	case *CreateVoteElementPage:
 		fullPage.Base.Title = "Abstimmungen verwalten"
+	case *CreateVotePage:
+		fullPage.Base.Title = "Abstimmungsdokument erstellen"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}
