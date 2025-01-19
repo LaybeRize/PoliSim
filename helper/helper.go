@@ -60,6 +60,10 @@ func MakeCommaSeperatedStringToList(input string) []string {
 	return result
 }
 
+func GetCommaListFormEntry(request *http.Request, field string) []string {
+	return MakeCommaSeperatedStringToList(GetPureFormEntry(request, field))
+}
+
 // GetPureFormEntry returns the unchanged string
 func GetPureFormEntry(request *http.Request, field string) string {
 	return request.Form.Get(field)

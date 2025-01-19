@@ -141,3 +141,19 @@ RETURN v;`, map[string]any{"name": acc.Name, "position": number})
 		Anonymous:             record.Props["anonymous"].(bool),
 	}, nil
 }
+
+func GetVoteInfoList(acc *Account) ([]VoteInfo, error) {
+	result, err := makeRequest(`MATCH (a:Account)-[:MANAGES]->(v:Vote) 
+WHERE a.name = $name RETURN v.id, v.question;`, map[string]any{"name": acc.Name})
+	if err != nil {
+		return nil, err
+	}
+	list := make([]VoteInfo, len(result.Records))
+	for i, record := range result.Records {
+		list[i] = VoteInfo{
+			ID:       record.Values[0].(string),
+			Question: record.Values[1].(string),
+		}
+	}
+	return list, err
+}

@@ -426,6 +426,12 @@ type DocumentViewPage struct {
 	Document      *database.Document
 	Commentator   []string
 	ColorPalettes []database.ColorPalette
+	MessageUpdate
+	MarkdownBox
+}
+
+func (p *DocumentViewPage) CanComment() bool {
+	return len(p.Commentator) != 0 && !p.Document.Ended()
 }
 
 func (p *DocumentViewPage) SetNavInfo(navInfo NavigationInfo) {
@@ -437,12 +443,12 @@ func (p *DocumentViewPage) getPageName() string {
 }
 
 type CreateDocumentPage struct {
-	NavInfo               NavigationInfo
-	Title                 string
-	Author                string
-	PossibleAuthors       []string
-	PossibleOrganisations []string
-	Body                  string
+	NavInfo         NavigationInfo
+	Title           string
+	Author          string
+	PossibleAuthors []string
+	Body            string
+	UpdateOrganisationForUser
 	MessageUpdate
 	MarkdownBox
 }
@@ -455,23 +461,21 @@ func (p *CreateDocumentPage) getPageName() string {
 	return "documentCreate"
 }
 
-func (p *CreateDocumentPage) getRenderInfo() (string, string) {
-	return "documentCreate", "organisationDropdown"
-}
-
 type CreateDiscussionPage struct {
-	NavInfo               NavigationInfo
-	Title                 string
-	Author                string
-	PossibleAuthors       []string
-	PossibleOrganisations []string
-	AccountNames          []string
-	Public                bool
-	LetMemberParticipate  bool
-	LetAdminsParticipate  bool
-	Reader                []string
-	Participants          []string
-	Body                  string
+	NavInfo              NavigationInfo
+	Title                string
+	Author               string
+	DateTime             string
+	MaxTime              string
+	MinTime              string
+	PossibleAuthors      []string
+	AccountNames         []string
+	Public               bool
+	LetMemberParticipate bool
+	LetAdminsParticipate bool
+	Body                 string
+	ReaderAndParticipants
+	UpdateOrganisationForUser
 	MessageUpdate
 	MarkdownBox
 }
@@ -484,8 +488,33 @@ func (p *CreateDiscussionPage) getPageName() string {
 	return "documentCreateDiscussion"
 }
 
-func (p *CreateDiscussionPage) getRenderInfo() (string, string) {
-	return "documentCreateDiscussion", "readerAndParticipants"
+type CreateVotePage struct {
+	NavInfo              NavigationInfo
+	Title                string
+	Author               string
+	DateTime             string
+	MaxTime              string
+	MinTime              string
+	PossibleAuthors      []string
+	AccountNames         []string
+	Public               bool
+	LetMemberParticipate bool
+	LetAdminsParticipate bool
+	Body                 string
+	VoteChoice           []database.VoteInfo
+	VoteChoiceList       string
+	ReaderAndParticipants
+	UpdateOrganisationForUser
+	MessageUpdate
+	MarkdownBox
+}
+
+func (p *CreateVotePage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *CreateVotePage) getPageName() string {
+	return "documentCreateVote"
 }
 
 type CreateVoteElementPage struct {
@@ -576,6 +605,23 @@ type SingleOrganisationUpdate struct {
 
 func (p *SingleOrganisationUpdate) getRenderInfo() (string, string) {
 	return "organisationView", "singleOrganisation"
+}
+
+type UpdateOrganisationForUser struct {
+	PossibleOrganisations []string
+}
+
+func (p *UpdateOrganisationForUser) getRenderInfo() (string, string) {
+	return "templates", "organisationDropdown"
+}
+
+type ReaderAndParticipants struct {
+	Reader       []string
+	Participants []string
+}
+
+func (p *ReaderAndParticipants) getRenderInfo() (string, string) {
+	return "templates", "readerAndParticipants"
 }
 
 type MessageUpdate struct {

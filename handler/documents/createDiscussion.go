@@ -11,6 +11,11 @@ import (
 	"time"
 )
 
+const (
+	addMin = time.Hour * 24
+	addMax = time.Hour * 24 * 15
+)
+
 func GetCreateDiscussionPage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
@@ -18,7 +23,12 @@ func GetCreateDiscussionPage(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	page := &handler.CreateDiscussionPage{}
+	locTime := time.Now().In(acc.TimeZone)
+	page := &handler.CreateDiscussionPage{
+		DateTime: locTime.Add(time.Hour * 48).Format("2006-01-02T15:04"),
+		MinTime:  locTime.Add(addMin).Format("2006-01-02T15:04"),
+		MaxTime:  locTime.Add(addMax).Format("2006-01-02T15:04"),
+	}
 	page.IsError = true
 	page.Message = ""
 
@@ -62,7 +72,7 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 	}
 
 	doc := &database.Document{
-		Type:                database.DocTypePost,
+		Type:                database.DocTypeDiscussion,
 		Organisation:        helper.GetFormEntry(request, "organisation"),
 		Title:               helper.GetFormEntry(request, "title"),
 		Author:              helper.GetFormEntry(request, "author"),
@@ -73,8 +83,23 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 		AdminParticipation:  helper.GetBoolFormEntry(request, "admin"),
 		Participants:        helper.GetFormList(request, "[]participants"),
 		Reader:              helper.GetFormList(request, "[]reader"),
-		End:                 time.Time{},
 	}
+
+	doc.End, err = time.ParseInLocation("2006-01-02T15:04", helper.GetFormEntry(request, "end-time"),
+		acc.TimeZone)
+	if err != nil {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Der angegebene Zeitstempel für das Ende ist nicht gültig"})
+		return
+	}
+
+	locTime := time.Now().In(acc.TimeZone)
+	if doc.End.Before(locTime.Add(addMin)) || doc.End.After(locTime.Add(addMax)) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Der angegebene Zeitstempel ist entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"})
+		return
+	}
+	doc.End = doc.End.UTC()
 
 	if doc.Title == "" || doc.Body == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -136,7 +161,7 @@ func PatchFixUserList(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page := &handler.CreateDiscussionPage{
+	page := &handler.ReaderAndParticipants{
 		Participants: helper.GetFormList(request, "[]participants"),
 		Reader:       helper.GetFormList(request, "[]reader"),
 	}

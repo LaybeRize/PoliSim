@@ -10,10 +10,19 @@
         function destroyParent(self) {
             self.parentElement.remove()
         }
+
+        function copyElementValueAndAppendIt(idFrom, idTo) {
+            let value = document.querySelector("#"+idTo).value
+            if (value === "") {
+                document.querySelector("#"+idTo).value = document.querySelector("#"+idFrom).value
+            } else {
+                document.querySelector("#"+idTo).value += "," + document.querySelector("#"+idFrom).value
+            }
+        }
     </script>
 {{end}}
 {{define "page"}}
-    {{- /*gotype: PoliSim/handler.CreateDiscussionPage*/ -}}
+    {{- /*gotype: PoliSim/handler.CreateVotePage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/discussion" hx-target="#page-body">
@@ -47,6 +56,17 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
+        <label for="vote-choice">Abstimmungsliste</label>
+        <select id="vote-choice" name="vote-choice">
+            {{range .VoteChoice}}
+                <option value="{{.ID}}">{{.Question}}</option>
+            {{end}}
+        </select>
+        <button type="button" onclick="copyElementValueAndAppendIt('vote-choice', 'votes')">
+            ID der ausgewählten Abstimmung übertragen
+        </button>
+        <label for="votes">Angehängte Abstimmungen</label>
+        <input id="votes" name="votes" type="text" value="{{.VoteChoiceList}}">
         <label for="markdown">Inhalt</label>
         <textarea id="markdown" name="markdown" rows="10"
                   hx-trigger="keyup changed delay:1s" hx-put="/markdown"

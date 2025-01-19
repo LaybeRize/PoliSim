@@ -22,8 +22,8 @@ import (
 
 func main() {
 	log.Println("Registering all Pages")
-	fs := http.FileServer(http.Dir("public"))
-	http.Handle("GET /public/*", http.StripPrefix("/public/", fs))
+	fs := http.FileServer(http.Dir("./public"))
+	http.Handle("GET /public/", http.StripPrefix("/public/", fs))
 
 	http.HandleFunc("GET /create/account", accounts.GetCreateAccount)
 	http.HandleFunc("POST /create/account", accounts.PostCreateAccount)
@@ -50,13 +50,16 @@ func main() {
 	http.HandleFunc("POST /create/document", documents.PostCreateDocumentPage)
 	http.HandleFunc("GET /create/discussion", documents.GetCreateDiscussionPage)
 	http.HandleFunc("POST /create/discussion", documents.PostCreateDiscussionPage)
-	//http.HandleFunc("GET /create/vote", documents.GetCreateDocumentPage)
-	//http.HandleFunc("POST /create/vote", documents.PostCreateDocumentPage)
+	http.HandleFunc("POST /create/discussion/comment/{id}", documents.PostCreateComment)
+	http.HandleFunc("GET /create/vote", documents.GetCreateVotePage)
+	http.HandleFunc("POST /create/vote", documents.PostCreateVotePage)
 	http.HandleFunc("GET /create/vote/element", documents.GetCreateVoteElementPage)
 	http.HandleFunc("POST /create/vote/element", documents.PostCreateVoteElementPage)
 	http.HandleFunc("PATCH /retrieve/vote/element", documents.PatchGetVoteElementPage)
 	http.HandleFunc("GET /organisations/for/account", documents.GetFindOrganisationForAccountPage)
 	http.HandleFunc("PATCH /check/reader/and/participants", documents.PatchFixUserList)
+
+	http.HandleFunc("GET /view/document/{id}", documents.GetDocumentViewPage)
 
 	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)

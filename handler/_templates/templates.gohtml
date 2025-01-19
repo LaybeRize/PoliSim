@@ -40,6 +40,8 @@
                         <li><a href="/my/posts">Meine Posts</a></li>
                         <li><a href="/create/document">Dokument erstellen</a></li>
                         <li><a href="/create/discussion">Diskussion erstellen</a></li>
+                        <li><a href="/create/vote/element">Abstimmung verwalten</a></li>
+                        <li><a href="/create/vote">Abstimmungsdokument erstellen</a></li>
                     </ul>
                 </li>
             {{end}}
@@ -79,5 +81,49 @@
     <div id="message-div" class="{{if .IsError}}error-div{{else}}success-div{{end}}"
          {{if eq "" .Message}}hidden{{end}}>
         {{- .Message -}}
+    </div>
+{{end}}
+
+{{define "organisationDropdown"}}
+    {{- /*gotype: PoliSim/handler.UpdateOrganisationForUser*/ -}}
+    <select id="organisation" name="organisation">
+        <option value="" selected>-- Organisation auswählen --</option>
+        {{range .PossibleOrganisations}}
+            <option value="{{.}}">{{.}}</option>
+        {{end}}
+    </select>
+{{end}}
+
+{{define "readerAndParticipants"}}
+    <div id="reader-and-participants">
+        <button type="button" onclick="copy('input-for-reader', 'participants-adder')">
+            Leser hinzufügen
+        </button>
+        <label for="reader">Leser</label>
+        <div id="input-for-reader" class="name-list hide">
+            <input id="reader" name="[]reader" type="text" list="account-names">
+            <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+        </div>
+        {{range .Reader}}
+            <div class="name-list">
+                <input id="reader" name="[]reader" type="text" value="{{.}}" list="account-names">
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
+        {{end}}
+        <button id="participants-adder" type="button" onclick="copy('input-for-participants', 'block-end-div')">
+            Teilnehmer hinzufügen
+        </button>
+        <label for="participants">Teilnehmer</label>
+        <div id="input-for-participants" class="name-list hide">
+            <input id="participants" name="[]participants" type="text" list="account-names">
+            <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+        </div>
+        {{range .Participants}}
+            <div class="name-list">
+                <input id="participants" name="[]participants" type="text" value="{{.}}" list="account-names">
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
+        {{end}}
+        <div id="block-end-div" class="hide"></div>
     </div>
 {{end}}

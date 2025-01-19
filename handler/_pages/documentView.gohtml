@@ -2,6 +2,9 @@
     {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
+    {{if .Document.Removed}}
+        <p>Das Dokument wurde entfernt</p>
+    {{else}}
     <div class="wrapper">
         <div class="aside-tags">
             {{ range $tag := .Document.Tags}}
@@ -39,6 +42,7 @@
         {{if .Document.IsDiscussion}}{{template "discussion" .}}{{end}}
         {{if .Document.IsVote}}{{template "vote" .}}{{end}}
     </div>
+    {{end}}
     </body>
 {{end}}
 {{define "discussion"}}
@@ -51,8 +55,23 @@
         </div>
         <div class="markdown">{{$comment.Body}}</div>
     {{end}}
-    {{if not .Document.Ended}}
-        <!--Todo: add comment form here-->
+    {{if .CanComment}}
+        <hr class="splitter">
+        <form hx-post="/create/discussion/comment/{{.Document.ID}}" hx-target="#page-body">
+            <label for="author">Autor</label>
+            <select id="author" name="author">
+                {{range .Commentator}}
+                    <option value="{{.}}">{{.}}</option>
+                {{end}}
+            </select>
+            <label for="markdown">Inhalt</label>
+            <textarea id="markdown" name="markdown" rows="10"
+                      hx-trigger="keyup changed delay:1s" hx-put="/markdown"
+                      hx-target="#markdown-box"></textarea>
+        </form>
+        {{template "message" .}}
+        <h1>Vorschau</h1>
+        {{template "markdownBox" .}}
     {{end}}
 {{end}}
 {{define "vote"}}

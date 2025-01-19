@@ -11,14 +11,19 @@ import (
 	"time"
 )
 
-func GetCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
+func GetCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
 		handler.GetNotFoundPage(writer, request)
 		return
 	}
 
-	page := &handler.CreateDocumentPage{}
+	locTime := time.Now().In(acc.TimeZone)
+	page := &handler.CreateVotePage{
+		DateTime: locTime.Add(time.Hour * 48).Format("2006-01-02T15:04"),
+		MinTime:  locTime.Add(addMin).Format("2006-01-02T15:04"),
+		MaxTime:  locTime.Add(addMax).Format("2006-01-02T15:04"),
+	}
 	page.IsError = true
 	page.Message = ""
 
@@ -35,13 +40,23 @@ func GetCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		page.Message = "\n" + "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"
-		page.Message = strings.TrimSpace(page.Message)
+	}
+	page.AccountNames, err = database.GetNonBlockedNames()
+	if err != nil {
+		slog.Debug(err.Error())
+		page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
+	}
+	page.VoteChoice, err = database.GetVoteInfoList(acc)
+	if err != nil {
+		slog.Debug(err.Error())
+		page.Message += "\n" + "Es ist ein Fehler bei der Suche nach den Abstimmung des Accounts aufgetreten"
 	}
 
+	page.Message = strings.TrimSpace(page.Message)
 	handler.MakeFullPage(writer, acc, page)
 }
 
-func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
+func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
 		handler.PartialGetNotFoundPage(writer, request)
@@ -57,17 +72,36 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	doc := &database.Document{
-		Type:                database.DocTypePost,
+		Type:                database.DocTypeVote,
 		Organisation:        helper.GetFormEntry(request, "organisation"),
 		Title:               helper.GetFormEntry(request, "title"),
 		Author:              helper.GetFormEntry(request, "author"),
 		Body:                handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
-		Public:              true,
+		Public:              helper.GetBoolFormEntry(request, "public"),
 		Removed:             false,
-		MemberParticipation: false,
-		AdminParticipation:  false,
+		MemberParticipation: helper.GetBoolFormEntry(request, "member"),
+		AdminParticipation:  helper.GetBoolFormEntry(request, "admin"),
+		Participants:        helper.GetFormList(request, "[]participants"),
+		Reader:              helper.GetFormList(request, "[]reader"),
+		VoteIDs:             helper.GetCommaListFormEntry(request, "votes"),
 		End:                 time.Time{},
 	}
+
+	doc.End, err = time.ParseInLocation("2006-01-02T15:04", helper.GetFormEntry(request, "end-time"),
+		acc.TimeZone)
+	if err != nil {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Der angegebene Zeitstempel für das Ende ist nicht gültig"})
+		return
+	}
+
+	locTime := time.Now().In(acc.TimeZone)
+	if doc.End.Before(locTime.Add(addMin)) || doc.End.After(locTime.Add(addMax)) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Der angegebene Zeitstempel ist entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"})
+		return
+	}
+	doc.End = doc.End.UTC()
 
 	if doc.Title == "" || doc.Body == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -111,43 +145,4 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 
 	writer.Header().Add("HX-Redirect", fmt.Sprintf("/view/document/%s", doc.ID))
 	writer.WriteHeader(http.StatusFound)
-}
-
-func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http.Request) {
-	acc, loggedIn := database.RefreshSession(writer, request)
-	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung"})
-		return
-	}
-
-	err := request.ParseForm()
-	if err != nil {
-		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Parsen der Informationen"})
-		return
-	}
-
-	page := &handler.UpdateOrganisationForUser{}
-	author := helper.GetFormEntry(request, "author")
-	allowed, err := database.IsAccountAllowedToPostWith(acc, author)
-	if !allowed || err != nil {
-		if err != nil {
-			slog.Error(err.Error())
-		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung um die Informationen für diesen Account anzufordern"})
-		return
-	}
-
-	page.PossibleOrganisations, err = database.GetOrganisationNamesAdminIn(author)
-	if err != nil {
-		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"})
-		return
-	}
-
-	handler.MakeSpecialPagePart(writer, page)
 }

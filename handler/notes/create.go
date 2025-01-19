@@ -71,7 +71,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	references := helper.MakeCommaSeperatedStringToList(helper.GetFormEntry(request, "references"))
+	references := helper.GetCommaListFormEntry(request, "references")
 	note := &database.BlackboardNote{
 		ID:       helper.GetUniqueID(author.Name),
 		Title:    helper.GetFormEntry(request, "title"),
