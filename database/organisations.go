@@ -383,7 +383,7 @@ func getSingleOrganisation(letter string, records []*neo4j.Record) (*Organisatio
 	node := result.(neo4j.Node)
 	title := &Organisation{
 		Name:       node.Props["name"].(string),
-		Visibility: OrganisationVisibility(node.Props["visibility"].(int)),
+		Visibility: OrganisationVisibility(node.Props["visibility"].(int64)),
 		MainType:   node.Props["main_type"].(string),
 		SubType:    node.Props["sub_type"].(string),
 		Flair:      node.Props["flair"].(string),
@@ -402,7 +402,7 @@ func getArrayOfOrganisations(letter string, records []*neo4j.Record) []Organisat
 		node := result.(neo4j.Node)
 		arr = append(arr, Organisation{
 			Name:       node.Props["name"].(string),
-			Visibility: OrganisationVisibility(node.Props["visibility"].(int)),
+			Visibility: OrganisationVisibility(node.Props["visibility"].(int64)),
 			MainType:   node.Props["main_type"].(string),
 			SubType:    node.Props["sub_type"].(string),
 			Flair:      node.Props["flair"].(string),

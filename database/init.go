@@ -141,6 +141,8 @@ func createConstraints() {
 		//"CREATE CONSTRAINT r_document_id IF NOT EXISTS FOR (doc:Document) REQUIRE doc.id IS NOT NULL;",
 		"CREATE CONSTRAINT u_vote_id IF NOT exists FOR (vote:Vote) REQUIRE vote.id IS UNIQUE;",
 		//"CREATE CONSTRAINT r_vote_id IF NOT EXISTS FOR (vote:Vote) REQUIRE vote.id IS NOT NULL;",
+		"CREATE CONSTRAINT u_comment_id IF NOT exists FOR (comment:Comment) REQUIRE comment.id IS UNIQUE;",
+		//"CREATE CONSTRAINT r_comment_id IF NOT EXISTS FOR (comment:Comment) REQUIRE comment.id IS NOT NULL;",
 	}
 
 	for _, constraint := range constraints {

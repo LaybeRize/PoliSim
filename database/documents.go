@@ -156,7 +156,7 @@ WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation AND 
 	} else if result.Next(ctx); result.Record() == nil {
 		_ = tx.Rollback(ctx)
 		return notAllowedError
-	} else if result.Record().Values[0].(int) == int(SECRET) && document.Public {
+	} else if result.Record().Values[0].(int64) == int64(SECRET) && document.Public {
 		_ = tx.Rollback(ctx)
 		return notAllowedError
 	}
@@ -261,7 +261,7 @@ RETURN d, o.name;`
 	props := result.Record().Values[0].(neo4j.Node).Props
 	doc := &Document{
 		ID:                  id,
-		Type:                DocumentType(props["type"].(int)),
+		Type:                DocumentType(props["type"].(int64)),
 		Organisation:        result.Record().Values[1].(string),
 		Title:               props["title"].(string),
 		Author:              props["author"].(string),

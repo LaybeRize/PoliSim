@@ -234,7 +234,7 @@ RETURN l, r.signature;`,
 	if reader == loc.AdminstrationName {
 		letter.HasSigned = true
 	} else {
-		letter.HasSigned = result.Record().Values[1].(int) != int(NoDecision)
+		letter.HasSigned = result.Record().Values[1].(int64) != int64(NoDecision)
 	}
 	letter.ID = id
 	letter.Title = nodeTitle.Props["title"].(string)
@@ -261,7 +261,7 @@ RETURN a.name, r.signature ORDER BY a.name;`,
 	for result.Next(ctx) {
 		name := result.Record().Values[0].(string)
 		letter.Reader = append(letter.Reader, name)
-		switch LetterStatus(result.Record().Values[1].(int)) {
+		switch LetterStatus(result.Record().Values[1].(int64)) {
 		case NoDecision:
 			letter.NoDecision = append(letter.NoDecision, name)
 		case Agreed:
