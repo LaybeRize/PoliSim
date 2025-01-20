@@ -274,7 +274,7 @@ RETURN d, o.name;`, map[string]any{
 	} else if !public && !acc.IsAtLeastAdmin() {
 		var userCheck neo4j.ResultWithContext
 		userCheck, err = tx.Run(ctx, `
-MATCH (a:Account)-[*..]-(d:Document) WHERE a.name = $name AND d.id = $id 
+MATCH (a:Account)-[*..]->(:Organisation)<-[:IN]-(d:Document) WHERE a.name = $name AND d.id = $id 
 RETURN d.id;`, map[string]any{
 			"id":   id,
 			"name": acc.Name})
@@ -447,7 +447,7 @@ func GetDocumentList(amount int, page int, acc *Account) ([]SmallDocument, error
 		query = `CALL { MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true 
 RETURN d, o
 UNION
-MATCH (o:Organisation)<-[:IN]-(d:Document)-[*..]-(a:Account) WHERE d.public = false AND a.name = $name 
+MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE d.public = false AND a.name = $name 
 RETURN d, o 
 } `
 	} else {

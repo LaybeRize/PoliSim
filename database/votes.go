@@ -25,6 +25,11 @@ type (
 		Anonymous             bool
 		EndDate               time.Time
 	}
+
+	AccountVotes struct {
+		IllegalVotes []string
+		List         map[string][]any
+	}
 )
 
 func (t VoteType) IsSingleVote() bool      { return t == SingleVote }
@@ -156,4 +161,106 @@ WHERE a.name = $name RETURN v.id, v.question;`, map[string]any{"name": acc.Name}
 		}
 	}
 	return list, err
+}
+
+func VoteWithAccount(name string, id string, votes []int) error {
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return err
+	}
+
+	result, err := tx.Run(ctx, `CALL {
+MATCH (a:Account)<-[:PARTICIPANT]-(d:Document)-[:LINKS]->(v:Vote)
+WHERE a.name = $author AND a.blocked = false AND v.id = $id AND $now > d.end_time
+RETURN a 
+UNION 
+MATCH (a:Account)-[:USER|ADMIN]->(:Organisation)<-[:IN]-(d:Document)-[:LINKS]->(v:Vote) 
+WHERE a.name = $author AND a.blocked = false AND v.id = $id AND d.member_part = true AND $now > d.end_time
+RETURN a 
+UNION 
+MATCH (a:Account)-[:ADMIN]->(:Organisation)<-[:IN]-(d:Document)-[:LINKS]->(v:Vote) 
+WHERE a.name = $author AND a.blocked = false AND v.id = $id AND d.admin_part = true AND $now > d.end_time
+RETURN a 
+} 
+RETURN a;`,
+		map[string]any{"id": id, "author": name, "now": time.Now().UTC()})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	} else if result.Next(ctx); result.Record() == nil {
+		_ = tx.Rollback(ctx)
+		return notAllowedError
+	}
+
+	result, err = tx.Run(ctx, `MATCH (a:Account)-[:VOTED]->(v:Vote) WHERE a.name = $author AND v.id = $id 
+RETURN a;`,
+		map[string]any{"id": id, "author": name})
+	if err != nil {
+		_ = tx.Rollback(ctx)
+		return err
+	} else if result.Next(ctx); result.Record() != nil {
+		_ = tx.Rollback(ctx)
+		return notAllowedError
+	}
+
+	mapIsNil := votes == nil
+	_, err = tx.Run(ctx, `MATCH (a:Account), (v:Vote) WHERE a.name = $author AND v.id = $id 
+MERGE (a)-[:VOTED {illegal: $illegal, vote: $voteMap}]->(v);`,
+		map[string]any{"id": id, "author": name, "illegal": mapIsNil, "voteMap": votes})
+	if err == nil {
+		return tx.Commit(ctx)
+	}
+	return err
+}
+
+func GetVoteForUser(id string, acc *Account) (*VoteInstance, *AccountVotes, error) {
+	extra := `CALL { MATCH (o:Organisation)<-[:IN]-(d:Document)-[:LINKS]->(v:Vote) WHERE d.public = true 
+RETURN o
+UNION
+MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE d.public = false AND a.name = $name 
+RETURN o }`
+	if acc.IsAtLeastAdmin() {
+		extra = ""
+	}
+
+	result, err := makeRequest(`MATCH (d:Document)-[:LINKS]->(v:Vote) WHERE v.id = $id 
+`+extra+` RETURN d.id, d.end_time, v;`, map[string]any{"id": id, "name": acc.Name})
+	if err != nil {
+		return nil, nil, err
+	}
+	Props := result.Records[0].Values[2].(neo4j.Node).Props
+	vote := &VoteInstance{
+		DocumentID:            result.Records[0].Values[0].(string),
+		ID:                    Props["id"].(string),
+		Question:              Props["question"].(string),
+		IterableAnswers:       Props["answers"].([]any),
+		Type:                  VoteType(Props["type"].(int64)),
+		MaxVotes:              Props["max_votes"].(int64),
+		ShowVotesDuringVoting: Props["show_during"].(bool),
+		Anonymous:             Props["anonymous"].(bool),
+		EndDate:               result.Records[0].Values[1].(time.Time),
+	}
+	var voteList *AccountVotes
+	if vote.ShowVotesDuringVoting {
+		voteList = &AccountVotes{
+			IllegalVotes: []string{},
+			List:         make(map[string][]any),
+		}
+		result, err = makeRequest(`MATCH (a:Account)-[r:VOTED]->(v:Vote) WHERE v.id = $id RETURN r, a.name;`,
+			map[string]any{"id": id})
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, record := range result.Records {
+			props := record.Values[0].(neo4j.Node).Props
+			if props["illegal"].(bool) {
+				voteList.IllegalVotes = append(voteList.IllegalVotes, record.Values[1].(string))
+				continue
+			}
+			voteList.List[record.Values[1].(string)] = props["vote"].([]any)
+		}
+	}
+
+	return vote, voteList, err
 }
