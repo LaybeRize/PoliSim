@@ -7,11 +7,13 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
 
 var generator = rand.New(rand.NewSource(time.Now().UnixNano()))
+var matchColor = regexp.MustCompile(`(?m)^#[A-Fa-f1-9]{6}$`)
 
 func init() {
 	log.SetOutput(os.Stdout)
@@ -98,4 +100,8 @@ func FilterList(list []string) []string {
 
 func GetBoolFormEntry(request *http.Request, field string) bool {
 	return GetFormEntry(request, field) == "true"
+}
+
+func StringIsAColor(input string) bool {
+	return matchColor.FindString(input) != ""
 }

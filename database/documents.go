@@ -3,7 +3,6 @@ package database
 import (
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	"golang.org/x/net/idna"
 	"html/template"
 	"strings"
 	"time"
@@ -31,6 +30,7 @@ type (
 		Removed             bool
 		MemberParticipation bool
 		AdminParticipation  bool
+		AllowedToAddTags    bool
 		End                 time.Time
 		Reader              []string
 		Participants        []string
@@ -117,12 +117,14 @@ func (d *Document) Ended() bool { return time.Now().After(d.End) }
 
 type DocumentTag struct {
 	ID              string
+	Outgoing        bool
 	Text            string
 	Written         time.Time
 	BackgroundColor string
 	TextColor       string
 	LinkColor       string
 	Links           []string
+	QueriedLinks    []any
 }
 
 func (t *DocumentTag) GetTimeWritten(a *Account) string {
@@ -153,13 +155,6 @@ func (c *DocumentComment) GetAuthor() string {
 		return c.Author
 	}
 	return c.Author + "; " + c.Flair
-}
-
-type ColorPalette struct {
-	Name       string
-	Background string
-	Text       string
-	Link       string
 }
 
 func CreateDocument(document *Document, acc *Account) error {
@@ -267,24 +262,35 @@ RETURN d, o.name;`, map[string]any{
 	}
 	props := result.Record().Values[0].(neo4j.Node).Props
 	public := props["public"].(bool)
+	allowedToAddTags := false
 
 	if !public && !acc.Exists() {
 		_ = tx.Rollback(ctx)
 		return nil, nil, notAllowedError
-	} else if !public && !acc.IsAtLeastAdmin() {
+	} else if !public {
 		var userCheck neo4j.ResultWithContext
 		userCheck, err = tx.Run(ctx, `
-MATCH (a:Account)-[*..]->(:Organisation)<-[:IN]-(d:Document) WHERE a.name = $name AND d.id = $id 
-RETURN d.id;`, map[string]any{
+CALL { 
+MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE a.name = $name AND d.id = $id 
+RETURN o, d 
+UNION 
+MATCH (o:Organisation)<-[:IN]-(d:Document)-[:READER|PARTICIPANT]->(a:Account) WHERE a.name = $name AND d.id = $id 
+RETURN o,d 
+} 
+OPTIONAL MATCH (b:Account)-[:OWNER|ADMIN*..]->(o) WHERE b.name = $name 
+RETURN d.id, b.name;`, map[string]any{
 			"id":   id,
 			"name": acc.Name})
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return nil, nil, err
-		} else if userCheck.Next(ctx); userCheck.Record() == nil {
+		} else if userCheck.Next(ctx); userCheck.Record() == nil && !acc.IsAtLeastAdmin() {
 			_ = tx.Rollback(ctx)
 			return nil, nil, notAllowedError
+		} else if userCheck.Record() != nil {
+			allowedToAddTags = userCheck.Record().Values[1] != nil
 		}
+
 	}
 
 	doc := &Document{
@@ -301,6 +307,8 @@ RETURN d.id;`, map[string]any{
 		MemberParticipation: props["member_part"].(bool),
 		AdminParticipation:  props["admin_part"].(bool),
 		End:                 props["end_time"].(time.Time),
+		Tags:                make([]DocumentTag, 0),
+		AllowedToAddTags:    allowedToAddTags,
 	}
 	var commentator []string
 
@@ -385,8 +393,65 @@ WHERE d.id = $id RETURN v.id, v.question;`,
 		}
 	}
 
+	result, err = tx.Run(ctx, `CALL { 
+MATCH (d:Document)-[:LINKS]->(t:Tag)-[:LINKS]->(r:Document) 
+WHERE d.id = $id 
+RETURN t, collect(r.id) AS ids, true AS outgoing 
+UNION 
+MATCH (d:Document)<-[:LINKS]-(t:Tag)<-[:LINKS]-(r:Document) 
+WHERE d.id = $id 
+RETURN t, collect(r.id) AS ids, false AS outgoing 
+} 
+RETURN t, ids, outgoing ORDER BY t.written DESC;`, map[string]any{"id": id})
+	if err != nil {
+		return nil, nil, err
+	}
+	for result.Next(ctx) {
+		values := result.Record().Values
+		props = values[0].(neo4j.Node).Props
+		doc.Tags = append(doc.Tags, DocumentTag{
+			ID:              props["id"].(string),
+			Outgoing:        values[2].(bool),
+			Text:            props["text"].(string),
+			Written:         props["written"].(time.Time),
+			BackgroundColor: props["background"].(string),
+			TextColor:       props["color"].(string),
+			LinkColor:       props["link"].(string),
+			QueriedLinks:    values[1].([]any),
+		})
+	}
+
 	err = tx.Commit(ctx)
 	return doc, commentator, err
+}
+
+func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return err
+	}
+	// Todo: add check if account is legible to add tag
+
+	_, err = tx.Run(ctx, `MATCH (d:Document) WHERE d.id = $id 
+MATCH (target:Document) WHERE target.id <> $id AND target.id IN $links 
+CREATE (t:Tag {id: $tagId, text: $text, written: $written, background: $background, color: $color, link: $link}) 
+MERGE (d)-[:LINKS]->(t) 
+MERGE (t)-[:LINKS]->(target);`, map[string]any{
+		"id":         docID,
+		"tagId":      tag.ID,
+		"links":      tag.Links,
+		"text":       tag.Text,
+		"written":    tag.Written,
+		"background": tag.BackgroundColor,
+		"color":      tag.TextColor,
+		"link":       tag.LinkColor,
+	})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func CreateDocumentComment(documentId string, comment *DocumentComment) error {

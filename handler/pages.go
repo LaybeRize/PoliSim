@@ -425,7 +425,7 @@ type DocumentViewPage struct {
 	NavInfo       NavigationInfo
 	Document      *database.Document
 	Commentator   []string
-	ColorPalettes []database.ColorPalette
+	ColorPalettes map[string]database.ColorPalette
 	MessageUpdate
 	MarkdownBox
 }
@@ -439,6 +439,27 @@ func (p *DocumentViewPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *DocumentViewPage) getPageName() string {
+	return "documentView"
+}
+
+type ViewVotePage struct {
+	NavInfo      NavigationInfo
+	VoteInstance *database.VoteInstance
+	VoteResults  *database.AccountVotes
+	Voter        []string
+	MessageUpdate
+	MarkdownBox
+}
+
+func (p *ViewVotePage) CanVote() bool {
+	return len(p.Voter) != 0 && !p.VoteInstance.Ended()
+}
+
+func (p *ViewVotePage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *ViewVotePage) getPageName() string {
 	return "documentView"
 }
 
@@ -797,6 +818,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Abstimmungsdokument erstellen"
 	case *SearchDocumentsPage:
 		fullPage.Base.Title = "Dokumente durchsuchen"
+	case *ViewVotePage:
+		fullPage.Base.Title = "Abstimmungsansicht"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

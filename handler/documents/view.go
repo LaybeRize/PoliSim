@@ -20,7 +20,7 @@ func GetDocumentViewPage(writer http.ResponseWriter, request *http.Request) {
 func getDocumentPageObject(acc *database.Account, request *http.Request) *handler.DocumentViewPage {
 	id := request.PathValue("id")
 	var err error
-	page := &handler.DocumentViewPage{}
+	page := &handler.DocumentViewPage{ColorPalettes: database.ColorPaletteMap}
 	page.Document, page.Commentator, err = database.GetDocumentForUser(id, acc)
 	if err != nil {
 		slog.Error(err.Error())

@@ -7,13 +7,18 @@
     {{else}}
     <div class="wrapper">
         <div class="aside-tags">
+            {{$acc := .NavInfo.Account}}
             {{ range $tag := .Document.Tags}}
                 <div style="--background: {{$tag.BackgroundColor}};
                             --text: {{$tag.TextColor}};
                             --link: {{$tag.LinkColor}};"
-                     class="tag-holder" id="{{$tag.ID}}">{{$tag.Text}}<br>
-                    <i>Hinzugefügt am {{$tag.GetTimeWritten .NavInfo.Account}}</i><br>
-                    {{range $link := $tag.Links}}
+                     class="tag-holder" id="{{$tag.ID}}">{{if $tag.Outgoing -}}
+                        <i class="bi bi-outgoing"></i>
+                    {{- else -}}
+                        <i class="bi bi-incoming"></i>
+                    {{- end}} {{$tag.Text}}<br>
+                    <i>Hinzugefügt am {{$tag.GetTimeWritten $acc}}</i><br>
+                    {{range $link := $tag.QueriedLinks}}
                     <a href="/view/document/{{$link}}">{{$link}}</a>
                     {{end}}
                 </div>
@@ -37,6 +42,14 @@
                 {{.Document.GetReader}}<br>
                 {{.Document.GetParticipants}}
             </p>
+            {{if .Document.AllowedToAddTags}}
+            <details>
+                <summary>Tag erstellen</summary>
+                <form hx-post="/create/tag/on/{{.Document.ID}}" hx-target="#page-body">
+                    <!-- Todo: add necessary fields. -->
+                </form>
+            </details>
+            {{end}}
         </div>
         <div class="markdown">{{.Document.Body}}</div>
         {{if .Document.IsDiscussion}}{{template "discussion" .}}{{end}}

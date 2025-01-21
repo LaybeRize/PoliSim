@@ -521,3 +521,6 @@ div.markdown del {
 .bi-discussion::before { content: "\f249"; }
 .bi-post::before { content: "\f38a"; }
 .bi-vote::before { content: "\f270"; }
+.bi-outgoing::before { content: "f1c3"; }
+.bi-incoming::before { content: "f1be"; }
+

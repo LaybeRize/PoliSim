@@ -2,6 +2,8 @@ package database
 
 import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"log/slog"
+	"strconv"
 	"time"
 )
 
@@ -27,10 +29,28 @@ type (
 	}
 
 	AccountVotes struct {
+		AnswerAmount int
 		IllegalVotes []string
 		List         map[string][]any
 	}
 )
+
+func (a *AccountVotes) VoteIterator(t VoteType) func(func(string, []string) bool) {
+	return func(yield func(string, []string) bool) {
+		for name, list := range a.List {
+			newList := make([]string, len(list))
+			for i, val := range list {
+				newList[i] = strconv.Itoa(int(val.(int64)))
+				if t.IsRankedVoting() && newList[i] == "-1" {
+					newList[i] = ""
+				}
+			}
+			if !yield(name, newList) {
+				return
+			}
+		}
+	}
+}
 
 func (t VoteType) IsSingleVote() bool      { return t == SingleVote }
 func (v *VoteInstance) IsSingleVote() bool { return v.Type.IsSingleVote() }
@@ -63,6 +83,13 @@ func (v *VoteInstance) ConvertToAnswer() {
 	for i, str := range v.AnswerIterator() {
 		v.Answers[i] = str
 	}
+}
+
+func (v *VoteInstance) GetTimeEnd(a *Account) string {
+	if a.Exists() {
+		return v.EndDate.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+	}
+	return v.EndDate.Format("2006-01-02 15:04:05 MST")
 }
 
 const (
@@ -163,7 +190,7 @@ WHERE a.name = $name RETURN v.id, v.question;`, map[string]any{"name": acc.Name}
 	return list, err
 }
 
-func VoteWithAccount(name string, id string, votes []int) error {
+func CastVoteWithAccount(name string, id string, votes []int) error {
 	tx, err := openTransaction()
 	defer tx.Close(ctx)
 	if err != nil {
@@ -206,8 +233,8 @@ RETURN a;`,
 
 	mapIsNil := votes == nil
 	_, err = tx.Run(ctx, `MATCH (a:Account), (v:Vote) WHERE a.name = $author AND v.id = $id 
-MERGE (a)-[:VOTED {illegal: $illegal, vote: $voteMap}]->(v);`,
-		map[string]any{"id": id, "author": name, "illegal": mapIsNil, "voteMap": votes})
+MERGE (a)-[:VOTED {written: $now, illegal: $illegal, vote: $voteMap}]->(v);`,
+		map[string]any{"id": id, "author": name, "illegal": mapIsNil, "voteMap": votes, "now": time.Now().UTC()})
 	if err == nil {
 		return tx.Commit(ctx)
 	}
@@ -244,10 +271,12 @@ RETURN o }`
 	var voteList *AccountVotes
 	if vote.ShowVotesDuringVoting {
 		voteList = &AccountVotes{
+			AnswerAmount: len(vote.IterableAnswers),
 			IllegalVotes: []string{},
 			List:         make(map[string][]any),
 		}
-		result, err = makeRequest(`MATCH (a:Account)-[r:VOTED]->(v:Vote) WHERE v.id = $id RETURN r, a.name;`,
+		result, err = makeRequest(`MATCH (a:Account)-[r:VOTED]->(v:Vote) WHERE v.id = $id RETURN r, a.name 
+ORDER BY r.written;`,
 			map[string]any{"id": id})
 		if err != nil {
 			return nil, nil, err
@@ -263,4 +292,44 @@ RETURN o }`
 	}
 
 	return vote, voteList, err
+}
+
+func resultRoutine() {
+	curr := time.Now().UTC()
+	next := time.Date(curr.Year(), curr.Month(), curr.Day()+1, 0, 0, 0, 0, time.UTC)
+	ticker := time.NewTicker(next.Sub(curr) + time.Second)
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C
+		generateResults()
+		curr = time.Now().UTC()
+		next = time.Date(curr.Year(), curr.Month(), curr.Day()+1, 0, 0, 0, 0, time.UTC)
+		ticker.Reset(next.Sub(curr) + time.Second)
+	}
+}
+
+func generateResults() {
+	shutdown.Lock()
+	defer shutdown.Unlock()
+
+	result, err := makeRequest(`MATCH (a:Account)-[r:VOTED]->(v:Vote)<-[:LINKS]-(d:Document) WHERE $now < d.end_time 
+RETURN v, d.id AS docID,a.name AS accName, r ORDER BY r.written 
+RETURN v, docID, collect(accName), collect(r);`, map[string]any{"now": time.Now().UTC()})
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+
+	transformVotesForResults(result)
+
+	tx, err := openTransaction()
+	defer tx.Close(ctx)
+	if err != nil {
+		return
+	}
+}
+
+func transformVotesForResults(result *neo4j.EagerResult) {
+	// Todo give back a struct that can be directly used to create the results for a document and remove the votes.
 }

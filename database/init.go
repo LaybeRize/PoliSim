@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 )
 
 var ctx context.Context
@@ -18,6 +19,8 @@ var notFoundError = errors.New("item not found")
 var notAllowedError = errors.New("action is for user not allowed")
 var noRecipientFoundError = errors.New("no recipient found for letter")
 var multipleItemsError = errors.New("more then one item found")
+
+var shutdown sync.Mutex
 
 // HashPassword creates a hash of the given password, for later verification
 func HashPassword(password string) (string, error) {
@@ -52,9 +55,14 @@ func init() {
 	createConstraints()
 	createRootAccount()
 	createAdminstrationAccount()
+	log.Println("Starting Vote Cleanup Routine")
+	go resultRoutine()
 }
 
 func Shutdown() {
+	shutdown.Lock()
+	defer shutdown.Unlock()
+	saveColorPalettesToDisk()
 	err := driver.Close(ctx)
 	if err != nil {
 		log.Fatalf("DB close error: %v", err)

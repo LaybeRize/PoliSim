@@ -2,3 +2,4 @@ stack.env
 go.sum
 .idea
 build.cmd
+data
