@@ -671,8 +671,9 @@ func (p *ReaderAndParticipants) getRenderInfo() (string, string) {
 }
 
 type MessageUpdate struct {
-	Message string
-	IsError bool
+	ElementID string
+	Message   string
+	IsError   bool
 }
 
 func (p *MessageUpdate) getRenderInfo() (string, string) {
@@ -680,7 +681,17 @@ func (p *MessageUpdate) getRenderInfo() (string, string) {
 }
 
 func (p *MessageUpdate) targetElement() string {
+	if p.ElementID != "" {
+		return "#" + p.ElementID
+	}
 	return "#message-div"
+}
+
+func (p *MessageUpdate) GetElementID() string {
+	if p.ElementID != "" {
+		return p.ElementID
+	}
+	return "message-div"
 }
 
 //go:embed _pages/*

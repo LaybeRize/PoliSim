@@ -82,7 +82,7 @@
 
 {{define "message"}}
     {{- /*gotype: PoliSim/handler.MessageUpdate */ -}}
-    <div id="message-div" class="{{if .IsError}}error-div{{else}}success-div{{end}}"
+    <div id="{{.GetElementID}}" class="{{if .IsError}}error-div{{else}}success-div{{end}}"
          {{if eq "" .Message}}hidden{{end}}>
         {{- .Message -}}
     </div>

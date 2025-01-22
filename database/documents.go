@@ -134,6 +134,10 @@ func (t *DocumentTag) GetTimeWritten(a *Account) string {
 	return t.Written.Format("2006-01-02 15:04:05 MST")
 }
 
+func (t *DocumentTag) HasLinks() bool {
+	return len(t.QueriedLinks) != 0
+}
+
 type DocumentComment struct {
 	ID      string
 	Author  string
@@ -395,8 +399,9 @@ WHERE d.id = $id RETURN v.id, v.question;`,
 	}
 
 	result, err = tx.Run(ctx, `CALL { 
-MATCH (d:Document)-[:LINKS]->(t:Tag)-[:LINKS]->(r:Document) 
+MATCH (d:Document)-[:LINKS]->(t:Tag) 
 WHERE d.id = $id 
+OPTIONAL MATCH (t)-[:LINKS]->(r:Document) 
 RETURN t, collect(r.id) AS ids, true AS outgoing 
 UNION 
 MATCH (d:Document)<-[:LINKS]-(t:Tag)<-[:LINKS]-(r:Document) 
@@ -449,7 +454,7 @@ MERGE (d)-[:LINKS]->(t);`, map[string]any{
 		"tagId":      tag.ID,
 		"links":      tag.Links,
 		"text":       tag.Text,
-		"written":    tag.Written,
+		"written":    time.Now().UTC(),
 		"background": tag.BackgroundColor,
 		"color":      tag.TextColor,
 		"link":       tag.LinkColor,

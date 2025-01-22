@@ -17,9 +17,10 @@
                     {{- else -}}
                         <i class="bi bi-incoming"></i>
                     {{- end}} {{$tag.Text}}<br>
-                    <i>Hinzugefügt am {{$tag.GetTimeWritten $acc}}</i><br>
-                    {{range $link := $tag.QueriedLinks}}
-                    <a href="/view/document/{{$link}}">{{$link}}</a>
+                    <i>Hinzugefügt am {{$tag.GetTimeWritten $acc}}</i>{{if $tag.HasLinks}}<br>
+                        {{range $link := $tag.QueriedLinks}}
+                            <a href="/view/document/{{$link}}">{{$link}}</a>
+                        {{end}}
                     {{end}}
                 </div>
             {{end}}
@@ -46,8 +47,20 @@
             <details>
                 <summary>Tag erstellen</summary>
                 <form hx-post="/create/tag/on/{{.Document.ID}}" hx-target="#page-body">
-                    <!-- Todo: add necessary fields. -->
+                    <!-- Todo: add color selection. -->
+                    <label for="text">Inhalt</label>
+                    <input id="text" name="text" type="text">
+                    <label for="background-color">Hintergrundfarbe</label>
+                    <input id="background-color" name="background-color" type="color" value="#000000">
+                    <label for="text-color">Textfarbe</label>
+                    <input id="text-color" name="text-color" type="color" value="#FFFFFF">
+                    <label for="link-color">Link-Farbe</label>
+                    <input id="link-color" name="link-color" type="color" value="#FFFFFF">
+                    <label for="links">Referenzen zu anderen Dokumenten</label>
+                    <input id="links" name="links" type="text">
+                    <button>Tag hinzufügen</button>
                 </form>
+                <div id="tag-message" hidden></div>
             </details>
             {{end}}
         </div>
@@ -81,6 +94,7 @@
             <textarea id="markdown" name="markdown" rows="10"
                       hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                       hx-target="#markdown-box"></textarea>
+            <button>Kommentar schreiben</button>
         </form>
         {{template "message" .}}
         <h1>Vorschau</h1>
