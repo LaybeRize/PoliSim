@@ -29,3 +29,11 @@ func getDocumentPageObject(acc *database.Account, request *http.Request) *handle
 
 	return page
 }
+
+func GetVoteView(writer http.ResponseWriter, request *http.Request) {
+	// Todo make this
+}
+
+func PostVote(writer http.ResponseWriter, request *http.Request) {
+	// Todo: make this
+}

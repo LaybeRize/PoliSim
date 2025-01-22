@@ -377,6 +377,7 @@ RETURN a.name;`,
 	}
 
 	if doc.Type == DocTypeVote {
+		// Todo depending on if the vote has ended try also querying the results in addition
 		doc.Links = make([]VoteInfo, 0)
 		result, err = tx.Run(ctx, `MATCH (d:Document)-[:LINKS]->(v:Vote)
 WHERE d.id = $id RETURN v.id, v.question;`,
@@ -431,13 +432,19 @@ func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {
 	if err != nil {
 		return err
 	}
-	// Todo: add check if account is legible to add tag
 
-	_, err = tx.Run(ctx, `MATCH (d:Document) WHERE d.id = $id 
-MATCH (target:Document) WHERE target.id <> $id AND target.id IN $links 
+	result, err := tx.Run(ctx, `MATCH (a:Account)-[:ADMIN|OWNER*..]->(o:Organisation)<-[:IN]-(d:Document) 
+WHERE a.name = $name AND d.id = $id 
+RETURN a.name;`, map[string]any{"name": acc.Name, "id": docID})
+	if err != nil {
+		return err
+	} else if result.Next(ctx); result.Record() == nil {
+		return notAllowedError
+	}
+
+	_, err = tx.Run(ctx, `MATCH (d:Document) WHERE d.id = $id  
 CREATE (t:Tag {id: $tagId, text: $text, written: $written, background: $background, color: $color, link: $link}) 
-MERGE (d)-[:LINKS]->(t) 
-MERGE (t)-[:LINKS]->(target);`, map[string]any{
+MERGE (d)-[:LINKS]->(t);`, map[string]any{
 		"id":         docID,
 		"tagId":      tag.ID,
 		"links":      tag.Links,
@@ -447,6 +454,13 @@ MERGE (t)-[:LINKS]->(target);`, map[string]any{
 		"color":      tag.TextColor,
 		"link":       tag.LinkColor,
 	})
+	if err != nil {
+		return err
+	}
+
+	result, err = tx.Run(ctx, `MATCH (target:Document) WHERE target.id <> $id AND target.id IN $links 
+MATCH (t:Tag) WHERE t.id = $tagID 
+MERGE (t)-[:LINKS]->(target);`, map[string]any{"tagID": tag.ID, "id": docID, "links": tag.Links})
 	if err != nil {
 		return err
 	}

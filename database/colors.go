@@ -24,11 +24,36 @@ func init() {
 	loadColorPalettesFromDisk()
 }
 
-// Todo: add logic for adding, removing and the html page and handler
+func HasPrivilegesForColors(acc *Account) bool {
+	result, err := makeRequest(`MATCH (a:Account)-[:ADMIN|OWNER*..]->(o:Organisation) WHERE a.name = $name 
+RETURN o.name;`, map[string]any{"name": acc.GetName()})
+	if err != nil {
+		return false
+	} else if len(result.Records) == 0 && !acc.IsAtLeastAdmin() {
+		return false
+	}
+	return true
+}
+
+func AddColorPalette(color *ColorPalette, acc *Account) error {
+	if !HasPrivilegesForColors(acc) {
+		return notAllowedError
+	}
+	ColorPaletteMap[color.Name] = *color
+	return nil
+}
+
+func RemoveColorPalette(name string, acc *Account) error {
+	if !acc.IsAtLeastAdmin() {
+		return notAllowedError
+	}
+	delete(ColorPaletteMap, name)
+	return nil
+}
 
 func loadColorPalettesFromDisk() {
 	if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
-		err = os.Mkdir(folderPath, 0750)
+		err = os.MkdirAll(folderPath, os.ModePerm)
 		if err != nil {
 			log.Fatalf("Directioary can not be created: %v", err)
 		}

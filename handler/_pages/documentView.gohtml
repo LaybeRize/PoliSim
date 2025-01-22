@@ -89,9 +89,11 @@
 {{end}}
 {{define "vote"}}
     {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
+    <!-- Todo: add result display if results exist. -->
     <div class="block-view">
         {{range $link := .Document.Links}}
-            <a href="view/vote/{{$link.ID}}"
+            <a href="/view/vote/{{$link.ID}}"
+               target="_blank"
                class="button-link">
                 {{$link.Question}}
             </a>
