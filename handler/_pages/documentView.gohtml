@@ -1,3 +1,13 @@
+{{define "pageScript"}}
+    <script>
+        function copyColors() {
+            let option = document.getElementById(document.getElementById("color-palette").value)
+            document.getElementById("background-color").value = option.dataset.background
+            document.getElementById("text-color").value = option.dataset.text
+            document.getElementById("link-color").value = option.dataset.link
+        }
+    </script>
+{{end}}
 {{define "page"}}
     {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
     <body id="page-body">
@@ -47,7 +57,16 @@
             <details>
                 <summary>Tag erstellen</summary>
                 <form hx-post="/create/tag/on/{{.Document.ID}}" hx-target="#page-body">
-                    <!-- Todo: add color selection. -->
+                    <label for="color-palette">Farbpaletten</label>
+                    <select id="color-palette" name="color-palette">
+                        {{range $pos, $color := .ColorIterator}}
+                            <option id="color-{{$pos}}" value="color-{{$pos}}"
+                                    data-background="{{$color.Background}}"
+                                    data-text="{{$color.Text}}"
+                                    data-link="{{$color.Link}}">{{$color.Name}}</option>
+                        {{end}}
+                    </select>
+                    <button type="button" onclick="copyColors()">Farbe aus Farbpalette kopieren</button>
                     <label for="text">Inhalt</label>
                     <input id="text" name="text" type="text">
                     <label for="background-color">Hintergrundfarbe</label>

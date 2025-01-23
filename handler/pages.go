@@ -430,6 +430,18 @@ type DocumentViewPage struct {
 	MarkdownBox
 }
 
+func (p *DocumentViewPage) ColorIterator() func(func(int, database.ColorPalette) bool) {
+	return func(yield func(int, database.ColorPalette) bool) {
+		pos := 0
+		for _, palette := range p.ColorPalettes {
+			pos += 1
+			if !yield(pos, palette) {
+				return
+			}
+		}
+	}
+}
+
 func (p *DocumentViewPage) CanComment() bool {
 	return len(p.Commentator) != 0 && !p.Document.Ended()
 }

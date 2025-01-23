@@ -22,6 +22,15 @@ const filePath = folderPath + "/colors.json"
 
 func init() {
 	loadColorPalettesFromDisk()
+	_, exists := ColorPaletteMap[""]
+	if !exists {
+		ColorPaletteMap[""] = ColorPalette{
+			Name:       "Standard",
+			Background: "#000000",
+			Text:       "#FFFFFF",
+			Link:       "#9999FF",
+		}
+	}
 }
 
 func HasPrivilegesForColors(acc *Account) bool {
