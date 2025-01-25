@@ -1,0 +1,47 @@
+{{define "pageScript"}}
+    <script>
+        function copyColors() {
+            let option = document.getElementById(document.getElementById("color-palette").value)
+            document.getElementById("background-color").value = option.dataset.background
+            document.getElementById("text-color").value = option.dataset.text
+            document.getElementById("link-color").value = option.dataset.link
+            document.getElementById("name").value = option.dataset.name
+        }
+    </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.EditColorPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <form hx-post="/create/tag-color" hx-target="#page-body" {{if not .AllowedToCreate}}inert{{end}}>
+        {{if .AllowedToCreate}}
+        <label for="color-palette">Farbpaletten</label>
+        <select id="color-palette" name="color-palette">
+            {{range $pos, $color := .C}}
+                <option id="color-{{$pos}}" value="color-{{$pos}}"
+                        data-background="{{$color.Background}}"
+                        data-text="{{$color.Text}}"
+                        data-link="{{$color.Link}}"
+                        data-name="{{$color.Name}}">{{$color.Name}}</option>
+            {{end}}
+        </select>
+        {{end}}
+        <button type="button" onclick="copyColors()">Farbpalette auswählen</button>
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" value="{{.Color.Name}}">
+        <label for="background-color">Hintergrundfarbe</label>
+        <input id="background-color" name="background-color" type="color" value="{{.Color.Background}}">
+        <label for="text-color">Textfarbe</label>
+        <input id="text-color" name="text-color" type="color" value="{{.Color.Text}}">
+        <label for="link-color">Link-Farbe</label>
+        <input id="link-color" name="link-color" type="color" value="{{.Color.Link}}">
+        <button type="submit">Farbpalette erstellen/anpassen</button>
+        {{if .AllowedToDelete}}
+            <button hx-delete="/delete/tag-color" hx-target="#page-body">
+                Farbpalette löschen
+            </button>
+        {{end}}
+    </form>
+    {{template "message" .}}
+    </body>
+{{end}}

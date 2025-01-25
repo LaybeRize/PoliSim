@@ -33,31 +33,39 @@ func init() {
 	}
 }
 
-func HasPrivilegesForColors(acc *Account) bool {
+func HasPrivilegesForColorsAdd(acc *Account) bool {
+	if acc.IsAtLeastAdmin() {
+		return true
+	}
 	result, err := makeRequest(`MATCH (a:Account)-[:ADMIN|OWNER*..]->(o:Organisation) WHERE a.name = $name 
 RETURN o.name;`, map[string]any{"name": acc.GetName()})
 	if err != nil {
 		return false
-	} else if len(result.Records) == 0 && !acc.IsAtLeastAdmin() {
+	} else if len(result.Records) == 0 {
 		return false
 	}
 	return true
 }
 
+func HasPrivilegesForColorsDelete(acc *Account) bool {
+	return acc.IsAtLeastAdmin()
+}
+
 func AddColorPalette(color *ColorPalette, acc *Account) error {
-	if !HasPrivilegesForColors(acc) {
+	if !HasPrivilegesForColorsAdd(acc) {
 		return notAllowedError
 	}
 	ColorPaletteMap[color.Name] = *color
 	return nil
 }
 
-func RemoveColorPalette(name string, acc *Account) error {
-	if !acc.IsAtLeastAdmin() {
-		return notAllowedError
+func RemoveColorPalette(name string, acc *Account) (*ColorPalette, error) {
+	if !HasPrivilegesForColorsDelete(acc) {
+		return nil, notAllowedError
 	}
+	result := ColorPaletteMap[name]
 	delete(ColorPaletteMap, name)
-	return nil
+	return &result, nil
 }
 
 func loadColorPalettesFromDisk() {

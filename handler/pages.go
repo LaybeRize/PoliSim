@@ -591,6 +591,23 @@ func (p *SearchDocumentsPage) getPageName() string {
 	return "documentSearch"
 }
 
+type EditColorPage struct {
+	NavInfo         NavigationInfo
+	AllowedToCreate bool
+	AllowedToDelete bool
+	Color           database.ColorPalette
+	ColorPalettes   map[string]database.ColorPalette
+	MessageUpdate
+}
+
+func (p *EditColorPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *EditColorPage) getPageName() string {
+	return "documentColorEdit"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -843,6 +860,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = "Dokumente durchsuchen"
 	case *ViewVotePage:
 		fullPage.Base.Title = "Abstimmungsansicht"
+	case *EditColorPage:
+		fullPage.Base.Title = "Farbpaletten anpassen"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}
