@@ -2,6 +2,16 @@
     {{- /*gotype: PoliSim/handler.ViewVotePage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
-    <!-- Todo: add html -->
+    {{if .CanVote}}
+        <!-- Todo: add html -->
+    {{else}}
+        <p>Teilnahme setzte einen Account voraus</p>
+    {{end}}
+    {{if .VoteInstance.ShowVotesDuringVoting}}
+        {{template "voteResults" .VoteResults}}
+    {{else}}
+        <hr class="splitter">
+        <p>Das Ergebnis ist erst nach Ende der Abstimmung einsehbar</p>
+    {{end}}
     </body>
 {{end}}

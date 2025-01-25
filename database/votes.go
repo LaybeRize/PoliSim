@@ -118,7 +118,7 @@ func (v *VoteInstance) HasValidType() bool { return v.Type >= SingleVote && v.Ty
 func (v *VoteInstance) AnswerIterator() func(func(int, string) bool) {
 	return func(yield func(int, string) bool) {
 		for i, str := range v.IterableAnswers {
-			if !yield(i, str.(string)) {
+			if !yield(i+1, str.(string)) {
 				return
 			}
 		}
@@ -298,10 +298,13 @@ RETURN o }`
 		extra = ""
 	}
 
-	result, err := makeRequest(`MATCH (d:Document)-[:LINKS]->(v:Vote) WHERE v.id = $id 
-`+extra+` RETURN d.id, d.end_time, v;`, map[string]any{"id": id, "name": acc.Name})
+	result, err := makeRequest(`MATCH (d:Document)-[:LINKS]->(v:Vote) WHERE v.id = $id `+extra+
+		` RETURN d.id, d.end_time, v;`, map[string]any{"id": id, "name": acc.GetName()})
 	if err != nil {
 		return nil, nil, err
+	}
+	if len(result.Records) == 0 {
+		return nil, nil, notAllowedError
 	}
 	Props := result.Records[0].Values[2].(neo4j.Node).Props
 	vote := &VoteInstance{
