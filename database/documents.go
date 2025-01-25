@@ -38,6 +38,7 @@ type (
 		Links               []VoteInfo
 		VoteIDs             []string
 		Comments            []DocumentComment
+		Result              *AccountVotes
 	}
 	SmallDocument struct {
 		ID           string
@@ -61,6 +62,10 @@ func (s *SmallDocument) GetTimeWritten(a *Account) string {
 		return s.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
 	}
 	return s.Written.Format("2006-01-02 15:04:05 MST")
+}
+
+func (d *Document) HasResults() bool {
+	return d.Result != nil
 }
 
 func (d *Document) GetTimeWritten(a *Account) string {
@@ -313,6 +318,7 @@ RETURN d.id, b.name;`, map[string]any{
 		End:                 props["end_time"].(time.Time),
 		Tags:                make([]DocumentTag, 0),
 		AllowedToAddTags:    allowedToAddTags,
+		Result:              nil,
 	}
 	var commentator []string
 
@@ -381,20 +387,38 @@ RETURN a.name;`,
 	}
 
 	if doc.Type == DocTypeVote {
-		// Todo depending on if the vote has ended try also querying the results in addition
-		doc.Links = make([]VoteInfo, 0)
-		result, err = tx.Run(ctx, `MATCH (d:Document)-[:LINKS]->(v:Vote)
-WHERE d.id = $id RETURN v.id, v.question;`,
+		result, err = tx.Run(ctx, `MATCH (d:Document)-[:VOTED]->(r:Result)
+WHERE d.id = $id RETURN r;`,
 			map[string]any{"id": id})
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return nil, nil, err
-		}
-		for result.Next(ctx) {
-			doc.Links = append(doc.Links, VoteInfo{
-				ID:       result.Record().Values[0].(string),
-				Question: result.Record().Values[1].(string),
-			})
+		} else if result.Next(ctx); result.Record() != nil {
+			props = result.Record().Values[0].(neo4j.Node).Props
+			doc.Result = &AccountVotes{
+				Anonymous:    props["anonymous"].(bool),
+				Type:         VoteType(props["type"].(int64)),
+				AnswerAmount: int(props["amount"].(int64)),
+				IllegalVotes: nil,
+				Illegal:      props["illegal"].([]any),
+				List:         nil,
+				BaseMap:      props["list"].(map[string]any),
+			}
+		} else {
+			doc.Links = make([]VoteInfo, 0)
+			result, err = tx.Run(ctx, `MATCH (d:Document)-[:LINKS]->(v:Vote)
+WHERE d.id = $id RETURN v.id, v.question;`,
+				map[string]any{"id": id})
+			if err != nil {
+				_ = tx.Rollback(ctx)
+				return nil, nil, err
+			}
+			for result.Next(ctx) {
+				doc.Links = append(doc.Links, VoteInfo{
+					ID:       result.Record().Values[0].(string),
+					Question: result.Record().Values[1].(string),
+				})
+			}
 		}
 	}
 

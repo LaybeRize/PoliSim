@@ -4,6 +4,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"log/slog"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -29,21 +30,67 @@ type (
 	}
 
 	AccountVotes struct {
+		Anonymous    bool
+		Type         VoteType
 		AnswerAmount int
 		IllegalVotes []string
+		Illegal      []any
 		List         map[string][]any
+		BaseMap      map[string]any
 	}
 )
 
-func (a *AccountVotes) VoteIterator(t VoteType) func(func(string, []string) bool) {
+func (a *AccountVotes) GetIllegalVotes() string {
+	if a.IllegalVotes == nil {
+		if a.Anonymous {
+			return strconv.Itoa(len(a.Illegal))
+		}
+
+		a.IllegalVotes = make([]string, len(a.Illegal))
+		for i, value := range a.Illegal {
+			a.IllegalVotes[i] = value.(string)
+		}
+	} else if a.Anonymous {
+		return strconv.Itoa(len(a.IllegalVotes))
+	}
+	return strings.Join(a.IllegalVotes, ", ")
+}
+
+func (a *AccountVotes) VoteIterator() func(func(string, []string) bool) {
+	if a.List == nil {
+		return func(yield func(string, []string) bool) {
+			pos := 0
+			for name, list := range a.BaseMap {
+				newList := make([]string, len(list.([]any)))
+				for i, val := range list.([]any) {
+					newList[i] = strconv.Itoa(int(val.(int64)))
+					if a.Type.IsRankedVoting() && newList[i] == "-1" {
+						newList[i] = ""
+					}
+				}
+				if a.Anonymous {
+					pos += 1
+					name = strconv.Itoa(pos)
+				}
+				if !yield(name, newList) {
+					return
+				}
+			}
+		}
+	}
 	return func(yield func(string, []string) bool) {
+		pos := 0
 		for name, list := range a.List {
 			newList := make([]string, len(list))
 			for i, val := range list {
 				newList[i] = strconv.Itoa(int(val.(int64)))
-				if t.IsRankedVoting() && newList[i] == "-1" {
+				if a.Type.IsRankedVoting() && newList[i] == "-1" {
 					newList[i] = ""
 				}
+			}
+			if a.Anonymous {
+				pos += 1
+				name = strconv.Itoa(pos)
 			}
 			if !yield(name, newList) {
 				return
@@ -200,7 +247,7 @@ func CastVoteWithAccount(name string, id string, votes []int) error {
 	result, err := tx.Run(ctx, `CALL {
 MATCH (a:Account)<-[:PARTICIPANT]-(d:Document)-[:LINKS]->(v:Vote)
 WHERE a.name = $author AND a.blocked = false AND v.id = $id AND $now > d.end_time
-RETURN a 
+RETURN a  
 UNION 
 MATCH (a:Account)-[:USER|ADMIN]->(:Organisation)<-[:IN]-(d:Document)-[:LINKS]->(v:Vote) 
 WHERE a.name = $author AND a.blocked = false AND v.id = $id AND d.member_part = true AND $now > d.end_time
@@ -208,7 +255,7 @@ RETURN a
 UNION 
 MATCH (a:Account)-[:ADMIN]->(:Organisation)<-[:IN]-(d:Document)-[:LINKS]->(v:Vote) 
 WHERE a.name = $author AND a.blocked = false AND v.id = $id AND d.admin_part = true AND $now > d.end_time
-RETURN a 
+RETURN a  
 } 
 RETURN a;`,
 		map[string]any{"id": id, "author": name, "now": time.Now().UTC()})
@@ -271,6 +318,8 @@ RETURN o }`
 	var voteList *AccountVotes
 	if vote.ShowVotesDuringVoting {
 		voteList = &AccountVotes{
+			Type:         vote.Type,
+			Anonymous:    vote.Anonymous,
 			AnswerAmount: len(vote.IterableAnswers),
 			IllegalVotes: []string{},
 			List:         make(map[string][]any),
@@ -321,15 +370,61 @@ RETURN v, docID, collect(accName), collect(r);`, map[string]any{"now": time.Now(
 		return
 	}
 
-	transformVotesForResults(result)
+	votes, docIds, voteIds := transformVotesForResults(result)
 
-	tx, err := openTransaction()
-	defer tx.Close(ctx)
-	if err != nil {
-		return
+	for i, vote := range votes {
+		_, err = makeRequest(`MATCH (v:Vote) WHERE v.id = $vote 
+MATCH (d:Document) WHERE d.id = $id 
+CREATE (r:Result {type: $Type, anonymous: $Anonymous, amount: $AnswerAmount, illegal: $IllegalVotes, 
+list: $List}) 
+MERGE (d)-[:VOTED]->(r) 
+DETACH DELETE v;`,
+			map[string]any{
+				"vote":         voteIds[i],
+				"id":           docIds[i],
+				"Type":         vote.Type,
+				"Anonymous":    vote.Anonymous,
+				"AnswerAmount": vote.AnswerAmount,
+				"IllegalVotes": vote.IllegalVotes,
+				"List":         vote.List,
+			})
+		if err != nil {
+			slog.Error(err.Error())
+		}
 	}
 }
 
-func transformVotesForResults(result *neo4j.EagerResult) {
-	// Todo give back a struct that can be directly used to create the results for a document and remove the votes.
+// returns first the docID then the VoteID array
+func transformVotesForResults(result *neo4j.EagerResult) ([]AccountVotes, []string, []string) {
+	votes := make([]AccountVotes, len(result.Records))
+	docIDs := make([]string, len(result.Records))
+	voteIDs := make([]string, len(result.Records))
+
+	for i, record := range result.Records {
+		docIDs[i] = record.Values[1].(string)
+		voteProps := record.Values[0].(neo4j.Node).Props
+		voteIDs[i] = voteProps["id"].(string)
+
+		votes[i] = AccountVotes{
+			Anonymous:    voteProps["anonymous"].(bool),
+			Type:         VoteType(voteProps["type"].(int64)),
+			AnswerAmount: len(voteProps["answers"].([]any)),
+			IllegalVotes: []string{},
+			List:         make(map[string][]any),
+		}
+
+		nameList := record.Values[2].([]any)
+		voteList := record.Values[3].([]any)
+
+		for j, name := range nameList {
+			props := voteList[j].(neo4j.Node).Props
+			if props["illegal"].(bool) {
+				votes[i].IllegalVotes = append(votes[i].IllegalVotes, name.(string))
+				continue
+			}
+			votes[i].List[record.Values[1].(string)] = props["vote"].([]any)
+		}
+	}
+
+	return votes, docIDs, voteIDs
 }

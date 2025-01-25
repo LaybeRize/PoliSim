@@ -460,7 +460,6 @@ type ViewVotePage struct {
 	VoteResults  *database.AccountVotes
 	Voter        []string
 	MessageUpdate
-	MarkdownBox
 }
 
 func (p *ViewVotePage) CanVote() bool {
@@ -472,7 +471,7 @@ func (p *ViewVotePage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *ViewVotePage) getPageName() string {
-	return "documentView"
+	return "documentViewVote"
 }
 
 type CreateDocumentPage struct {

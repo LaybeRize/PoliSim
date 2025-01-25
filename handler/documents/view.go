@@ -104,9 +104,30 @@ func PostNewDocumentTagPage(writer http.ResponseWriter, request *http.Request) {
 }
 
 func GetVoteView(writer http.ResponseWriter, request *http.Request) {
-	// Todo make this
+	acc, _ := database.RefreshSession(writer, request)
+
+	page := &handler.ViewVotePage{}
+	var err error
+	page.VoteInstance, page.VoteResults, err = database.GetVoteForUser(request.PathValue("id"), acc)
+
+	if err != nil {
+		handler.GetNotFoundPage(writer, request)
+	}
+
+	if acc.Exists() {
+		page.Voter, err = database.GetOwnedAccountNames(acc)
+		page.Voter = append([]string{acc.Name}, page.Voter...)
+	}
+
+	handler.MakeFullPage(writer, acc, page)
 }
 
 func PostVote(writer http.ResponseWriter, request *http.Request) {
-	// Todo: make this
+	acc, loggedIn := database.RefreshSession(writer, request)
+	if !loggedIn {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Diese Funktion ist nicht verfügbar", ElementID: elementID})
+		return
+	}
+	// Todo finish this
 }
