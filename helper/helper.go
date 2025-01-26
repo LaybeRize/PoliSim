@@ -13,7 +13,7 @@ import (
 )
 
 var generator = rand.New(rand.NewSource(time.Now().UnixNano()))
-var matchColor = regexp.MustCompile(`(?m)^#[A-Fa-f1-9]{6}$`)
+var matchColor = regexp.MustCompile(`(?m)^#[A-Fa-f0-9]{6}$`)
 
 func init() {
 	log.SetOutput(os.Stdout)

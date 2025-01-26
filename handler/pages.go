@@ -599,6 +599,18 @@ type EditColorPage struct {
 	MessageUpdate
 }
 
+func (p *EditColorPage) ColorIterator() func(func(int, database.ColorPalette) bool) {
+	return func(yield func(int, database.ColorPalette) bool) {
+		pos := 0
+		for _, palette := range p.ColorPalettes {
+			if !yield(pos, palette) {
+				return
+			}
+			pos += 1
+		}
+	}
+}
+
 func (p *EditColorPage) SetNavInfo(navInfo NavigationInfo) {
 	p.NavInfo = navInfo
 }

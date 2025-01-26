@@ -74,6 +74,8 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 		ColorPalettes:   database.ColorPaletteMap,
 		Color:           *color,
 	}
+	page.Message = "Farbe erfolgreich erstellt/bearbeitet"
+	page.IsError = false
 
 	handler.MakePage(writer, acc, page)
 }
@@ -108,6 +110,8 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 		ColorPalettes:   database.ColorPaletteMap,
 		Color:           *color,
 	}
+	page.Message = "Farbe erfolgreich gelöscht"
+	page.IsError = false
 
 	handler.MakePage(writer, acc, page)
 }

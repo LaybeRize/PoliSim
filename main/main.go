@@ -68,7 +68,7 @@ func main() {
 
 	http.HandleFunc("GET /manage/tag-colors", documents.GetColorPage)
 	http.HandleFunc("POST /create/tag-color", documents.PostCreateColor)
-	http.HandleFunc("DELETE /delete/tag-color", documents.DeleteColor)
+	http.HandleFunc("POST /delete/tag-color", documents.DeleteColor)
 
 	http.HandleFunc("GET /view/organisations", organisations.GetOrganisationView)
 	http.HandleFunc("GET /single/view/organisation", organisations.GetSingleOrganisationView)

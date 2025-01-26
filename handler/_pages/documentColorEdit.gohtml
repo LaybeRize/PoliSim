@@ -17,7 +17,7 @@
         {{if .AllowedToCreate}}
         <label for="color-palette">Farbpaletten</label>
         <select id="color-palette" name="color-palette">
-            {{range $pos, $color := .C}}
+            {{range $pos, $color := .ColorIterator}}
                 <option id="color-{{$pos}}" value="color-{{$pos}}"
                         data-background="{{$color.Background}}"
                         data-text="{{$color.Text}}"
@@ -37,7 +37,7 @@
         <input id="link-color" name="link-color" type="color" value="{{.Color.Link}}">
         <button type="submit">Farbpalette erstellen/anpassen</button>
         {{if .AllowedToDelete}}
-            <button hx-delete="/delete/tag-color" hx-target="#page-body">
+            <button hx-post="/delete/tag-color" hx-target="#page-body">
                 Farbpalette löschen
             </button>
         {{end}}
