@@ -2,11 +2,50 @@
     {{- /*gotype: PoliSim/handler.ViewVotePage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
+    <a class="button-link" href="/view/document/{{.VoteInstance.DocumentID}}">Zurück zum Dokument</a>
     {{if .CanVote}}
-        <!-- Todo: add html -->
+        <p><b>Frage: {{.VoteInstance.Question}}</b></p>
+        <form hx-post="/vote/on/{{.VoteInstance.ID}}" hx-target="#page-body">
+            <label for="voter">Abstimmender Account</label>
+            <select id="voter" name="voter">
+                {{range .Voter}}
+                    <option value="{{.}}">{{.}}</option>
+                {{end}}
+            </select>
+            {{if .VoteInstance.Type.IsSingleVote}}
+                {{range $pos, $answer := .VoteInstance.AnswerIterator}}
+                    <label for="pos-{{$pos}}">Antwort {{$pos}}.: {{$answer}}</label>
+                    <input type="radio" id="pos-{{$pos}}" name="vote" value="{{$pos}}">
+                {{end}}
+            {{end}}
+            {{if .VoteInstance.Type.IsMultipleVotes}}
+                {{range $pos, $answer := .VoteInstance.AnswerIterator}}
+                    <label for="pos-{{$pos}}">Antwort {{$pos}}.: {{$answer}}</label>
+                    <input type="checkbox" id="pos-{{$pos}}" name="vote-{{$pos}}" value="true">
+                {{end}}
+            {{end}}
+            {{if .VoteInstance.Type.IsVoteSharing}}
+                <p><b>Es dürfen maximal {{.VoteInstance.MaxVotes}} Stimmen vergeben werden</b></p>
+                {{range $pos, $answer := .VoteInstance.AnswerIterator}}
+                    <label for="pos-{{$pos}}">Stimmen für Antwort {{$pos}}.: {{$answer}}</label>
+                    <input type="number" id="pos-{{$pos}}" name="vote-{{$pos}}" value="0" min="0">
+                {{end}}
+            {{end}}
+            {{if .VoteInstance.Type.IsRankedVoting}}
+                <p><b>Position 0 und kleiner bedeutet, dass die Antwort keinen Rang erhält</b></p>
+                {{range $pos, $answer := .VoteInstance.AnswerIterator}}
+                    <label for="pos-{{$pos}}">Position der Antwort {{$pos}}.: {{$answer}}</label>
+                    <input type="number" id="pos-{{$pos}}" name="vote-{{$pos}}" value="0">
+                {{end}}
+            {{end}}
+            <label for="invalid">Ungültige Stimme abgeben</label>
+            <input type="checkbox" id="invalid" name="invalid" value="true">
+            <button>Stimme abgeben</button>
+        </form>
     {{else}}
         <p>Teilnahme setzte einen Account voraus</p>
     {{end}}
+    {{template "message" .}}
     {{if .VoteInstance.ShowVotesDuringVoting}}
         {{template "voteResults" .VoteResults}}
     {{else}}

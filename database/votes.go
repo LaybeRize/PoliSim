@@ -30,13 +30,15 @@ type (
 	}
 
 	AccountVotes struct {
-		Anonymous    bool
-		Type         VoteType
-		AnswerAmount int
-		IllegalVotes []string
-		Illegal      []any
-		List         map[string][]any
-		BaseMap      map[string]any
+		Question        string
+		IterableAnswers []any
+		Anonymous       bool
+		Type            VoteType
+		AnswerAmount    int
+		IllegalVotes    []string
+		Illegal         []any
+		List            map[string][]any
+		BaseMap         map[string]any
 	}
 )
 
@@ -53,7 +55,17 @@ func (a *AccountVotes) GetIllegalVotes() string {
 	} else if a.Anonymous {
 		return strconv.Itoa(len(a.IllegalVotes))
 	}
+	if len(a.IllegalVotes) == 0 {
+		return "Keine"
+	}
 	return strings.Join(a.IllegalVotes, ", ")
+}
+
+func (a *AccountVotes) NoVotes() bool {
+	if a.List == nil {
+		return len(a.BaseMap) == 0
+	}
+	return len(a.List) == 0
 }
 
 func (a *AccountVotes) VoteIterator() func(func(string, []string) bool) {
@@ -318,14 +330,18 @@ RETURN o }`
 		Anonymous:             Props["anonymous"].(bool),
 		EndDate:               result.Records[0].Values[1].(time.Time),
 	}
+	vote.ShowVotesDuringVoting = vote.ShowVotesDuringVoting || vote.Ended()
+
 	var voteList *AccountVotes
 	if vote.ShowVotesDuringVoting {
 		voteList = &AccountVotes{
-			Type:         vote.Type,
-			Anonymous:    vote.Anonymous,
-			AnswerAmount: len(vote.IterableAnswers),
-			IllegalVotes: []string{},
-			List:         make(map[string][]any),
+			Question:        vote.Question,
+			IterableAnswers: vote.IterableAnswers,
+			Type:            vote.Type,
+			Anonymous:       vote.Anonymous,
+			AnswerAmount:    len(vote.IterableAnswers),
+			IllegalVotes:    []string{},
+			List:            make(map[string][]any),
 		}
 		result, err = makeRequest(`MATCH (a:Account)-[r:VOTED]->(v:Vote) WHERE v.id = $id RETURN r, a.name 
 ORDER BY r.written;`,
@@ -379,7 +395,7 @@ RETURN v, docID, collect(accName), collect(r);`, map[string]any{"now": time.Now(
 		_, err = makeRequest(`MATCH (v:Vote) WHERE v.id = $vote 
 MATCH (d:Document) WHERE d.id = $id 
 CREATE (r:Result {type: $Type, anonymous: $Anonymous, amount: $AnswerAmount, illegal: $IllegalVotes, 
-list: $List}) 
+list: $List, question: $question, answers: $answers}) 
 MERGE (d)-[:VOTED]->(r) 
 DETACH DELETE v;`,
 			map[string]any{
@@ -390,6 +406,8 @@ DETACH DELETE v;`,
 				"AnswerAmount": vote.AnswerAmount,
 				"IllegalVotes": vote.IllegalVotes,
 				"List":         vote.List,
+				"question":     vote.Question,
+				"answers":      vote.IterableAnswers,
 			})
 		if err != nil {
 			slog.Error(err.Error())
@@ -409,12 +427,14 @@ func transformVotesForResults(result *neo4j.EagerResult) ([]AccountVotes, []stri
 		voteIDs[i] = voteProps["id"].(string)
 
 		votes[i] = AccountVotes{
-			Anonymous:    voteProps["anonymous"].(bool),
-			Type:         VoteType(voteProps["type"].(int64)),
-			AnswerAmount: len(voteProps["answers"].([]any)),
-			IllegalVotes: []string{},
-			List:         make(map[string][]any),
+			Question:        voteProps["question"].(string),
+			IterableAnswers: voteProps["answers"].([]any),
+			Anonymous:       voteProps["anonymous"].(bool),
+			Type:            VoteType(voteProps["type"].(int64)),
+			IllegalVotes:    []string{},
+			List:            make(map[string][]any),
 		}
+		votes[i].AnswerAmount = len(votes[i].IterableAnswers)
 
 		nameList := record.Values[2].([]any)
 		voteList := record.Values[3].([]any)

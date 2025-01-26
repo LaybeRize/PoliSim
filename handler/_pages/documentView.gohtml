@@ -123,7 +123,9 @@
 {{define "vote"}}
     {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
     {{if .Document.HasResults}}
-        {{template "voteResults" .Document.Result}}
+        {{range .Document.Result}}
+            {{template "voteResults" .}}
+        {{end}}
     {{else}}
         <div class="block-view">
             {{range $link := .Document.Links}}

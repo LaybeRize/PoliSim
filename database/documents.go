@@ -38,7 +38,7 @@ type (
 		Links               []VoteInfo
 		VoteIDs             []string
 		Comments            []DocumentComment
-		Result              *AccountVotes
+		Result              []AccountVotes
 	}
 	SmallDocument struct {
 		ID           string
@@ -393,16 +393,21 @@ WHERE d.id = $id RETURN r;`,
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return nil, nil, err
-		} else if result.Next(ctx); result.Record() != nil {
-			props = result.Record().Values[0].(neo4j.Node).Props
-			doc.Result = &AccountVotes{
-				Anonymous:    props["anonymous"].(bool),
-				Type:         VoteType(props["type"].(int64)),
-				AnswerAmount: int(props["amount"].(int64)),
-				IllegalVotes: nil,
-				Illegal:      props["illegal"].([]any),
-				List:         nil,
-				BaseMap:      props["list"].(map[string]any),
+		} else if result.Peek(ctx) {
+			doc.Result = make([]AccountVotes, 0)
+			for result.Next(ctx) {
+				props = result.Record().Values[0].(neo4j.Node).Props
+				doc.Result = append(doc.Result, AccountVotes{
+					Question:        props["question"].(string),
+					IterableAnswers: props["answers"].([]any),
+					Anonymous:       props["anonymous"].(bool),
+					Type:            VoteType(props["type"].(int64)),
+					AnswerAmount:    int(props["amount"].(int64)),
+					IllegalVotes:    nil,
+					Illegal:         props["illegal"].([]any),
+					List:            nil,
+					BaseMap:         props["list"].(map[string]any),
+				})
 			}
 		} else {
 			doc.Links = make([]VoteInfo, 0)
