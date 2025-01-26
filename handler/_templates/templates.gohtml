@@ -134,5 +134,29 @@
 {{define "voteResults"}}
     {{- /*gotype: PoliSim/database.AccountVotes*/ -}}
     <hr class="splitter">
-    <!-- Todo: make this -->
+    {{if .NoVotes}}
+        <p>Es wurden keine gültigen Stimmen abgegeben</p>
+    {{else}}
+        <table class="view-vote">
+            <tr>
+                <th rowspan="2" class="contrast">Abstimmender</th>
+                <th colspan="{{.AnswerAmount}}" class="contrast">{{if .Type.IsRankedVoting}}Rang{{else}}Stimme(n){{end}}</th>
+            </tr>
+            <tr>
+                {{range .IterableAnswers}}
+                    <th class="contrast">{{.}}</th>
+                {{end}}
+            </tr>
+            {{$anoynm := .Anonymous}}
+            {{range $voter, $votes := .VoteIterator}}
+                <tr>
+                    <td class="contrast">{{if $anoynm}}{{$voter}}. Wahlzettel{{else}}{{$voter}}{{end}}</td>
+                    {{range $voter}}
+                        <td>{{.}}</td>
+                    {{end}}
+                </tr>
+            {{end}}
+        </table>
+    {{end}}
+    <p>Ungültige Stimmen: {{.GetIllegalVotes}}</p>
 {{end}}

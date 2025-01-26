@@ -75,9 +75,11 @@ func (a *AccountVotes) VoteIterator() func(func(string, []string) bool) {
 			for name, list := range a.BaseMap {
 				newList := make([]string, len(list.([]any)))
 				for i, val := range list.([]any) {
-					newList[i] = strconv.Itoa(int(val.(int64)))
-					if a.Type.IsRankedVoting() && newList[i] == "-1" {
+					newVal := int(val.(int64))
+					if newVal <= 0 {
 						newList[i] = ""
+					} else {
+						newList[i] = strconv.Itoa(newVal)
 					}
 				}
 				if a.Anonymous {
@@ -300,11 +302,32 @@ MERGE (a)-[:VOTED {written: $now, illegal: $illegal, vote: $voteMap}]->(v);`,
 	return err
 }
 
-func GetVoteForUser(id string, acc *Account) (*VoteInstance, *AccountVotes, error) {
-	extra := `CALL { MATCH (o:Organisation)<-[:IN]-(d:Document)-[:LINKS]->(v:Vote) WHERE d.public = true 
+func GetAnswersAndTypeForVote(id string, acc *Account) ([]any, VoteType, int64, error) {
+	extra := `CALL { MATCH (o:Organisation)<-[:IN]-(d)-[:LINKS]->(v:Vote) WHERE d.public = true 
 RETURN o
 UNION
-MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE d.public = false AND a.name = $name 
+MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d) WHERE d.public = false AND a.name = $name 
+RETURN o }`
+	if acc.IsAtLeastAdmin() {
+		extra = ""
+	}
+
+	result, err := makeRequest(`MATCH (d:Document)-[:LINKS]->(v:Vote) WHERE v.id = $id `+extra+
+		` RETURN v.answers, v.type, v.max_votes;`, map[string]any{"id": id, "name": acc.GetName()})
+	if err != nil {
+		return nil, -1, -1, err
+	}
+	if len(result.Records) == 0 {
+		return nil, -1, -1, notAllowedError
+	}
+	return result.Records[0].Values[0].([]any), VoteType(result.Records[0].Values[1].(int64)), result.Records[0].Values[2].(int64), nil
+}
+
+func GetVoteForUser(id string, acc *Account) (*VoteInstance, *AccountVotes, error) {
+	extra := `CALL { MATCH (o:Organisation)<-[:IN]-(d)-[:LINKS]->(v:Vote) WHERE d.public = true 
+RETURN o
+UNION
+MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d) WHERE d.public = false AND a.name = $name 
 RETURN o }`
 	if acc.IsAtLeastAdmin() {
 		extra = ""

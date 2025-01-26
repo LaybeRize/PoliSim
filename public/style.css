@@ -343,6 +343,19 @@ hr.splitter {
     margin: 0.3rem 0;
 }
 
+table.view-vote {
+    border-collapse: collapse;
+
+    th, td {
+        border: 0.1rem solid white;
+        padding: 0.4rem;
+    }
+
+    .contrast {
+        background-color: rgb(15 23 42);
+    }
+}
+
 .hide {
     display: none !important;
 }

@@ -32,10 +32,11 @@
                 {{end}}
             {{end}}
             {{if .VoteInstance.Type.IsRankedVoting}}
-                <p><b>Position 0 und kleiner bedeutet, dass die Antwort keinen Rang erhält</b></p>
-                {{range $pos, $answer := .VoteInstance.AnswerIterator}}
-                    <label for="pos-{{$pos}}">Position der Antwort {{$pos}}.: {{$answer}}</label>
-                    <input type="number" id="pos-{{$pos}}" name="vote-{{$pos}}" value="0">
+                <p><b>Position 0 und kleiner bedeutet, dass die Antwort keinen Rang erhält. Der 1. Rang ist der höchste.</b></p>
+                {{$answers := .VoteInstance.AnswerIterator}}
+                {{range $pos, $answer := $answers}}
+                    <label for="pos-{{$pos}}">Rang der Antwort {{$pos}}.: {{$answer}}</label>
+                    <input type="number" id="pos-{{$pos}}" name="vote-{{$pos}}" value="0" max="{{len $answers}}">
                 {{end}}
             {{end}}
             <label for="invalid">Ungültige Stimme abgeben</label>
