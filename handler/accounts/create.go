@@ -25,65 +25,68 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 		handler.PartialGetNotFoundPage(writer, request)
 		return
 	}
-	page := handler.CreateAccountPage{IsError: true}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		page.Message = "Fehler beim parsen der Informationen"
-		handler.MakePage(writer, acc, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	page.Account.Name = helper.GetFormEntry(request, "name")
-	page.Account.Username = helper.GetFormEntry(request, "username")
-	page.Account.Password = helper.GetFormEntry(request, "password")
-	database.GetIntegerFormEntry(request, "role", &page.Account.Role)
+	newAccount := &database.Account{
+		Name:     values.GetTrimmedString("name"),
+		Username: values.GetTrimmedString("username"),
+		Password: values.GetString("password"),
+		Role:     database.AccountRole(values.GetInt("role")),
+	}
 
-	if page.Account.Name == "" || len(page.Account.Name) > 200 {
-		page.Message = "Der Anzeigename des Accounts ist entweder leer oder überschreitet das 200 Zeichenlimit"
-		handler.MakePage(writer, acc, &page)
+	if newAccount.Name == "" || len(newAccount.Name) > 200 {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Der Anzeigename des Accounts ist entweder leer oder überschreitet das 200 Zeichenlimit"})
 		return
 	}
 
-	if page.Account.Username == "" || len(page.Account.Username) > 200 {
-		page.Message = "Der Nutzername des Accounts ist entweder leer oder überschreitet das 200 Zeichenlimit"
-		handler.MakePage(writer, acc, &page)
+	if newAccount.Username == "" || len(newAccount.Username) > 200 {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Der Nutzername des Accounts ist entweder leer oder überschreitet das 200 Zeichenlimit"})
 		return
 	}
 
-	if len(page.Account.Password) < 10 && page.Account.Role != database.PressUser {
-		page.Message = "Das Password hat weniger als 10 Zeichen"
-		handler.MakePage(writer, acc, &page)
+	if len(newAccount.Password) < 10 && newAccount.Role != database.PressUser {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Das Password hat weniger als 10 Zeichen"})
 		return
 	}
 
-	if err != nil || page.Account.Role < database.HeadAdmin || page.Account.Role > database.PressUser {
-		page.Message = "Die ausgewählte Rolle für den Nutzer ist nicht valide"
-		handler.MakePage(writer, acc, &page)
+	if newAccount.Role < database.HeadAdmin || newAccount.Role > database.PressUser {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Die ausgewählte Rolle für den Nutzer ist nicht valide"})
 		return
 	}
 
-	if page.Account.Role <= acc.Role {
-		page.Message = "Du bist nicht berechtigt eine Account mit den selben oder höheren Berechtigungen zu erstellen"
-		handler.MakePage(writer, acc, &page)
+	if newAccount.Role <= acc.Role {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Du bist nicht berechtigt eine Account mit den selben oder höheren Berechtigungen zu erstellen"})
 		return
 	}
 
-	newAccount := page.Account
 	newAccount.Password, err = database.HashPassword(newAccount.Password)
 	if err != nil {
-		page.Message = "Es ist ein Fehler beim hashen des Passworts aufgetreten"
-		handler.MakePage(writer, acc, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Es ist ein Fehler beim Hashen des Passworts aufgetreten"})
 		return
 	}
 
-	err = database.CreateAccount(&newAccount)
+	err = database.CreateAccount(newAccount)
 	if err != nil {
-		page.Message = "Der Nutzer konnte nicht erstellt werden\nBitte überprüfe ob Anzeigename oder Nutzername einzigartig sind"
-		handler.MakePage(writer, acc, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Der Nutzer konnte nicht erstellt werden\nBitte überprüfe ob Anzeigename oder Nutzername einzigartig sind"})
 		return
 	}
 
-	page = handler.CreateAccountPage{IsError: false, Message: "Account erfolgreich erstellt\nDer Nutzername ist: " + page.Account.Username + "\nDas Passwort ist: " + page.Account.Password}
-	handler.MakePage(writer, acc, &page)
+	page := &handler.CreateAccountPage{MessageUpdate: handler.MessageUpdate{
+		IsError: false,
+		Message: "Account erfolgreich erstellt\nDer Nutzername ist: " + newAccount.Username + "\nDas Passwort ist: " + newAccount.Password,
+	}}
+	handler.MakePage(writer, acc, page)
 }

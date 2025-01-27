@@ -169,15 +169,3 @@ func makeRequest(query string, parameter map[string]any) (*neo4j.EagerResult, er
 	return neo4j.ExecuteQuery(ctx, driver, query, parameter,
 		neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
 }
-
-type NumberTypes interface {
-	int64 | int | VoteType | AccountRole | DocumentType | LetterStatus | OrganisationVisibility
-}
-
-func GetIntegerFormEntry[T NumberTypes](request *http.Request, field string, writeTo *T) {
-	temp, err := strconv.Atoi(request.Form.Get(field))
-	if err != nil {
-		*writeTo = T(-1)
-	}
-	*writeTo = T(temp)
-}

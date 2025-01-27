@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -62,32 +63,6 @@ func MakeCommaSeperatedStringToList(input string) []string {
 	return result
 }
 
-func GetCommaListFormEntry(request *http.Request, field string) []string {
-	return MakeCommaSeperatedStringToList(GetPureFormEntry(request, field))
-}
-
-// GetPureFormEntry returns the unchanged string
-func GetPureFormEntry(request *http.Request, field string) string {
-	return request.Form.Get(field)
-}
-
-// GetFormEntry strips the whitespace from the response and returns the result
-func GetFormEntry(request *http.Request, field string) string {
-	return strings.TrimSpace(request.Form.Get(field))
-}
-
-// GetFormList returns the list
-func GetFormList(request *http.Request, field string) []string {
-	userNames := request.Form[field]
-	if userNames == nil {
-		return []string{""}
-	}
-	for i, str := range userNames {
-		userNames[i] = strings.TrimSpace(str)
-	}
-	return userNames
-}
-
 func FilterList(list []string) []string {
 	result := make([]string, 0, len(list))
 	for _, element := range list {
@@ -98,10 +73,124 @@ func FilterList(list []string) []string {
 	return result
 }
 
-func GetBoolFormEntry(request *http.Request, field string) bool {
-	return GetFormEntry(request, field) == "true"
-}
-
 func StringIsAColor(input string) bool {
 	return matchColor.FindString(input) != ""
+}
+
+type AdvancedValues map[string][]string
+
+func GetAdvancedFormValues(request *http.Request) (AdvancedValues, error) {
+	err := request.ParseForm()
+	if err != nil {
+		slog.Error(err.Error())
+		return nil, err
+	}
+	slog.Debug("Reading Form: ", "URL", request.URL.EscapedPath(), "Mapping", request.Form)
+	return AdvancedValues(request.Form), nil
+}
+
+func GetAdvancedURLValues(request *http.Request) AdvancedValues {
+	slog.Debug("Reading Form: ", "URL", request.URL.EscapedPath(), "Mapping", request.URL.Query())
+	return AdvancedValues(request.URL.Query())
+}
+
+func (a AdvancedValues) MergeIntoMe(otherValues AdvancedValues) AdvancedValues {
+	for key, value := range otherValues {
+		a[key] = append(a[key], value...)
+	}
+	return a
+}
+
+func (a AdvancedValues) GetString(field string) string {
+	vs := a[field]
+	if len(vs) == 0 {
+		return ""
+	}
+	return vs[0]
+}
+
+func (a AdvancedValues) GetTrimmedString(field string) string {
+	vs := a[field]
+	if len(vs) == 0 {
+		return ""
+	}
+	return strings.TrimSpace(vs[0])
+}
+
+func (a AdvancedValues) GetArray(field string) []string {
+	vs := a[field]
+	if len(vs) == 0 {
+		return []string{}
+	}
+	return vs
+}
+
+func (a AdvancedValues) GetTrimmedArray(field string) []string {
+	vs := a[field]
+	if len(vs) == 0 {
+		return []string{}
+	}
+	for i, str := range vs {
+		vs[i] = strings.TrimSpace(str)
+	}
+	return vs
+}
+
+func (a AdvancedValues) GetCommaSeperatedArray(field string) []string {
+	vs := a[field]
+	if len(vs) == 0 {
+		return []string{}
+	}
+	return MakeCommaSeperatedStringToList(vs[0])
+}
+
+func (a AdvancedValues) GetFilteredArray(field string) []string {
+	result := make([]string, 0, len(a[field]))
+	for _, element := range a[field] {
+		if str := strings.TrimSpace(element); str != "" {
+			result = append(result, str)
+		}
+	}
+	return result
+}
+
+func (a AdvancedValues) GetBool(field string) bool {
+	vs := a[field]
+	if len(vs) == 0 {
+		return false
+	}
+	return strings.TrimSpace(vs[0]) == "true"
+}
+
+func (a AdvancedValues) GetInt(field string) int {
+	vs := a[field]
+	if len(vs) == 0 {
+		return -1
+	}
+	res, err := strconv.Atoi(vs[0])
+	if err != nil {
+		return -1
+	}
+	return res
+}
+
+func (a AdvancedValues) GetTime(field string, format string, location *time.Location) time.Time {
+	vs := a[field]
+	if len(vs) == 0 {
+		return time.Time{}
+	}
+	val, err := time.ParseInLocation(format, vs[0], location)
+	if err != nil {
+		return time.Time{}
+	}
+	return val
+}
+
+func (a AdvancedValues) Has(field string) bool {
+	return len(a[field]) != 0
+}
+
+func (a AdvancedValues) Exists(field string) bool {
+	_, exists := a[field]
+	return exists
 }

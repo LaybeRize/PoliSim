@@ -19,8 +19,6 @@
         </select>
         <button type="submit">Nutzer erstellen</button>
     </form>
-    {{if ne "" .Message}}
-        <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
-    {{end}}
+    {{template "message" .}}
     </body>
 {{end}}

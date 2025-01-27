@@ -14,8 +14,6 @@
                 <button type="submit">Einloggen</button>
             </form>
         {{end}}
-        {{if ne "" .Message}}
-            <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
-        {{end}}
+        {{template "message" .}}
     </body>
 {{end}}

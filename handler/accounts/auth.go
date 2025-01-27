@@ -8,60 +8,61 @@ import (
 )
 
 func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
-	acc, loggedIn := database.RefreshSession(writer, request)
-	page := handler.HomePage{
-		Account: acc,
-		Message: "Du bist bereits angemeldet",
-		IsError: true,
-	}
+	_, loggedIn := database.RefreshSession(writer, request)
+
 	if loggedIn {
-		handler.MakePage(writer, acc, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Du bist bereits angemeldet"})
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		page.Message = "Fehler beim parsen der Informationen"
-		handler.MakePage(writer, acc, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	username := helper.GetFormEntry(request, "username")
+	username := values.GetTrimmedString("username")
 	loginAcc, accErr := database.GetAccountByUsername(username)
-	page.Message = "Nutzername oder Passwort falsch"
 	if accErr != nil {
-		handler.MakePage(writer, acc, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Nutzername oder Passwort falsch"})
 		return
 	}
-	correctPassword := database.VerifyPassword(loginAcc.Password, helper.GetPureFormEntry(request, "password"))
+	correctPassword := database.VerifyPassword(loginAcc.Password, values.GetString("password"))
 	if !correctPassword || loginAcc.Role == database.PressUser {
-		handler.MakePage(writer, acc, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Nutzername oder Passwort falsch"})
 		return
 	}
 
 	database.CreateSession(writer, loginAcc)
-	page = handler.HomePage{
+	page := &handler.HomePage{
 		Account: loginAcc,
-		Message: "Erfolgreich angemeldet",
-		IsError: false,
+		MessageUpdate: handler.MessageUpdate{
+			Message: "Erfolgreich angemeldet",
+			IsError: false,
+		},
 	}
-	handler.MakePage(writer, loginAcc, &page)
+	handler.MakePage(writer, loginAcc, page)
 }
 
 func PostLogOutAccount(writer http.ResponseWriter, request *http.Request) {
-	acc, loggedIn := database.RefreshSession(writer, request)
-	page := handler.HomePage{
-		Account: acc,
-		Message: "Du bist nicht angemeldet",
-		IsError: true,
-	}
+	_, loggedIn := database.RefreshSession(writer, request)
+
 	if !loggedIn {
-		handler.MakePage(writer, acc, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Du bist nicht angemeldet"})
 		return
 	}
 	database.EndSession(writer, request)
-	page.Account = nil
-	page.Message = "Erfolgreich ausgeloggt"
-	page.IsError = false
-	handler.MakePage(writer, nil, &page)
+	page := &handler.HomePage{
+		Account: nil,
+		MessageUpdate: handler.MessageUpdate{
+			Message: "Erfolgreich ausgeloggt",
+			IsError: false,
+		},
+	}
+	handler.MakePage(writer, nil, page)
 }

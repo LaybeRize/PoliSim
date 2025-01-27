@@ -5,9 +5,10 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	"net/http"
-	"strconv"
 	"time"
 )
+
+const messageIdPassword = "message-div-password"
 
 func GetMyProfile(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
@@ -16,9 +17,19 @@ func GetMyProfile(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	setting := handler.ModifyPersonalSettings{FontScaling: acc.FontSize, TimeZone: acc.TimeZone.String()}
+	page := &handler.MyProfilePage{
+		Settings: handler.ModifyPersonalSettings{
+			FontScaling: acc.FontSize,
+			TimeZone:    acc.TimeZone.String(),
+		},
+		Password: handler.ChangePassword{
+			MessageUpdate: handler.MessageUpdate{
+				ElementID: messageIdPassword,
+			},
+		},
+	}
 
-	handler.MakeFullPage(writer, acc, &handler.MyProfilePage{Settings: setting})
+	handler.MakeFullPage(writer, acc, page)
 }
 
 func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
@@ -27,99 +38,97 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 		handler.RedirectToErrorPage(writer)
 		return
 	}
-	page := handler.ModifyPersonalSettings{IsError: true, FontScaling: acc.FontSize, TimeZone: acc.TimeZone.String()}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		page.Message = "Fehler beim parsen der Informationen"
-		handler.MakeSpecialPagePart(writer, &page)
-		return
-	}
-
-	newSize, err := strconv.Atoi(helper.GetFormEntry(request, "fontScaling"))
-	if err != nil {
-		page.Message = "Die Seitenskalierung ist keine valide Zahl"
-		handler.MakeSpecialPagePart(writer, &page)
-		return
-	}
-	if newSize < 10 {
-		page.Message = "Die Seitenskalierung kann nicht auf eine Zahl kleiner 10 gesetzt werden"
-		handler.MakeSpecialPagePart(writer, &page)
-		return
-	}
-	newTimeZone, err := time.LoadLocation(helper.GetFormEntry(request, "timeZone"))
-	if err != nil {
-		page.Message = "Die ausgewählte Zeitzone ist nicht valide"
-		handler.MakeSpecialPagePart(writer, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	page.TimeZone = newTimeZone.String()
-	page.FontScaling = int64(newSize)
-	acc.TimeZone = newTimeZone
-	acc.FontSize = page.FontScaling
+	acc.FontSize = int64(values.GetInt("fontScaling"))
+	if acc.FontSize < 10 {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Die Seitenskalierung kann nicht auf eine Zahl kleiner 10 gesetzt werden"})
+		return
+	}
+	acc.TimeZone, err = time.LoadLocation(values.GetTrimmedString("timeZone"))
+	if err != nil {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Die ausgewählte Zeitzone ist nicht valide"})
+		return
+	}
+
 	err = database.SetPersonalSettings(acc)
 	if err != nil {
-		page.Message = "Fehler beim speichern der persönlichen Informationen"
-		handler.MakeSpecialPagePart(writer, &page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim speichern der persönlichen Informationen"})
 		return
 	}
 
-	page.IsError = false
-	page.Message = "Einstellungen erfolgreich gespeichert\nLaden sie die Seite neu, um den Effekt zu sehen"
-	handler.MakeSpecialPagePart(writer, &page)
+	page := &handler.ModifyPersonalSettings{
+		FontScaling: acc.FontSize,
+		TimeZone:    acc.TimeZone.String(),
+		MessageUpdate: handler.MessageUpdate{
+			Message: "Einstellungen erfolgreich gespeichert\nLaden sie die Seite neu, um den Effekt zu sehen",
+			IsError: false,
+		},
+	}
+
+	handler.MakeSpecialPagePart(writer, page)
 	return
 }
 
 func PostUpdateMyPassword(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
-	page := &handler.ChangePassword{IsError: true}
+
 	if !loggedIn {
 		handler.RedirectToErrorPage(writer)
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		page.Message = "Fehler beim parsen der Informationen"
-		handler.MakeSpecialPagePart(writer, page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim parsen der Informationen", ElementID: messageIdPassword})
 		return
 	}
 
-	page.OldPassword = helper.GetPureFormEntry(request, "oldPassword")
-	page.NewPassword = helper.GetPureFormEntry(request, "newPassword")
-	page.RepeatNewPassword = helper.GetPureFormEntry(request, "newPasswordRepeat")
-	if !database.VerifyPassword(acc.Password, page.OldPassword) {
-		page.Message = "Das alte Passwort ist falsch"
-		handler.MakeSpecialPagePart(writer, page)
+	oldPassword := values.GetString("oldPassword")
+	newPassword := values.GetString("newPassword")
+	repeatNewPassword := values.GetString("newPasswordRepeat")
+	if !database.VerifyPassword(acc.Password, oldPassword) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Das alte Passwort ist falsch", ElementID: messageIdPassword})
 		return
 	}
-	if page.NewPassword != page.RepeatNewPassword {
-		page.Message = "Die Wiederholung stimmt nicht mit dem neuen Passwort überein"
-		handler.MakeSpecialPagePart(writer, page)
+	if newPassword != repeatNewPassword {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Die Wiederholung stimmt nicht mit dem neuen Passwort überein", ElementID: messageIdPassword})
 		return
 	}
-	if len(page.NewPassword) < 10 {
-		page.Message = "Das neue Passwort ist kürzer als 10 Zeichen"
-		handler.MakeSpecialPagePart(writer, page)
+	if len(newPassword) < 10 {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Das neue Passwort ist kürzer als 10 Zeichen", ElementID: messageIdPassword})
 		return
 	}
-	newPassword, err := database.HashPassword(page.NewPassword)
+	newPassword, err = database.HashPassword(newPassword)
 	if err != nil {
-		page.Message = "Fehler beim hashen des neuen Passworts"
-		handler.MakeSpecialPagePart(writer, page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim hashen des neuen Passworts", ElementID: messageIdPassword})
 		return
 	}
 	acc.Password = newPassword
 	err = database.UpdatePassword(acc)
 	if err != nil {
-		page.Message = "Fehler beim speichern des neuen Passworts"
-		handler.MakeSpecialPagePart(writer, page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim speichern des neuen Passworts", ElementID: messageIdPassword})
 		return
 	}
 
-	handler.MakeSpecialPagePart(writer, &handler.ChangePassword{
-		Message: "Passwort erfolgreich angepasst",
-		IsError: false,
-	})
+	page := &handler.ChangePassword{}
+	page.ElementID = messageIdPassword
+	page.IsError = false
+	page.Message = "Passwort erfolgreich angepasst"
+	handler.MakeSpecialPagePart(writer, page)
 }

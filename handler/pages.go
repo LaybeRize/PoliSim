@@ -46,8 +46,7 @@ func (p *NotFoundPage) getPageName() string {
 type HomePage struct {
 	NavInfo NavigationInfo
 	Account *database.Account
-	Message string
-	IsError bool
+	MessageUpdate
 }
 
 func (p *HomePage) SetNavInfo(navInfo NavigationInfo) {
@@ -61,8 +60,7 @@ func (p *HomePage) getPageName() string {
 type CreateAccountPage struct {
 	NavInfo NavigationInfo
 	Account database.Account
-	Message string
-	IsError bool
+	MessageUpdate
 }
 
 func (p *CreateAccountPage) SetNavInfo(navInfo NavigationInfo) {
@@ -632,8 +630,7 @@ type ChangePassword struct {
 	OldPassword       string
 	NewPassword       string
 	RepeatNewPassword string
-	Message           string
-	IsError           bool
+	MessageUpdate
 }
 
 func (p *ChangePassword) getRenderInfo() (string, string) {
@@ -643,8 +640,7 @@ func (p *ChangePassword) getRenderInfo() (string, string) {
 type ModifyPersonalSettings struct {
 	FontScaling int64
 	TimeZone    string
-	Message     string
-	IsError     bool
+	MessageUpdate
 }
 
 func (p *ModifyPersonalSettings) getRenderInfo() (string, string) {

@@ -14,9 +14,7 @@
                     {{template "timeZoneList"}}
                     <button type="submit">Einstellungen speichern</button>
                 </form>
-                {{if ne "" .Message}}
-                    <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
-                {{end}}
+                {{template "message" .}}
             </div>
         {{end}}
         {{block "changeMyPassword" .Password}}
@@ -32,9 +30,7 @@
                     <input id="newPasswordRepeat" name="newPasswordRepeat" type="password" value="{{.RepeatNewPassword}}">
                     <button type="submit">Passwort ändern</button>
                 </form>
-                {{if ne "" .Message}}
-                    <div class="{{if .IsError}}error-div{{else}}success-div{{end}}">{{.Message}}</div>
-                {{end}}
+                {{template "message" .}}
             </div>
         {{end}}
     </body>

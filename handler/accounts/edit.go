@@ -16,21 +16,16 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	page := &handler.EditAccountPage{Account: nil}
+	values := helper.GetAdvancedURLValues(request)
 	var err error
 
-	if accountName, exists := request.URL.Query()["name"]; exists {
+	if values.Has("name") {
 		var ownerAccount *database.Account
-		page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(accountName[0])
+		page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(values.GetTrimmedString("name"))
 
-		page.IsError = true
 		if err != nil {
-			page.Account = nil
-			page.Message = "Der gesuchte Name ist mit keinem Account verbunden"
-			page.AccountNames, page.AccountUsernames, err = database.GetNames()
-			if err != nil {
-				page.Message += "\nEs ist ein Fehler bei der Suche nach den Namenslisten aufgetreten"
-			}
-			handler.MakeFullPage(writer, acc, page)
+			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+				Message: "Der gesuchte Name ist mit keinem Account verbunden"})
 			return
 		}
 		if page.Account.Role == database.PressUser {
@@ -67,7 +62,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
@@ -75,11 +70,10 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	page := &handler.EditAccountPage{Account: nil}
-	var role database.AccountRole
+	role := database.AccountRole(values.GetInt("role"))
 
 	var ownerAccount *database.Account
-	page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(
-		helper.GetFormEntry(request, "name"))
+	page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(values.GetTrimmedString("name"))
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Konnte keinen Account zum modifizieren finden"})
@@ -96,18 +90,17 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	database.GetIntegerFormEntry(request, "role", &role)
 	// First checks if the account is not a PressUser because then changing roles is not allowed
 	// and then if the role is valid (lower boundary is set, upper boundary is set by modifying users role)
 	if page.Account.Role != database.PressUser && role <= database.User && role > acc.Role {
-		page.Account.Role = database.AccountRole(role)
+		page.Account.Role = role
 	} else if page.Account.Role != database.PressUser {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Die ausgewählte Rolle ist nicht valide"})
 		return
 	}
 
-	page.Account.Blocked = "true" == helper.GetFormEntry(request, "blocked")
+	page.Account.Blocked = values.GetBool("blocked")
 	err = database.UpdateAccount(page.Account)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -115,7 +108,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if ownerAccount, err = database.GetAccountByName(helper.GetFormEntry(request, "linked")); err == nil &&
+	if ownerAccount, err = database.GetAccountByName(values.GetTrimmedString("linked")); err == nil &&
 		page.Account.Role == database.PressUser {
 		if ownerAccount.Role == database.PressUser {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -138,7 +131,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		page.LinkedAccountName = ownerAccount.Name
 	}
 
-	if page.Account.Role == database.PressUser && helper.GetFormEntry(request, "linked") == "" {
+	if page.Account.Role == database.PressUser && values.GetTrimmedString("linked") == "" {
 		err = database.RemoveOwner(page.Account.Name)
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -160,23 +153,21 @@ func PostEditSearchAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	page := &handler.EditAccountPage{MessageUpdate: handler.MessageUpdate{IsError: true}}
-
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		page.Message = "Fehler beim parsen der Informationen"
-		makeEditSearchPage(writer, acc, page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	accountByName, nameErr := database.GetAccountByName(helper.GetFormEntry(request, "name"))
-	accountByUsername, usernameErr := database.GetAccountByUsername(helper.GetFormEntry(request, "username"))
+	accountByName, nameErr := database.GetAccountByName(values.GetTrimmedString("name"))
+	accountByUsername, usernameErr := database.GetAccountByUsername(values.GetTrimmedString("username"))
 	var name string
 
 	switch true {
 	case nameErr != nil && usernameErr != nil:
-		page.Message = "Konnte keinen Account finden, der den Informationen entspricht"
-		makeEditSearchPage(writer, acc, page)
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Konnte keinen Account finden, der den Informationen entspricht"})
 		return
 	case accountByName.Exists():
 		name = accountByName.Name
@@ -186,13 +177,4 @@ func PostEditSearchAccount(writer http.ResponseWriter, request *http.Request) {
 
 	writer.Header().Add("HX-Redirect", "/edit/account?name="+url.QueryEscape(name))
 	writer.WriteHeader(http.StatusFound)
-}
-
-func makeEditSearchPage(writer http.ResponseWriter, acc *database.Account, page *handler.EditAccountPage) {
-	var err error
-	page.AccountNames, page.AccountUsernames, err = database.GetNames()
-	if err != nil {
-		page.Message += "\nEs ist ein Fehler bei der Suche nach den Namenslisten aufgetreten"
-	}
-	handler.MakePage(writer, acc, page)
 }
