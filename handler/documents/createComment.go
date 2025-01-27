@@ -16,7 +16,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -26,8 +26,8 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 
 	docId := request.PathValue("id")
 	comment := &database.DocumentComment{
-		Author: helper.GetFormEntry(request, "author"),
-		Body:   handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
+		Author: values.GetTrimmedString("author"),
+		Body:   handler.MakeMarkdown(values.GetTrimmedString("markdown")),
 	}
 	comment.ID = helper.GetUniqueID(comment.Author)
 

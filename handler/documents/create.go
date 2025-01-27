@@ -48,7 +48,7 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -58,10 +58,10 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 
 	doc := &database.Document{
 		Type:                database.DocTypePost,
-		Organisation:        helper.GetFormEntry(request, "organisation"),
-		Title:               helper.GetFormEntry(request, "title"),
-		Author:              helper.GetFormEntry(request, "author"),
-		Body:                handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
+		Organisation:        values.GetTrimmedString("organisation"),
+		Title:               values.GetTrimmedString("title"),
+		Author:              values.GetTrimmedString("author"),
+		Body:                handler.MakeMarkdown(values.GetTrimmedString("markdown")),
 		Public:              true,
 		Removed:             false,
 		MemberParticipation: false,
@@ -121,7 +121,7 @@ func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -130,7 +130,7 @@ func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http
 	}
 
 	page := &handler.UpdateOrganisationForUser{}
-	author := helper.GetFormEntry(request, "author")
+	author := values.GetTrimmedString("author")
 	allowed, err := database.IsAccountAllowedToPostWith(acc, author)
 	if !allowed || err != nil {
 		if err != nil {

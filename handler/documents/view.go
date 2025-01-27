@@ -42,7 +42,7 @@ func PostNewDocumentTagPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -52,11 +52,11 @@ func PostNewDocumentTagPage(writer http.ResponseWriter, request *http.Request) {
 
 	tag := &database.DocumentTag{
 		ID:              helper.GetUniqueID(acc.Name),
-		Text:            helper.GetFormEntry(request, "text"),
-		BackgroundColor: helper.GetFormEntry(request, "background-color"),
-		TextColor:       helper.GetFormEntry(request, "text-color"),
-		LinkColor:       helper.GetFormEntry(request, "link-color"),
-		Links:           helper.GetCommaListFormEntry(request, "links"),
+		Text:            values.GetTrimmedString("text"),
+		BackgroundColor: values.GetTrimmedString("background-color"),
+		TextColor:       values.GetTrimmedString("text-color"),
+		LinkColor:       values.GetTrimmedString("link-color"),
+		Links:           values.GetCommaSeperatedArray("links"),
 	}
 
 	if tag.Text == "" {
@@ -131,7 +131,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -139,7 +139,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	voter := helper.GetFormEntry(request, "voter")
+	voter := values.GetTrimmedString("voter")
 	allowed, err := database.IsAccountAllowedToPostWith(acc, voter)
 	if !allowed || err != nil {
 		if err != nil {
@@ -158,13 +158,12 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var votesCasted []int
-	if helper.GetBoolFormEntry(request, "invalid") {
+	if values.GetBool("invalid") {
 		votesCasted = nil
 
 	} else if voteType.IsSingleVote() {
 		votesCasted = make([]int, len(answers))
-		var pos int
-		database.GetIntegerFormEntry(request, "vote", &pos)
+		pos := values.GetInt("vote")
 
 		if pos <= 0 || pos > len(answers) {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -176,28 +175,27 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 	} else if voteType.IsMultipleVotes() {
 		votesCasted = make([]int, len(answers))
 		for i := range len(answers) {
-			if helper.GetBoolFormEntry(request, fmt.Sprintf("vote-%d", i+1)) {
+			if values.GetBool(fmt.Sprintf("vote-%d", i+1)) {
 				votesCasted[i] = 1
 			}
 		}
 
 	} else if voteType.IsVoteSharing() {
 		votesCasted = make([]int, len(answers))
-		var amount int64
-		sum := int64(0)
+		sum := 0
 
 		for i := range len(answers) {
-			database.GetIntegerFormEntry(request, fmt.Sprintf("vote-%d", i+1), &amount)
+			amount := values.GetInt(fmt.Sprintf("vote-%d", i+1))
 			if amount < 0 {
 				handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 					Message: "Die Abgegebene Stimme ist invalide" + "\n" + "Die Anzahl an Stimmen pro Antwort darf nicht kleiner als 0 sein"})
 				return
 			}
-			votesCasted[i] = int(amount)
+			votesCasted[i] = amount
 			sum += amount
 		}
 
-		if sum > maxVotes {
+		if int64(sum) > maxVotes {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 				Message: "Die Abgegebene Stimme ist invalide" + "\n" + "Die Summe aller abgegebenen Stimmen überschreitet das festgelegte Maximum"})
 			return
@@ -205,11 +203,10 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 
 	} else if voteType.IsRankedVoting() {
 		votesCasted = make([]int, len(answers))
-		var pos int
 		lookUpMap := make(map[int]interface{})
 
 		for i := range len(answers) {
-			database.GetIntegerFormEntry(request, fmt.Sprintf("vote-%d", i+1), &pos)
+			pos := values.GetInt(fmt.Sprintf("vote-%d", i+1))
 			if pos < 0 {
 				votesCasted[i] = -1
 			} else if pos > len(answers) {

@@ -48,15 +48,18 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim Parsen der Informationen"})
 		return
 	}
-	page := &handler.CreateVoteElementPage{VoteNumbers: voteArray}
-	database.GetIntegerFormEntry(request, "number", &page.CurrNumber)
+	page := &handler.CreateVoteElementPage{
+		VoteNumbers: voteArray,
+		CurrNumber:  values.GetInt("number"),
+	}
+
 	if page.CurrNumber < voteArray[0] || page.CurrNumber > voteArray[len(voteArray)-1] {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Die ausgewählte Nummer für die Abstimmung ist nicht zulässig"})
@@ -65,13 +68,13 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 
 	page.Vote = &database.VoteInstance{
 		ID:                    helper.GetUniqueID(acc.Name),
-		Question:              helper.GetFormEntry(request, "question"),
-		Answers:               helper.FilterList(helper.GetFormList(request, "[]answers")),
-		ShowVotesDuringVoting: helper.GetBoolFormEntry(request, "show-during"),
-		Anonymous:             helper.GetBoolFormEntry(request, "anonymous"),
+		Question:              values.GetTrimmedString("question"),
+		Answers:               values.GetFilteredArray("[]answers"),
+		ShowVotesDuringVoting: values.GetBool("show-during"),
+		Anonymous:             values.GetBool("anonymous"),
+		Type:                  database.VoteType(values.GetInt("type")),
+		MaxVotes:              int64(values.GetInt("max-votes")),
 	}
-	database.GetIntegerFormEntry(request, "type", &page.Vote.Type)
-	database.GetIntegerFormEntry(request, "max-votes", &page.Vote.MaxVotes)
 
 	if !page.Vote.HasValidType() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -123,7 +126,7 @@ func PatchGetVoteElementPage(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -131,8 +134,11 @@ func PatchGetVoteElementPage(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	page := &handler.CreateVoteElementPage{VoteNumbers: voteArray}
-	database.GetIntegerFormEntry(request, "number", &page.CurrNumber)
+	page := &handler.CreateVoteElementPage{
+		VoteNumbers: voteArray,
+		CurrNumber:  values.GetInt("number"),
+	}
+
 	if page.CurrNumber < voteArray[0] || page.CurrNumber > voteArray[len(voteArray)-1] {
 		page.CurrNumber = voteArray[0]
 	}

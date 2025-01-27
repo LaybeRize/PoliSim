@@ -31,7 +31,7 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -40,10 +40,10 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	color := &database.ColorPalette{
-		Name:       helper.GetFormEntry(request, "name"),
-		Background: helper.GetFormEntry(request, "background-color"),
-		Text:       helper.GetFormEntry(request, "text-color"),
-		Link:       helper.GetFormEntry(request, "link-color"),
+		Name:       values.GetTrimmedString("name"),
+		Background: values.GetString("background-color"),
+		Text:       values.GetString("text-color"),
+		Link:       values.GetString("link-color"),
 	}
 
 	if color.Name == "" {
@@ -87,7 +87,7 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -95,7 +95,7 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	color, err := database.RemoveColorPalette(helper.GetFormEntry(request, "name"), acc)
+	color, err := database.RemoveColorPalette(values.GetTrimmedString("name"), acc)
 
 	if err != nil {
 		slog.Debug(err.Error())

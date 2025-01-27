@@ -65,9 +65,8 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim Parsen der Informationen"})
 		return
@@ -75,21 +74,20 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 
 	doc := &database.Document{
 		Type:                database.DocTypeDiscussion,
-		Organisation:        helper.GetFormEntry(request, "organisation"),
-		Title:               helper.GetFormEntry(request, "title"),
-		Author:              helper.GetFormEntry(request, "author"),
-		Body:                handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
-		Public:              helper.GetBoolFormEntry(request, "public"),
+		Organisation:        values.GetTrimmedString("organisation"),
+		Title:               values.GetTrimmedString("title"),
+		Author:              values.GetTrimmedString("author"),
+		Body:                handler.MakeMarkdown(values.GetTrimmedString("markdown")),
+		Public:              values.GetBool("public"),
 		Removed:             false,
-		MemberParticipation: helper.GetBoolFormEntry(request, "member"),
-		AdminParticipation:  helper.GetBoolFormEntry(request, "admin"),
-		Participants:        helper.GetFormList(request, "[]participants"),
-		Reader:              helper.GetFormList(request, "[]reader"),
+		MemberParticipation: values.GetBool("member"),
+		AdminParticipation:  values.GetBool("admin"),
+		Participants:        values.GetTrimmedArray("[]participants"),
+		Reader:              values.GetTrimmedArray("[]reader"),
+		End:                 values.GetTime("end-time", "2006-01-02T15:04", acc.TimeZone),
 	}
 
-	doc.End, err = time.ParseInLocation("2006-01-02T15:04", helper.GetFormEntry(request, "end-time"),
-		acc.TimeZone)
-	if err != nil {
+	if doc.End.IsZero() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der angegebene Zeitstempel für das Ende ist nicht gültig"})
 		return
@@ -155,17 +153,16 @@ func PatchFixUserList(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim Parsen der Informationen"})
 		return
 	}
 
 	page := &handler.ReaderAndParticipants{
-		Participants: helper.GetFormList(request, "[]participants"),
-		Reader:       helper.GetFormList(request, "[]reader"),
+		Participants: values.GetTrimmedArray("[]participants"),
+		Reader:       values.GetTrimmedArray("[]reader"),
 	}
 
 	page.Reader, err = database.FilterNameListForNonBlocked(page.Reader, 1)
