@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"strconv"
 )
 
 func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
@@ -18,14 +17,15 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		handler.GetNotFoundPage(writer, request)
 		return
 	}
-	query := request.URL.Query()
+	query := helper.GetAdvancedURLValues(request)
 
 	var err error
 	page := &handler.SearchLetterPage{
-		Account: query.Get("account"),
+		Account: query.GetTrimmedString("account"),
+		Amount:  query.GetInt("amount"),
+		Page:    query.GetInt("page"),
 	}
-	page.Amount, _ = strconv.Atoi(query.Get("amount"))
-	page.Page, _ = strconv.Atoi(query.Get("page"))
+
 	page.PossibleAccounts, err = database.GetMyAccountNames(acc)
 
 	if err != nil {
@@ -69,17 +69,19 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	page := &handler.SearchLetterPage{}
-	page.Account = helper.GetFormEntry(request, "account")
-	database.GetIntegerFormEntry(request, "amount", &page.Amount)
-	database.GetIntegerFormEntry(request, "page", &page.Page)
+	page := &handler.SearchLetterPage{
+		Account: values.GetTrimmedString("account"),
+		Amount:  values.GetInt("amount"),
+		Page:    values.GetInt("page"),
+	}
+
 	page.PossibleAccounts, err = database.GetMyAccountNames(acc)
 
 	if err != nil {

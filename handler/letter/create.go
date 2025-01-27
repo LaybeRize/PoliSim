@@ -45,7 +45,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -54,11 +54,11 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	letter := &database.Letter{
-		Title:    helper.GetFormEntry(request, "title"),
-		Author:   helper.GetFormEntry(request, "author"),
-		Signable: helper.GetBoolFormEntry(request, "signable"),
-		Body:     handler.MakeMarkdown(helper.GetFormEntry(request, "markdown")),
-		Reader:   helper.GetFormList(request, "[]recipient"),
+		Title:    values.GetTrimmedString("title"),
+		Author:   values.GetTrimmedString("author"),
+		Body:     handler.MakeMarkdown(values.GetTrimmedString("markdown")),
+		Signable: values.GetBool("signable"),
+		Reader:   values.GetTrimmedArray("[]recipient"),
 	}
 	letter.ID = helper.GetUniqueID(letter.Author)
 	letter.Flair, err = database.GetAccountFlairs(&database.Account{Name: letter.Author})
@@ -137,7 +137,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -146,11 +146,11 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 	}
 
 	page := &handler.CreateLetterPage{
-		Title:      helper.GetFormEntry(request, "title"),
-		Author:     helper.GetFormEntry(request, "author"),
-		Body:       helper.GetFormEntry(request, "markdown"),
-		Signable:   helper.GetBoolFormEntry(request, "signable"),
-		Recipients: helper.GetFormList(request, "[]recipient"),
+		Title:      values.GetTrimmedString("title"),
+		Author:     values.GetTrimmedString("author"),
+		Body:       values.GetTrimmedString("markdown"),
+		Signable:   values.GetBool("signable"),
+		Recipients: values.GetTrimmedArray("[]recipient"),
 	}
 	page.Information = handler.MakeMarkdown(page.Body)
 	page.IsError = true
