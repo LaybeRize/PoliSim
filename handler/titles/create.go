@@ -33,19 +33,20 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	newTitle := &database.Title{}
-	newTitle.Name = helper.GetFormEntry(request, "name")
-	newTitle.MainType = helper.GetFormEntry(request, "main-group")
-	newTitle.SubType = helper.GetFormEntry(request, "sub-group")
-	newTitle.Flair = helper.GetFormEntry(request, "flair")
-	names := helper.GetFormList(request, "[]holder")
+	newTitle := &database.Title{
+		Name:     values.GetTrimmedString("name"),
+		MainType: values.GetTrimmedString("main-group"),
+		SubType:  values.GetTrimmedString("sub"),
+		Flair:    values.GetTrimmedString("flair"),
+	}
+	names := values.GetTrimmedArray("[]holder")
 
 	if newTitle.Name == "" || len(newTitle.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

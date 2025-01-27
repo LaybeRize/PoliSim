@@ -36,21 +36,23 @@ func PostCreateOrganisationPage(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	newOrganisation := &database.Organisation{}
-	newOrganisation.Name = helper.GetFormEntry(request, "name")
-	database.GetIntegerFormEntry(request, "visiblity", &newOrganisation.Visibility)
-	newOrganisation.MainType = helper.GetFormEntry(request, "main-group")
-	newOrganisation.SubType = helper.GetFormEntry(request, "sub-group")
-	newOrganisation.Flair = helper.GetFormEntry(request, "flair")
-	userNames := helper.GetFormList(request, "[]user")
-	adminNames := helper.GetFormList(request, "[]admin")
+	newOrganisation := &database.Organisation{
+		Name:       values.GetTrimmedString("name"),
+		Visibility: database.OrganisationVisibility(values.GetInt("visiblity")),
+		MainType:   values.GetTrimmedString("main-group"),
+		SubType:    values.GetTrimmedString("sub-group"),
+		Flair:      values.GetTrimmedString("flair"),
+	}
+
+	userNames := values.GetTrimmedArray("[]user")
+	adminNames := values.GetTrimmedArray("[]admin")
 
 	if newOrganisation.Name == "" || len(newOrganisation.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

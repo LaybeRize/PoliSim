@@ -16,12 +16,12 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	page := &handler.EditAccountPage{Account: nil}
-	values := helper.GetAdvancedURLValues(request)
+	query := helper.GetAdvancedURLValues(request)
 	var err error
 
-	if values.Has("name") {
+	if query.Has("name") {
 		var ownerAccount *database.Account
-		page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(values.GetTrimmedString("name"))
+		page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(query.GetTrimmedString("name"))
 
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

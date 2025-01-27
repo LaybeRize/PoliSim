@@ -42,7 +42,7 @@ func main() {
 
 	http.HandleFunc("GET /create/organisation", organisations.GetCreateOrganisationPage)
 	http.HandleFunc("POST /create/organisation", organisations.PostCreateOrganisationPage)
-	http.HandleFunc("GET /edit/organisation", organisations.GetEditOrgansationPage)
+	http.HandleFunc("GET /edit/organisation", organisations.GetEditOrganisationPage)
 	http.HandleFunc("PATCH /edit/organisation", organisations.PatchEditOrganisationPage)
 	http.HandleFunc("PUT /edit/organisation/search", organisations.PutOrganisationSearchPage)
 

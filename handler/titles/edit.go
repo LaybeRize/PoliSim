@@ -19,19 +19,14 @@ func GetEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	page := &handler.EditTitlePage{Title: nil}
 	var err error
 
-	if titleName, exists := request.URL.Query()["name"]; exists {
-		page.Title, page.Holder, err = database.GetTitleAndHolder(titleName[0])
+	query := helper.GetAdvancedURLValues(request)
+	if query.Has("name") {
+		page.Title, page.Holder, err = database.GetTitleAndHolder(query.GetTrimmedString("name"))
 
 		page.IsError = true
 		if err != nil {
-			page.Title = nil
-			page.Holder = nil
-			page.Message = "Der gesuchte Name ist mit keinem Titel verbunden"
-			page.Titels, err = database.GetTitleNameList()
-			if err != nil {
-				page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Titelnamensliste aufgetreten"
-			}
-			handler.MakeFullPage(writer, acc, page)
+			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+				Message: "Der gesuchte Name ist mit keinem Titel verbunden"})
 			return
 		}
 
@@ -64,20 +59,21 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	oldTitleName := helper.GetFormEntry(request, "oldName")
-	titleUpdate := &database.Title{}
-	titleUpdate.Name = helper.GetFormEntry(request, "name")
-	titleUpdate.MainType = helper.GetFormEntry(request, "main-group")
-	titleUpdate.SubType = helper.GetFormEntry(request, "sub-group")
-	titleUpdate.Flair = helper.GetFormEntry(request, "flair")
-	names := helper.GetFormList(request, "[]holder")
+	oldTitleName := values.GetTrimmedString("oldName")
+	titleUpdate := &database.Title{
+		Name:     values.GetTrimmedString("name"),
+		MainType: values.GetTrimmedString("main-group"),
+		SubType:  values.GetTrimmedString("sub"),
+		Flair:    values.GetTrimmedString("flair"),
+	}
+	names := values.GetTrimmedArray("[]holder")
 
 	if titleUpdate.Name == "" || len(titleUpdate.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -139,14 +135,14 @@ func PutTitleSearchPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	name := helper.GetFormEntry(request, "name")
+	name := values.GetTrimmedString("name")
 	_, err = database.GetTitleByName(name)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func GetEditOrgansationPage(writer http.ResponseWriter, request *http.Request) {
+func GetEditOrganisationPage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn || acc.Role > database.Admin {
 		handler.GetNotFoundPage(writer, request)
@@ -19,18 +19,14 @@ func GetEditOrgansationPage(writer http.ResponseWriter, request *http.Request) {
 	page := &handler.EditOrganisationPage{Organisation: nil}
 	var err error
 
-	if orgName, exists := request.URL.Query()["name"]; exists {
-		page.Organisation, page.User, page.Admin, err = database.GetFullOrganisationInfo(orgName[0])
+	query := helper.GetAdvancedURLValues(request)
+	if query.Has("name") {
+		page.Organisation, page.User, page.Admin, err = database.GetFullOrganisationInfo(query.GetTrimmedString("name"))
 
 		page.IsError = true
 		if err != nil {
-			page.Organisation = nil
-			page.Message = "Der gesuchte Name ist mit keiner Organisation verbunden"
-			page.Organisations, err = database.GetOrganisationNameList()
-			if err != nil {
-				page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Organisationsamensliste aufgetreten"
-			}
-			handler.MakeFullPage(writer, acc, page)
+			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+				Message: "Der gesuchte Name ist mit keiner Organisation verbunden"})
 			return
 		}
 
@@ -64,22 +60,24 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	oldOrganisationName := helper.GetFormEntry(request, "oldName")
-	organisationUpdate := &database.Organisation{}
-	organisationUpdate.Name = helper.GetFormEntry(request, "name")
-	database.GetIntegerFormEntry(request, "visiblity", &organisationUpdate.Visibility)
-	organisationUpdate.MainType = helper.GetFormEntry(request, "main-group")
-	organisationUpdate.SubType = helper.GetFormEntry(request, "sub-group")
-	organisationUpdate.Flair = helper.GetFormEntry(request, "flair")
-	userNames := helper.GetFormList(request, "[]user")
-	adminNames := helper.GetFormList(request, "[]admin")
+	oldOrganisationName := values.GetTrimmedString("oldName")
+	organisationUpdate := &database.Organisation{
+		Name:       values.GetTrimmedString("name"),
+		Visibility: database.OrganisationVisibility(values.GetInt("visiblity")),
+		MainType:   values.GetTrimmedString("main-group"),
+		SubType:    values.GetTrimmedString("sub-group"),
+		Flair:      values.GetTrimmedString("flair"),
+	}
+
+	userNames := values.GetTrimmedArray("[]user")
+	adminNames := values.GetTrimmedArray("[]admin")
 
 	if organisationUpdate.Name == "" || len(organisationUpdate.Name) > 400 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -150,14 +148,14 @@ func PutOrganisationSearchPage(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim parsen der Informationen"})
 		return
 	}
 
-	name := helper.GetFormEntry(request, "name")
+	name := values.GetTrimmedString("name")
 	_, err = database.GetOrganisationByName(name)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
