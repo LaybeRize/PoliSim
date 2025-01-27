@@ -51,7 +51,7 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -60,7 +60,7 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 	}
 
 	newspaper := &database.Newspaper{
-		Name:    helper.GetFormEntry(request, "name"),
+		Name:    values.GetTrimmedString("name"),
 		Authors: nil,
 	}
 	err = database.CreateNewspaper(newspaper)
@@ -97,7 +97,7 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -108,7 +108,7 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	page := &handler.ManageNewspaperPage{}
 	page.IsError = false
 
-	newspaper, err := database.GetFullNewspaperInfo(helper.GetFormEntry(request, "name"))
+	newspaper, err := database.GetFullNewspaperInfo(values.GetTrimmedString("name"))
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -145,7 +145,7 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -154,8 +154,8 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 	}
 
 	page := &handler.ManageNewspaperPage{Newspaper: database.Newspaper{
-		Name:    helper.GetFormEntry(request, "name"),
-		Authors: helper.GetFormList(request, "[]author"),
+		Name:    values.GetTrimmedString("name"),
+		Authors: values.GetTrimmedArray("[]author"),
 	}}
 	page.IsError = false
 

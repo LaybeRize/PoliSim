@@ -46,7 +46,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -55,13 +55,13 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	article := &database.NewspaperArticle{
-		Title:    helper.GetFormEntry(request, "title"),
-		Subtitle: helper.GetFormEntry(request, "subtitle"),
-		Author:   helper.GetFormEntry(request, "author"),
-		RawBody:  helper.GetFormEntry(request, "markdown"),
+		Title:    values.GetTrimmedString("title"),
+		Subtitle: values.GetTrimmedString("subtitle"),
+		Author:   values.GetTrimmedString("author"),
+		RawBody:  values.GetTrimmedString("markdown"),
 	}
-	isSpecial := helper.GetBoolFormEntry(request, "special")
-	newspaper := helper.GetFormEntry(request, "newspaper")
+	isSpecial := values.GetBool("special")
+	newspaper := values.GetTrimmedString("newspaper")
 
 	if article.Title == "" || article.RawBody == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -138,7 +138,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -147,7 +147,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 	}
 
 	page := &handler.CreateArticlePage{}
-	page.Author = helper.GetFormEntry(request, "author")
+	page.Author = values.GetTrimmedString("author")
 	allowed, err := database.IsAccountAllowedToPostWith(acc, page.Author)
 	if !allowed || err != nil {
 		if err != nil {

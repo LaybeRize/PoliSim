@@ -7,18 +7,18 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 )
 
 func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
-	query := request.URL.Query()
+	query := helper.GetAdvancedURLValues(request)
 
 	page := &handler.SearchPublicationsPage{
-		Query: query.Get("query"),
+		Query:  query.GetTrimmedString("query"),
+		Amount: query.GetInt("amount"),
+		Page:   query.GetInt("page"),
 	}
-	page.Amount, _ = strconv.Atoi(query.Get("amount"))
-	page.Page, _ = strconv.Atoi(query.Get("page"))
+
 	if page.Page < 1 {
 		page.Page = 1
 	}
@@ -41,14 +41,18 @@ func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request
 
 func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
-	if err := request.ParseForm(); err != nil {
+
+	values, err := helper.GetAdvancedFormValues(request)
+	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	page := &handler.SearchPublicationsPage{}
-	page.Query = helper.GetFormEntry(request, "query")
-	database.GetIntegerFormEntry(request, "amount", &page.Amount)
-	database.GetIntegerFormEntry(request, "page", &page.Page)
+	page := &handler.SearchPublicationsPage{
+		Query:  values.GetTrimmedString("query"),
+		Amount: values.GetInt("amount"),
+		Page:   values.GetInt("page"),
+	}
+
 	if page.Page < 1 {
 		page.Page = 1
 	}
@@ -57,7 +61,6 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 	}
 
 	page.HasPrevious = page.Page > 1
-	var err error
 	page.Results, err = database.GetPublishedNewspaper(page.Amount+1, page.Page, page.Query)
 	if err != nil {
 		page.Results = make([]database.Publication, 0)

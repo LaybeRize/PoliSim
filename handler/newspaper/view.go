@@ -74,7 +74,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err := request.ParseForm()
+	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
@@ -83,7 +83,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 		})
 		return
 	}
-	rejectionText := helper.GetFormEntry(request, "rejection")
+	rejectionText := values.GetTrimmedString("rejection")
 	if rejectionText == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
 			Message: "Der Zurückweisungsgrund darf nicht leer sein",
