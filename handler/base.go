@@ -14,8 +14,10 @@ func GetHomePage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	page := HomePage{
 		Account: acc,
-		Message: "",
-		IsError: false,
+		MessageUpdate: MessageUpdate{
+			Message: "",
+			IsError: false,
+		},
 	}
 	MakeFullPage(writer, acc, &page)
 }

@@ -7,9 +7,7 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"net/http"
 	"os"
-	"strconv"
 	"sync"
 )
 
