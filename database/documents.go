@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
+	"log/slog"
 	"strings"
 	"time"
 )
@@ -67,6 +68,8 @@ func (s *SmallDocument) GetTimeWritten(a *Account) string {
 func (d *Document) HasResults() bool {
 	return d.Result != nil
 }
+
+func (d *Document) HasComments() bool { return len(d.Comments) != 0 }
 
 func (d *Document) GetTimeWritten(a *Account) string {
 	if a.Exists() {
@@ -185,7 +188,7 @@ WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation AND 
 	} else if result.Next(ctx); result.Record() == nil {
 		_ = tx.Rollback(ctx)
 		return notAllowedError
-	} else if result.Record().Values[0].(int64) == int64(SECRET) && document.Public {
+	} else if vis := OrganisationVisibility(result.Record().Values[0].(int64)); (vis == SECRET && document.Public) || (vis == PUBLIC && !document.Public) {
 		_ = tx.Rollback(ctx)
 		return notAllowedError
 	}
@@ -276,7 +279,7 @@ RETURN d, o.name;`, map[string]any{
 	if !public && !acc.Exists() {
 		_ = tx.Rollback(ctx)
 		return nil, nil, notAllowedError
-	} else if !public {
+	} else if acc.Exists() {
 		var userCheck neo4j.ResultWithContext
 		userCheck, err = tx.Run(ctx, `
 CALL { 
@@ -293,13 +296,13 @@ RETURN d.id, b.name;`, map[string]any{
 		if err != nil {
 			_ = tx.Rollback(ctx)
 			return nil, nil, err
-		} else if userCheck.Next(ctx); userCheck.Record() == nil && !acc.IsAtLeastAdmin() {
+		} else if !userCheck.Peek(ctx) && !acc.IsAtLeastAdmin() && !public {
 			_ = tx.Rollback(ctx)
 			return nil, nil, notAllowedError
-		} else if userCheck.Record() != nil {
+		} else if userCheck.Next(ctx) {
+			slog.Debug("Document Connections", "id", id, "query output", userCheck.Record().Values)
 			allowedToAddTags = userCheck.Record().Values[1] != nil
 		}
-
 	}
 
 	doc := &Document{
@@ -353,7 +356,7 @@ WHERE d.id = $id RETURN a.name;`,
 	if doc.Type == DocTypeDiscussion {
 		doc.Comments = make([]DocumentComment, 0)
 		result, err = tx.Run(ctx, `MATCH (d:Document)<-[:ON]-(c:Comment)
-WHERE d.id = $id RETURN c.id, c.author, c.flair, c.written, c.body, c.removed;`,
+WHERE d.id = $id RETURN c.id, c.author, c.flair, c.written, c.body, c.removed ORDER BY c.written;`,
 			map[string]any{"id": id})
 		if err != nil {
 			_ = tx.Rollback(ctx)
@@ -511,15 +514,15 @@ func CreateDocumentComment(documentId string, comment *DocumentComment) error {
 
 	result, err := tx.Run(ctx, `CALL {
 MATCH (a:Account)<-[:PARTICIPANT]-(d:Document) 
-WHERE a.name = $author AND a.blocked = false AND d.id = $id AND $now > d.end_time
+WHERE a.name = $author AND a.blocked = false AND d.id = $id AND datetime($now) < datetime(d.end_time) 
 RETURN a 
 UNION 
 MATCH (a:Account)-[:USER|ADMIN]->(:Organisation)<-[:IN]-(d:Document) 
-WHERE a.name = $author AND a.blocked = false AND d.id = $id AND d.member_part = true AND $now > d.end_time
+WHERE a.name = $author AND a.blocked = false AND d.id = $id AND d.member_part = true AND datetime($now) < datetime(d.end_time) 
 RETURN a 
 UNION 
 MATCH (a:Account)-[:ADMIN]->(:Organisation)<-[:IN]-(d:Document) 
-WHERE a.name = $author AND a.blocked = false AND d.id = $id AND d.admin_part = true AND $now > d.end_time
+WHERE a.name = $author AND a.blocked = false AND d.id = $id AND d.admin_part = true AND datetime($now) < datetime(d.end_time) 
 RETURN a 
 } 
 RETURN a;`,

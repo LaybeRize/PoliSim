@@ -44,7 +44,7 @@
                 value="{{.DateTime}}"
                 min="{{.MinTime}}"
                 max="{{.MaxTime}}" />
-        <label for="public">Diskussion ist öffentlich</label>
+        <label for="public">Abstimmung ist öffentlich (Pflicht in öffentlichen Organisationen)</label>
         <input type="checkbox" id="public" name="public" value="true" {{if .Public}}checked{{end}}>
         <label for="member">Alle Organisationsmitglieder dürfen teilnehmen</label>
         <input type="checkbox" id="member" name="member" value="true" {{if .LetMemberParticipate}}checked{{end}}>

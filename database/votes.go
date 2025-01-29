@@ -260,15 +260,15 @@ func CastVoteWithAccount(name string, id string, votes []int) error {
 
 	result, err := tx.Run(ctx, `CALL {
 MATCH (a:Account)<-[:PARTICIPANT]-(d:Document)-[:LINKS]->(v:Vote)
-WHERE a.name = $author AND a.blocked = false AND v.id = $id AND $now > d.end_time
+WHERE a.name = $author AND a.blocked = false AND v.id = $id AND datetime($now) < datetime(d.end_time) 
 RETURN a  
 UNION 
 MATCH (a:Account)-[:USER|ADMIN]->(:Organisation)<-[:IN]-(d:Document)-[:LINKS]->(v:Vote) 
-WHERE a.name = $author AND a.blocked = false AND v.id = $id AND d.member_part = true AND $now > d.end_time
+WHERE a.name = $author AND a.blocked = false AND v.id = $id AND d.member_part = true AND datetime($now) < datetime(d.end_time) 
 RETURN a 
 UNION 
 MATCH (a:Account)-[:ADMIN]->(:Organisation)<-[:IN]-(d:Document)-[:LINKS]->(v:Vote) 
-WHERE a.name = $author AND a.blocked = false AND v.id = $id AND d.admin_part = true AND $now > d.end_time
+WHERE a.name = $author AND a.blocked = false AND v.id = $id AND d.admin_part = true AND datetime($now) < datetime(d.end_time) 
 RETURN a  
 } 
 RETURN a;`,

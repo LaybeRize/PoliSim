@@ -92,11 +92,17 @@
 {{end}}
 {{define "discussion"}}
     {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
+    {{$acc := .NavInfo.Account}}
+    {{if .Document.HasComments}}
+        <div class="block-view">
+            <h1>Kommentare</h1>
+        </div>
+    {{end}}
     {{range $comment := .Document.Comments}}
         <hr class="splitter">
         <div class="block-view">
             Geschrieben von: {{$comment.GetAuthor}}<br>
-            <i>Verfasst am: {{$comment.GetTimeWritten .NavInfo.Account}}</i>
+            <i>Verfasst am: {{$comment.GetTimeWritten $acc}}</i>
         </div>
         <div class="markdown">{{$comment.Body}}</div>
     {{end}}

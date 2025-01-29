@@ -1,12 +1,12 @@
 module PoliSim
 
-go 1.23.5
+go 1.24rc2
 
 require (
 	github.com/gomarkdown/markdown v0.0.0-20241205020045-f7e15b2f3e62
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/neo4j/neo4j-go-driver/v5 v5.27.0
-	golang.org/x/crypto v0.31.0
+	golang.org/x/crypto v0.32.0
 )
 
 require (

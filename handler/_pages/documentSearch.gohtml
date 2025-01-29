@@ -33,7 +33,7 @@
                         <i class="bi bi-vote"></i>
                     {{- end }} <strong>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</strong><br>
                     <i>Veröffentlicht am: {{.GetTimeWritten $acc}}</i><br>
-                    Veröffentlicht von {{.Author}} in {{.Organisation}}
+                    Veröffentlicht von <i>{{.Author}}</i> in <i>{{.Organisation}}</i>
                 </a>
             {{end}}
         {{end}}
