@@ -21,6 +21,11 @@ div.block-view {
     width: var(--standard-width);
 }
 
+.spacing {
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+}
+
 div.wrapper {
     background-color: inherit;
     color: inherit;
@@ -153,7 +158,7 @@ textarea {
     margin-bottom: 0.5rem;
 }
 
-input[type="checkbox"] {
+input[type="checkbox"], input[type="radio"] {
     width: 1.2rem;
     height: 1.2rem;
 }

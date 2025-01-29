@@ -151,7 +151,7 @@
             {{range $voter, $votes := .VoteIterator}}
                 <tr>
                     <td class="contrast">{{if $anoynm}}{{$voter}}. Wahlzettel{{else}}{{$voter}}{{end}}</td>
-                    {{range $voter}}
+                    {{range $votes}}
                         <td>{{.}}</td>
                     {{end}}
                 </tr>

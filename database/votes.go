@@ -129,6 +129,8 @@ func (v *VoteInstance) Ended() bool { return time.Now().After(v.EndDate) }
 
 func (v *VoteInstance) HasValidType() bool { return v.Type >= SingleVote && v.Type <= VoteShares }
 
+func (v *VoteInstance) AnswerLength() int { return len(v.IterableAnswers) }
+
 func (v *VoteInstance) AnswerIterator() func(func(int, string) bool) {
 	return func(yield func(int, string) bool) {
 		for i, str := range v.IterableAnswers {
@@ -142,7 +144,7 @@ func (v *VoteInstance) AnswerIterator() func(func(int, string) bool) {
 func (v *VoteInstance) ConvertToAnswer() {
 	v.Answers = make([]string, len(v.IterableAnswers))
 	for i, str := range v.AnswerIterator() {
-		v.Answers[i] = str
+		v.Answers[i-1] = str
 	}
 }
 
@@ -289,7 +291,7 @@ RETURN a;`,
 		return err
 	} else if result.Next(ctx); result.Record() != nil {
 		_ = tx.Rollback(ctx)
-		return notAllowedError
+		return AlreadyVoted
 	}
 
 	mapIsNil := votes == nil
@@ -373,7 +375,7 @@ ORDER BY r.written;`,
 			return nil, nil, err
 		}
 		for _, record := range result.Records {
-			props := record.Values[0].(neo4j.Node).Props
+			props := record.Values[0].(neo4j.Relationship).Props
 			if props["illegal"].(bool) {
 				voteList.IllegalVotes = append(voteList.IllegalVotes, record.Values[1].(string))
 				continue

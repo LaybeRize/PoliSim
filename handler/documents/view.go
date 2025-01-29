@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -207,7 +208,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 
 		for i := range len(answers) {
 			pos := values.GetInt(fmt.Sprintf("vote-%d", i+1))
-			if pos < 0 {
+			if pos <= 0 {
 				votesCasted[i] = -1
 			} else if pos > len(answers) {
 				handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -220,6 +221,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 						Message: "Die Abgegebene Stimme ist invalide" + "\n" + "Der selbe Rang darf nicht doppelt vergeben werden"})
 					return
 				}
+				lookUpMap[pos] = struct{}{}
 				votesCasted[i] = pos
 			}
 		}
@@ -227,7 +229,11 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	err = database.CastVoteWithAccount(voter, id, votesCasted)
-	if err != nil {
+	if errors.Is(err, database.AlreadyVoted) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Mit dem Account wurde bereits abgestimmt"})
+		return
+	} else if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Fehler beim Versuch die Stimme abzugeben\nÜberprüfe ob der Account stimmberechtigt ist"})

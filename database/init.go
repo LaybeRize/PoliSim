@@ -17,6 +17,7 @@ var notFoundError = errors.New("item not found")
 var notAllowedError = errors.New("action is for user not allowed")
 var noRecipientFoundError = errors.New("no recipient found for letter")
 var multipleItemsError = errors.New("more then one item found")
+var AlreadyVoted = errors.New("you already voted")
 
 var shutdown sync.Mutex
 
