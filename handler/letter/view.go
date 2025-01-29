@@ -15,7 +15,7 @@ func GetAdminLetterSearchPage(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	handler.MakeFullPage(writer, acc, &handler.AdminSearchLetterPage{AccountNameToUse: loc.AdminstrationName})
+	handler.MakeFullPage(writer, acc, &handler.AdminSearchLetterPage{AccountNameToUse: loc.AdministrationName})
 }
 
 func GetLetterViewPage(writer http.ResponseWriter, request *http.Request) {
@@ -83,5 +83,5 @@ func PatchLetterViewPage(writer http.ResponseWriter, request *http.Request) {
 }
 
 func checkValidSpecialAccounts(acc *database.Account, reader string) bool {
-	return (reader == loc.AdminstrationAccountName || reader == loc.AdminstrationName) && acc.IsAtLeastAdmin()
+	return (reader == loc.AdministrationAccountName || reader == loc.AdministrationName) && acc.IsAtLeastAdmin()
 }

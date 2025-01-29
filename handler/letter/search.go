@@ -32,7 +32,7 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		page.PossibleAccounts = []string{acc.Name}
 	}
 	if acc.IsAtLeastAdmin() {
-		page.PossibleAccounts = append(page.PossibleAccounts, loc.AdminstrationAccountName)
+		page.PossibleAccounts = append(page.PossibleAccounts, loc.AdministrationAccountName)
 	}
 	if page.Page < 1 {
 		page.Page = 1
@@ -42,7 +42,7 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	}
 	accounts := page.PossibleAccounts
 
-	if acc.IsAtLeastAdmin() && page.Account == loc.AdminstrationAccountName {
+	if acc.IsAtLeastAdmin() && page.Account == loc.AdministrationAccountName {
 		accounts = []string{page.Account}
 	} else if allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account); allowed {
 		accounts = []string{page.Account}
@@ -88,7 +88,7 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		page.PossibleAccounts = []string{acc.Name}
 	}
 	if acc.IsAtLeastAdmin() {
-		page.PossibleAccounts = append(page.PossibleAccounts, loc.AdminstrationAccountName)
+		page.PossibleAccounts = append(page.PossibleAccounts, loc.AdministrationAccountName)
 	}
 	if page.Page < 1 {
 		page.Page = 1
@@ -98,7 +98,7 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	}
 	accounts := page.PossibleAccounts
 
-	if acc.IsAtLeastAdmin() && page.Account == loc.AdminstrationAccountName {
+	if acc.IsAtLeastAdmin() && page.Account == loc.AdministrationAccountName {
 		accounts = []string{page.Account}
 	} else if allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account); allowed {
 		accounts = []string{page.Account}

@@ -114,7 +114,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	letter := &database.Letter{
 		Title: fmt.Sprintf("Zurückweisung des Artikels '%s' geschrieben für %s",
 			transaction.Article.Title, transaction.NewspaperName),
-		Author:   loc.AdminstrationName,
+		Author:   loc.AdministrationName,
 		Flair:    "",
 		Signable: false,
 		Body: handler.MakeMarkdown(fmt.Sprintf("# Zurückweisungsgrund\n\n%s\n\n# Artikelinhalt\n\n```%s```",

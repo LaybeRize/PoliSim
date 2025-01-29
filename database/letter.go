@@ -202,7 +202,7 @@ func GetLetterForReader(id string, reader string) (*Letter, error) {
 	}
 	var result neo4j.ResultWithContext
 
-	if reader == loc.AdminstrationName {
+	if reader == loc.AdministrationName {
 		result, err = tx.Run(ctx, `MATCH (l:Letter)
 WHERE l.id = $id
 RETURN l;`,
@@ -231,7 +231,7 @@ RETURN l, r.signature;`,
 
 	nodeTitle := result.Record().Values[0].(neo4j.Node)
 	letter := &Letter{Recipient: reader}
-	if reader == loc.AdminstrationName {
+	if reader == loc.AdministrationName {
 		letter.HasSigned = true
 	} else {
 		letter.HasSigned = result.Record().Values[1].(int64) != int64(NoDecision)

@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"log/slog"
 	"net/http"
 )
@@ -95,7 +96,14 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	color, err := database.RemoveColorPalette(values.GetTrimmedString("name"), acc)
+	name := values.GetTrimmedString("name")
+	if name == loc.StandardColorName {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: "Die Standardfarbe darf nicht gelöscht werden"})
+		return
+	}
+
+	color, err := database.RemoveColorPalette(name, acc)
 
 	if err != nil {
 		slog.Debug(err.Error())

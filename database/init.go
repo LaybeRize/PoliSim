@@ -94,15 +94,15 @@ func createRootAccount() {
 }
 
 func createAdminstrationAccount() {
-	acc, err := GetAccountByName(loc.AdminstrationAccountName)
+	acc, err := GetAccountByName(loc.AdministrationAccountName)
 	if err == nil && acc != nil {
 		log.Println("administration account already exists")
 		return
 	} else if errors.Is(err, notFoundError) && acc == nil {
 		createError := CreateAccount(&Account{
-			Name:     loc.AdminstrationAccountName,
-			Username: loc.AdminstrationAccountUsername,
-			Password: loc.AdminstrationAccountPassword,
+			Name:     loc.AdministrationAccountName,
+			Username: loc.AdministrationAccountUsername,
+			Password: loc.AdministrationAccountPassword,
 			Role:     Special,
 			Blocked:  false,
 		})

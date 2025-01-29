@@ -33,7 +33,7 @@ func GetCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if acc.IsAtLeastAdmin() {
-		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdminstrationAccountName)
+		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdministrationAccountName)
 	}
 	page.Message = strings.TrimSpace(page.Message)
 	handler.MakeFullPage(writer, acc, page)
@@ -82,7 +82,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	allowed, _ := database.IsAccountAllowedToPostWith(acc, letter.Author)
-	if !allowed && !(acc.IsAtLeastAdmin() && letter.Author == loc.AdminstrationAccountName) {
+	if !allowed && !(acc.IsAtLeastAdmin() && letter.Author == loc.AdministrationAccountName) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"})
 		return
@@ -125,7 +125,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if acc.IsAtLeastAdmin() {
-		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdminstrationAccountName)
+		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdministrationAccountName)
 	}
 	handler.MakePage(writer, acc, page)
 }
@@ -168,7 +168,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 	}
 
 	allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Author)
-	if !allowed && !(acc.IsAtLeastAdmin() && page.Author == loc.AdminstrationAccountName) {
+	if !allowed && !(acc.IsAtLeastAdmin() && page.Author == loc.AdministrationAccountName) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"})
 		return
@@ -201,7 +201,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 	}
 
 	if acc.IsAtLeastAdmin() {
-		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdminstrationAccountName)
+		page.PossibleAuthors = append(page.PossibleAuthors, loc.AdministrationAccountName)
 	}
 	page.Message = strings.TrimSpace(page.Message)
 	handler.MakePage(writer, acc, page)

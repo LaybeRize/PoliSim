@@ -5,10 +5,11 @@ package loc
 import "strings"
 
 const (
-	AdminstrationName            = "Administration"
-	AdminstrationAccountName     = "John Administrator"
-	AdminstrationAccountUsername = ""
-	AdminstrationAccountPassword = ""
+	AdministrationName            = "Administration"
+	AdministrationAccountName     = "John Administrator"
+	AdministrationAccountUsername = ""
+	AdministrationAccountPassword = ""
+	StandardColorName             = "Standard Color"
 )
 
 var replaceMap = map[string]string{}

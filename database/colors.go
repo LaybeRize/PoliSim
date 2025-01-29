@@ -1,6 +1,7 @@
 package database
 
 import (
+	loc "PoliSim/localisation"
 	"encoding/json"
 	"errors"
 	"log"
@@ -22,10 +23,10 @@ const filePath = folderPath + "/colors.json"
 
 func init() {
 	loadColorPalettesFromDisk()
-	_, exists := ColorPaletteMap[""]
+	_, exists := ColorPaletteMap[loc.StandardColorName]
 	if !exists {
-		ColorPaletteMap[""] = ColorPalette{
-			Name:       "Standard",
+		ColorPaletteMap[loc.StandardColorName] = ColorPalette{
+			Name:       loc.StandardColorName,
 			Background: "#000000",
 			Text:       "#FFFFFF",
 			Link:       "#9999FF",

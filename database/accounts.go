@@ -74,7 +74,7 @@ const (
 )
 
 func CreateAccount(acc *Account) error {
-	if acc.Name == loc.AdminstrationName {
+	if acc.Name == loc.AdministrationName {
 		return notAllowedError
 	}
 	_, err := neo4j.ExecuteQuery(ctx, driver,
@@ -89,7 +89,7 @@ func CreateAccount(acc *Account) error {
 }
 
 func GetAccountByUsername(username string) (*Account, error) {
-	if username == loc.AdminstrationAccountUsername {
+	if username == loc.AdministrationAccountUsername {
 		return nil, notFoundError
 	}
 	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (a:Account) WHERE a.username = $name RETURN a;`,
