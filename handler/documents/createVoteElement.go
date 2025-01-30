@@ -73,7 +73,7 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 		ShowVotesDuringVoting: values.GetBool("show-during"),
 		Anonymous:             values.GetBool("anonymous"),
 		Type:                  database.VoteType(values.GetInt("type")),
-		MaxVotes:              int64(values.GetInt("max-votes")),
+		MaxVotes:              values.GetInt("max-votes"),
 	}
 
 	if !page.Vote.HasValidType() {

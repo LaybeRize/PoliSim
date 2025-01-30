@@ -46,7 +46,7 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	acc.FontSize = int64(values.GetInt("fontScaling"))
+	acc.FontSize = values.GetInt("fontScaling")
 	if acc.FontSize < 10 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Die Seitenskalierung kann nicht auf eine Zahl kleiner 10 gesetzt werden"})

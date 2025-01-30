@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
 	"log/slog"
 	"strings"
@@ -171,29 +170,26 @@ func (c *DocumentComment) GetAuthor() string {
 
 func CreateDocument(document *Document, acc *Account) error {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return err
 	}
 
-	result, err := tx.Run(ctx, `MATCH (acc:Account)-[:ADMIN]->(o:Organisation) 
+	result, err := tx.Run(`MATCH (acc:Account)-[:ADMIN]->(o:Organisation) 
 WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation AND o.visibility <> $hidden
 	RETURN o.visibility;`,
 		map[string]any{"Author": document.Author,
 			"organisation": document.Organisation,
 			"hidden":       HIDDEN})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
-	} else if result.Next(ctx); result.Record() == nil {
-		_ = tx.Rollback(ctx)
+	} else if result.Next(); result.Record() == nil {
 		return notAllowedError
 	} else if vis := OrganisationVisibility(result.Record().Values[0].(int64)); (vis == SECRET && document.Public) || (vis == PUBLIC && !document.Public) {
-		_ = tx.Rollback(ctx)
 		return notAllowedError
 	}
 
-	_, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name = $author 
+	err = tx.RunWithoutResult(`MATCH (a:Account) WHERE a.name = $author 
 MATCH (o:Organisation) WHERE o.name = $organisation 
 CREATE (d:Document {id: $id, title: $title, type: $type, author: $author, flair: $flair, body: $body, removed: false,
 end_time: $end_time, written: $written, public: $public, member_part: $member_part, admin_part: $admin_part}) 
@@ -212,21 +208,19 @@ MERGE (d)-[:IN]->(o);`, map[string]any{
 		"member_part":  document.MemberParticipation,
 		"admin_part":   document.AdminParticipation})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
 
 	if !document.Public {
-		_, err = tx.Run(ctx, `MATCH (a:Account), (d:Document) WHERE a.name IN $reader AND d.id = $id 
+		err = tx.RunWithoutResult(`MATCH (a:Account), (d:Document) WHERE a.name IN $reader AND d.id = $id 
 CREATE (a)<-[:READER]-(d);`, map[string]any{"reader": document.Reader, "id": document.ID})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return err
 		}
 	}
 
 	if document.Type == DocTypeVote {
-		result, err = tx.Run(ctx, `
+		result, err = tx.Run(`
 MATCH (a:Account)-[r:MANAGES]->(v:Vote) WHERE a.name = $user AND v.id IN $ids 
 MATCH (d:Document) WHERE d.id = $id 
 DELETE r 
@@ -236,52 +230,46 @@ RETURN v.id;`, map[string]any{
 			"ids":  document.VoteIDs,
 			"id":   document.ID})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return err
-		} else if result.Next(ctx); result.Record() == nil {
-			_ = tx.Rollback(ctx)
+		} else if !result.Peek() {
 			return notAllowedError
 		}
 	}
 
-	_, err = tx.Run(ctx, `MATCH (a:Account), (d:Document) WHERE a.name IN $user AND d.id = $id 
+	err = tx.RunWithoutResult(`MATCH (a:Account), (d:Document) WHERE a.name IN $user AND d.id = $id 
 CREATE (a)<-[:PARTICIPANT]-(d);`, map[string]any{"user": document.Participants, "id": document.ID})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
 
-	err = tx.Commit(ctx)
+	err = tx.Commit()
 	return err
 }
 
 func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	result, err := tx.Run(ctx, `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.id = $id 
+	result, err := tx.Run(`MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.id = $id 
 RETURN d, o.name;`, map[string]any{
 		"id": id})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return nil, nil, err
-	} else if result.Next(ctx); result.Record() == nil {
-		_ = tx.Rollback(ctx)
+	} else if !result.Next() {
 		return nil, nil, notAllowedError
 	}
-	props := result.Record().Values[0].(neo4j.Node).Props
-	public := props["public"].(bool)
+	props := GetPropsMapForRecordPosition(result.Record(), 0)
+	public := props.GetBool("public")
 	allowedToAddTags := false
 
 	if !public && !acc.Exists() {
-		_ = tx.Rollback(ctx)
 		return nil, nil, notAllowedError
 	} else if acc.Exists() {
-		var userCheck neo4j.ResultWithContext
-		userCheck, err = tx.Run(ctx, `
+		var userCheck *dbResult
+		userCheck, err = tx.Run(`
 CALL { 
 MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE a.name = $name AND d.id = $id 
 RETURN o, d 
@@ -294,12 +282,10 @@ RETURN d.id, b.name;`, map[string]any{
 			"id":   id,
 			"name": acc.Name})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return nil, nil, err
-		} else if !userCheck.Peek(ctx) && !acc.IsAtLeastAdmin() && !public {
-			_ = tx.Rollback(ctx)
+		} else if !userCheck.Peek() && !acc.IsAtLeastAdmin() && !public {
 			return nil, nil, notAllowedError
-		} else if userCheck.Next(ctx) {
+		} else if userCheck.Next() {
 			slog.Debug("Document Connections", "id", id, "query output", userCheck.Record().Values)
 			allowedToAddTags = userCheck.Record().Values[1] != nil
 		}
@@ -307,18 +293,18 @@ RETURN d.id, b.name;`, map[string]any{
 
 	doc := &Document{
 		ID:                  id,
-		Type:                DocumentType(props["type"].(int64)),
+		Type:                DocumentType(props.GetInt("type")),
 		Organisation:        result.Record().Values[1].(string),
-		Title:               props["title"].(string),
-		Author:              props["author"].(string),
-		Flair:               props["flair"].(string),
-		Written:             props["written"].(time.Time),
-		Body:                template.HTML(props["body"].(string)),
+		Title:               props.GetString("title"),
+		Author:              props.GetString("author"),
+		Flair:               props.GetString("flair"),
+		Written:             props.GetTime("written"),
+		Body:                template.HTML(props.GetString("body")),
 		Public:              public,
-		Removed:             props["removed"].(bool),
-		MemberParticipation: props["member_part"].(bool),
-		AdminParticipation:  props["admin_part"].(bool),
-		End:                 props["end_time"].(time.Time),
+		Removed:             props.GetBool("removed"),
+		MemberParticipation: props.GetBool("member_part"),
+		AdminParticipation:  props.GetBool("admin_part"),
+		End:                 props.GetTime("end_time"),
 		Tags:                make([]DocumentTag, 0),
 		AllowedToAddTags:    allowedToAddTags,
 		Result:              nil,
@@ -327,42 +313,39 @@ RETURN d.id, b.name;`, map[string]any{
 
 	if !doc.Public {
 		doc.Reader = make([]string, 0)
-		result, err = tx.Run(ctx, `MATCH (d:Document)-[:READER]->(a:Account)
+		result, err = tx.Run(`MATCH (d:Document)-[:READER]->(a:Account)
 WHERE d.id = $id RETURN a.name;`,
 			map[string]any{"id": id})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return nil, nil, err
 		}
-		for result.Next(ctx) {
+		for result.Next() {
 			doc.Reader = append(doc.Reader, result.Record().Values[0].(string))
 		}
 	}
 
 	if !(doc.Type == DocTypePost) {
 		doc.Participants = make([]string, 0)
-		result, err = tx.Run(ctx, `MATCH (d:Document)-[:PARTICIPANT]->(a:Account)
+		result, err = tx.Run(`MATCH (d:Document)-[:PARTICIPANT]->(a:Account)
 WHERE d.id = $id RETURN a.name;`,
 			map[string]any{"id": id})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return nil, nil, err
 		}
-		for result.Next(ctx) {
+		for result.Next() {
 			doc.Participants = append(doc.Participants, result.Record().Values[0].(string))
 		}
 	}
 
 	if doc.Type == DocTypeDiscussion {
 		doc.Comments = make([]DocumentComment, 0)
-		result, err = tx.Run(ctx, `MATCH (d:Document)<-[:ON]-(c:Comment)
+		result, err = tx.Run(`MATCH (d:Document)<-[:ON]-(c:Comment)
 WHERE d.id = $id RETURN c.id, c.author, c.flair, c.written, c.body, c.removed ORDER BY c.written;`,
 			map[string]any{"id": id})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return nil, nil, err
 		}
-		for result.Next(ctx) {
+		for result.Next() {
 			doc.Comments = append(doc.Comments, DocumentComment{
 				ID:      result.Record().Values[0].(string),
 				Author:  result.Record().Values[1].(string),
@@ -376,52 +359,49 @@ WHERE d.id = $id RETURN c.id, c.author, c.flair, c.written, c.body, c.removed OR
 
 	if doc.Type == DocTypeDiscussion && !doc.Ended() && acc.Exists() {
 		commentator = make([]string, 0)
-		result, err = tx.Run(ctx, `
+		result, err = tx.Run(`
 MATCH (n:Account)-[:OWNER*0..]->(a:Account) WHERE n.name = $name 
 RETURN a.name;`,
 			map[string]any{"id": id, "name": acc.Name})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return nil, nil, err
 		}
-		for result.Next(ctx) {
+		for result.Next() {
 			commentator = append(commentator, result.Record().Values[0].(string))
 		}
 	}
 
 	if doc.Type == DocTypeVote {
-		result, err = tx.Run(ctx, `MATCH (d:Document)-[:VOTED]->(r:Result)
+		result, err = tx.Run(`MATCH (d:Document)-[:VOTED]->(r:Result)
 WHERE d.id = $id RETURN r;`,
 			map[string]any{"id": id})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return nil, nil, err
-		} else if result.Peek(ctx) {
+		} else if result.Peek() {
 			doc.Result = make([]AccountVotes, 0)
-			for result.Next(ctx) {
-				props = result.Record().Values[0].(neo4j.Node).Props
+			for result.Next() {
+				props = GetPropsMapForRecordPosition(result.Record(), 0)
 				doc.Result = append(doc.Result, AccountVotes{
-					Question:        props["question"].(string),
-					IterableAnswers: props["answers"].([]any),
-					Anonymous:       props["anonymous"].(bool),
-					Type:            VoteType(props["type"].(int64)),
-					AnswerAmount:    int(props["amount"].(int64)),
+					Question:        props.GetString("question"),
+					IterableAnswers: props.GetArray("answers"),
+					Anonymous:       props.GetBool("anonymous"),
+					Type:            VoteType(props.GetInt("type")),
+					AnswerAmount:    props.GetInt("amount"),
 					IllegalVotes:    nil,
-					Illegal:         props["illegal"].([]any),
+					Illegal:         props.GetArray("illegal"),
 					List:            nil,
-					BaseMap:         props["list"].(map[string]any),
+					BaseMap:         props.GetMap("list"),
 				})
 			}
 		} else {
 			doc.Links = make([]VoteInfo, 0)
-			result, err = tx.Run(ctx, `MATCH (d:Document)-[:LINKS]->(v:Vote)
+			result, err = tx.Run(`MATCH (d:Document)-[:LINKS]->(v:Vote)
 WHERE d.id = $id RETURN v.id, v.question;`,
 				map[string]any{"id": id})
 			if err != nil {
-				_ = tx.Rollback(ctx)
 				return nil, nil, err
 			}
-			for result.Next(ctx) {
+			for result.Next() {
 				doc.Links = append(doc.Links, VoteInfo{
 					ID:       result.Record().Values[0].(string),
 					Question: result.Record().Values[1].(string),
@@ -430,7 +410,7 @@ WHERE d.id = $id RETURN v.id, v.question;`,
 		}
 	}
 
-	result, err = tx.Run(ctx, `CALL { 
+	result, err = tx.Run(`CALL { 
 MATCH (d:Document)-[:LINKS]->(t:Tag) 
 WHERE d.id = $id 
 OPTIONAL MATCH (t)-[:LINKS]->(r:Document) 
@@ -444,42 +424,41 @@ RETURN t, ids, outgoing ORDER BY t.written DESC;`, map[string]any{"id": id})
 	if err != nil {
 		return nil, nil, err
 	}
-	for result.Next(ctx) {
-		values := result.Record().Values
-		props = values[0].(neo4j.Node).Props
+	for result.Next() {
+		props = GetPropsMapForRecordPosition(result.Record(), 0)
 		doc.Tags = append(doc.Tags, DocumentTag{
-			ID:              props["id"].(string),
-			Outgoing:        values[2].(bool),
-			Text:            props["text"].(string),
-			Written:         props["written"].(time.Time),
-			BackgroundColor: props["background"].(string),
-			TextColor:       props["color"].(string),
-			LinkColor:       props["link"].(string),
-			QueriedLinks:    values[1].([]any),
+			ID:              props.GetString("id"),
+			Outgoing:        result.Record().Values[2].(bool),
+			Text:            props.GetString("text"),
+			Written:         props.GetTime("written"),
+			BackgroundColor: props.GetString("background"),
+			TextColor:       props.GetString("color"),
+			LinkColor:       props.GetString("link"),
+			QueriedLinks:    result.Record().Values[1].([]any),
 		})
 	}
 
-	err = tx.Commit(ctx)
+	err = tx.Commit()
 	return doc, commentator, err
 }
 
 func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return err
 	}
 
-	result, err := tx.Run(ctx, `MATCH (a:Account)-[:ADMIN|OWNER*..]->(o:Organisation)<-[:IN]-(d:Document) 
+	result, err := tx.Run(`MATCH (a:Account)-[:ADMIN|OWNER*..]->(o:Organisation)<-[:IN]-(d:Document) 
 WHERE a.name = $name AND d.id = $id 
 RETURN a.name;`, map[string]any{"name": acc.Name, "id": docID})
 	if err != nil {
 		return err
-	} else if result.Next(ctx); result.Record() == nil {
+	} else if result.Next(); result.Record() == nil {
 		return notAllowedError
 	}
 
-	_, err = tx.Run(ctx, `MATCH (d:Document) WHERE d.id = $id  
+	err = tx.RunWithoutResult(`MATCH (d:Document) WHERE d.id = $id  
 CREATE (t:Tag {id: $tagId, text: $text, written: $written, background: $background, color: $color, link: $link}) 
 MERGE (d)-[:LINKS]->(t);`, map[string]any{
 		"id":         docID,
@@ -495,24 +474,24 @@ MERGE (d)-[:LINKS]->(t);`, map[string]any{
 		return err
 	}
 
-	result, err = tx.Run(ctx, `MATCH (target:Document) WHERE target.id <> $id AND target.id IN $links 
+	err = tx.RunWithoutResult(`MATCH (target:Document) WHERE target.id <> $id AND target.id IN $links 
 MATCH (t:Tag) WHERE t.id = $tagID 
 MERGE (t)-[:LINKS]->(target);`, map[string]any{"tagID": tag.ID, "id": docID, "links": tag.Links})
 	if err != nil {
 		return err
 	}
 
-	return tx.Commit(ctx)
+	return tx.Commit()
 }
 
 func CreateDocumentComment(documentId string, comment *DocumentComment) error {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return err
 	}
 
-	result, err := tx.Run(ctx, `CALL {
+	result, err := tx.Run(`CALL {
 MATCH (a:Account)<-[:PARTICIPANT]-(d:Document) 
 WHERE a.name = $author AND a.blocked = false AND d.id = $id AND datetime($now) < datetime(d.end_time) 
 RETURN a 
@@ -528,14 +507,12 @@ RETURN a
 RETURN a;`,
 		map[string]any{"id": documentId, "author": comment.Author, "now": time.Now().UTC()})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
-	} else if result.Next(ctx); result.Record() == nil {
-		_ = tx.Rollback(ctx)
+	} else if !result.Peek() {
 		return notAllowedError
 	}
 
-	_, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name = $author 
+	err = tx.RunWithoutResult(`MATCH (a:Account) WHERE a.name = $author 
 MATCH (d:Document) WHERE d.id = $doc_ID 
 CREATE (c:Comment {id: $id, author: $author, flair: $flair, body: $body, removed: false, written: $written}) 
 MERGE (a)-[:WRITTEN]->(c)
@@ -547,11 +524,10 @@ MERGE (c)-[:ON]->(d);`, map[string]any{
 		"written": time.Now().UTC(),
 		"body":    comment.Body})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
 
-	err = tx.Commit(ctx)
+	err = tx.Commit()
 	return err
 }
 
@@ -580,8 +556,8 @@ ORDER BY d.written DESC SKIP $skip LIMIT $amount;`,
 	if err != nil {
 		return nil, err
 	}
-	arr := make([]SmallDocument, 0, len(result.Records))
-	for _, record := range result.Records {
+	arr := make([]SmallDocument, 0, len(result))
+	for _, record := range result {
 		arr = append(arr, SmallDocument{
 			ID:           record.Values[0].(string),
 			Type:         DocumentType(record.Values[1].(int64)),

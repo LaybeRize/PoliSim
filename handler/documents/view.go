@@ -196,7 +196,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 			sum += amount
 		}
 
-		if int64(sum) > maxVotes {
+		if sum > maxVotes {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 				Message: "Die Abgegebene Stimme ist invalide" + "\n" + "Die Summe aller abgegebenen Stimmen überschreitet das festgelegte Maximum"})
 			return

@@ -3,7 +3,6 @@ package database
 import (
 	loc "PoliSim/localisation"
 	"fmt"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
 	"strings"
 	"time"
@@ -126,44 +125,40 @@ func (l *Letter) GetCreationMap() map[string]any {
 
 func CreateLetter(letter *Letter) error {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return err
 	}
 
-	result, err := tx.Run(ctx, `MATCH (acc:Account) WHERE acc.name = $Author AND acc.blocked = false 
+	result, err := tx.Run(`MATCH (acc:Account) WHERE acc.name = $Author AND acc.blocked = false 
 RETURN acc;`,
 		map[string]any{"Author": letter.Author})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
-	} else if result.Next(ctx); result.Record() == nil {
+	} else if !result.Peek() {
 		return notAllowedError
 	}
 
-	result, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name IN $reader AND a.blocked = false 
+	result, err = tx.Run(`MATCH (a:Account) WHERE a.name IN $reader AND a.blocked = false 
 RETURN a;`,
 		map[string]any{"reader": letter.Reader})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
-	} else if result.Next(ctx); result.Record() == nil {
+	} else if !result.Peek() {
 		return noRecipientFoundError
 	}
 
-	_, err = tx.Run(ctx, letterCreation, letter.GetCreationMap())
+	err = tx.RunWithoutResult(letterCreation, letter.GetCreationMap())
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
 
-	_, err = tx.Run(ctx, letterLinkage, letter.GetCreationMap())
+	err = tx.RunWithoutResult(letterLinkage, letter.GetCreationMap())
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
 
-	err = tx.Commit(ctx)
+	err = tx.Commit()
 	return err
 }
 
@@ -179,8 +174,8 @@ ORDER BY l.written DESC, a.name SKIP $skip LIMIT $amount;`,
 	if err != nil {
 		return nil, err
 	}
-	list := make([]ReducedLetter, len(result.Records))
-	for i, record := range result.Records {
+	list := make([]ReducedLetter, len(result))
+	for i, record := range result {
 		list[i] = ReducedLetter{
 			ID:       record.Values[0].(string),
 			Title:    record.Values[1].(string),
@@ -196,40 +191,36 @@ ORDER BY l.written DESC, a.name SKIP $skip LIMIT $amount;`,
 
 func GetLetterForReader(id string, reader string) (*Letter, error) {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return nil, err
 	}
-	var result neo4j.ResultWithContext
+	var result *dbResult
 
 	if reader == loc.AdministrationName {
-		result, err = tx.Run(ctx, `MATCH (l:Letter)
+		result, err = tx.Run(`MATCH (l:Letter)
 WHERE l.id = $id
 RETURN l;`,
 			map[string]any{"id": id})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return nil, err
-		} else if result.Next(ctx); result.Record() == nil {
-			_ = tx.Rollback(ctx)
+		} else if !result.Next() {
 			return nil, notFoundError
 		}
 	} else {
-		result, err = tx.Run(ctx, `MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter)
+		result, err = tx.Run(`MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter)
 WHERE a.name = $reader AND l.id = $id 
 SET r.viewed = true 
 RETURN l, r.signature;`,
 			map[string]any{"id": id, "reader": reader})
 		if err != nil {
-			_ = tx.Rollback(ctx)
 			return nil, err
-		} else if result.Next(ctx); result.Record() == nil {
-			_ = tx.Rollback(ctx)
+		} else if !result.Next() {
 			return nil, notFoundError
 		}
 	}
 
-	nodeTitle := result.Record().Values[0].(neo4j.Node)
+	props := GetPropsMapForRecordPosition(result.Record(), 0)
 	letter := &Letter{Recipient: reader}
 	if reader == loc.AdministrationName {
 		letter.HasSigned = true
@@ -237,12 +228,12 @@ RETURN l, r.signature;`,
 		letter.HasSigned = result.Record().Values[1].(int64) != int64(NoDecision)
 	}
 	letter.ID = id
-	letter.Title = nodeTitle.Props["title"].(string)
-	letter.Author = nodeTitle.Props["author"].(string)
-	letter.Flair = nodeTitle.Props["flair"].(string)
-	letter.Written = nodeTitle.Props["written"].(time.Time)
-	letter.Signable = nodeTitle.Props["signable"].(bool)
-	letter.Body = template.HTML(nodeTitle.Props["body"].(string))
+	letter.Title = props.GetString("title")
+	letter.Author = props.GetString("author")
+	letter.Flair = props.GetString("flair")
+	letter.Written = props.GetTime("written")
+	letter.Signable = props.GetBool("signable")
+	letter.Body = template.HTML(props.GetString("body"))
 	letter.Reader = make([]string, 0)
 	if letter.Signable {
 		letter.Agreed = make([]string, 0)
@@ -250,15 +241,14 @@ RETURN l, r.signature;`,
 		letter.NoDecision = make([]string, 0)
 	}
 
-	result, err = tx.Run(ctx, `MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter) 
+	result, err = tx.Run(`MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter) 
 WHERE l.id = $id 
 RETURN a.name, r.signature ORDER BY a.name;`,
 		map[string]any{"id": id})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return letter, err
 	}
-	for result.Next(ctx) {
+	for result.Next() {
 		name := result.Record().Values[0].(string)
 		letter.Reader = append(letter.Reader, name)
 		switch LetterStatus(result.Record().Values[1].(int64)) {
@@ -272,7 +262,7 @@ RETURN a.name, r.signature ORDER BY a.name;`,
 		}
 	}
 
-	err = tx.Commit(ctx)
+	err = tx.Commit()
 	return letter, err
 }
 

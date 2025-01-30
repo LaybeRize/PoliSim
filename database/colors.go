@@ -42,7 +42,7 @@ func HasPrivilegesForColorsAdd(acc *Account) bool {
 RETURN o.name;`, map[string]any{"name": acc.GetName()})
 	if err != nil {
 		return false
-	} else if len(result.Records) == 0 {
+	} else if len(result) == 0 {
 		return false
 	}
 	return true

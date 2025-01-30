@@ -1,7 +1,6 @@
 package database
 
 import (
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
 	"strings"
 	"time"
@@ -75,11 +74,11 @@ func (b *BlackboardNote) GetTimePostedAt(a *Account) string {
 
 func CreateNote(note *BlackboardNote, references []string) error {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return err
 	}
-	_, err = tx.Run(ctx,
+	err = tx.RunWithoutResult(
 		`MATCH (a:Account) WHERE a.name = $Author
 CREATE (n:Note {id: $id , title: $title , author: $Author , flair: $Flair, 
 posted_at: $PostedAt , body: $Body, removed: $Removed}) 
@@ -92,18 +91,16 @@ MERGE (a)-[:WRITTEN]->(n);`,
 			"Body":     string(note.Body),
 			"Removed":  note.Removed})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
-	_, err = tx.Run(ctx,
+	err = tx.RunWithoutResult(
 		`MATCH (c:Note), (p:Note) WHERE c.id = $child AND p.id IN $parent MERGE (c)-[:LINKS]->(p);`,
 		map[string]any{"parent": references,
 			"child": note.ID})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
-	err = tx.Commit(ctx)
+	err = tx.Commit()
 	return err
 }
 
@@ -116,25 +113,25 @@ RETURN n;`, map[string]any{"id": note.ID, "removed": note.Removed})
 
 func GetNote(id string) (*BlackboardNote, error) {
 	idMap := map[string]any{"id": id}
-	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (n:Note) WHERE n.id = $id RETURN n;`,
-		idMap, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	result, err := makeRequest(`MATCH (n:Note) WHERE n.id = $id RETURN n;`,
+		idMap)
 	if err != nil {
 		return nil, err
 	}
-	if len(result.Records) == 0 {
+	if len(result) == 0 {
 		return nil, notFoundError
-	} else if len(result.Records) > 1 {
+	} else if len(result) > 1 {
 		return nil, multipleItemsError
 	}
 	note := &BlackboardNote{}
-	node := result.Records[0].Values[0].(neo4j.Node)
-	note.ID = node.Props["id"].(string)
-	note.Title = node.Props["title"].(string)
-	note.Author = node.Props["author"].(string)
-	note.Flair = node.Props["flair"].(string)
-	note.PostedAt = node.Props["posted_at"].(time.Time)
-	note.Body = template.HTML(node.Props["body"].(string))
-	note.Removed = node.Props["removed"].(bool)
+	props := GetPropsMapForRecordPosition(result[0], 0)
+	note.ID = props.GetString("id")
+	note.Title = props.GetString("title")
+	note.Author = props.GetString("author")
+	note.Flair = props.GetString("flair")
+	note.PostedAt = props.GetTime("posted_at")
+	note.Body = template.HTML(props.GetString("body"))
+	note.Removed = props.GetBool("removed")
 	note.Parents, err = queryForRelations(`MATCH (n:Note) WHERE n.id = $id MATCH (r:Note)-[:LINKS]->(n) RETURN r;`, idMap)
 	if err != nil {
 		return nil, err
@@ -144,18 +141,17 @@ func GetNote(id string) (*BlackboardNote, error) {
 }
 
 func queryForRelations(query string, idMap map[string]any) ([]TruncatedBlackboardNotes, error) {
-	result, err := neo4j.ExecuteQuery(ctx, driver, query,
-		idMap, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+	result, err := makeRequest(query, idMap)
 	if err != nil {
 		return nil, err
 	}
-	arr := make([]TruncatedBlackboardNotes, len(result.Records))
-	for i, record := range result.Records {
-		node := record.Values[0].(neo4j.Node)
+	arr := make([]TruncatedBlackboardNotes, len(result))
+	for i, record := range result {
+		props := GetPropsMapForRecordPosition(record, 0)
 		arr[i] = TruncatedBlackboardNotes{
-			ID:     node.Props["id"].(string),
-			Title:  node.Props["title"].(string),
-			Author: node.Props["author"].(string),
+			ID:     props.GetString("id"),
+			Title:  props.GetString("title"),
+			Author: props.GetString("author"),
 		}
 	}
 	return arr, err
@@ -163,7 +159,7 @@ func queryForRelations(query string, idMap map[string]any) ([]TruncatedBlackboar
 
 func SearchForNotes(amount int, page int, query string) ([]TruncatedBlackboardNotes, error) {
 	title, author := queryAnalyzer(query)
-	result, err := neo4j.ExecuteQuery(ctx, driver, `MATCH (n:Note) 
+	result, err := makeRequest(`MATCH (n:Note) 
 WHERE n.removed = false AND n.title CONTAINS $title AND n.author CONTAINS $author 
 RETURN n ORDER BY n.posted_at DESC SKIP $skip LIMIT $amount;`,
 		map[string]any{
@@ -171,19 +167,19 @@ RETURN n ORDER BY n.posted_at DESC SKIP $skip LIMIT $amount;`,
 			"skip":   (page - 1) * amount,
 			"title":  title,
 			"author": author,
-		}, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
+		})
 	if err != nil {
 		return nil, err
 	}
-	arr := make([]TruncatedBlackboardNotes, len(result.Records))
-	for i, record := range result.Records {
-		node := record.Values[0].(neo4j.Node)
+	arr := make([]TruncatedBlackboardNotes, len(result))
+	for i, record := range result {
+		props := GetPropsMapForRecordPosition(record, 0)
 		arr[i] = TruncatedBlackboardNotes{
-			ID:       node.Props["id"].(string),
-			Title:    node.Props["title"].(string),
-			Author:   node.Props["author"].(string),
-			Flair:    node.Props["flair"].(string),
-			PostedAt: node.Props["posted_at"].(time.Time),
+			ID:       props.GetString("id"),
+			Title:    props.GetString("title"),
+			Author:   props.GetString("author"),
+			Flair:    props.GetString("flair"),
+			PostedAt: props.GetTime("posted_at"),
 		}
 	}
 	return arr, err

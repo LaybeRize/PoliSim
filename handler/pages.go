@@ -638,7 +638,7 @@ func (p *ChangePassword) getRenderInfo() (string, string) {
 }
 
 type ModifyPersonalSettings struct {
-	FontScaling int64
+	FontScaling int
 	TimeZone    string
 	MessageUpdate
 }

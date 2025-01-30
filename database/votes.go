@@ -23,7 +23,7 @@ type (
 		Answers               []string
 		IterableAnswers       []any
 		Type                  VoteType
-		MaxVotes              int64
+		MaxVotes              int
 		ShowVotesDuringVoting bool
 		Anonymous             bool
 		EndDate               time.Time
@@ -113,17 +113,13 @@ func (a *AccountVotes) VoteIterator() func(func(string, []string) bool) {
 	}
 }
 
-func (t VoteType) IsSingleVote() bool      { return t == SingleVote }
-func (v *VoteInstance) IsSingleVote() bool { return v.Type.IsSingleVote() }
+func (t VoteType) IsSingleVote() bool { return t == SingleVote }
 
-func (t VoteType) IsMultipleVotes() bool      { return t == MultipleVotes }
-func (v *VoteInstance) IsMultipleVotes() bool { return v.Type.IsMultipleVotes() }
+func (t VoteType) IsMultipleVotes() bool { return t == MultipleVotes }
 
-func (t VoteType) IsRankedVoting() bool      { return t == RankedVoting }
-func (v *VoteInstance) IsRankedVoting() bool { return v.Type.IsRankedVoting() }
+func (t VoteType) IsRankedVoting() bool { return t == RankedVoting }
 
-func (t VoteType) IsVoteSharing() bool      { return t == VoteShares }
-func (v *VoteInstance) IsVoteSharing() bool { return v.Type.IsVoteSharing() }
+func (t VoteType) IsVoteSharing() bool { return t == VoteShares }
 
 func (v *VoteInstance) Ended() bool { return time.Now().After(v.EndDate) }
 
@@ -164,21 +160,20 @@ const (
 
 func CreateOrUpdateVote(instance *VoteInstance, acc *Account, number int) error {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return err
 	}
 
-	result, err := tx.Run(ctx, `MATCH (acc:Account)-[r:MANAGES]->(v:Vote) 
+	result, err := tx.Run(`MATCH (acc:Account)-[r:MANAGES]->(v:Vote) 
 WHERE acc.name = $Manager AND r.position = $position 
 RETURN v.id;`, map[string]any{
 		"Manager":  acc.Name,
 		"position": number})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
-	} else if result.Next(ctx); result.Record() == nil {
-		_, err = tx.Run(ctx, `MATCH (a:Account) WHERE a.name = $Manager 
+	} else if !result.Next() {
+		err = tx.RunWithoutResult(`MATCH (a:Account) WHERE a.name = $Manager 
 CREATE (v:Vote {id: $id, type: $type, question: $question, answers: $answers, max_votes: $max_votes, 
 show_during: $show_during, anonymous: $anonymous}) 
 MERGE (a)-[:MANAGES {position: $position}]->(v);`, map[string]any{
@@ -194,7 +189,7 @@ MERGE (a)-[:MANAGES {position: $position}]->(v);`, map[string]any{
 	} else {
 		instance.ID = result.Record().Values[0].(string)
 
-		_, err = tx.Run(ctx, `
+		err = tx.RunWithoutResult(`
 MATCH (v:Vote) WHERE v.id = $id 
 SET v.type = $type, v.question = $question, v.answers = $answers, v.max_votes = $max_votes, 
 v.show_during = $show_during, v.anonymous = $anonymous;`, map[string]any{
@@ -208,11 +203,10 @@ v.show_during = $show_during, v.anonymous = $anonymous;`, map[string]any{
 	}
 
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
 	}
 
-	return tx.Commit(ctx)
+	return tx.Commit()
 }
 
 func GetVote(acc *Account, number int) (*VoteInstance, error) {
@@ -222,18 +216,18 @@ RETURN v;`, map[string]any{"name": acc.Name, "position": number})
 	if err != nil {
 		return nil, err
 	}
-	if len(result.Records) == 0 {
+	if len(result) == 0 {
 		return nil, nil
 	}
-	record := result.Records[0].Values[0].(neo4j.Node)
+	props := GetPropsMapForRecordPosition(result[0], 0)
 	return &VoteInstance{
-		ID:                    record.Props["id"].(string),
-		Question:              record.Props["question"].(string),
-		IterableAnswers:       record.Props["answers"].([]any),
-		Type:                  VoteType(record.Props["type"].(int64)),
-		MaxVotes:              record.Props["max_votes"].(int64),
-		ShowVotesDuringVoting: record.Props["show_during"].(bool),
-		Anonymous:             record.Props["anonymous"].(bool),
+		ID:                    props.GetString("id"),
+		Question:              props.GetString("question"),
+		IterableAnswers:       props.GetArray("answers"),
+		Type:                  VoteType(props.GetInt("type")),
+		MaxVotes:              props.GetInt("max_votes"),
+		ShowVotesDuringVoting: props.GetBool("show_during"),
+		Anonymous:             props.GetBool("anonymous"),
 	}, nil
 }
 
@@ -243,8 +237,8 @@ WHERE a.name = $name RETURN v.id, v.question;`, map[string]any{"name": acc.Name}
 	if err != nil {
 		return nil, err
 	}
-	list := make([]VoteInfo, len(result.Records))
-	for i, record := range result.Records {
+	list := make([]VoteInfo, len(result))
+	for i, record := range result {
 		list[i] = VoteInfo{
 			ID:       record.Values[0].(string),
 			Question: record.Values[1].(string),
@@ -255,12 +249,12 @@ WHERE a.name = $name RETURN v.id, v.question;`, map[string]any{"name": acc.Name}
 
 func CastVoteWithAccount(name string, id string, votes []int) error {
 	tx, err := openTransaction()
-	defer tx.Close(ctx)
+	defer tx.Close()
 	if err != nil {
 		return err
 	}
 
-	result, err := tx.Run(ctx, `CALL {
+	result, err := tx.Run(`CALL {
 MATCH (a:Account)<-[:PARTICIPANT]-(d:Document)-[:LINKS]->(v:Vote)
 WHERE a.name = $author AND a.blocked = false AND v.id = $id AND datetime($now) < datetime(d.end_time) 
 RETURN a  
@@ -276,35 +270,31 @@ RETURN a
 RETURN a;`,
 		map[string]any{"id": id, "author": name, "now": time.Now().UTC()})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
-	} else if result.Next(ctx); result.Record() == nil {
-		_ = tx.Rollback(ctx)
+	} else if !result.Next() {
 		return notAllowedError
 	}
 
-	result, err = tx.Run(ctx, `MATCH (a:Account)-[:VOTED]->(v:Vote) WHERE a.name = $author AND v.id = $id 
+	result, err = tx.Run(`MATCH (a:Account)-[:VOTED]->(v:Vote) WHERE a.name = $author AND v.id = $id 
 RETURN a;`,
 		map[string]any{"id": id, "author": name})
 	if err != nil {
-		_ = tx.Rollback(ctx)
 		return err
-	} else if result.Next(ctx); result.Record() != nil {
-		_ = tx.Rollback(ctx)
+	} else if result.Next() {
 		return AlreadyVoted
 	}
 
 	mapIsNil := votes == nil
-	_, err = tx.Run(ctx, `MATCH (a:Account), (v:Vote) WHERE a.name = $author AND v.id = $id 
+	_, err = tx.Run(`MATCH (a:Account), (v:Vote) WHERE a.name = $author AND v.id = $id 
 MERGE (a)-[:VOTED {written: $now, illegal: $illegal, vote: $voteMap}]->(v);`,
 		map[string]any{"id": id, "author": name, "illegal": mapIsNil, "voteMap": votes, "now": time.Now().UTC()})
 	if err == nil {
-		return tx.Commit(ctx)
+		return tx.Commit()
 	}
 	return err
 }
 
-func GetAnswersAndTypeForVote(id string, acc *Account) ([]any, VoteType, int64, error) {
+func GetAnswersAndTypeForVote(id string, acc *Account) ([]any, VoteType, int, error) {
 	extra := `CALL { MATCH (o:Organisation)<-[:IN]-(d)-[:LINKS]->(v:Vote) WHERE d.public = true 
 RETURN o
 UNION
@@ -319,10 +309,10 @@ RETURN o }`
 	if err != nil {
 		return nil, -1, -1, err
 	}
-	if len(result.Records) == 0 {
+	if len(result) == 0 {
 		return nil, -1, -1, notAllowedError
 	}
-	return result.Records[0].Values[0].([]any), VoteType(result.Records[0].Values[1].(int64)), result.Records[0].Values[2].(int64), nil
+	return result[0].Values[0].([]any), VoteType(result[0].Values[1].(int64)), int(result[0].Values[2].(int64)), nil
 }
 
 func GetVoteForUser(id string, acc *Account) (*VoteInstance, *AccountVotes, error) {
@@ -340,20 +330,20 @@ RETURN o }`
 	if err != nil {
 		return nil, nil, err
 	}
-	if len(result.Records) == 0 {
+	if len(result) == 0 {
 		return nil, nil, notAllowedError
 	}
-	Props := result.Records[0].Values[2].(neo4j.Node).Props
+	props := GetPropsMapForRecordPosition(result[0], 2)
 	vote := &VoteInstance{
-		DocumentID:            result.Records[0].Values[0].(string),
-		ID:                    Props["id"].(string),
-		Question:              Props["question"].(string),
-		IterableAnswers:       Props["answers"].([]any),
-		Type:                  VoteType(Props["type"].(int64)),
-		MaxVotes:              Props["max_votes"].(int64),
-		ShowVotesDuringVoting: Props["show_during"].(bool),
-		Anonymous:             Props["anonymous"].(bool),
-		EndDate:               result.Records[0].Values[1].(time.Time),
+		DocumentID:            result[0].Values[0].(string),
+		ID:                    props.GetString("id"),
+		Question:              props.GetString("question"),
+		IterableAnswers:       props.GetArray("answers"),
+		Type:                  VoteType(props.GetInt("type")),
+		MaxVotes:              props.GetInt("max_votes"),
+		ShowVotesDuringVoting: props.GetBool("show_during"),
+		Anonymous:             props.GetBool("anonymous"),
+		EndDate:               result[0].Values[1].(time.Time),
 	}
 	vote.ShowVotesDuringVoting = vote.ShowVotesDuringVoting || vote.Ended()
 
@@ -374,13 +364,13 @@ ORDER BY r.written;`,
 		if err != nil {
 			return nil, nil, err
 		}
-		for _, record := range result.Records {
-			props := record.Values[0].(neo4j.Relationship).Props
-			if props["illegal"].(bool) {
+		for _, record := range result {
+			props = GetPropsMapForRecordPosition(record, 0)
+			if props.GetBool("illegal") {
 				voteList.IllegalVotes = append(voteList.IllegalVotes, record.Values[1].(string))
 				continue
 			}
-			voteList.List[record.Values[1].(string)] = props["vote"].([]any)
+			voteList.List[record.Values[1].(string)] = props.GetArray("vote")
 		}
 	}
 
@@ -441,21 +431,21 @@ DETACH DELETE v;`,
 }
 
 // returns first the docID then the VoteID array
-func transformVotesForResults(result *neo4j.EagerResult) ([]AccountVotes, []string, []string) {
-	votes := make([]AccountVotes, len(result.Records))
-	docIDs := make([]string, len(result.Records))
-	voteIDs := make([]string, len(result.Records))
+func transformVotesForResults(result []*neo4j.Record) ([]AccountVotes, []string, []string) {
+	votes := make([]AccountVotes, len(result))
+	docIDs := make([]string, len(result))
+	voteIDs := make([]string, len(result))
 
-	for i, record := range result.Records {
+	for i, record := range result {
 		docIDs[i] = record.Values[1].(string)
-		voteProps := record.Values[0].(neo4j.Node).Props
-		voteIDs[i] = voteProps["id"].(string)
+		voteProps := GetPropsMapForRecordPosition(record, 0)
+		voteIDs[i] = voteProps.GetString("id")
 
 		votes[i] = AccountVotes{
-			Question:        voteProps["question"].(string),
-			IterableAnswers: voteProps["answers"].([]any),
-			Anonymous:       voteProps["anonymous"].(bool),
-			Type:            VoteType(voteProps["type"].(int64)),
+			Question:        voteProps.GetString("question"),
+			IterableAnswers: voteProps.GetArray("answers"),
+			Anonymous:       voteProps.GetBool("anonymous"),
+			Type:            VoteType(voteProps.GetInt("type")),
 			IllegalVotes:    []string{},
 			List:            make(map[string][]any),
 		}
@@ -465,12 +455,12 @@ func transformVotesForResults(result *neo4j.EagerResult) ([]AccountVotes, []stri
 		voteList := record.Values[3].([]any)
 
 		for j, name := range nameList {
-			props := voteList[j].(neo4j.Node).Props
-			if props["illegal"].(bool) {
+			props := PropsMap(voteList[j].(neo4j.Node).Props)
+			if props.GetBool("illegal") {
 				votes[i].IllegalVotes = append(votes[i].IllegalVotes, name.(string))
 				continue
 			}
-			votes[i].List[record.Values[1].(string)] = props["vote"].([]any)
+			votes[i].List[record.Values[1].(string)] = props.GetArray("vote")
 		}
 	}
 

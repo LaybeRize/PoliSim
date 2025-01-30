@@ -159,12 +159,3 @@ func createConstraints() {
 		}
 	}
 }
-
-func openTransaction() (neo4j.ExplicitTransaction, error) {
-	return driver.NewSession(ctx, neo4j.SessionConfig{DatabaseName: ""}).BeginTransaction(ctx)
-}
-
-func makeRequest(query string, parameter map[string]any) (*neo4j.EagerResult, error) {
-	return neo4j.ExecuteQuery(ctx, driver, query, parameter,
-		neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase(""))
-}
