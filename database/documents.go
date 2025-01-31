@@ -64,18 +64,11 @@ func (s *SmallDocument) GetTimeWritten(a *Account) string {
 	return s.Written.Format("2006-01-02 15:04:05 MST")
 }
 
-func (d *Document) GetBody(acc *Account) template.HTML {
+func (d *Document) ShowRemovedMessage(acc *Account) bool {
 	if acc.IsAtLeastAdmin() || !d.Removed {
-		return d.Body
+		return false
 	}
-	return "<code>[Inhalt wurde entfernt]</code>"
-}
-
-func (d *Document) GetTitle(acc *Account) string {
-	if acc.IsAtLeastAdmin() || !d.Removed {
-		return d.Title
-	}
-	return "[Entfernt]"
+	return true
 }
 
 func (d *Document) HasResults() bool {
@@ -404,7 +397,8 @@ WHERE d.id = $id RETURN r;`,
 					IllegalVotes:    nil,
 					Illegal:         props.GetArray("illegal"),
 					List:            nil,
-					BaseMap:         props.GetMap("list"),
+					Voter:           props.GetArray("voter"),
+					Votes:           props.GetArray("votes"),
 				})
 			}
 		} else {
@@ -454,6 +448,24 @@ RETURN t, ids, outgoing ORDER BY t.written DESC;`, map[string]any{"id": id})
 
 	err = tx.Commit()
 	return doc, commentator, err
+}
+
+func RemoveRestoreDocument(docId string) {
+	tx, err := openTransaction()
+	defer tx.Close()
+	if err != nil {
+		return
+	}
+
+	err = tx.RunWithoutResult(`MATCH (d:Document) WHERE d.id = $id  
+SET d.removed = NOT d.removed;`, map[string]any{
+		"id": docId,
+	})
+	if err != nil {
+		return
+	}
+
+	_ = tx.Commit()
 }
 
 func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {

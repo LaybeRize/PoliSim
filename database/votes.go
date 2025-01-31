@@ -38,7 +38,8 @@ type (
 		IllegalVotes    []string
 		Illegal         []any
 		List            map[string][]any
-		BaseMap         map[string]any
+		Voter           []any
+		Votes           []any
 	}
 )
 
@@ -63,7 +64,7 @@ func (a *AccountVotes) GetIllegalVotes() string {
 
 func (a *AccountVotes) NoVotes() bool {
 	if a.List == nil {
-		return len(a.BaseMap) == 0
+		return len(a.Voter) == 0
 	}
 	return len(a.List) == 0
 }
@@ -72,21 +73,19 @@ func (a *AccountVotes) VoteIterator() func(func(string, []string) bool) {
 	if a.List == nil {
 		return func(yield func(string, []string) bool) {
 			pos := 0
-			for name, list := range a.BaseMap {
-				newList := make([]string, len(list.([]any)))
-				for i, val := range list.([]any) {
+			for _, name := range a.Voter {
+				newList := make([]string, a.AnswerAmount)
+				for i, val := range a.Votes[a.AnswerAmount*pos : (pos+1)*a.AnswerAmount] {
 					newVal := int(val.(int64))
-					if newVal <= 0 {
-						newList[i] = ""
-					} else {
+					if newVal > 0 {
 						newList[i] = strconv.Itoa(newVal)
 					}
 				}
+				pos += 1
 				if a.Anonymous {
-					pos += 1
 					name = strconv.Itoa(pos)
 				}
-				if !yield(name, newList) {
+				if !yield(name.(string), newList) {
 					return
 				}
 			}
@@ -378,6 +377,7 @@ ORDER BY r.written;`,
 }
 
 func resultRoutine() {
+	generateResults()
 	curr := time.Now().UTC()
 	next := time.Date(curr.Year(), curr.Month(), curr.Day()+1, 0, 0, 0, 0, time.UTC)
 	ticker := time.NewTicker(next.Sub(curr) + time.Second)
@@ -396,37 +396,53 @@ func generateResults() {
 	shutdown.Lock()
 	defer shutdown.Unlock()
 
-	result, err := makeRequest(`MATCH (a:Account)-[r:VOTED]->(v:Vote)<-[:LINKS]-(d:Document) WHERE $now < d.end_time 
-RETURN v, d.id AS docID,a.name AS accName, r ORDER BY r.written 
+	result, err := makeRequest(`MATCH (a:Account)-[r:VOTED]->(v:Vote)<-[:LINKS]-(d:Document) 
+WHERE datetime($now) > datetime(d.end_time) 
+WITH v, d.id AS docID,a.name AS accName, r ORDER BY r.written 
 RETURN v, docID, collect(accName), collect(r);`, map[string]any{"now": time.Now().UTC()})
 	if err != nil {
 		slog.Error(err.Error())
 		return
 	}
-
 	votes, docIds, voteIds := transformVotesForResults(result)
 
+	tx, err := openTransaction()
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	defer tx.Close()
 	for i, vote := range votes {
-		_, err = makeRequest(`MATCH (v:Vote) WHERE v.id = $vote 
-MATCH (d:Document) WHERE d.id = $id 
+		err = tx.RunWithoutResult("MATCH (v:Vote) WHERE v.id = $vote DETACH DELETE v;",
+			map[string]any{"vote": voteIds[i]})
+		if err != nil {
+			slog.Error(err.Error())
+			return
+		}
+		err = tx.RunWithoutResult(`MATCH (d:Document) WHERE d.id = $id 
 CREATE (r:Result {type: $Type, anonymous: $Anonymous, amount: $AnswerAmount, illegal: $IllegalVotes, 
-list: $List, question: $question, answers: $answers}) 
-MERGE (d)-[:VOTED]->(r) 
-DETACH DELETE v;`,
+question: $question, answers: $answers, voter: $voter, votes: $votes}) 
+MERGE (d)-[:VOTED]->(r);`,
 			map[string]any{
-				"vote":         voteIds[i],
 				"id":           docIds[i],
 				"Type":         vote.Type,
 				"Anonymous":    vote.Anonymous,
 				"AnswerAmount": vote.AnswerAmount,
 				"IllegalVotes": vote.IllegalVotes,
-				"List":         vote.List,
 				"question":     vote.Question,
 				"answers":      vote.IterableAnswers,
+				"voter":        vote.Voter,
+				"votes":        vote.Votes,
 			})
 		if err != nil {
 			slog.Error(err.Error())
+			return
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		slog.Debug(err.Error())
 	}
 }
 
@@ -440,6 +456,7 @@ func transformVotesForResults(result []*neo4j.Record) ([]AccountVotes, []string,
 		docIDs[i] = record.Values[1].(string)
 		voteProps := GetPropsMapForRecordPosition(record, 0)
 		voteIDs[i] = voteProps.GetString("id")
+		slog.Debug("Working on: ", "Document", docIDs[i], "Vote", voteIDs[i])
 
 		votes[i] = AccountVotes{
 			Question:        voteProps.GetString("question"),
@@ -447,7 +464,8 @@ func transformVotesForResults(result []*neo4j.Record) ([]AccountVotes, []string,
 			Anonymous:       voteProps.GetBool("anonymous"),
 			Type:            VoteType(voteProps.GetInt("type")),
 			IllegalVotes:    []string{},
-			List:            make(map[string][]any),
+			Voter:           make([]any, 0),
+			Votes:           make([]any, 0),
 		}
 		votes[i].AnswerAmount = len(votes[i].IterableAnswers)
 
@@ -455,12 +473,13 @@ func transformVotesForResults(result []*neo4j.Record) ([]AccountVotes, []string,
 		voteList := record.Values[3].([]any)
 
 		for j, name := range nameList {
-			props := PropsMap(voteList[j].(neo4j.Node).Props)
+			props := PropsMap(voteList[j].(neo4j.Relationship).Props)
 			if props.GetBool("illegal") {
 				votes[i].IllegalVotes = append(votes[i].IllegalVotes, name.(string))
 				continue
 			}
-			votes[i].List[record.Values[1].(string)] = props.GetArray("vote")
+			votes[i].Voter = append(votes[i].Voter, name)
+			votes[i].Votes = append(votes[i].Votes, props.GetArray("vote")...)
 		}
 	}
 

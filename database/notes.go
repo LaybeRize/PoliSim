@@ -215,7 +215,7 @@ func queryAnalyzer(acc *Account, input string) (query string, parameter map[stri
 	result := queryRegexNotes.FindStringSubmatch(input)
 	if result != nil && result[1] != "" {
 		parameter["title"] = result[1]
-		query += " AND n.title CONTAINS"
+		query += " AND n.title CONTAINS $title"
 	}
 
 	if result = authorRegexNotes.FindStringSubmatch(input); result != nil {

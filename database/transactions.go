@@ -127,11 +127,3 @@ func (p PropsMap) GetArray(field string) []any {
 	}
 	return v
 }
-
-func (p PropsMap) GetMap(field string) map[string]any {
-	v, ok := p[field].(map[string]any)
-	if !ok {
-		slog.Error("Failed to pass Field to Map", "map", p, "field name", field)
-	}
-	return v
-}

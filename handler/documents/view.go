@@ -105,6 +105,21 @@ func PostNewDocumentTagPage(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func PatchRemoveDocument(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	if !acc.IsAtLeastAdmin() {
+		writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+	database.RemoveRestoreDocument(request.PathValue("id"))
+
+	if obj := getDocumentPageObject(acc, request); obj != nil {
+		handler.MakePage(writer, acc, obj)
+	} else {
+		handler.GetNotFoundPage(writer, request)
+	}
+}
+
 func GetVoteView(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 
