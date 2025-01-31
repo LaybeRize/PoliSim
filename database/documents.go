@@ -64,6 +64,20 @@ func (s *SmallDocument) GetTimeWritten(a *Account) string {
 	return s.Written.Format("2006-01-02 15:04:05 MST")
 }
 
+func (d *Document) GetBody(acc *Account) template.HTML {
+	if acc.IsAtLeastAdmin() || !d.Removed {
+		return d.Body
+	}
+	return "<code>[Inhalt wurde entfernt]</code>"
+}
+
+func (d *Document) GetTitle(acc *Account) string {
+	if acc.IsAtLeastAdmin() || !d.Removed {
+		return d.Title
+	}
+	return "[Entfernt]"
+}
+
 func (d *Document) HasResults() bool {
 	return d.Result != nil
 }

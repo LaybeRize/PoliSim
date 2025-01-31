@@ -2,7 +2,7 @@ package database
 
 import (
 	"html/template"
-	"strings"
+	"regexp"
 	"time"
 )
 
@@ -11,6 +11,7 @@ type TruncatedBlackboardNotes struct {
 	Title    string
 	Author   string
 	Flair    string
+	Removed  bool
 	PostedAt time.Time
 }
 
@@ -48,6 +49,20 @@ type BlackboardNote struct {
 	Parents  []TruncatedBlackboardNotes
 	Children []TruncatedBlackboardNotes
 	Viewer   *Account
+}
+
+func (b *BlackboardNote) GetBody(acc *Account) template.HTML {
+	if acc.IsAtLeastAdmin() || !b.Removed {
+		return b.Body
+	}
+	return "<code>[Inhalt wurde entfernt]</code>"
+}
+
+func (b *BlackboardNote) GetTitle(acc *Account) string {
+	if acc.IsAtLeastAdmin() || !b.Removed {
+		return b.Title
+	}
+	return "[Entfernt]"
 }
 
 func (b *BlackboardNote) HasChildren() bool {
@@ -123,15 +138,17 @@ func GetNote(id string) (*BlackboardNote, error) {
 	} else if len(result) > 1 {
 		return nil, multipleItemsError
 	}
-	note := &BlackboardNote{}
 	props := GetPropsMapForRecordPosition(result[0], 0)
-	note.ID = props.GetString("id")
-	note.Title = props.GetString("title")
-	note.Author = props.GetString("author")
-	note.Flair = props.GetString("flair")
-	note.PostedAt = props.GetTime("posted_at")
-	note.Body = template.HTML(props.GetString("body"))
-	note.Removed = props.GetBool("removed")
+	note := &BlackboardNote{
+		ID:       props.GetString("id"),
+		Title:    props.GetString("title"),
+		Author:   props.GetString("author"),
+		Flair:    props.GetString("flair"),
+		PostedAt: props.GetTime("posted_at"),
+		Body:     template.HTML(props.GetString("body")),
+		Removed:  props.GetBool("removed"),
+	}
+
 	note.Parents, err = queryForRelations(`MATCH (n:Note) WHERE n.id = $id MATCH (r:Note)-[:LINKS]->(n) RETURN r;`, idMap)
 	if err != nil {
 		return nil, err
@@ -149,25 +166,23 @@ func queryForRelations(query string, idMap map[string]any) ([]TruncatedBlackboar
 	for i, record := range result {
 		props := GetPropsMapForRecordPosition(record, 0)
 		arr[i] = TruncatedBlackboardNotes{
-			ID:     props.GetString("id"),
-			Title:  props.GetString("title"),
-			Author: props.GetString("author"),
+			ID:      props.GetString("id"),
+			Title:   props.GetString("title"),
+			Author:  props.GetString("author"),
+			Removed: props.GetBool("removed"),
 		}
 	}
 	return arr, err
 }
 
-func SearchForNotes(amount int, page int, query string) ([]TruncatedBlackboardNotes, error) {
-	title, author := queryAnalyzer(query)
+func SearchForNotes(acc *Account, amount int, page int, input string) ([]TruncatedBlackboardNotes, error) {
+	query, parameter := queryAnalyzer(acc, input)
+	parameter["amount"] = amount
+	parameter["skip"] = (page - 1) * amount
 	result, err := makeRequest(`MATCH (n:Note) 
-WHERE n.removed = false AND n.title CONTAINS $title AND n.author CONTAINS $author 
+WHERE `+query+` 
 RETURN n ORDER BY n.posted_at DESC SKIP $skip LIMIT $amount;`,
-		map[string]any{
-			"amount": amount,
-			"skip":   (page - 1) * amount,
-			"title":  title,
-			"author": author,
-		})
+		parameter)
 	if err != nil {
 		return nil, err
 	}
@@ -185,13 +200,28 @@ RETURN n ORDER BY n.posted_at DESC SKIP $skip LIMIT $amount;`,
 	return arr, err
 }
 
-func queryAnalyzer(query string) (title string, author string) {
-	if strings.Contains(query, "BY:") {
-		res := strings.SplitN(query, "BY:", 2)
-		title = strings.TrimSpace(res[0])
-		author = strings.TrimSpace(res[1])
+var queryRegexNotes = regexp.MustCompile(`^\s*(.*?)\s*(\[|$)`)
+var authorRegexNotes = regexp.MustCompile(`\[[bB][yY]:\]\s*(.+?)\s*(\[|$)`)
+
+func queryAnalyzer(acc *Account, input string) (query string, parameter map[string]any) {
+	parameter = make(map[string]any)
+	query = ""
+	if !acc.IsAtLeastAdmin() {
+		query += "n.removed = false"
 	} else {
-		title = strings.TrimSpace(query)
+		query += "true"
 	}
+
+	result := queryRegexNotes.FindStringSubmatch(input)
+	if result != nil && result[1] != "" {
+		parameter["title"] = result[1]
+		query += " AND n.title CONTAINS"
+	}
+
+	if result = authorRegexNotes.FindStringSubmatch(input); result != nil {
+		parameter["author"] = result[1]
+		query += " AND n.author CONTAINS $author"
+	}
+
 	return
 }

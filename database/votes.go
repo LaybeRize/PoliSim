@@ -316,10 +316,10 @@ RETURN o }`
 }
 
 func GetVoteForUser(id string, acc *Account) (*VoteInstance, *AccountVotes, error) {
-	extra := `CALL { MATCH (o:Organisation)<-[:IN]-(d)-[:LINKS]->(v:Vote) WHERE d.public = true 
+	extra := `CALL { MATCH (o:Organisation)<-[:IN]-(d)-[:LINKS]->(v:Vote) WHERE d.public = true AND d.removed = false
 RETURN o
 UNION
-MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d) WHERE d.public = false AND a.name = $name 
+MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d) WHERE d.public = false AND d.removed = false AND a.name = $name 
 RETURN o }`
 	if acc.IsAtLeastAdmin() {
 		extra = ""

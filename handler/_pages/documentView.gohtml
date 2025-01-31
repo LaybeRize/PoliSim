@@ -36,7 +36,7 @@
             {{end}}
         </div>
         <div class="block-view">
-            <h1>{{.Document.Title}}</h1>
+            <h1>{{.Document.GetTitle .NavInfo.Account}}</h1>
             <p>
                 Geschrieben von: {{.Document.GetAuthor}}<br>
                 Veröffentlicht in: {{.Document.Organisation}}<br>
@@ -82,10 +82,19 @@
                 <div id="tag-message" hidden></div>
             </details>
             {{end}}
+            {{if .NavInfo.Account.IsAtLeastAdmin}}
+                <!-- Todo: create this in the backend -->
+                <a class="button-link spacing" hx-patch="/change/blocked/document/{{.Document.ID}}"
+                   hx-target="#page-body">
+                    {{if .Document.Removed}}Dokument wieder freigeben{{else}}Dokument blockieren{{end}}
+                </a>
+            {{end}}
         </div>
-        <div class="markdown">{{.Document.Body}}</div>
-        {{if .Document.IsDiscussion}}{{template "discussion" .}}{{end}}
-        {{if .Document.IsVote}}{{template "vote" .}}{{end}}
+        <div class="markdown {{if .Document.Removed}}removed{{end}}">{{.Document.GetBody .NavInfo.Account}}</div>
+        {{if not .Document.Removed}}
+            {{if .Document.IsDiscussion}}{{template "discussion" .}}{{end}}
+            {{if .Document.IsVote}}{{template "vote" .}}{{end}}
+        {{end}}
     </div>
     {{end}}
     </body>

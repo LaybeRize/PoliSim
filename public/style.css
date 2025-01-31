@@ -1,12 +1,14 @@
 :root {
     --standard-width: 50rem;
     --standard-small-width: 20rem;
+    --text-color: rgb(226 232 240);
+    --error-red: rgb(127 29 29);
 }
 
 
 body {
     background-color: rgb(30 41 59);
-    color: rgb(226 232 240);
+    color: var(--text-color);
     flex-direction: column;
     align-items: center;
     display: flex;
@@ -50,7 +52,7 @@ form {
 }
 
 .error-div {
-    background-color: rgb(127 29 29);
+    background-color: var(--error-red);
 }
 
 .success-div {
@@ -86,7 +88,7 @@ header {
             a {
                 text-decoration: none;
                 padding: 6px 10px;
-                color: white;
+                color: var(--text-color);
                 display: block;
                 min-width: inherit;
                 text-align: center;
@@ -107,7 +109,7 @@ header {
                     min-width: inherit;
                     margin: 0 0;
                     a {
-                        color: white;
+                        color: var(--text-color);
                     }
                 }
                 li:hover {
@@ -120,7 +122,7 @@ header {
 
 button {
     background-color: rgb(51 65 85);
-    color: white;
+    color: var(--text-color);
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -133,7 +135,7 @@ button {
 
 input {
     background-color: rgb(51 65 85);
-    color: white;
+    color: var(--text-color);
     padding: 0.5rem;
     user-select: none;
     margin-top: 0.5rem;
@@ -150,7 +152,7 @@ textarea {
     width: 100%;
     box-sizing:border-box;
     background-color: rgb(51 65 85);
-    color: white;
+    color: var(--text-color);
     padding: 0.5rem;
     font-family: inherit;
     font-size: inherit;
@@ -165,7 +167,7 @@ input[type="checkbox"], input[type="radio"] {
 
 select {
     background-color: rgb(51 65 85);
-    color: white;
+    color: var(--text-color);
     padding: 0.5rem;
     user-select: none;
     margin-top: 0.5rem;
@@ -178,14 +180,14 @@ select {
 
 a.button-link {
     background-color: rgb(51 65 85);
-    color: white;
+    color: var(--text-color);
     padding: 0.5rem;
     text-decoration: none;
 }
 
 a.dropdown {
     background-color: inherit;
-    color: white;
+    color: var(--text-color);
     text-decoration: none;
     font-weight: bold;
     padding: 0.3rem;
@@ -205,17 +207,17 @@ div.note {
     }
     a.read {
         background-color: rgb(15 23 42);
-        color: white;
+        color: var(--text-color);
         padding: 0.3rem;
         margin: 0.2rem 0;
-        text-underline: white;
+        text-underline: var(--text-color);
         text-decoration: none;
         cursor: pointer;
     }
     h1 {
         font-size: 2rem;
         line-height: 2.2rem;
-        color: white;
+        color: var(--text-color);
     }
     h2 {
         font-size: 1.5rem;
@@ -235,7 +237,7 @@ div.name-list {
         box-sizing:border-box;
         width: 5%;
         margin: 0.5rem 0.2rem;
-        background-color: rgb(127 29 29);
+        background-color: var(--error-red);
     }
 }
 
@@ -251,7 +253,7 @@ div.hierarchy-view {
     width: var(--standard-width);
     align-items: start;
     a {
-        color: white;
+        color: var(--text-color);
         cursor: pointer;
         font-size: 2.075rem;
         line-height: 2.25rem;
@@ -265,7 +267,7 @@ div.hierarchy-view {
             padding: 0 0 0.4rem 0;
         }
         border-left: 0.25rem;
-        border-left-color: white;
+        border-left-color: var(--text-color);
         border-left-style: solid;
         padding-left: 0.4rem;
         margin: 0.4rem 0 0.4rem 0.5rem;
@@ -307,7 +309,7 @@ div.article {
     h1 {
         font-size: 2rem;
         line-height: 2.2rem;
-        color: white;
+        color: var(--text-color);
     }
     h2 {
         font-size: 1.5rem;
@@ -318,7 +320,7 @@ div.article {
 h1.big-header {
     font-size: 3rem;
     line-height: 3.2rem;
-    color: white;
+    color: var(--text-color);
 }
 
 div.aside-tags {
@@ -352,7 +354,7 @@ table.view-vote {
     border-collapse: collapse;
 
     th, td {
-        border: 0.1rem solid white;
+        border: 0.1rem solid var(--text-color);
         padding: 0.4rem;
     }
 
@@ -373,6 +375,10 @@ div.markdown {
     filter: drop-shadow(0.3rem 0.3rem 0.125rem rgb(2 6 23));
     padding: 1rem;
     margin: 0.6rem;
+}
+
+div.markdown.removed {
+    background-color: rgb(70, 8, 9);
 }
 
 div.markdown dl {

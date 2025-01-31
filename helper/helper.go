@@ -44,7 +44,7 @@ func GetUniqueID(author string) string {
 	prefix[2] += byte(sum >> 48)
 	prefix[3] += byte(sum >> 56)
 
-	return fmt.Sprintf("%X-%X", suffix, prefix)
+	return fmt.Sprintf("ID-%X-%X", suffix, prefix)
 }
 
 func MakeCommaSeperatedStringToList(input string) []string {
@@ -57,16 +57,6 @@ func MakeCommaSeperatedStringToList(input string) []string {
 	for _, element := range arr {
 		element = strings.TrimSpace(element)
 		if element != "" {
-			result = append(result, element)
-		}
-	}
-	return result
-}
-
-func FilterList(list []string) []string {
-	result := make([]string, 0, len(list))
-	for _, element := range list {
-		if strings.TrimSpace(element) != "" {
 			result = append(result, element)
 		}
 	}
