@@ -94,6 +94,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 			Message: "Der angegebene Zeitstempel für das Ende ist nicht gültig"})
 		return
 	}
+	// Todo: change the end datetime to a fixed time but not date (23:50 UTC)
 
 	locTime := time.Now().In(acc.TimeZone)
 	if doc.End.Before(locTime.Add(addMin)) || doc.End.After(locTime.Add(addMax)) {

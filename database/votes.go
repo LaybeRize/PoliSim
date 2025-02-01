@@ -1,6 +1,7 @@
 package database
 
 import (
+	loc "PoliSim/localisation"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"log/slog"
 	"strconv"
@@ -57,7 +58,7 @@ func (a *AccountVotes) GetIllegalVotes() string {
 		return strconv.Itoa(len(a.IllegalVotes))
 	}
 	if len(a.IllegalVotes) == 0 {
-		return "Keine"
+		return loc.VoteNoIllegalVotesCasted
 	}
 	return strings.Join(a.IllegalVotes, ", ")
 }
@@ -145,9 +146,9 @@ func (v *VoteInstance) ConvertToAnswer() {
 
 func (v *VoteInstance) GetTimeEnd(a *Account) string {
 	if a.Exists() {
-		return v.EndDate.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return v.EndDate.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return v.EndDate.Format("2006-01-02 15:04:05 MST")
+	return v.EndDate.Format(loc.TimeFormatString)
 }
 
 const (

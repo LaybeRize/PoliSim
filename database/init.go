@@ -76,7 +76,7 @@ func createRootAccount() {
 	} else if errors.Is(err, notFoundError) && acc == nil {
 		pass, hashError := HashPassword(os.Getenv("PASSWORD"))
 		if hashError != nil {
-			log.Fatalf("password hashing error for root account: %v", hashError)
+			log.Fatalf("password hashing error for Head Admin Account: %v", hashError)
 		}
 		createError := CreateAccount(&Account{
 			Name:     os.Getenv("NAME"),
@@ -86,18 +86,18 @@ func createRootAccount() {
 			Blocked:  false,
 		})
 		if createError != nil {
-			log.Fatalf("root account creation error: %v", createError)
+			log.Fatalf("Head Admin Account creation error: %v", createError)
 		}
 		log.Println("Head Admin Account successfully created")
 	} else {
-		log.Fatalf("root account search error: %v", err)
+		log.Fatalf("Head Admin Account search error: %v", err)
 	}
 }
 
 func createAdminstrationAccount() {
 	acc, err := GetAccountByName(loc.AdministrationAccountName)
 	if err == nil && acc != nil {
-		log.Println("administration account already exists")
+		log.Println("Administration Account already exists")
 		return
 	} else if errors.Is(err, notFoundError) && acc == nil {
 		createError := CreateAccount(&Account{
@@ -108,11 +108,11 @@ func createAdminstrationAccount() {
 			Blocked:  false,
 		})
 		if createError != nil {
-			log.Fatalf("root account creation error: %v", createError)
+			log.Fatalf("Administration Account creation error: %v", createError)
 		}
-		log.Println("administration account successfully created")
+		log.Println("Administration Account successfully created")
 	} else {
-		log.Fatalf("administration account search error: %v", err)
+		log.Fatalf("Administration Account search error: %v", err)
 	}
 }
 

@@ -38,9 +38,9 @@ type ReducedLetter struct {
 
 func (r *ReducedLetter) GetTimeWritten(a *Account) string {
 	if a.Exists() {
-		return r.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return r.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return r.Written.Format("2006-01-02 15:04:05 MST")
+	return r.Written.Format(loc.TimeFormatString)
 }
 
 func (r *ReducedLetter) GetAuthor() string {
@@ -67,26 +67,26 @@ type Letter struct {
 }
 
 func (l *Letter) GetReader() string {
-	return fmt.Sprintf("Empfänger: %s", strings.Join(l.Reader, ", "))
+	return fmt.Sprintf(loc.LetterRecipientsFormatString, strings.Join(l.Reader, ", "))
 }
 
 func (l *Letter) GetAgreed() string {
-	return fmt.Sprintf("Zugestimmt: %s", strings.Join(l.Agreed, ", "))
+	return fmt.Sprintf(loc.LetterAcceptedFormatString, strings.Join(l.Agreed, ", "))
 }
 
 func (l *Letter) GetDeclined() string {
 	if len(l.Declined) == 0 {
-		return "Niemand hat abgelehnt"
+		return loc.LetterNoOneDeclined
 	}
-	return fmt.Sprintf("Abgelehnt: %s", strings.Join(l.Declined, ", "))
+	return fmt.Sprintf(loc.LetterDeclinedFormatString, strings.Join(l.Declined, ", "))
 }
 
-func (l *Letter) SomeoneHasntDecidedYet() bool {
+func (l *Letter) SomeoneHasNotDecidedYet() bool {
 	return len(l.NoDecision) != 0
 }
 
 func (l *Letter) GetNoDecision() string {
-	return fmt.Sprintf("Keine Entscheidung: %s", strings.Join(l.NoDecision, ", "))
+	return fmt.Sprintf(loc.LetterNoDecisionFormatString, strings.Join(l.NoDecision, ", "))
 }
 
 func (l *Letter) GetAuthor() string {
@@ -98,9 +98,9 @@ func (l *Letter) GetAuthor() string {
 
 func (l *Letter) GetTimeWritten(a *Account) string {
 	if a.Exists() {
-		return l.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return l.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return l.Written.Format("2006-01-02 15:04:05 MST")
+	return l.Written.Format(loc.TimeFormatString)
 }
 
 func (l *Letter) GetCreationMap() map[string]any {

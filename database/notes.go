@@ -1,6 +1,7 @@
 package database
 
 import (
+	loc "PoliSim/localisation"
 	"html/template"
 	"regexp"
 	"time"
@@ -17,9 +18,9 @@ type TruncatedBlackboardNotes struct {
 
 func (t *TruncatedBlackboardNotes) GetTimePostedAt(a *Account) string {
 	if a.Exists() {
-		return t.PostedAt.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return t.PostedAt.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return t.PostedAt.Format("2006-01-02 15:04:05 MST")
+	return t.PostedAt.Format(loc.TimeFormatString)
 }
 
 func (t *TruncatedBlackboardNotes) IDinArray(arr []string) bool {
@@ -55,14 +56,14 @@ func (b *BlackboardNote) GetBody(acc *Account) template.HTML {
 	if acc.IsAtLeastAdmin() || !b.Removed {
 		return b.Body
 	}
-	return "<code>[Inhalt wurde entfernt]</code>"
+	return loc.NotesContentRemovedHTML
 }
 
 func (b *BlackboardNote) GetTitle(acc *Account) string {
 	if acc.IsAtLeastAdmin() || !b.Removed {
 		return b.Title
 	}
-	return "[Entfernt]"
+	return loc.NotesRemovedTitelText
 }
 
 func (b *BlackboardNote) HasChildren() bool {
@@ -82,9 +83,9 @@ func (b *BlackboardNote) GetAuthor() string {
 
 func (b *BlackboardNote) GetTimePostedAt(a *Account) string {
 	if a.Exists() {
-		return b.PostedAt.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return b.PostedAt.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return b.PostedAt.Format("2006-01-02 15:04:05 MST")
+	return b.PostedAt.Format(loc.TimeFormatString)
 }
 
 func CreateNote(note *BlackboardNote, references []string) error {

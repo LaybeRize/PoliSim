@@ -1,6 +1,7 @@
 package database
 
 import (
+	loc "PoliSim/localisation"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -59,9 +60,9 @@ func (s *SmallDocument) IsVote() bool { return s.Type == DocTypeVote }
 
 func (s *SmallDocument) GetTimeWritten(a *Account) string {
 	if a.Exists() {
-		return s.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return s.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return s.Written.Format("2006-01-02 15:04:05 MST")
+	return s.Written.Format(loc.TimeFormatString)
 }
 
 func (d *Document) ShowRemovedMessage(acc *Account) bool {
@@ -79,16 +80,16 @@ func (d *Document) HasComments() bool { return len(d.Comments) != 0 }
 
 func (d *Document) GetTimeWritten(a *Account) string {
 	if a.Exists() {
-		return d.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return d.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return d.Written.Format("2006-01-02 15:04:05 MST")
+	return d.Written.Format(loc.TimeFormatString)
 }
 
 func (d *Document) GetTimeEnd(a *Account) string {
 	if a.Exists() {
-		return d.End.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return d.End.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return d.End.Format("2006-01-02 15:04:05 MST")
+	return d.End.Format(loc.TimeFormatString)
 }
 
 func (d *Document) GetAuthor() string {
@@ -100,25 +101,27 @@ func (d *Document) GetAuthor() string {
 
 func (d *Document) GetReader() string {
 	if d.Public {
-		return "Jeder kann dieses Dokument lesen."
+		return loc.DocumentIsPublic
 	} else if len(d.Reader) == 0 {
-		return "Leser: Alle Organisationsmitglieder"
+		return loc.DocumentOnlyForMember
 	}
-	return fmt.Sprintf("Leser: Alle Organisationsmitglieder plus %s", strings.Join(d.Reader, ", "))
+	return fmt.Sprintf(loc.DocumentFormatStringForReader, strings.Join(d.Reader, ", "))
 }
 
 func (d *Document) GetParticipants() string {
 	if d.Type == DocTypePost {
-		return "Nur Administratoren der Organisation dürfen Tags hinzufügen"
+		return loc.DocumentTagAddInfo
 	} else if d.MemberParticipation && len(d.Participants) == 0 {
-		return "Beteiligte: Alle Mitglieder der Organisation"
+		return loc.DocumentParticipationEveryMember
 	} else if d.MemberParticipation {
-		return fmt.Sprintf("Beteiligte: Alle Mitglieder der Organisation plus %s",
+		return fmt.Sprintf(loc.DocumentParticipationEveryMemberPlus,
 			strings.Join(d.Reader, ", "))
+	} else if d.AdminParticipation && len(d.Participants) == 0 {
+		return loc.DocumentParticipationOnlyAdmins
 	} else if d.AdminParticipation {
-		return "Beteiligte: Alle Administratoren der Organisation"
+		return fmt.Sprintf(loc.DocumentParticipationOnlyAdminsPlus, strings.Join(d.Reader, ", "))
 	}
-	return fmt.Sprintf("Beteiligte: %s", strings.Join(d.Reader, ", "))
+	return fmt.Sprintf(loc.DocumentParticipationFormatString, strings.Join(d.Reader, ", "))
 }
 
 func (d *Document) IsPost() bool { return d.Type == DocTypePost }
@@ -143,9 +146,9 @@ type DocumentTag struct {
 
 func (t *DocumentTag) GetTimeWritten(a *Account) string {
 	if a.Exists() {
-		return t.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return t.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return t.Written.Format("2006-01-02 15:04:05 MST")
+	return t.Written.Format(loc.TimeFormatString)
 }
 
 func (t *DocumentTag) HasLinks() bool {
@@ -163,9 +166,9 @@ type DocumentComment struct {
 
 func (c *DocumentComment) GetTimeWritten(a *Account) string {
 	if a.Exists() {
-		return c.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return c.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return c.Written.Format("2006-01-02 15:04:05 MST")
+	return c.Written.Format(loc.TimeFormatString)
 }
 
 func (c *DocumentComment) GetAuthor() string {

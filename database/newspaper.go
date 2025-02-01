@@ -2,6 +2,7 @@ package database
 
 import (
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"html/template"
 	"log/slog"
@@ -32,9 +33,9 @@ func (n *NewspaperArticle) HasSubtitle() bool {
 
 func (n *NewspaperArticle) GetTimeWritten(a *Account) string {
 	if a.Exists() {
-		return n.Written.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return n.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return n.Written.Format("2006-01-02 15:04:05 MST")
+	return n.Written.Format(loc.TimeFormatString)
 }
 
 type Newspaper struct {
@@ -52,9 +53,9 @@ type Publication struct {
 
 func (n *Publication) GetPublishedDate(a *Account) string {
 	if a.Exists() {
-		return n.PublishedDate.In(a.TimeZone).Format("2006-01-02 15:04:05 MST")
+		return n.PublishedDate.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
-	return n.PublishedDate.Format("2006-01-02 15:04:05 MST")
+	return n.PublishedDate.Format(loc.TimeFormatString)
 }
 
 func CreateNewspaper(newspaper *Newspaper) error {
