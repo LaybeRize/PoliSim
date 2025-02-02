@@ -77,6 +77,7 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	clearTextPassword := newAccount.Password
 	newAccount.Password, err = database.HashPassword(newAccount.Password)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
@@ -93,7 +94,7 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 
 	page := &handler.CreateAccountPage{MessageUpdate: handler.MessageUpdate{
 		IsError: false,
-		Message: fmt.Sprintf(loc.AccountSuccessfullyCreated, newAccount.Username, newAccount.Password),
+		Message: fmt.Sprintf(loc.AccountSuccessfullyCreated, newAccount.Username, clearTextPassword),
 	}}
 	handler.MakePage(writer, acc, page)
 }

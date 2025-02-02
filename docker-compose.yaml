@@ -24,7 +24,7 @@ services:
     volumes:
       - web_data:/app/data
     image:
-      layberize/polisim:alpha
+      layberize/polisim:testing
 
 
 volumes:
