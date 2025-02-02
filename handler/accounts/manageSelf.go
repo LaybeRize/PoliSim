@@ -4,6 +4,8 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -32,6 +34,8 @@ func GetMyProfile(writer http.ResponseWriter, request *http.Request) {
 	handler.MakeFullPage(writer, acc, page)
 }
 
+const minFontSizeScale = 10
+
 func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
@@ -42,27 +46,27 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 
 	acc.FontSize = values.GetInt("fontScaling")
-	if acc.FontSize < 10 {
+	if acc.FontSize < minFontSizeScale {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die Seitenskalierung kann nicht auf eine Zahl kleiner 10 gesetzt werden"})
+			Message: fmt.Sprintf(loc.AccountFontSizeMustBeBiggerThen, minFontSizeScale)})
 		return
 	}
 	acc.TimeZone, err = time.LoadLocation(values.GetTrimmedString("timeZone"))
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die ausgewählte Zeitzone ist nicht valide"})
+			Message: loc.AccountGivenTimezoneInvalid})
 		return
 	}
 
 	err = database.SetPersonalSettings(acc)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim speichern der persönlichen Informationen"})
+			Message: loc.AccountErrorSavingPersonalSettings})
 		return
 	}
 
@@ -70,7 +74,7 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 		FontScaling: acc.FontSize,
 		TimeZone:    acc.TimeZone.String(),
 		MessageUpdate: handler.MessageUpdate{
-			Message: "Einstellungen erfolgreich gespeichert\nLaden sie die Seite neu, um den Effekt zu sehen",
+			Message: loc.AccountPersonalSettingsSavedSuccessfully,
 			IsError: false,
 		},
 	}
@@ -90,7 +94,7 @@ func PostUpdateMyPassword(writer http.ResponseWriter, request *http.Request) {
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim parsen der Informationen", ElementID: messageIdPassword})
+			Message: loc.RequestParseError, ElementID: messageIdPassword})
 		return
 	}
 
@@ -99,36 +103,37 @@ func PostUpdateMyPassword(writer http.ResponseWriter, request *http.Request) {
 	repeatNewPassword := values.GetString("newPasswordRepeat")
 	if !database.VerifyPassword(acc.Password, oldPassword) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Das alte Passwort ist falsch", ElementID: messageIdPassword})
+			Message: loc.AccountWrongOldPassword, ElementID: messageIdPassword})
 		return
 	}
 	if newPassword != repeatNewPassword {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die Wiederholung stimmt nicht mit dem neuen Passwort überein", ElementID: messageIdPassword})
+			Message: loc.AccountWrongRepeatPassword, ElementID: messageIdPassword})
 		return
 	}
-	if len(newPassword) < 10 {
+	if len(newPassword) < minLengthPassword {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Das neue Passwort ist kürzer als 10 Zeichen", ElementID: messageIdPassword})
+			Message:   fmt.Sprintf(loc.AccountNewPasswordMinimumLength, minLengthPassword),
+			ElementID: messageIdPassword})
 		return
 	}
 	newPassword, err = database.HashPassword(newPassword)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim hashen des neuen Passworts", ElementID: messageIdPassword})
+			Message: loc.AccountErrorHashingNewPassword, ElementID: messageIdPassword})
 		return
 	}
 	acc.Password = newPassword
 	err = database.UpdatePassword(acc)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim speichern des neuen Passworts", ElementID: messageIdPassword})
+			Message: loc.AccountErrorSavingNewPassword, ElementID: messageIdPassword})
 		return
 	}
 
 	page := &handler.ChangePassword{}
 	page.ElementID = messageIdPassword
 	page.IsError = false
-	page.Message = "Passwort erfolgreich angepasst"
+	page.Message = loc.AccountSuccessfullySavedNewPassword
 	handler.MakeSpecialPagePart(writer, page)
 }

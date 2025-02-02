@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -47,7 +48,7 @@ func PostNewDocumentTagPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Parsen der Informationen", ElementID: elementID})
+			Message: loc.RequestParseError, ElementID: elementID})
 		return
 	}
 
@@ -151,7 +152,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 

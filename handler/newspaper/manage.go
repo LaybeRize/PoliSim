@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -55,7 +56,7 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -101,7 +102,7 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -149,7 +150,7 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 

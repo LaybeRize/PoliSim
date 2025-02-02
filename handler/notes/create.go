@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"net/http"
 	"strings"
 	"time"
@@ -46,7 +47,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 

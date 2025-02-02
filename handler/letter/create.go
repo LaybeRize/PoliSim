@@ -49,7 +49,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -141,7 +141,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 

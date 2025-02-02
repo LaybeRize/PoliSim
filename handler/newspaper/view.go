@@ -78,7 +78,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
-			Message: "Fehler beim parsen der Informationen",
+			Message: loc.RequestParseError,
 			IsError: true,
 		})
 		return

@@ -36,7 +36,7 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -92,7 +92,7 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 

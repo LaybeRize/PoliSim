@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"net/http"
 	"net/url"
 )
@@ -25,7 +26,7 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: "Der gesuchte Name ist mit keinem Account verbunden"})
+				Message: loc.AccountSearchedNameDoesNotCorrespond})
 			return
 		}
 		if page.Account.Role == database.PressUser {
@@ -34,14 +35,14 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 			}
 			page.AccountNames, err = database.GetNamesForActiveUsers()
 			if err != nil {
-				page.Message = "Konnte Namen für mögliche Accountbesitzer nicht laden"
+				page.Message = loc.AccountErrorFindingNamesForOwner
 				handler.MakeFullPage(writer, acc, page)
 				return
 			}
 		}
 
 		page.IsError = false
-		page.Message = "Gesuchten Account gefunden"
+		page.Message = loc.AccountFoundSearchedName
 		handler.MakeFullPage(writer, acc, page)
 		return
 	}
@@ -49,7 +50,7 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 	page.AccountNames, page.AccountUsernames, err = database.GetNames()
 	if err != nil {
 		page.IsError = true
-		page.Message = "Es ist ein Fehler bei der Suche nach den Namenslisten aufgetreten"
+		page.Message = loc.AccountErrorSearchingNameList
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -65,7 +66,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -76,7 +77,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(values.GetTrimmedString("name"))
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte keinen Account zum modifizieren finden"})
+			Message: loc.AccountErrorNoAccountToModify})
 		return
 	}
 
@@ -86,7 +87,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 
 	if page.Account.Role <= acc.Role {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Du besitzt nicht die Berechtigung diesen Account anzupassen"})
+			Message: loc.AccountNoPermissionToEdit})
 		return
 	}
 
@@ -96,7 +97,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		page.Account.Role = role
 	} else if page.Account.Role != database.PressUser {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die ausgewählte Rolle ist nicht valide"})
+			Message: loc.AccountRoleIsNotAllowed})
 		return
 	}
 
@@ -104,7 +105,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	err = database.UpdateAccount(page.Account)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Es ist ein Fehler beim updaten des Accounts aufgetreten"})
+			Message: loc.AccountErrorWhileUpdating})
 		return
 	}
 
@@ -112,20 +113,20 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		page.Account.Role == database.PressUser {
 		if ownerAccount.Role == database.PressUser {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: "Ein Presse-Nutzer kann kein Besitzer eines anderen Presse-Nutzers sein"})
+				Message: loc.AccountPressUserOwnerIsPressUser})
 			return
 		}
 
 		err = database.RemoveOwner(page.Account.Name)
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: "Es ist ein Fehler beim entferne des bisherigen Besitzers aufgetreten"})
+				Message: loc.AccountPressUserOwnerRemovingError})
 			return
 		}
 		err = database.MakeOwner(ownerAccount.Name, page.Account.Name)
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: "Es ist ein Fehler beim entferne des bisherigen Besitzers aufgetreten"})
+				Message: loc.AccountPressUserOwnerAddError})
 			return
 		}
 		page.LinkedAccountName = ownerAccount.Name
@@ -135,14 +136,14 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		err = database.RemoveOwner(page.Account.Name)
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: "Es ist ein Fehler beim entferne des bisherigen Besitzers aufgetreten"})
+				Message: loc.AccountPressUserOwnerRemovingError})
 			return
 		}
 		page.LinkedAccountName = ""
 	}
 
 	page.IsError = false
-	page.Message = "Account erfolgreich angepasst"
+	page.Message = loc.AccountSuccessfullyUpdated
 	handler.MakePage(writer, acc, page)
 }
 
@@ -156,7 +157,7 @@ func PostEditSearchAccount(writer http.ResponseWriter, request *http.Request) {
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -167,7 +168,7 @@ func PostEditSearchAccount(writer http.ResponseWriter, request *http.Request) {
 	switch true {
 	case nameErr != nil && usernameErr != nil:
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte keinen Account finden, der den Informationen entspricht"})
+			Message: loc.AccountSearchedNamesDoesNotCorrespond})
 		return
 	case accountByName.Exists():
 		name = accountByName.Name

@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	loc "PoliSim/localisation"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -69,7 +70,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Parsen der Informationen"})
+			Message: loc.RequestParseError})
 		return
 	}
 
