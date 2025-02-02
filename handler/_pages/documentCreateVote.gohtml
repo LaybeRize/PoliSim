@@ -37,8 +37,8 @@
         </select>
         <label for="organisation">Organisation</label>
         {{template "organisationDropdown" .}}
-        <label for="end-time">Ende der Abstimmung ({{.NavInfo.Account.TimeZone.String}})</label>
-        <input  type="datetime-local"
+        <label for="end-time">Ende der Abstimmung (Endet immer um 23:50 UTC des ausgewählten Tages)</label>
+        <input  type="date"
                 id="end-time"
                 name="end-time"
                 value="{{.DateTime}}"

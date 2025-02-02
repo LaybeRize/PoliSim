@@ -12,8 +12,10 @@ import (
 )
 
 const (
-	addMin = time.Hour * 24
-	addMax = time.Hour * 24 * 15
+	addMin     = time.Hour * 24
+	addMax     = time.Hour * 24 * 15
+	runMinDays = 2
+	runMaxDays = 14
 )
 
 func GetCreateDiscussionPage(writer http.ResponseWriter, request *http.Request) {

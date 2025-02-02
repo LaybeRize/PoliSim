@@ -18,11 +18,11 @@ func GetCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	locTime := time.Now().In(acc.TimeZone)
+	year, month, day := time.Now().UTC().Date()
 	page := &handler.CreateVotePage{
-		DateTime: locTime.Add(time.Hour * 48).Format("2006-01-02T15:04"),
-		MinTime:  locTime.Add(addMin).Format("2006-01-02T15:04"),
-		MaxTime:  locTime.Add(addMax).Format("2006-01-02T15:04"),
+		DateTime: time.Date(year, month, day+runMinDays+1, 0, 0, 0, 0, time.UTC).Format("2006-01-02"),
+		MinTime:  time.Date(year, month, day+runMinDays, 0, 0, 0, 0, time.UTC).Format("2006-01-02"),
+		MaxTime:  time.Date(year, month, day+runMaxDays, 0, 0, 0, 0, time.UTC).Format("2006-01-02"),
 	}
 	page.Reader = []string{""}
 	page.Participants = []string{""}
@@ -86,7 +86,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 		Participants:        values.GetTrimmedArray("[]participants"),
 		Reader:              values.GetTrimmedArray("[]reader"),
 		VoteIDs:             values.GetCommaSeperatedArray("votes"),
-		End:                 values.GetTime("end-time", "2006-01-02T15:04", acc.TimeZone),
+		End:                 values.GetTime("end-time", "2006-01-02", time.UTC),
 	}
 
 	if doc.End.IsZero() {
@@ -94,15 +94,14 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 			Message: "Der angegebene Zeitstempel für das Ende ist nicht gültig"})
 		return
 	}
-	// Todo: change the end datetime to a fixed time but not date (23:50 UTC)
 
-	locTime := time.Now().In(acc.TimeZone)
-	if doc.End.Before(locTime.Add(addMin)) || doc.End.After(locTime.Add(addMax)) {
+	doc.End = doc.End.Add((23 * time.Hour) + (50 * time.Minute))
+	currTime := time.Now().UTC()
+	if doc.End.Before(currTime.Add(addMin)) || doc.End.After(currTime.Add(addMax)) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: "Der angegebene Zeitstempel ist entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"})
 		return
 	}
-	doc.End = doc.End.UTC()
 
 	if doc.Title == "" || doc.Body == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
