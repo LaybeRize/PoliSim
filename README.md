@@ -38,6 +38,7 @@ The container composition needs the following environment information to run:
 `````
 DB_PASSWORD=[test]
 DB_USER=neo4j
+NEO4J_AUTH=neo4j/[test]
 DB_ADDRESS=db:7687
 ADDRESS=0.0.0.0:[8080]
 NAME=[Your Name Here]
@@ -46,4 +47,6 @@ PASSWORD=[test]
 LOG_LEVEL=DEBUG
 `````
 `LOG_LEVEL` can be ommitted and everything in [] can be customized, the rest is either required to stay that way, or should
-stay that way if the docker-compose.yaml is used.
+stay that way if the docker-compose.yaml is used. DB_PASSWORD and the password after neo4j/ must be the same, otherwise 
+the server can't connect to the DB. The password must be at least 8 characters by neo4j demand. If you are using the 
+provided compose file, you can actually change NEO4J_AUTH to `${DB_USER}/${DB_PASSWORD}`.
