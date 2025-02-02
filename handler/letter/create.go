@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -65,19 +66,20 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim laden der Flairs für den Autor"})
+			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
 	if letter.Title == "" || letter.Body == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel oder Inhalt sind leer"})
+			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
-	if len(letter.Title) > 400 {
+	const maxTitleLength = 400
+	if len([]rune(letter.Title)) > maxTitleLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel ist zu lang (400 Zeichen maximal)"})
+			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 
@@ -157,13 +159,14 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 
 	if page.Title == "" || page.Body == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel oder Inhalt sind leer"})
+			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
-	if len(page.Title) > 400 {
+	const maxTitleLength = 400
+	if len([]rune(page.Title)) > maxTitleLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel ist zu lang (400 Zeichen maximal)"})
+			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 

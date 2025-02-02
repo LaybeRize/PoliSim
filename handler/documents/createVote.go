@@ -33,7 +33,7 @@ func GetCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message = "Konnte nicht alle möglichen Autoren finden"
+		page.Message = loc.CouldNotFindAllAuthors
 		arr = make([]string, 0)
 	}
 	arr = append([]string{acc.Name}, arr...)
@@ -42,17 +42,17 @@ func GetCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	page.PossibleOrganisations, err = database.GetOrganisationNamesAdminIn(acc.Name)
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message = "\n" + "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"
+		page.Message = "\n" + loc.ErrorFindingAllOrganisationsForAccount
 	}
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
+		page.Message += "\n" + loc.ErrorSearchingForAccountNames
 	}
 	page.VoteChoice, err = database.GetVoteInfoList(acc)
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message += "\n" + "Es ist ein Fehler bei der Suche nach den Abstimmung des Accounts aufgetreten"
+		page.Message += "\n" + loc.DocumentSearchErrorVotes
 	}
 
 	page.Message = strings.TrimSpace(page.Message)
@@ -92,7 +92,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 
 	if doc.End.IsZero() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der angegebene Zeitstempel für das Ende ist nicht gültig"})
+			Message: loc.DocumentGeneralTimestampInvalid})
 		return
 	}
 
@@ -100,19 +100,20 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	currTime := time.Now().UTC()
 	if doc.End.Before(currTime.Add(addMin)) || doc.End.After(currTime.Add(addMax)) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der angegebene Zeitstempel ist entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"})
+			Message: loc.DocumentTimeNotInAreaVote})
 		return
 	}
 
 	if doc.Title == "" || doc.Body == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel oder Inhalt sind leer"})
+			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
-	if len(doc.Title) > 400 {
+	const maxTitleLength = 400
+	if len([]rune(doc.Title)) > maxTitleLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel ist zu lang (400 Zeichen maximal)"})
+			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 
@@ -122,7 +123,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 			slog.Error(err.Error())
 		}
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung um mit diesem Account ein Dokument zu erstellen"})
+			Message: loc.DocumentGeneralMissingPermissionForDocumentCreation})
 		return
 	}
 
@@ -132,7 +133,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim laden der Flairs für den Autor"})
+			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
@@ -140,7 +141,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim erstellen des Dokuments"})
+			Message: loc.DocumentCreateVoteError})
 		return
 	}
 

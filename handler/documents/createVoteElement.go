@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"fmt"
 	"log/slog"
 	"net/http"
 )
@@ -30,7 +31,7 @@ func GetCreateVoteElementPage(writer http.ResponseWriter, request *http.Request)
 	page.Vote, err = database.GetVote(acc, page.CurrNumber)
 	if err != nil {
 		page.IsError = true
-		page.Message = "Konnte die ausgewählte Abstimmung nicht laden"
+		page.Message = loc.DocumentCouldNotLoadPersonalVote
 	}
 
 	if page.Vote == nil {
@@ -63,7 +64,7 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 
 	if page.CurrNumber < voteArray[0] || page.CurrNumber > voteArray[len(voteArray)-1] {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die ausgewählte Nummer für die Abstimmung ist nicht zulässig"})
+			Message: loc.DocumentInvalidVoteNumber})
 		return
 	}
 
@@ -79,31 +80,32 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 
 	if !page.Vote.HasValidType() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der ausgewählte Abstimmungstyp für die Abstimmung ist nicht zulässig"})
+			Message: loc.DocumentInvalidVoteType})
 		return
 	}
 
 	if page.Vote.MaxVotes < 1 && page.Vote.Type == database.VoteShares {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die maximale Stimmenzahl pro Nutzer darf nicht kleiner als 1 sein für den ausgewählten Abstimmungstypen"})
+			Message: loc.DocumentInvalidNumberMaxVotes})
 		return
 	}
 
 	if len(page.Vote.Answers) < 1 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Es muss mindestens eine Antwort zur Abstimmung stehen"})
+			Message: loc.DocumentAmountAnswersTooSmall})
 		return
 	}
 
 	if page.Vote.Question == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die Abstimmung muss eine Frage haben, über die abgestimmt wird"})
+			Message: loc.DocumentVoteMustHaveAQuestion})
 		return
 	}
 
-	if len(page.Vote.Question) > 1000 {
+	const maxQuestionLength = 1000
+	if len([]rune(page.Vote.Question)) > maxQuestionLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die Abstimmungsfrage darf nicht länger als 1000 Zeichen sein"})
+			Message: fmt.Sprintf(loc.DocumentVoteQuestionTooLong, maxQuestionLength)})
 		return
 	}
 
@@ -111,10 +113,10 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		slog.Error(err.Error())
 		page.IsError = true
-		page.Message = "Es ist ein Fehler beim speichern der Abstimmung aufgetreten"
+		page.Message = loc.DocumentErrorSavingUserVote
 	} else {
 		page.IsError = false
-		page.Message = "Abstimmung erfolgreich gespeichert"
+		page.Message = loc.DocumentSuccessfullySavedUserVote
 	}
 
 	handler.MakePage(writer, acc, page)
@@ -147,7 +149,7 @@ func PatchGetVoteElementPage(writer http.ResponseWriter, request *http.Request) 
 	page.Vote, err = database.GetVote(acc, page.CurrNumber)
 	if err != nil {
 		page.IsError = true
-		page.Message = "Konnte die ausgewählte Abstimmung nicht laden"
+		page.Message = loc.DocumentCouldNotLoadPersonalVote
 	}
 
 	if page.Vote == nil {

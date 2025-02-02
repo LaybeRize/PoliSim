@@ -40,7 +40,7 @@ func GetCreateDiscussionPage(writer http.ResponseWriter, request *http.Request) 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message = "Konnte nicht alle möglichen Autoren finden"
+		page.Message = loc.CouldNotFindAllAuthors
 		arr = make([]string, 0)
 	}
 	arr = append([]string{acc.Name}, arr...)
@@ -49,12 +49,12 @@ func GetCreateDiscussionPage(writer http.ResponseWriter, request *http.Request) 
 	page.PossibleOrganisations, err = database.GetOrganisationNamesAdminIn(acc.Name)
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message = "\n" + "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"
+		page.Message = "\n" + loc.ErrorFindingAllOrganisationsForAccount
 	}
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
+		page.Message += "\n" + loc.ErrorSearchingForAccountNames
 	}
 
 	page.Message = strings.TrimSpace(page.Message)
@@ -92,27 +92,28 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 
 	if doc.End.IsZero() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der angegebene Zeitstempel für das Ende ist nicht gültig"})
+			Message: loc.DocumentGeneralTimestampInvalid})
 		return
 	}
 
 	locTime := time.Now().In(acc.TimeZone)
 	if doc.End.Before(locTime.Add(addMin)) || doc.End.After(locTime.Add(addMax)) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der angegebene Zeitstempel ist entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"})
+			Message: loc.DocumentTimeNotInAreaDiscussion})
 		return
 	}
 	doc.End = doc.End.UTC()
 
 	if doc.Title == "" || doc.Body == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel oder Inhalt sind leer"})
+			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
-	if len(doc.Title) > 400 {
+	const maxTitleLength = 400
+	if len([]rune(doc.Title)) > maxTitleLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel ist zu lang (400 Zeichen maximal)"})
+			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 
@@ -122,7 +123,7 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 			slog.Error(err.Error())
 		}
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung um mit diesem Account ein Dokument zu erstellen"})
+			Message: loc.DocumentGeneralMissingPermissionForDocumentCreation})
 		return
 	}
 
@@ -132,7 +133,7 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 	if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim laden der Flairs für den Autor"})
+			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
@@ -140,48 +141,10 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 	if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim erstellen des Dokuments"})
+			Message: loc.DocumentCreateDiscussionError})
 		return
 	}
 
 	writer.Header().Add("HX-Redirect", fmt.Sprintf("/view/document/%s", doc.ID))
 	writer.WriteHeader(http.StatusFound)
-}
-
-func PatchFixUserList(writer http.ResponseWriter, request *http.Request) {
-	_, loggedIn := database.RefreshSession(writer, request)
-	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung"})
-		return
-	}
-
-	values, err := helper.GetAdvancedFormValues(request)
-	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.RequestParseError})
-		return
-	}
-
-	page := &handler.ReaderAndParticipants{
-		Participants: values.GetTrimmedArray("[]participants"),
-		Reader:       values.GetTrimmedArray("[]reader"),
-	}
-
-	page.Reader, err = database.FilterNameListForNonBlocked(page.Reader, 1)
-	if err != nil {
-		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte Lesernamensliste nicht filtern"})
-		return
-	}
-	page.Participants, err = database.FilterNameListForNonBlocked(page.Participants, 1)
-	if err != nil {
-		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte Teilnehmernamensliste nicht filtern"})
-		return
-	}
-
-	handler.MakeSpecialPagePart(writer, page)
 }

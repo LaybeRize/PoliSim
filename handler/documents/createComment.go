@@ -13,7 +13,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Diese Funktion ist nicht verfügbar"})
+			Message: loc.DocumentGeneralFunctionNotAvailable})
 		return
 	}
 
@@ -34,7 +34,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 
 	if comment.Body == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Inhalt ist leer"})
+			Message: loc.ContentIsEmpty})
 		return
 	}
 
@@ -44,7 +44,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 			slog.Error(err.Error())
 		}
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung um mit diesem Account ein Dokument zu erstellen"})
+			Message: loc.DocumentMissingPermissionForComment})
 		return
 	}
 
@@ -52,7 +52,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim laden der Flairs für den Autor"})
+			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
@@ -60,7 +60,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Speichern des Kommentars"})
+			Message: loc.DocumentErrorWhileSavingComment})
 		return
 	}
 

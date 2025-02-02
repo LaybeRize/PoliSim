@@ -37,7 +37,7 @@ func GetEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 
 		page.AccountNames, err = database.GetNonBlockedNames()
 		if err != nil {
-			page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
+			page.Message += "\n" + loc.ErrorSearchingForAccountNames
 		}
 
 		handler.MakeFullPage(writer, acc, page)
@@ -124,7 +124,7 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	page.Message = "Titel erfolgreich angepasst"
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		page.Message += "\n" + "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
+		page.Message += "\n" + loc.ErrorSearchingForAccountNames
 	}
 	handler.MakePage(writer, acc, page)
 }

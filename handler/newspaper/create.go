@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -24,7 +25,7 @@ func GetCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message = "Konnte nicht alle möglichen Autoren finden"
+		page.Message = loc.CouldNotFindAllAuthors
 		arr = make([]string, 0)
 	}
 	arr = append([]string{acc.Name}, arr...)
@@ -66,13 +67,14 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	if article.Title == "" || article.RawBody == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel oder Inhalt sind leer"})
+			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
-	if len(article.Title) > 400 {
+	const maxTitleLength = 400
+	if len([]rune(article.Title)) > maxTitleLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel ist zu lang (400 Zeichen maximal)"})
+			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 
@@ -97,7 +99,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim laden der Flairs für den Autor"})
+			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
@@ -116,7 +118,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message = "\n" + "Konnte nicht alle möglichen Autoren finden"
+		page.Message = "\n" + loc.CouldNotFindAllAuthors
 		arr = make([]string, 0)
 	}
 	arr = append([]string{acc.Name}, arr...)
@@ -135,7 +137,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung"})
+			Message: loc.MissingPermissions})
 		return
 	}
 
@@ -155,7 +157,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 			slog.Error(err.Error())
 		}
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung um die Informationen für diesen Account anzufordern"})
+			Message: loc.MissingPermissionForAccountInfo})
 		return
 	}
 

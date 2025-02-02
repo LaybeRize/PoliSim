@@ -49,14 +49,14 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 
 	if color.Name == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Name der Farbpalette darf nicht leer sein"})
+			Message: loc.DocumentColorPaletteNameNotEmpty})
 		return
 	}
 
 	if !helper.StringIsAColor(color.Background) || !helper.StringIsAColor(color.Text) ||
 		!helper.StringIsAColor(color.Link) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Einer der übergebene Farben ist kein valider Hexcode"})
+			Message: loc.DocumentInvalidColor})
 		return
 	}
 
@@ -65,7 +65,7 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Erstellen der Farbpalette"})
+			Message: loc.DocumentErrorCreatingColorPalette})
 		return
 	}
 
@@ -75,7 +75,7 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 		ColorPalettes:   database.ColorPaletteMap,
 		Color:           *color,
 	}
-	page.Message = "Farbe erfolgreich erstellt/bearbeitet"
+	page.Message = loc.DocumentSuccessfullyCreatedChangedColorPalette
 	page.IsError = false
 
 	handler.MakePage(writer, acc, page)
@@ -99,7 +99,7 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 	name := values.GetTrimmedString("name")
 	if name == loc.StandardColorName {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die Standardfarbe darf nicht gelöscht werden"})
+			Message: loc.DocumentStandardColorNotAllowedToBeDeleted})
 		return
 	}
 
@@ -108,7 +108,7 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Löschen der Farbpalette"})
+			Message: loc.DocumentErrorDeletingColorPalette})
 		return
 	}
 
@@ -118,7 +118,7 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 		ColorPalettes:   database.ColorPaletteMap,
 		Color:           *color,
 	}
-	page.Message = "Farbe erfolgreich gelöscht"
+	page.Message = loc.DocumentSuccessfullyDeletedColorPalette
 	page.IsError = false
 
 	handler.MakePage(writer, acc, page)

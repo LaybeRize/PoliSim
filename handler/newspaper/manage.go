@@ -48,7 +48,7 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 	acc, _ := database.RefreshSession(writer, request)
 	if !acc.IsAtLeastAdmin() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung"})
+			Message: loc.MissingPermissions})
 		return
 	}
 
@@ -94,7 +94,7 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	if !acc.IsAtLeastAdmin() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung"})
+			Message: loc.MissingPermissions})
 		return
 	}
 
@@ -142,7 +142,7 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 	acc, _ := database.RefreshSession(writer, request)
 	if !acc.IsAtLeastAdmin() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung"})
+			Message: loc.MissingPermissions})
 		return
 	}
 

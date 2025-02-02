@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -27,7 +28,7 @@ func GetNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
-		page.Message = "Konnte nicht alle möglichen Autoren finden"
+		page.Message = loc.CouldNotFindAllAuthors
 		arr = make([]string, 0, 1)
 	}
 	arr = append([]string{acc.Name}, arr...)
@@ -87,13 +88,14 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 
 	if note.Title == "" || string(note.Body) == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel oder Inhalt sind leer"})
+			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
-	if len(note.Title) > 400 {
+	const maxTitleLength = 400
+	if len([]rune(note.Title)) > maxTitleLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titel ist zu lang (400 Zeichen maximal)"})
+			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 

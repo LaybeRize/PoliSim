@@ -12,9 +12,20 @@ const (
 	AdministrationAccountName     = "Max Musteradministrator"
 	AdministrationAccountUsername = ""
 	AdministrationAccountPassword = ""
-	StandardColorName             = "Standard Farbe"
-	TimeFormatString              = "02.01.2006 15:04:05 MST"
-	RequestParseError             = "Fehler bei der Verarbeitung der Eingangsinformationen"
+
+	StandardColorName = "Standard Farbe"
+	TimeFormatString  = "02.01.2006 15:04:05 MST"
+
+	RequestParseError                      = "Fehler bei der Verarbeitung der Eingangsinformationen"
+	CouldNotFindAllAuthors                 = "Konnte nicht alle möglichen Autoren finden"
+	ErrorFindingAllOrganisationsForAccount = "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"
+	ContentOrBodyAreEmpty                  = "Titel oder Inhalt sind leer"
+	ContentIsEmpty                         = "Inhalt ist leer"
+	ErrorLoadingFlairInfoForAccount        = "Fehler beim laden der Flairs für den Autor"
+	ErrorTitleTooLong                      = "Titel überschreitet die maximal erlaubte Länge von %d Zeichen"
+	ErrorSearchingForAccountNames          = "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
+	MissingPermissions                     = "Fehlende Berechtigung"
+	MissingPermissionForAccountInfo        = "Fehlende Berechtigung um die Informationen für diesen Account anzufordern"
 
 	// Database Documents
 
@@ -86,6 +97,63 @@ const (
 	AccountErrorHashingNewPassword           = "Fehler beim Verschlüsseln des neuen Passworts"
 	AccountErrorSavingNewPassword            = "Fehler beim Speichern des neuen Passworts"
 	AccountSuccessfullySavedNewPassword      = "Passwort erfolgreich angepasst"
+
+	// Handler Documents
+
+	DocumentGeneralMissingPermissionForDocumentCreation = "Fehlende Berechtigung um mit diesem Account ein Dokument zu erstellen"
+	DocumentGeneralFunctionNotAvailable                 = "Diese Funktion ist nicht verfügbar"
+	DocumentGeneralTimestampInvalid                     = "Der angegebene Zeitstempel für das Ende ist nicht gültig"
+
+	DocumentColorPaletteNameNotEmpty               = "Name der Farbpalette darf nicht leer sein"
+	DocumentInvalidColor                           = "Einer der übergebene Farben ist kein valider, 6-stelliger Hexadezimal-Code"
+	DocumentErrorCreatingColorPalette              = "Fehler beim Erstellen der Farbpalette"
+	DocumentSuccessfullyCreatedChangedColorPalette = "Farbpalette erfolgreich erstellt/bearbeitet"
+	DocumentStandardColorNotAllowedToBeDeleted     = "Die Standardfarbe darf nicht gelöscht werden"
+	DocumentErrorDeletingColorPalette              = "Fehler beim Löschen der Farbpalette"
+	DocumentSuccessfullyDeletedColorPalette        = "Farbe erfolgreich gelöscht"
+
+	DocumentTagTextEmpty              = "Der Tag-Text ist leer"
+	DocumentTagTextTooLong            = "Der Tag-Text ist länger als %d Zeichen"
+	DocumentTagColorInvalidBackground = "Die Farbe für den Hintergrund ist nicht valide"
+	DocumentTagColorInvalidText       = "Die Farbe für den Text ist nicht valide"
+	DocumentTagColorInvalidLink       = "Die Farbe für die Links ist nicht valide"
+	DocumentTagCreationError          = "Fehler beim Erstellen des Tags"
+
+	DocumentCreatePostError = "Fehler beim erstellen des Dokuments"
+
+	DocumentTimeNotInAreaDiscussion     = "Der angegebene Zeitstempel ist entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"
+	DocumentCreateDiscussionError       = "Fehler beim erstellen der Diskussion"
+	DocumentMissingPermissionForComment = "Fehlende Berechtigung um mit diesem Account ein Kommentar zu erstellen"
+	DocumentErrorWhileSavingComment     = "Fehler beim Speichern des Kommentars"
+
+	DocumentSearchErrorVotes  = "Es ist ein Fehler bei der Suche nach den Abstimmung des Accounts aufgetreten"
+	DocumentTimeNotInAreaVote = "Das angegebene Datum ist nach der Zeitanpassung entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"
+	DocumentCreateVoteError   = "Fehler beim erstellen des Abstimmung"
+
+	DocumentCloudNotFilterReaders      = "Konnte Lesernamensliste nicht filtern"
+	DocumentCloudNotFilterParticipants = "Konnte Teilnehmernamensliste nicht filtern"
+
+	DocumentCouldNotLoadPersonalVote  = "Konnte die ausgewählte Abstimmung nicht laden"
+	DocumentInvalidVoteNumber         = "Die ausgewählte Nummer für die Abstimmung ist nicht zulässig"
+	DocumentInvalidVoteType           = "Der ausgewählte Abstimmungstyp für die Abstimmung ist nicht zulässig"
+	DocumentInvalidNumberMaxVotes     = "Die maximale Stimmenzahl pro Nutzer darf nicht kleiner als 1 sein für den ausgewählten Abstimmungstypen"
+	DocumentAmountAnswersTooSmall     = "Es muss mindestens eine Antwort zur Abstimmung stehen"
+	DocumentVoteMustHaveAQuestion     = "Die Abstimmung muss eine Frage haben, über die abgestimmt wird"
+	DocumentVoteQuestionTooLong       = "Die Abstimmungsfrage darf nicht länger als %d Zeichen sein"
+	DocumentErrorSavingUserVote       = "Es ist ein Fehler beim speichern der Abstimmung aufgetreten"
+	DocumentSuccessfullySavedUserVote = "Abstimmung erfolgreich gespeichert"
+
+	DocumentNotAllowedToVoteWithThatAccount = "Fehlende Berechtigung um mit diesem Account abzustimmen"
+	DocumentNotAllowedToVoteOnThis          = "Für diese Abstimmung kann keine Stimme abgegeben werden"
+	DocumentVoteIsInvalid                   = "Die Abgegebene Stimme ist invalide"
+	DocumentVotePositionInvalid             = "Die ausgewählte Position der Antwort ist nicht gültig"
+	DocumentVoteShareNotSmallerZero         = "Die Anzahl an Stimmen pro Antwort darf nicht kleiner als 0 sein"
+	DocumentVoteSumTooBig                   = "Die Summe aller abgegebenen Stimmen überschreitet das festgelegte Maximum"
+	DocumentVoteRankTooBig                  = "Einer der Ränge ist größer als maximal erlaubt"
+	DocumentVoteInvalidDoubleRank           = "Der selbe Rang darf nicht doppelt vergeben werden"
+	DocumentAlreadyVotedWithThatAccount     = "Mit dem Account wurde bereits abgestimmt"
+	DocumentErrorWhileVoting                = "Fehler beim Versuch die Stimme abzugeben\nÜberprüfe ob der Account stimmberechtigt ist"
+	DocumentSuccessfullyVoted               = "Stimme erfolgreich abgegeben"
 )
 
 var replaceMap = map[string]string{}
