@@ -4,9 +4,13 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -15,9 +19,9 @@ var sessionStore = make(map[string]*SessionData)
 var mu sync.Mutex
 
 type SessionData struct {
-	Account   *Account
-	ExpiresAt time.Time
-	UpdateAt  time.Time
+	Account   *Account  `json:"Account,omitempty"`
+	ExpiresAt time.Time `json:"ExpireDate,omitempty"`
+	UpdateAt  time.Time `json:"UpdateDate,omitempty"`
 }
 
 const cleanupInterval = 5 * time.Hour
@@ -148,5 +152,58 @@ func doCleanup() {
 		if time.Now().After(sessionData.ExpiresAt) {
 			delete(sessionStore, sessionID)
 		}
+	}
+}
+
+const cookiesFilePath = folderPath + "/cookies.json"
+
+func loadCookiesFromDisk() {
+	if _, err := os.Stat(cookiesFilePath); errors.Is(err, os.ErrNotExist) {
+		err = os.MkdirAll(folderPath, os.ModePerm)
+		if err != nil {
+			log.Fatalf("Directioary can not be created: %v", err)
+		}
+		sessionStore = make(map[string]*SessionData)
+		return
+	}
+	file, err := os.Open(cookiesFilePath)
+	if err != nil {
+		log.Fatalf("Cookie file not found: %v", err)
+	}
+	err = json.NewDecoder(file).Decode(&sessionStore)
+	if err != nil {
+		log.Fatalf("Cookie file not correctly decoded: %v", err)
+	}
+	doCleanup()
+	for key, session := range sessionStore {
+		session.Account, err = GetAccountByName(session.Account.Name)
+		if err != nil {
+			slog.Error("Could not retrieve Account for Cookie:", "error", err.Error())
+			delete(sessionStore, key)
+			continue
+		}
+	}
+
+}
+
+func saveCookiesToDisk() {
+	file, err := os.Create(cookiesFilePath)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	err = file.Truncate(0)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	err = json.NewEncoder(file).Encode(&sessionStore)
+	if err != nil {
+		slog.Error(err.Error())
 	}
 }

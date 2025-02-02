@@ -11,6 +11,8 @@ import (
 	"sync"
 )
 
+const folderPath = "./data"
+
 var ctx context.Context
 var driver neo4j.DriverWithContext
 var notFoundError = errors.New("item not found")
@@ -51,6 +53,8 @@ func init() {
 	}
 
 	log.Println("Opened connection to the DB")
+	log.Println("Loading Cookies")
+	loadCookiesFromDisk()
 	createConstraints()
 	createRootAccount()
 	createAdminstrationAccount()
@@ -62,6 +66,7 @@ func Shutdown() {
 	shutdown.Lock()
 	defer shutdown.Unlock()
 	saveColorPalettesToDisk()
+	saveCookiesToDisk()
 	err := driver.Close(ctx)
 	if err != nil {
 		log.Fatalf("DB close error: %v", err)

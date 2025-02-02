@@ -11,13 +11,13 @@ import (
 type AccountRole int
 
 type Account struct {
-	Name     string
-	Username string
-	Password string
-	Role     AccountRole
-	Blocked  bool
-	FontSize int
-	TimeZone *time.Location
+	Name     string         `json:"Name,omitempty"`
+	Username string         `json:"-"`
+	Password string         `json:"-"`
+	Role     AccountRole    `json:"-"`
+	Blocked  bool           `json:"-"`
+	FontSize int            `json:"-"`
+	TimeZone *time.Location `json:"-"`
 }
 
 func (a *Account) GetName() string {

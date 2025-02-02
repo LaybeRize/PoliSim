@@ -18,8 +18,7 @@ type ColorPalette struct {
 
 var ColorPaletteMap map[string]ColorPalette
 
-const folderPath = "./data"
-const filePath = folderPath + "/colors.json"
+const colorFilePath = folderPath + "/colors.json"
 
 func init() {
 	loadColorPalettesFromDisk()
@@ -70,7 +69,7 @@ func RemoveColorPalette(name string, acc *Account) (*ColorPalette, error) {
 }
 
 func loadColorPalettesFromDisk() {
-	if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(colorFilePath); errors.Is(err, os.ErrNotExist) {
 		err = os.MkdirAll(folderPath, os.ModePerm)
 		if err != nil {
 			log.Fatalf("Directioary can not be created: %v", err)
@@ -78,16 +77,18 @@ func loadColorPalettesFromDisk() {
 		ColorPaletteMap = make(map[string]ColorPalette)
 		return
 	}
-	file, err := os.Open(filePath)
+	file, err := os.Open(colorFilePath)
 	if err != nil {
 		log.Fatalf("Color file not found: %v", err)
 	}
 	err = json.NewDecoder(file).Decode(&ColorPaletteMap)
-
+	if err != nil {
+		log.Fatalf("Color file not correctly decoded: %v", err)
+	}
 }
 
 func saveColorPalettesToDisk() {
-	file, err := os.Create(filePath)
+	file, err := os.Create(colorFilePath)
 	if err != nil {
 		slog.Error(err.Error())
 		return
