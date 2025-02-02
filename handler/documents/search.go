@@ -13,8 +13,9 @@ func GetSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 	query := helper.GetAdvancedURLValues(request)
 
 	page := &handler.SearchDocumentsPage{
-		Amount: query.GetInt("amount"),
-		Page:   query.GetInt("page"),
+		Amount:      query.GetInt("amount"),
+		Page:        query.GetInt("page"),
+		ShowBlocked: query.GetBool("blocked"),
 	}
 
 	if page.Page < 1 {
@@ -26,7 +27,7 @@ func GetSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 
 	page.HasPrevious = page.Page > 1
 	var err error
-	page.Results, err = database.GetDocumentList(page.Amount+1, page.Page, acc)
+	page.Results, err = database.GetDocumentList(page.Amount+1, page.Page, acc, page.ShowBlocked)
 	if err != nil {
 		page.Results = make([]database.SmallDocument, 0)
 	}
@@ -45,8 +46,9 @@ func PutSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	page := &handler.SearchDocumentsPage{
-		Amount: values.GetInt("amount"),
-		Page:   values.GetInt("page"),
+		Amount:      values.GetInt("amount"),
+		Page:        values.GetInt("page"),
+		ShowBlocked: values.GetBool("blocked"),
 	}
 
 	if page.Page < 1 {
@@ -57,7 +59,7 @@ func PutSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	page.HasPrevious = page.Page > 1
-	page.Results, err = database.GetDocumentList(page.Amount+1, page.Page, acc)
+	page.Results, err = database.GetDocumentList(page.Amount+1, page.Page, acc, page.ShowBlocked)
 	if err != nil {
 		page.Results = make([]database.SmallDocument, 0)
 	}

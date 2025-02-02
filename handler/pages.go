@@ -140,6 +140,7 @@ type SearchNotesPage struct {
 	Query       string
 	Amount      int
 	Page        int
+	ShowBlocked bool
 	HasNext     bool
 	HasPrevious bool
 	Results     []database.TruncatedBlackboardNotes
@@ -567,6 +568,7 @@ type SearchDocumentsPage struct {
 	NavInfo     NavigationInfo
 	Amount      int
 	Page        int
+	ShowBlocked bool
 	HasNext     bool
 	HasPrevious bool
 	Results     []database.SmallDocument

@@ -176,8 +176,8 @@ func queryForRelations(query string, idMap map[string]any) ([]TruncatedBlackboar
 	return arr, err
 }
 
-func SearchForNotes(acc *Account, amount int, page int, input string) ([]TruncatedBlackboardNotes, error) {
-	query, parameter := queryAnalyzer(acc, input)
+func SearchForNotes(acc *Account, amount int, page int, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
+	query, parameter := queryAnalyzer(acc, input, showBlocked)
 	parameter["amount"] = amount
 	parameter["skip"] = (page - 1) * amount
 	result, err := makeRequest(`MATCH (n:Note) 
@@ -204,13 +204,13 @@ RETURN n ORDER BY n.posted_at DESC SKIP $skip LIMIT $amount;`,
 var queryRegexNotes = regexp.MustCompile(`^\s*(.*?)\s*(\[|$)`)
 var authorRegexNotes = regexp.MustCompile(`\[[bB][yY]:\]\s*(.+?)\s*(\[|$)`)
 
-func queryAnalyzer(acc *Account, input string) (query string, parameter map[string]any) {
+func queryAnalyzer(acc *Account, input string, showBlocked bool) (query string, parameter map[string]any) {
 	parameter = make(map[string]any)
 	query = ""
-	if !acc.IsAtLeastAdmin() {
-		query += "n.removed = false"
-	} else {
+	if showBlocked && acc.IsAtLeastAdmin() {
 		query += "true"
+	} else {
+		query += "n.removed = false"
 	}
 
 	result := queryRegexNotes.FindStringSubmatch(input)

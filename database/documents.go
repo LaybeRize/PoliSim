@@ -560,19 +560,23 @@ MERGE (c)-[:ON]->(d);`, map[string]any{
 	return err
 }
 
-func GetDocumentList(amount int, page int, acc *Account) ([]SmallDocument, error) {
+func GetDocumentList(amount int, page int, acc *Account, showBlocked bool) ([]SmallDocument, error) {
 	var query string
 	if !acc.Exists() {
-		query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true `
+		query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true AND d.removed = false `
 	} else if !acc.IsAtLeastAdmin() {
-		query = `CALL { MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true 
+		query = `CALL { MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true AND d.removed = false 
 RETURN d, o
 UNION
-MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE d.public = false AND a.name = $name 
+MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE d.public = false AND d.removed = false AND a.name = $name 
 RETURN d, o 
 } `
 	} else {
-		query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE true `
+		if showBlocked {
+			query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE true `
+		} else {
+			query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.removed = false `
+		}
 	}
 
 	result, err := makeRequest(query+`RETURN d.id, d.type, o.name, d.title, d.author, d.written, d.removed 
