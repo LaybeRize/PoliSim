@@ -56,7 +56,7 @@
             {{if .Document.AllowedToAddTags}}
             <details>
                 <summary>Tag erstellen</summary>
-                <form hx-post="/create/tag/on/{{.Document.ID}}" hx-target="#page-body">
+                <form hx-post="/create/tag/on/{{.Document.ID}}" hx-target="#page-body" hx-confirm="Willst du den Tag so hinzufügen?">
                     <label for="color-palette">Farbpaletten</label>
                     <select id="color-palette" name="color-palette">
                         {{range $pos, $color := .ColorIterator}}
