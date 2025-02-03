@@ -71,14 +71,14 @@ func PatchFixUserList(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.DocumentCloudNotFilterReaders})
+			Message: loc.DocumentCouldNotFilterReaders})
 		return
 	}
 	page.Participants, err = database.FilterNameListForNonBlocked(page.Participants, 1)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.DocumentCloudNotFilterParticipants})
+			Message: loc.DocumentCouldNotFilterParticipants})
 		return
 	}
 

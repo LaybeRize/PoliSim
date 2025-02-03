@@ -28,13 +28,13 @@ func GetEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 		page.IsError = true
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: "Der gesuchte Name ist mit keinem Titel verbunden"})
+				Message: loc.TitleNoTitleWithThatName})
 			return
 		}
 
 		page.Holder = append(page.Holder, "")
 		page.IsError = false
-		page.Message = "Gesuchter Titel gefunden"
+		page.Message = loc.TitleFoundTitle
 
 		page.AccountNames, err = database.GetNonBlockedNames()
 		if err != nil {
@@ -48,7 +48,7 @@ func GetEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	page.Titels, err = database.GetTitleNameList()
 	if err != nil {
 		page.IsError = true
-		page.Message = "Es ist ein Fehler bei der Suche nach der Titelnamensliste aufgetreten"
+		page.Message = loc.TitleErrorSearchingForTitleList
 	}
 
 	handler.MakeFullPage(writer, acc, page)

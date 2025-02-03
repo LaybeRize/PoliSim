@@ -88,7 +88,7 @@ const (
 	AccountSuccessfullyUpdated            = "Account erfolgreich angepasst"
 	AccountSearchedNamesDoesNotCorrespond = "Die gesuchten Namen sind mit keinem Account verbunden"
 
-	AccountFontSizeMustBeBiggerThen          = "Die Seitenskalierung kann nicht auf eine Zahl kleiner %d gesetzt werden"
+	AccountFontSizeMustBeBiggerThen          = "Die Seitenskalierung darf nicht kleiner als %d%% sein"
 	AccountGivenTimezoneInvalid              = "Die ausgewählte Zeitzone ist nicht erlaubt"
 	AccountErrorSavingPersonalSettings       = "Fehler beim speichern der persönlichen Informationen"
 	AccountPersonalSettingsSavedSuccessfully = "Einstellungen erfolgreich gespeichert\nLaden Sie die Seite neu, um den Effekt zu sehen"
@@ -120,7 +120,7 @@ const (
 	DocumentTagColorInvalidLink       = "Die Farbe für die Links ist nicht valide"
 	DocumentTagCreationError          = "Fehler beim Erstellen des Tags"
 
-	DocumentCreatePostError = "Fehler beim erstellen des Dokuments"
+	DocumentCreatePostError = "Fehler beim Erstellen des Dokuments"
 
 	DocumentTimeNotInAreaDiscussion     = "Der angegebene Zeitstempel ist entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"
 	DocumentCreateDiscussionError       = "Fehler beim erstellen der Diskussion"
@@ -131,8 +131,8 @@ const (
 	DocumentTimeNotInAreaVote = "Das angegebene Datum ist nach der Zeitanpassung entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"
 	DocumentCreateVoteError   = "Fehler beim erstellen des Abstimmung"
 
-	DocumentCloudNotFilterReaders      = "Konnte Lesernamensliste nicht filtern"
-	DocumentCloudNotFilterParticipants = "Konnte Teilnehmernamensliste nicht filtern"
+	DocumentCouldNotFilterReaders      = "Konnte Lesernamensliste nicht filtern"
+	DocumentCouldNotFilterParticipants = "Konnte Teilnehmernamensliste nicht filtern"
 
 	DocumentCouldNotLoadPersonalVote  = "Konnte die ausgewählte Abstimmung nicht laden"
 	DocumentInvalidVoteNumber         = "Die ausgewählte Nummer für die Abstimmung ist nicht zulässig"
@@ -158,7 +158,6 @@ const (
 
 	// Handler Letter
 
-	LetterCouldNotLoadAuthors             = "Konnte nicht alle möglichen Autoren laden"
 	LetterErrorLoadingRecipients          = "Konnte mögliche Empfängernamen nicht laden"
 	LetterNotAllowedToPostWithThatAccount = "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"
 	LetterRecipientListUnvalidated        = "Konnte Empfängerliste nicht validieren"
@@ -234,6 +233,9 @@ const (
 	TitleErrorWhileCreating  = "Es ist ein Fehler beim erstellen des Titels aufgetreten (Überprüf ob der Name des Titel einzigartig ist)"
 	TitleSuccessfullyCreated = "Titel erfolgreich erstellt"
 
+	TitleNoTitleWithThatName           = "Der gesuchte Name ist mit keinem Titel verbunden"
+	TitleFoundTitle                    = "Gesuchter Titel gefunden"
+	TitleErrorSearchingForTitleList    = "Es ist ein Fehler bei der Suche nach der Titelnamensliste aufgetreten"
 	TitleErrorWhileUpdatingTitle       = "Es ist ein Fehler beim überarbeiten des Titels aufgetreten"
 	TitleErrorWhileUpdatingTitleHolder = "Konnte Titel-Halter nicht erfolgreich updaten"
 	TitleSuccessfullyUpdated           = "Titel erfolgreich angepasst"

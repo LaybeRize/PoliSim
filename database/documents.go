@@ -155,6 +155,8 @@ func (t *DocumentTag) HasLinks() bool {
 	return len(t.QueriedLinks) != 0
 }
 
+// Todo: Make Comments removable
+
 type DocumentComment struct {
 	ID      string
 	Author  string

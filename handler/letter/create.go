@@ -25,7 +25,7 @@ func GetCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	page.PossibleAuthors, err = database.GetMyAccountNames(acc)
 	if err != nil {
 		page.PossibleAuthors = []string{acc.Name}
-		page.Message = loc.LetterCouldNotLoadAuthors
+		page.Message = loc.CouldNotFindAllAuthors
 	}
 
 	page.AccountNames, err = database.GetNonBlockedNames()
@@ -118,7 +118,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	page.PossibleAuthors, err = database.GetMyAccountNames(acc)
 	if err != nil {
 		page.PossibleAuthors = []string{acc.Name}
-		page.Message += "\n" + loc.LetterCouldNotLoadAuthors
+		page.Message += "\n" + loc.CouldNotFindAllAuthors
 	}
 
 	page.AccountNames, err = database.GetNonBlockedNames()
@@ -194,7 +194,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 	page.PossibleAuthors, err = database.GetMyAccountNames(acc)
 	if err != nil {
 		page.PossibleAuthors = []string{acc.Name}
-		page.Message += "\n" + loc.LetterCouldNotLoadAuthors
+		page.Message += "\n" + loc.CouldNotFindAllAuthors
 	}
 
 	page.AccountNames, err = database.GetNonBlockedNames()
