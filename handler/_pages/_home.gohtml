@@ -3,7 +3,7 @@
     <body id="page-body">
         {{template "header" .NavInfo}}
         {{if .NavInfo.Account.Exists}}
-            <p>Herzlich Willkommen, {{.Account.Name}}</p>
+            <p>Herzlich willkommen, {{.Account.Name}}</p>
             <button hx-post="/logout" hx-target="#page-body">Abmelden</button>
         {{else}}
             <form hx-post="/login" hx-target="#page-body" style="width: var(--standard-small-width);">
