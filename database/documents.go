@@ -155,8 +155,6 @@ func (t *DocumentTag) HasLinks() bool {
 	return len(t.QueriedLinks) != 0
 }
 
-// Todo: Make Comments removable
-
 type DocumentComment struct {
 	ID      string
 	Author  string
@@ -164,6 +162,13 @@ type DocumentComment struct {
 	Written time.Time
 	Body    template.HTML
 	Removed bool
+}
+
+func (c *DocumentComment) GetBody(acc *Account) template.HTML {
+	if !c.Removed || acc.IsAtLeastAdmin() {
+		return c.Body
+	}
+	return loc.DocumentCommentContentRemovedHTML
 }
 
 func (c *DocumentComment) GetTimeWritten(a *Account) string {
@@ -560,6 +565,24 @@ MERGE (c)-[:ON]->(d);`, map[string]any{
 
 	err = tx.Commit()
 	return err
+}
+
+func RemoveRestoreComment(commentID string) {
+	tx, err := openTransaction()
+	defer tx.Close()
+	if err != nil {
+		return
+	}
+
+	err = tx.RunWithoutResult(`MATCH (c:Comment) WHERE c.id = $id  
+SET c.removed = NOT c.removed;`, map[string]any{
+		"id": commentID,
+	})
+	if err != nil {
+		return
+	}
+
+	_ = tx.Commit()
 }
 
 func GetDocumentList(amount int, page int, acc *Account, showBlocked bool) ([]SmallDocument, error) {

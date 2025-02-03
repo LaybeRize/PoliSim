@@ -2,7 +2,10 @@
 
 package loc
 
-import "strings"
+import (
+	"html/template"
+	"strings"
+)
 
 const (
 	AdministrationName            = "Administration"
@@ -27,6 +30,7 @@ const (
 
 	// Database Documents
 
+	DocumentCommentContentRemovedHTML    = template.HTML("<code>[Removed]</code>")
 	DocumentIsPublic                     = "Everyone can view this document."
 	DocumentOnlyForMember                = "Reader: Every organisation member"
 	DocumentFormatStringForReader        = "Reader: Every organisation member and %s"

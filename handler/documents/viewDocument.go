@@ -44,3 +44,18 @@ func PatchRemoveDocument(writer http.ResponseWriter, request *http.Request) {
 		handler.GetNotFoundPage(writer, request)
 	}
 }
+
+func PatchRemoveComment(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	if !acc.IsAtLeastAdmin() {
+		writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+	database.RemoveRestoreComment(request.PathValue("comment"))
+
+	if obj := getDocumentPageObject(acc, request); obj != nil {
+		handler.MakePage(writer, acc, obj)
+	} else {
+		handler.GetNotFoundPage(writer, request)
+	}
+}

@@ -82,6 +82,9 @@
                 <div id="tag-message" hidden></div>
             </details>
             {{end}}
+        </div>
+        <div class="markdown {{if .Document.Removed}}removed{{end}}">{{.Document.Body}}</div>
+        <div class="block-view">
             {{if .NavInfo.Account.IsAtLeastAdmin}}
                 <a class="button-link spacing" hx-patch="/change/blocked/document/{{.Document.ID}}"
                    hx-target="#page-body">
@@ -89,7 +92,6 @@
                 </a>
             {{end}}
         </div>
-        <div class="markdown {{if .Document.Removed}}removed{{end}}">{{.Document.Body}}</div>
             {{if .Document.IsDiscussion}}{{template "discussion" .}}{{end}}
             {{if .Document.IsVote}}{{template "vote" .}}{{end}}
     </div>
@@ -104,13 +106,21 @@
             <h1>Kommentare</h1>
         </div>
     {{end}}
+    {{$isAdmin := $acc.IsAtLeastAdmin}}
+    {{$docID := .Document.ID}}
     {{range $comment := .Document.Comments}}
         <hr class="splitter">
         <div class="block-view">
             Geschrieben von: {{$comment.GetAuthor}}<br>
             <i>Verfasst am: {{$comment.GetTimeWritten $acc}}</i>
         </div>
-        <div class="markdown">{{$comment.Body}}</div>
+        <div class="markdown {{if $comment.Removed}}removed{{end}}">{{$comment.GetBody $acc}}</div>
+        {{if $isAdmin}}
+            <a class="button-link spacing" hx-patch="/change/blocked/comment/{{$comment.ID}}/on/{{$docID}}"
+               hx-target="#page-body">
+                {{if $comment.Removed}}Kommentar wieder freigeben{{else}}Kommentar blockieren{{end}}
+            </a>
+        {{end}}
     {{end}}
     {{if .CanComment}}
         <hr class="splitter">

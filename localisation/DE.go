@@ -30,6 +30,7 @@ const (
 
 	// Database Documents
 
+	DocumentCommentContentRemovedHTML    = template.HTML("<code>[Inhalt wurde entfernt]</code>")
 	DocumentIsPublic                     = "Jeder kann dieses Dokument lesen."
 	DocumentOnlyForMember                = "Leser: Alle Organisationsmitglieder"
 	DocumentFormatStringForReader        = "Leser: Alle Organisationsmitglieder plus %s"

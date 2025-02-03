@@ -64,6 +64,7 @@ func main() {
 	http.HandleFunc("GET /search/documents", documents.GetSearchDocumentsPage)
 	http.HandleFunc("PUT /search/documents", documents.PutSearchDocumentsPage)
 	http.HandleFunc("PATCH /change/blocked/document/{id}", documents.PatchRemoveDocument)
+	http.HandleFunc("PATCH /change/blocked/comment/{comment}/on/{id}", documents.PatchRemoveComment)
 	http.HandleFunc("GET /view/vote/{id}", documents.GetVoteView)
 	http.HandleFunc("POST /vote/on/{id}", documents.PostVote)
 
