@@ -17,7 +17,7 @@ func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	values, err := helper.GetAdvancedFormValues(request)
+	values, err := helper.GetAdvancedFormValuesWithoutDebugLogger(request)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})

@@ -3,6 +3,8 @@ package titles
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	loc "PoliSim/localisation"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -23,9 +25,9 @@ func GetSingleViewTitle(writer http.ResponseWriter, request *http.Request) {
 		part.Found = true
 		part.Flair = title.Flair
 		if len(holder) == 0 {
-			part.Holder = "Dieser Titel wird von niemandem gehalten"
+			part.Holder = loc.TitleHasNoHolder
 		} else {
-			part.Holder = "Titel-Halter: " + strings.Join(holder, ", ")
+			part.Holder = fmt.Sprintf(loc.TitleHolderFormatString, strings.Join(holder, ", "))
 		}
 	}
 

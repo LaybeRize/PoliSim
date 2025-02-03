@@ -3,6 +3,8 @@ package organisations
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	loc "PoliSim/localisation"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -36,14 +38,14 @@ func GetSingleOrganisationView(writer http.ResponseWriter, request *http.Request
 	}
 	if err == nil {
 		if len(user) == 0 {
-			part.User = "Diese Organisation hat keine Mitglieder"
+			part.User = loc.OrganisationHasNoMember
 		} else {
-			part.User = "Mitglieder: " + strings.Join(user, ", ")
+			part.User = fmt.Sprintf(loc.OrganisationMemberList, strings.Join(user, ", "))
 		}
 		if len(admin) == 0 {
-			part.Admin = "Diese Organisation hat keine Administratoren"
+			part.Admin = loc.OrganisationHasNoAdministrator
 		} else {
-			part.Admin = "Administratoren: " + strings.Join(admin, ", ")
+			part.Admin = fmt.Sprintf(loc.OrganisationAdministratorList, strings.Join(admin, ", "))
 		}
 	}
 

@@ -26,6 +26,7 @@ const (
 	ErrorSearchingForAccountNames          = "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
 	MissingPermissions                     = "Fehlende Berechtigung"
 	MissingPermissionForAccountInfo        = "Fehlende Berechtigung um die Informationen für diesen Account anzufordern"
+	ErrorLoadingAccountNames               = "Konnte Accountnamen nicht laden"
 
 	// Database Documents
 
@@ -154,6 +155,129 @@ const (
 	DocumentAlreadyVotedWithThatAccount     = "Mit dem Account wurde bereits abgestimmt"
 	DocumentErrorWhileVoting                = "Fehler beim Versuch die Stimme abzugeben\nÜberprüfe ob der Account stimmberechtigt ist"
 	DocumentSuccessfullyVoted               = "Stimme erfolgreich abgegeben"
+
+	// Handler Letter
+
+	LetterCouldNotLoadAuthors             = "Konnte nicht alle möglichen Autoren laden"
+	LetterErrorLoadingRecipients          = "Konnte mögliche Empfängernamen nicht laden"
+	LetterNotAllowedToPostWithThatAccount = "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"
+	LetterRecipientListUnvalidated        = "Konnte Empfängerliste nicht validieren"
+	LetterNeedAtLeastOneRecipient         = "Die Anzahl an Empfängern für den Brief darf nicht 0 sein"
+	LetterAllowedToBeSent                 = "Der Brief darf so versendet werden"
+	LetterErrorWhileSending               = "Es ist ein Fehler beim erstellen des Briefs aufgetreten"
+	LetterSuccessfullySendLetter          = "Brief erfolgreich erstellt"
+
+	// Handler Newspaper
+
+	NewspaperCouldNotLoadAllNewspaperForAccount = "Konnte nicht alle möglichen Zeitungen für ausgewählten Account finden"
+	NewspaperSubtitleTooLong                    = "Untertitel überschreitet die maximal erlaubte Länge von %d Zeichen"
+	NewspaperMissingPermissionForNewspaper      = "Fehlende Berechtigung um mit diesem Account in dieser Zeitung zu posten"
+	NewspaperErrorWhileCreatingArticle          = "Fehler beim erstellen des Artikels"
+	NewspaperSuccessfullyCreatedArticle         = "Artikel erfolgreich erstellt"
+
+	NewspaperErrorLoadingNewspaperNames   = "Konnte Zeitungsnamen nicht laden"
+	NewspaperErrorWhileCreatingNewspaper  = "Fehler beim Erstellen der Zeitung (überprüfe ob die Zeitung bereits existiert)"
+	NewspaperSuccessfullyCreatedNewspaper = "Zeitung erfolgreich erstellt"
+	NewspaperErrorWhileSearchingNewspaper = "Fehler bei der Suche der Zeitung"
+	NewspaperSuccessfullyFoundNewspaper   = "Zeitung gefunden"
+	NewspaperErrorWhileChangingNewspaper  = "Fehler beim Anpassen der Zeitung"
+	NewspaperErrorWhileAddingReporters    = "Fehler beim hinzufügen der neuen Autoren zur Zeitung"
+	NewspaperSuccessfullyChangedNewspaper = "Zeitung angepasst"
+
+	NewspaperErrorDuringPublication       = "Es ist ein Fehler beim Publizieren aufgetreten"
+	NewspaperRejectionMessageEmpty        = "Der Zurückweisungsgrund darf nicht leer sein"
+	NewspaperErrorFindingArticleToReject  = "Konnte keinen Artikel mit der angegeben ID finden, welcher noch nicht publiziert wurde"
+	NewspaperErrorDeletingArticle         = "Konnte den Artikel nicht löschen"
+	NewspaperFormatTitleForRejection      = "Zurückweisung des Artikels '%s' geschrieben für %s"
+	NewspaperFormatContentForRejection    = "# Zurückweisungsgrund\n\n%s\n\n# Artikelinhalt\n\n```%s```"
+	NewspaperErrorCreatingRejectionLetter = "Fehler beim erstellen des Briefs an den Autor des Artikels"
+
+	// Handler Notes
+
+	NoteAuthorIsInvalid         = "Mit dem ausgewählte Autor ist es nicht möglich eine Notiz zu verfassen"
+	NoteErrorWhileCreatingNote  = "Es ist ein Fehler beim erstellen der Notiz aufgetreten"
+	NoteSuccessfullyCreatedNote = "Notiz erfolgreich erstellt"
+
+	// Handler Organisations
+
+	OrganisationGeneralInformationEmpty                          = "Organisationsname, Hauptgruppe oder Untergruppe ist leer"
+	OrganisationGeneralNameTooLong                               = "Organisationsname überschreitet die maximal erlaubte Länge von %d Zeichen"
+	OrganisationGeneralMainGroupTooLong                          = "Hauptgruppe überschreitet die maximal erlaubte Länge von %d Zeichen"
+	OrganisationGeneralSubGroupTooLong                           = "Untergruppe überschreitet die maximal erlaubte Länge von %d Zeichen"
+	OrganisationGeneralFlairContainsInvalidCharactersOrIsTooLong = "Flair enthält ein Komma, Semikolon oder ist länger als %d Zeichen"
+	OrganisationGeneralInvalidVisibility                         = "Die ausgewählte Sichtbarkeit ist nicht valide"
+
+	OrganisationErrorWhileCreating  = "Es ist ein Fehler beim erstellen der Organisation aufgetreten (Überprüf ob der Name der Organisation einzigartig ist)"
+	OrganisationSuccessfullyCreated = "Organisation erfolgreich erstellt"
+
+	OrganisationNoOrganisationWithThatName        = "Der gesuchte Name ist mit keiner Organisation verbunden"
+	OrganisationFoundOrganisation                 = "Gesuchte Organisation gefunden"
+	OrganisationErrorSearchingForOrganisationList = "Es ist ein Fehler bei der Suche nach der Organisationsnamensliste aufgetreten"
+	OrganisationErrorUpdatingOrganisation         = "Es ist ein Fehler beim überarbeiten der Organisation aufgetreten"
+	OrganisationErrorUpdatingOrganisationMember   = "Konnte Organisationsmitglieder nicht erfolgreich updaten"
+	OrganisationSuccessfullyUpdated               = "Organisation erfolgreich angepasst"
+	OrganisationNotFoundByName                    = "Konnte keine Organisation finden, die den Namen trägt"
+
+	OrganisationHasNoMember        = "Diese Organisation hat keine Mitglieder"
+	OrganisationMemberList         = "Mitglieder: %s"
+	OrganisationHasNoAdministrator = "Diese Organisation hat keine Administratoren"
+	OrganisationAdministratorList  = "Administratoren: %s"
+
+	// Handler Titles
+
+	TitleGeneralInformationEmpty                          = "Titelname, Hauptgruppe oder Untergruppe ist leer"
+	TitleGeneralNameTooLong                               = "Titelname überschreitet die maximal erlaubte Länge von %d Zeichen"
+	TitleGeneralMainGroupTooLong                          = "Hauptgruppe überschreitet die maximal erlaubte Länge von %d Zeichen"
+	TitleGeneralSubGroupTooLong                           = "Untergruppe überschreitet die maximal erlaubte Länge von %d Zeichen"
+	TitleGeneralFlairContainsInvalidCharactersOrIsTooLong = "Flair enthält ein Komma, Semikolon oder ist länger als %d Zeichen"
+
+	TitleErrorWhileCreating  = "Es ist ein Fehler beim erstellen des Titels aufgetreten (Überprüf ob der Name des Titel einzigartig ist)"
+	TitleSuccessfullyCreated = "Titel erfolgreich erstellt"
+
+	TitleErrorWhileUpdatingTitle       = "Es ist ein Fehler beim überarbeiten des Titels aufgetreten"
+	TitleErrorWhileUpdatingTitleHolder = "Konnte Titel-Halter nicht erfolgreich updaten"
+	TitleSuccessfullyUpdated           = "Titel erfolgreich angepasst"
+	TitleNotFoundByName                = "Konnte keinen Titel finden, der den Namen trägt"
+
+	TitleHasNoHolder        = "Dieser Titel wird von niemandem gehalten"
+	TitleHolderFormatString = "Titel-Halter: %s"
+
+	// Handler Markdown Go
+
+	MarkdownParseError = "`Anfrage konnte nicht verarbeitet werden`"
+
+	// Handler Pages Go
+
+	PagesHomePage               = "Home"
+	PagesNotFoundPage           = "Seite nicht gefunden"
+	PagesCreateAccountPage      = "Nutzer erstellen"
+	PagesMyProfilePage          = "Mein Profil"
+	PagesEditAccountPage        = "Accounts anpassen"
+	PagesNotesPage              = "Notizen anschauen"
+	PagesCreateNotesPage        = "Notiz erstellen"
+	PagesSearchNotesPage        = "Notizen durchsuchen"
+	PagesCreateTitlePage        = "Titel erstellen"
+	PagesEditTitlePage          = "Titel bearbeiten"
+	PagesCreateOrganisationPage = "Organisation erstellen"
+	PagesEditOrganisationPage   = "Organisation bearbeiten"
+	PagesViewTitlePage          = "Titelübersicht"
+	PagesViewOrganisationPage   = "Organisationsübersicht"
+	PagesManageNewspaperPage    = "Zeitungen verwalten"
+	PagesCreateArticlePage      = "Artikel erstellen"
+	PagesViewPublicationPage    = "Zeitung"
+	PagesSearchPublicationsPage = "Zeitungen durchsuchen"
+	PagesSearchLetterPage       = "Briefe durchsuchen"
+	PagesCreateLetterPage       = "Brief erstellen"
+	PagesAdminSearchLetterPage  = "Briefsuche mit ID"
+	PagesViewLetterPage         = "Briefansicht"
+	PagesDocumentViewPage       = "Dokumentansicht"
+	PagesCreateDocumentPage     = "Dokument erstellen"
+	PagesCreateDiscussionPage   = "Diskussion erstellen"
+	PagesCreateVoteElementPage  = "Abstimmungen verwalten"
+	PagesCreateVotePage         = "Abstimmungsdokument erstellen"
+	PagesSearchDocumentsPage    = "Dokumente durchsuchen"
+	PagesViewVotePage           = "Abstimmungsansicht"
+	PagesEditColorPage          = "Farbpaletten anpassen"
 )
 
 var replaceMap = map[string]string{}

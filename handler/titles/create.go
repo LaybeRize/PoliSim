@@ -5,8 +5,16 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"fmt"
 	"net/http"
 	"strings"
+)
+
+const (
+	maxNameLength     = 600
+	maxMainTypeLength = 400
+	maxSubTypeLength
+	maxFlairLength = 200
 )
 
 func GetCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
@@ -21,7 +29,7 @@ func GetCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
 		page.IsError = true
-		page.Message = "Konnte Accountnamen nicht laden"
+		page.Message = loc.ErrorLoadingAccountNames
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -49,46 +57,51 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 	}
 	names := values.GetTrimmedArray("[]holder")
 
-	if newTitle.Name == "" || len(newTitle.Name) > 400 {
+	if newTitle.Name == "" || newTitle.MainType == "" || newTitle.SubType == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titelname leer oder länger als 400 Zeichen"})
+			Message: loc.TitleGeneralInformationEmpty})
 		return
 	}
 
-	if newTitle.MainType == "" || len(newTitle.MainType) > 200 {
+	if len([]rune(newTitle.Name)) > maxNameLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Hauptgruppe leer oder länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.TitleGeneralNameTooLong, maxNameLength)})
 		return
 	}
 
-	if newTitle.SubType == "" || len(newTitle.SubType) > 200 {
+	if len([]rune(newTitle.MainType)) > maxMainTypeLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Untergruppe leer oder länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.TitleGeneralMainGroupTooLong, maxMainTypeLength)})
+		return
+	}
+
+	if len([]rune(newTitle.SubType)) > maxSubTypeLength {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: fmt.Sprintf(loc.TitleGeneralSubGroupTooLong, maxSubTypeLength)})
 		return
 	}
 
 	if strings.Contains(newTitle.Flair, ",") ||
 		strings.Contains(newTitle.Flair, ";") ||
-		len(newTitle.Flair) > 200 {
+		len([]rune(newTitle.Flair)) > maxFlairLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Flair enthält ein Komma, Semikolon oder ist länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.TitleGeneralFlairContainsInvalidCharactersOrIsTooLong, maxFlairLength)})
 		return
 	}
 
 	err = database.CreateTitle(newTitle, names)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Es ist ein Fehler beim erstellen des Titels aufgetreten (Überprüf ob der Name des Titel " +
-				"einzigartig ist)"})
+			Message: loc.TitleErrorWhileCreating})
 		return
 	}
 
 	page := &handler.CreateTitlePage{Holder: []string{""}}
 	page.IsError = false
-	page.Message = "Titel erfolgreich erstellt"
+	page.Message = loc.TitleSuccessfullyCreated
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		page.Message = "\nKonnte Accountnamen nicht laden"
+		page.Message = "\n" + loc.ErrorLoadingAccountNames
 	}
 	handler.MakeFullPage(writer, acc, page)
 }

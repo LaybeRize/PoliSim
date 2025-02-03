@@ -3,8 +3,8 @@ package letter
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	loc "PoliSim/localisation"
-	"log/slog"
 	"net/http"
 )
 
@@ -25,8 +25,7 @@ func GetLetterViewPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	id := request.PathValue("id")
-	reader := request.URL.Query().Get("viewer")
-	slog.Debug("information", "id", id, "reader", reader)
+	reader := helper.GetAdvancedURLValues(request).GetString("viewer")
 	if allowed, err := database.IsAccountAllowedToPostWith(acc, reader); !checkValidSpecialAccounts(acc, reader) &&
 		(!allowed || err != nil) {
 		handler.GetNotFoundPage(writer, request)
@@ -49,7 +48,8 @@ func PatchLetterViewPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	id := request.PathValue("id")
-	reader := request.URL.Query().Get("viewer")
+	query := helper.GetAdvancedURLValues(request)
+	reader := query.GetTrimmedString("viewer")
 	if allowed, err := database.IsAccountAllowedToPostWith(acc, reader); !checkValidSpecialAccounts(acc, reader) &&
 		(!allowed || err != nil) {
 		writer.WriteHeader(http.StatusForbidden)
@@ -57,7 +57,7 @@ func PatchLetterViewPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	var err error
-	switch request.URL.Query().Get("decision") {
+	switch query.GetTrimmedString("decision") {
 	case "accept":
 		err = database.UpdateSingatureStatus(id, reader, true)
 	case "decline":

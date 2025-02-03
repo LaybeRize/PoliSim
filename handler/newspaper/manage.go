@@ -24,14 +24,14 @@ func GetManageNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		page.IsError = true
-		page.Message = "Konnte Accountnamen nicht laden"
+		page.Message = loc.ErrorLoadingAccountNames
 	}
 
 	page.NewspaperNames, err = database.GetNewspaperNameList()
 	if err != nil {
 		slog.Debug(err.Error())
 		page.IsError = true
-		page.Message = "\n" + "Konnte Zeitungsnamen nicht laden"
+		page.Message = "\n" + loc.NewspaperErrorLoadingNewspaperNames
 		page.Message = strings.TrimSpace(page.Message)
 	}
 
@@ -54,7 +54,6 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
@@ -68,17 +67,17 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Erstellen der Zeitung (überprüfe ob die Zeitung bereits existiert)"})
+			Message: loc.NewspaperErrorWhileCreatingNewspaper})
 		return
 	}
 
 	page := &handler.ManageNewspaperPage{MessageUpdate: handler.MessageUpdate{IsError: false,
-		Message: "Zeitung erfolgreich erstellt"}, HadError: false}
+		Message: loc.NewspaperSuccessfullyCreatedNewspaper}, HadError: false}
 
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message = "\n" + "Konnte Accountnamen nicht laden"
+		page.Message = "\n" + loc.ErrorLoadingAccountNames
 	}
 
 	page.Publications, err = database.GetUnpublishedPublications()
@@ -113,11 +112,11 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler bei der Suche der Zeitung"})
+			Message: loc.NewspaperErrorWhileSearchingNewspaper})
 		return
 	}
 
-	page.Message = "Zeitung gefunden"
+	page.Message = loc.NewspaperSuccessfullyFoundNewspaper
 	newspaper.Authors = append(newspaper.Authors, "")
 	page.Newspaper = *newspaper
 
@@ -125,14 +124,14 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug(err.Error())
 		page.IsError = true
-		page.Message = "\n" + "Konnte Accountnamen nicht laden"
+		page.Message = "\n" + loc.ErrorLoadingAccountNames
 	}
 
 	page.NewspaperNames, err = database.GetNewspaperNameList()
 	if err != nil {
 		slog.Debug(err.Error())
 		page.IsError = true
-		page.Message = "\n" + "Konnte Zeitungsnamen nicht laden"
+		page.Message = "\n" + loc.NewspaperErrorLoadingNewspaperNames
 	}
 
 	handler.MakeSpecialPagePart(writer, page)
@@ -164,14 +163,14 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim Anpassen der Zeitung"})
+			Message: loc.NewspaperErrorWhileChangingNewspaper})
 		return
 	}
 	err = database.UpdateNewspaper(&page.Newspaper)
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim hinzufügen der neuen Autoren zur Zeitung"})
+			Message: loc.NewspaperErrorWhileAddingReporters})
 		return
 	}
 
@@ -180,19 +179,19 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 		page.Newspaper = *newspaper
 	}
 
-	page.Message = "Zeitung angepasst"
+	page.Message = loc.NewspaperSuccessfullyChangedNewspaper
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
 		slog.Debug(err.Error())
 		page.IsError = true
-		page.Message = "\n" + "Konnte Accountnamen nicht laden"
+		page.Message = "\n" + loc.ErrorLoadingAccountNames
 	}
 
 	page.NewspaperNames, err = database.GetNewspaperNameList()
 	if err != nil {
 		slog.Debug(err.Error())
 		page.IsError = true
-		page.Message = "\n" + "Konnte Zeitungsnamen nicht laden"
+		page.Message = "\n" + loc.NewspaperErrorLoadingNewspaperNames
 	}
 
 	handler.MakeSpecialPagePart(writer, page)

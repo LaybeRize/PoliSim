@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -76,43 +77,49 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	}
 	names := values.GetTrimmedArray("[]holder")
 
-	if titleUpdate.Name == "" || len(titleUpdate.Name) > 400 {
+	if titleUpdate.Name == "" || titleUpdate.MainType == "" || titleUpdate.SubType == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Titelname leer oder länger als 400 Zeichen"})
+			Message: loc.TitleGeneralInformationEmpty})
 		return
 	}
 
-	if titleUpdate.MainType == "" || len(titleUpdate.MainType) > 200 {
+	if len([]rune(titleUpdate.Name)) > maxNameLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Hauptgruppe leer oder länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.TitleGeneralNameTooLong, maxNameLength)})
 		return
 	}
 
-	if titleUpdate.SubType == "" || len(titleUpdate.SubType) > 200 {
+	if len([]rune(titleUpdate.MainType)) > maxMainTypeLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Untergruppe leer oder länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.TitleGeneralMainGroupTooLong, maxMainTypeLength)})
+		return
+	}
+
+	if len([]rune(titleUpdate.SubType)) > maxSubTypeLength {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: fmt.Sprintf(loc.TitleGeneralSubGroupTooLong, maxSubTypeLength)})
 		return
 	}
 
 	if strings.Contains(titleUpdate.Flair, ",") ||
 		strings.Contains(titleUpdate.Flair, ";") ||
-		len(titleUpdate.Flair) > 200 {
+		len([]rune(titleUpdate.Flair)) > maxFlairLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Flair enthält ein Komma, Semikolon oder ist länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.TitleGeneralFlairContainsInvalidCharactersOrIsTooLong, maxFlairLength)})
 		return
 	}
 
 	err = database.UpdateTitle(oldTitleName, titleUpdate)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Es ist ein Fehler beim überarbeiten des Titels aufgetreten"})
+			Message: loc.TitleErrorWhileUpdatingTitle})
 		return
 	}
 
 	err = database.AddTitleHolder(titleUpdate, names)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte Titel-Halter nicht erfolgreich updaten"})
+			Message: loc.TitleErrorWhileUpdatingTitleHolder})
 		return
 	}
 
@@ -121,7 +128,7 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 		page.Holder = append(actualHolder, "")
 	}
 	page.IsError = false
-	page.Message = "Titel erfolgreich angepasst"
+	page.Message = loc.TitleSuccessfullyUpdated
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
 		page.Message += "\n" + loc.ErrorSearchingForAccountNames
@@ -147,7 +154,7 @@ func PutTitleSearchPage(writer http.ResponseWriter, request *http.Request) {
 	_, err = database.GetTitleByName(name)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte keinen Titel finden, der den Namen trägt"})
+			Message: loc.TitleNotFoundByName})
 		return
 	}
 

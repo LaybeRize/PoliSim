@@ -812,65 +812,65 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 
 	switch data.(type) {
 	case *HomePage:
-		fullPage.Base.Title = "Home"
+		fullPage.Base.Title = loc.PagesHomePage
 	case *NotFoundPage:
-		fullPage.Base.Title = "Seite nicht gefunden"
+		fullPage.Base.Title = loc.PagesNotFoundPage
 	case *CreateAccountPage:
-		fullPage.Base.Title = "Nutzer erstellen"
+		fullPage.Base.Title = loc.PagesCreateAccountPage
 	case *MyProfilePage:
-		fullPage.Base.Title = "Mein Profil"
+		fullPage.Base.Title = loc.PagesMyProfilePage
 	case *EditAccountPage:
-		fullPage.Base.Title = "Accounts anpassen"
+		fullPage.Base.Title = loc.PagesEditAccountPage
 	case *NotesPage:
-		fullPage.Base.Title = "Notizen anschauen"
+		fullPage.Base.Title = loc.PagesNotesPage
 	case *CreateNotesPage:
-		fullPage.Base.Title = "Notiz erstellen"
+		fullPage.Base.Title = loc.PagesCreateNotesPage
 	case *SearchNotesPage:
-		fullPage.Base.Title = "Notizen durchsuchen"
+		fullPage.Base.Title = loc.PagesSearchNotesPage
 	case *CreateTitlePage:
-		fullPage.Base.Title = "Titel erstellen"
+		fullPage.Base.Title = loc.PagesCreateTitlePage
 	case *EditTitlePage:
-		fullPage.Base.Title = "Titel bearbeiten"
+		fullPage.Base.Title = loc.PagesEditTitlePage
 	case *CreateOrganisationPage:
-		fullPage.Base.Title = "Organisation erstellen"
+		fullPage.Base.Title = loc.PagesCreateOrganisationPage
 	case *EditOrganisationPage:
-		fullPage.Base.Title = "Organisation bearbeiten"
+		fullPage.Base.Title = loc.PagesEditOrganisationPage
 	case *ViewTitlePage:
-		fullPage.Base.Title = "Titelübersicht"
+		fullPage.Base.Title = loc.PagesViewTitlePage
 	case *ViewOrganisationPage:
-		fullPage.Base.Title = "Organisationsübersicht"
+		fullPage.Base.Title = loc.PagesViewOrganisationPage
 	case *ManageNewspaperPage:
-		fullPage.Base.Title = "Zeitungen verwalten"
+		fullPage.Base.Title = loc.PagesManageNewspaperPage
 	case *CreateArticlePage:
-		fullPage.Base.Title = "Artikel erstellen"
+		fullPage.Base.Title = loc.PagesCreateArticlePage
 	case *ViewPublicationPage:
-		fullPage.Base.Title = "Zeitung"
+		fullPage.Base.Title = loc.PagesViewPublicationPage
 	case *SearchPublicationsPage:
-		fullPage.Base.Title = "Zeitungen durchsuchen"
+		fullPage.Base.Title = loc.PagesSearchPublicationsPage
 	case *SearchLetterPage:
-		fullPage.Base.Title = "Briefe durchsuchen"
+		fullPage.Base.Title = loc.PagesSearchLetterPage
 	case *CreateLetterPage:
-		fullPage.Base.Title = "Brief erstellen"
+		fullPage.Base.Title = loc.PagesCreateLetterPage
 	case *AdminSearchLetterPage:
-		fullPage.Base.Title = "Briefsuche mit ID"
+		fullPage.Base.Title = loc.PagesAdminSearchLetterPage
 	case *ViewLetterPage:
-		fullPage.Base.Title = "Briefansicht"
+		fullPage.Base.Title = loc.PagesViewLetterPage
 	case *DocumentViewPage:
-		fullPage.Base.Title = "Dokumentansicht"
+		fullPage.Base.Title = loc.PagesDocumentViewPage
 	case *CreateDocumentPage:
-		fullPage.Base.Title = "Dokument erstellen"
+		fullPage.Base.Title = loc.PagesCreateDocumentPage
 	case *CreateDiscussionPage:
-		fullPage.Base.Title = "Diskussion erstellen"
+		fullPage.Base.Title = loc.PagesCreateDiscussionPage
 	case *CreateVoteElementPage:
-		fullPage.Base.Title = "Abstimmungen verwalten"
+		fullPage.Base.Title = loc.PagesCreateVoteElementPage
 	case *CreateVotePage:
-		fullPage.Base.Title = "Abstimmungsdokument erstellen"
+		fullPage.Base.Title = loc.PagesCreateVotePage
 	case *SearchDocumentsPage:
-		fullPage.Base.Title = "Dokumente durchsuchen"
+		fullPage.Base.Title = loc.PagesSearchDocumentsPage
 	case *ViewVotePage:
-		fullPage.Base.Title = "Abstimmungsansicht"
+		fullPage.Base.Title = loc.PagesViewVotePage
 	case *EditColorPage:
-		fullPage.Base.Title = "Farbpaletten anpassen"
+		fullPage.Base.Title = loc.PagesEditColorPage
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

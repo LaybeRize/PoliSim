@@ -6,6 +6,7 @@ import (
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -52,32 +53,29 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	author, err := database.GetAccountByName(values.GetTrimmedString("author"))
-	if err != nil || author.Blocked {
+	author := values.GetTrimmedString("author")
+	allowed, err := database.IsAccountAllowedToPostWith(acc, author)
+	if !allowed || err != nil {
+		if err != nil {
+			slog.Error(err.Error())
+		}
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der ausgewählte Autor ist nicht valide"})
+			Message: loc.NoteAuthorIsInvalid})
 		return
 	}
 
-	ownerName, err := database.GetOwnerName(author)
-	if author.Name != acc.Name && (err != nil || ownerName != acc.Name) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der ausgewählte Autor ist nicht valide"})
-		return
-	}
-
-	flairString, err := database.GetAccountFlairs(author)
+	flairString, err := database.GetAccountFlairs(&database.Account{Name: author})
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Beim Laden der Informationen für den Author ist ein Fehler aufgetreten"})
+			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
 	references := values.GetCommaSeperatedArray("references")
 	note := &database.BlackboardNote{
-		ID:       helper.GetUniqueID(author.Name),
+		ID:       helper.GetUniqueID(author),
 		Title:    values.GetTrimmedString("title"),
-		Author:   author.Name,
+		Author:   author,
 		Flair:    flairString,
 		PostedAt: time.Now().UTC(),
 		Body:     handler.MakeMarkdown(values.GetTrimmedString("markdown")),
@@ -102,17 +100,17 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 	err = database.CreateNote(note, references)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Es ist ein Fehler beim erstellen der Notiz aufgetreten"})
+			Message: loc.NoteErrorWhileCreatingNote})
 		return
 	}
 
-	page := &handler.CreateNotesPage{References: strings.Join(append(references, note.ID), ", "), Author: author.Name}
+	page := &handler.CreateNotesPage{References: strings.Join(append(references, note.ID), ", "), Author: author}
 	page.IsError = false
-	page.Message = "Notiz erfolgreich erstellt"
+	page.Message = loc.NoteSuccessfullyCreatedNote
 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
-		page.Message += "\n" + "Hinweis: Konnte nicht alle möglichen Autoren finden"
+		page.Message += "\n" + loc.CouldNotFindAllAuthors
 		arr = make([]string, 0, 1)
 	}
 	arr = append([]string{acc.Name}, arr...)

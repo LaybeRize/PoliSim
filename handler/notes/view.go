@@ -3,19 +3,22 @@ package notes
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	"PoliSim/helper"
 	"net/http"
-	"strings"
+	"net/url"
 )
 
 func GetNotesViewPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
-	length := len(request.URL.Query()["loaded"])
+	query := helper.GetAdvancedURLValues(request)
+
+	length := len(query.GetArray("loaded"))
 	page := &handler.NotesPage{
 		LoadedNoteIDs: make([]string, 0, length),
 		LoadedNotes:   make([]*database.BlackboardNote, 0, length),
 	}
 
-	for _, loadElement := range request.URL.Query()["loaded"] {
+	for _, loadElement := range query.GetArray("loaded") {
 		element, err := database.GetNote(loadElement)
 		if err != nil {
 			continue
@@ -30,22 +33,20 @@ func GetNotesViewPage(writer http.ResponseWriter, request *http.Request) {
 
 func RequestNote(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
-	element, err := database.GetNote(request.URL.Query().Get("request"))
+	query := helper.GetAdvancedURLValues(request)
+
+	element, err := database.GetNote(query.GetTrimmedString("request"))
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
 		return
 	}
-	loaded, exists := request.URL.Query()["loaded"]
-	if !exists {
-		loaded = make([]string, 0)
-	}
+
+	loaded := query.GetArray("loaded")
 	element.Viewer = acc
 	arr := append(loaded, element.ID)
-	url := "/notes?"
-	for _, e := range arr {
-		url += "loaded=" + e + "&"
-	}
-	writer.Header().Add("Hx-Push-Url", strings.TrimSuffix(url, "&"))
+	redirectUrl := "/notes?" + url.Values(map[string][]string{"loaded": arr}).Encode()
+
+	writer.Header().Add("Hx-Push-Url", redirectUrl)
 	handler.MakeSpecialPagePart(writer, &handler.NotesUpdate{BlackboardNote: *element})
 }
 

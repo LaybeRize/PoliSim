@@ -241,19 +241,6 @@ AND a.blocked = false RETURN a.name AS name;`, map[string]any{"role": PressUser}
 	return names, err
 }
 
-func GetOwnerName(acc *Account) (string, error) {
-	queryResult, err := makeRequest(`MATCH (a:Account) WHERE a.name = $name 
-MATCH (t:Account)-[:OWNER]->(a) RETURN t.name AS name;`,
-		map[string]any{"name": acc.Name, "role": PressUser})
-	if err != nil {
-		return "", err
-	}
-	if len(queryResult) == 0 {
-		return "", err
-	}
-	return queryResult[0].Values[0].(string), err
-}
-
 func GetOwnedAccountNames(owner *Account) ([]string, error) {
 	result, err := makeRequest(`MATCH (o:Account) WHERE o.name = $name 
 MATCH (o)-[:OWNER]->(a:Account) 

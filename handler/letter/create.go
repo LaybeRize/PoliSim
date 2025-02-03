@@ -25,12 +25,12 @@ func GetCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	page.PossibleAuthors, err = database.GetMyAccountNames(acc)
 	if err != nil {
 		page.PossibleAuthors = []string{acc.Name}
-		page.Message = "Konnte nicht alle möglichen Autoren laden"
+		page.Message = loc.LetterCouldNotLoadAuthors
 	}
 
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		page.Message += "\n" + "Konnte mögliche Empfängernamen nicht laden"
+		page.Message += "\n" + loc.LetterErrorLoadingRecipients
 	}
 
 	if acc.IsAtLeastAdmin() {
@@ -39,6 +39,7 @@ func GetCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	page.Message = strings.TrimSpace(page.Message)
 	handler.MakeFullPage(writer, acc, page)
 }
+
 func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
@@ -48,7 +49,6 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
@@ -86,20 +86,20 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	allowed, _ := database.IsAccountAllowedToPostWith(acc, letter.Author)
 	if !allowed && !(acc.IsAtLeastAdmin() && letter.Author == loc.AdministrationAccountName) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"})
+			Message: loc.LetterNotAllowedToPostWithThatAccount})
 		return
 	}
 
 	letter.Reader, err = database.FilterNameListForNonBlocked(letter.Reader, 0)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte Empfängerliste nicht validieren"})
+			Message: loc.LetterRecipientListUnvalidated})
 		return
 	}
 
 	if len(letter.Reader) == 0 {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die Anzahl an Empfängern für den Brief darf nicht 0 sein"})
+			Message: loc.LetterNeedAtLeastOneRecipient})
 		return
 	}
 
@@ -107,23 +107,23 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Es ist ein Fehler beim erstellen des Briefs aufgetreten"})
+			Message: loc.LetterErrorWhileSending})
 		return
 	}
 
 	page := &handler.CreateLetterPage{Author: letter.Author, Recipients: []string{""}}
 	page.IsError = false
-	page.Message = "Brief erfolgreich erstellt"
+	page.Message = loc.LetterSuccessfullySendLetter
 
 	page.PossibleAuthors, err = database.GetMyAccountNames(acc)
 	if err != nil {
 		page.PossibleAuthors = []string{acc.Name}
-		page.Message += "\n" + "Konnte nicht alle möglichen Autoren laden"
+		page.Message += "\n" + loc.LetterCouldNotLoadAuthors
 	}
 
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		page.Message += "\n" + "Konnte mögliche Empfängernamen nicht laden"
+		page.Message += "\n" + loc.LetterErrorLoadingRecipients
 	}
 
 	if acc.IsAtLeastAdmin() {
@@ -141,7 +141,6 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
@@ -173,34 +172,34 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 	allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Author)
 	if !allowed && !(acc.IsAtLeastAdmin() && page.Author == loc.AdministrationAccountName) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"})
+			Message: loc.LetterNotAllowedToPostWithThatAccount})
 		return
 	}
 
 	page.Recipients, err = database.FilterNameListForNonBlocked(page.Recipients, 0)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte Empfängerliste nicht validieren"})
+			Message: loc.LetterRecipientListUnvalidated})
 		return
 	}
 
 	if len(page.Recipients) == 0 {
 		page.Recipients = []string{""}
-		page.Message = "Die Anzahl an Empfängern für den Brief darf nicht 0 sein"
+		page.Message = loc.LetterNeedAtLeastOneRecipient
 	} else {
 		page.IsError = false
-		page.Message = "Der Brief darf so versendet werden"
+		page.Message = loc.LetterAllowedToBeSent
 	}
 
 	page.PossibleAuthors, err = database.GetMyAccountNames(acc)
 	if err != nil {
 		page.PossibleAuthors = []string{acc.Name}
-		page.Message += "\n" + "Konnte nicht alle möglichen Autoren laden"
+		page.Message += "\n" + loc.LetterCouldNotLoadAuthors
 	}
 
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
-		page.Message += "\n" + "Konnte mögliche Empfängernamen nicht laden"
+		page.Message += "\n" + loc.LetterErrorLoadingRecipients
 	}
 
 	if acc.IsAtLeastAdmin() {

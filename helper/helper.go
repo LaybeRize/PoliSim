@@ -79,6 +79,15 @@ func GetAdvancedFormValues(request *http.Request) (AdvancedValues, error) {
 	return AdvancedValues(request.Form), nil
 }
 
+func GetAdvancedFormValuesWithoutDebugLogger(request *http.Request) (AdvancedValues, error) {
+	err := request.ParseForm()
+	if err != nil {
+		slog.Error(err.Error())
+		return nil, err
+	}
+	return AdvancedValues(request.Form), nil
+}
+
 func GetAdvancedURLValues(request *http.Request) AdvancedValues {
 	slog.Debug("Reading Form: ", "URL", request.URL.EscapedPath(), "Mapping", request.URL.Query())
 	return AdvancedValues(request.URL.Query())

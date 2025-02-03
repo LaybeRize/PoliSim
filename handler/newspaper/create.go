@@ -20,7 +20,6 @@ func GetCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	page := &handler.CreateArticlePage{}
 	page.IsError = true
-	page.Message = ""
 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
@@ -34,7 +33,7 @@ func GetCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	page.PossibleNewspaper, err = database.GetNewspaperNameListForAccount(acc.Name)
 	if err != nil {
 		slog.Debug(err.Error())
-		page.Message = "\n" + "Konnte nicht alle möglichen Zeitungen für ausgewählten Account finden"
+		page.Message = "\n" + loc.NewspaperCouldNotLoadAllNewspaperForAccount
 		page.Message = strings.TrimSpace(page.Message)
 	}
 
@@ -50,7 +49,6 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
@@ -78,9 +76,10 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if len(article.Subtitle) > 600 {
+	const maxSubtitleLength = 600
+	if len([]rune(article.Subtitle)) > maxSubtitleLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Untertitel ist zu lang (600 Zeichen maximal)"})
+			Message: fmt.Sprintf(loc.NewspaperSubtitleTooLong, maxSubtitleLength)})
 		return
 	}
 
@@ -90,7 +89,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 			slog.Debug(err.Error())
 		}
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehlende Berechtigung um mit diesem Account in dieser Zeitung zu posten"})
+			Message: loc.NewspaperMissingPermissionForNewspaper})
 		return
 	}
 
@@ -107,13 +106,13 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Fehler beim erstellen des Artikels"})
+			Message: loc.NewspaperErrorWhileCreatingArticle})
 		return
 	}
 
 	page := &handler.CreateArticlePage{}
 	page.IsError = false
-	page.Message = "Artikel erfolgreich erstellt"
+	page.Message = loc.NewspaperSuccessfullyCreatedArticle
 
 	arr, err := database.GetOwnedAccountNames(acc)
 	if err != nil {
@@ -126,7 +125,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	page.PossibleAuthors = arr
 	page.PossibleNewspaper, err = database.GetNewspaperNameListForAccount(acc.Name)
 	if err != nil {
-		page.Message = "\n" + "Konnte nicht alle möglichen Zeitungen für ausgewählten Account finden"
+		page.Message = "\n" + loc.NewspaperCouldNotLoadAllNewspaperForAccount
 	}
 
 	handler.MakePage(writer, acc, page)
@@ -165,7 +164,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte nicht alle möglichen Zeitungen für ausgewählten Account finden"})
+			Message: loc.NewspaperCouldNotLoadAllNewspaperForAccount})
 		return
 	}
 	handler.MakeSpecialPagePart(writer, page)

@@ -16,7 +16,7 @@ func GetSpecificPublicationPage(writer http.ResponseWriter, request *http.Reques
 	found, err := database.GetPublicationForUser(pubID, acc.IsAtLeastPressAdmin())
 	if !found || err != nil {
 		if err != nil {
-			slog.Error(err.Error())
+			slog.Debug(err.Error())
 		}
 		handler.GetNotFoundPage(writer, request)
 		return
@@ -25,7 +25,7 @@ func GetSpecificPublicationPage(writer http.ResponseWriter, request *http.Reques
 	page := &handler.ViewPublicationPage{}
 	var pub *database.Publication
 	pub, page.Articles, err = database.GetPublication(pubID)
-	if page.QueryError = err != nil; !page.QueryError {
+	if page.QueryError = err != nil; err == nil {
 		page.Publication = *pub
 	} else {
 		slog.Error(err.Error())
@@ -40,7 +40,7 @@ func PatchPublishPublication(writer http.ResponseWriter, request *http.Request) 
 	found, err := database.GetPublicationForUser(pubID, acc.IsAtLeastPressAdmin())
 	if !found || err != nil {
 		if err != nil {
-			slog.Error(err.Error())
+			slog.Debug(err.Error())
 		}
 		handler.PartialGetNotFoundPage(writer, request)
 		return
@@ -50,7 +50,7 @@ func PatchPublishPublication(writer http.ResponseWriter, request *http.Request) 
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
-			Message: "Es ist ein Fehler beim Publizieren aufgetreten",
+			Message: loc.NewspaperErrorDuringPublication,
 			IsError: true,
 		})
 	}
@@ -58,7 +58,7 @@ func PatchPublishPublication(writer http.ResponseWriter, request *http.Request) 
 	page := &handler.ViewPublicationPage{}
 	var pub *database.Publication
 	pub, page.Articles, err = database.GetPublication(pubID)
-	if page.QueryError = err != nil; !page.QueryError {
+	if page.QueryError = err != nil; err == nil {
 		page.Publication = *pub
 	} else {
 		slog.Error(err.Error())
@@ -76,7 +76,6 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
 			Message: loc.RequestParseError,
 			IsError: true,
@@ -86,7 +85,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	rejectionText := values.GetTrimmedString("rejection")
 	if rejectionText == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
-			Message: "Der Zurückweisungsgrund darf nicht leer sein",
+			Message: loc.NewspaperRejectionMessageEmpty,
 			IsError: true,
 		})
 		return
@@ -96,7 +95,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Debug("Possible error while trying to localte article", "error", err)
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
-			Message: "Konnte keinen Artikel mit der angegeben ID finden, welcher noch nicht publiziert wurde",
+			Message: loc.NewspaperErrorFindingArticleToReject,
 			IsError: true,
 		})
 		return
@@ -105,19 +104,19 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
-			Message: "Konnte den Artikel nicht löschen",
+			Message: loc.NewspaperErrorDeletingArticle,
 			IsError: true,
 		})
 		return
 	}
 
 	letter := &database.Letter{
-		Title: fmt.Sprintf("Zurückweisung des Artikels '%s' geschrieben für %s",
+		Title: fmt.Sprintf(loc.NewspaperFormatTitleForRejection,
 			transaction.Article.Title, transaction.NewspaperName),
 		Author:   loc.AdministrationName,
 		Flair:    "",
 		Signable: false,
-		Body: handler.MakeMarkdown(fmt.Sprintf("# Zurückweisungsgrund\n\n%s\n\n# Artikelinhalt\n\n```%s```",
+		Body: handler.MakeMarkdown(fmt.Sprintf(loc.NewspaperFormatContentForRejection,
 			rejectionText, transaction.Article.RawBody)),
 		Reader: []string{transaction.Article.Author},
 	}
@@ -127,7 +126,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
-			Message: "Fehler beim erstellen des Briefs an den Autor des Artikels",
+			Message: loc.NewspaperErrorCreatingRejectionLetter,
 			IsError: true,
 		})
 		return

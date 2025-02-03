@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -27,14 +28,14 @@ func GetEditOrganisationPage(writer http.ResponseWriter, request *http.Request) 
 		page.IsError = true
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: "Der gesuchte Name ist mit keiner Organisation verbunden"})
+				Message: loc.OrganisationNoOrganisationWithThatName})
 			return
 		}
 
 		page.User = append(page.User, "")
 		page.Admin = append(page.Admin, "")
 		page.IsError = false
-		page.Message = "Gesuchte Organisation gefunden"
+		page.Message = loc.OrganisationFoundOrganisation
 
 		page.AccountNames, err = database.GetNonBlockedNames()
 		if err != nil {
@@ -48,7 +49,7 @@ func GetEditOrganisationPage(writer http.ResponseWriter, request *http.Request) 
 	page.Organisations, err = database.GetOrganisationNameList()
 	if err != nil {
 		page.IsError = true
-		page.Message = "Es ist ein Fehler bei der Suche nach der Organisationsnamensliste aufgetreten"
+		page.Message = loc.OrganisationErrorSearchingForOrganisationList
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -80,35 +81,41 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 	userNames := values.GetTrimmedArray("[]user")
 	adminNames := values.GetTrimmedArray("[]admin")
 
-	if organisationUpdate.Name == "" || len(organisationUpdate.Name) > 400 {
+	if organisationUpdate.Name == "" || organisationUpdate.MainType == "" || organisationUpdate.SubType == "" {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Organisationsname leer oder länger als 400 Zeichen"})
+			Message: loc.OrganisationGeneralInformationEmpty})
 		return
 	}
 
-	if organisationUpdate.MainType == "" || len(organisationUpdate.MainType) > 200 {
+	if len([]rune(organisationUpdate.Name)) > maxNameLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Hauptgruppe leer oder länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.OrganisationGeneralNameTooLong, maxNameLength)})
 		return
 	}
 
-	if organisationUpdate.SubType == "" || len(organisationUpdate.SubType) > 200 {
+	if len([]rune(organisationUpdate.MainType)) > maxMainTypeLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Untergruppe leer oder länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.OrganisationGeneralMainGroupTooLong, maxMainTypeLength)})
+		return
+	}
+
+	if len([]rune(organisationUpdate.SubType)) > maxSubTypeLength {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: fmt.Sprintf(loc.OrganisationGeneralSubGroupTooLong, maxSubTypeLength)})
 		return
 	}
 
 	if strings.Contains(organisationUpdate.Flair, ",") ||
 		strings.Contains(organisationUpdate.Flair, ";") ||
-		len(organisationUpdate.Flair) > 200 {
+		len([]rune(organisationUpdate.Flair)) > maxFlairLength {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Flair enthält ein Komma, Semikolon oder ist länger als 200 Zeichen"})
+			Message: fmt.Sprintf(loc.OrganisationGeneralFlairContainsInvalidCharactersOrIsTooLong, maxFlairLength)})
 		return
 	}
 
 	if !organisationUpdate.VisibilityIsValid() {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Die ausgewählte Sichtbarkeit ist nicht valide"})
+			Message: loc.OrganisationGeneralInvalidVisibility})
 		return
 	}
 
@@ -117,14 +124,14 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 	err = database.UpdateOrganisation(oldOrganisationName, organisationUpdate)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Es ist ein Fehler beim überarbeiten der Organisation aufgetreten"})
+			Message: loc.OrganisationErrorUpdatingOrganisation})
 		return
 	}
 
 	err = database.AddOrganisationMember(organisationUpdate, userNames, adminNames)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte Organisationsmitglieder nicht erfolgreich updaten"})
+			Message: loc.OrganisationErrorUpdatingOrganisationMember})
 		return
 	}
 
@@ -134,7 +141,7 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 		page.Admin = append(actualAdmins, "")
 	}
 	page.IsError = false
-	page.Message = "Organisation erfolgreich angepasst"
+	page.Message = loc.OrganisationSuccessfullyUpdated
 	page.AccountNames, err = database.GetNonBlockedNames()
 	if err != nil {
 		page.Message += "\n" + loc.ErrorSearchingForAccountNames
@@ -160,7 +167,7 @@ func PutOrganisationSearchPage(writer http.ResponseWriter, request *http.Request
 	_, err = database.GetOrganisationByName(name)
 	if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: "Konnte keine Organisation finden, die den Namen trägt"})
+			Message: loc.OrganisationNotFoundByName})
 		return
 	}
 

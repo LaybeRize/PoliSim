@@ -47,7 +47,6 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	} else if allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account); allowed {
 		accounts = []string{page.Account}
 	}
-	slog.Debug("Accounts", "list", accounts, "account", page.Account)
 
 	page.Results, err = database.GetLetterList(accounts, page.Amount+1, page.Page)
 	page.HasPrevious = page.Page > 1
@@ -71,7 +70,6 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		slog.Debug(err.Error())
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -103,7 +101,6 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	} else if allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Account); allowed {
 		accounts = []string{page.Account}
 	}
-	slog.Debug("Accounts", "list", accounts, "account", page.Account)
 
 	page.Results, err = database.GetLetterList(accounts, page.Amount+1, page.Page)
 	page.HasPrevious = page.Page > 1
