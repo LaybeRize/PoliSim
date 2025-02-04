@@ -3,7 +3,7 @@
         window.onload = function () {
             document.body.addEventListener("htmx:afterRequest", function (evt) {
                 if (evt.failed) {
-                    alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+                    alert({{/*letterPersonalSearch*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
                 }
             })
         }
@@ -15,31 +15,31 @@
     {{template "header" .NavInfo}}
     {{$acc := .NavInfo.Account}}
     <form id="search-form" hx-put="/my/letter" hx-target="#page-body">
-        <label for="account">Account</label>
+        <label for="account">{{/*letterPersonalSearch*/}}Account</label>
         <select id="account" name="account">
-            <option value="">-- Alle Accounts --</option>
+            <option value="">{{/*letterPersonalSearch*/}}-- Alle Accounts --</option>
             {{$account := .Account}}
             {{range .PossibleAccounts}}
                 <option value="{{.}}" {{if eq . $account}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <label for="amount">Anzahl der Ergebnisse</label>
+        <label for="amount">{{/*letterPersonalSearch*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
-        <button>Suchen</button>
+        <button>{{/*letterPersonalSearch*/}}Suchen</button>
     </form>
     <div class="wrapper note">
         {{if eq (len .Results) 0}}
-            <p>Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
+            <p>{{/*letterPersonalSearch*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.ReducedLetter*/ -}}
-                <a href="/view/letter/{{.ID}}?viewer={{urlquery .Recipent}}" target="_blank"
+                <a href="/view/letter/{{.ID}}?viewer={{urlquery .Recipient}}" target="_blank"
                    {{if .Viewed}}class="read"{{end}}>
                     {{- if .Viewed -}}<i class="bi bi-letter-open"></i>
                     {{- else -}}<i class="bi bi-letter-closed"></i>
-                    {{- end}} <strong>{{.Title}}</strong> von {{.Author}}<br>
-                    Empfänger: {{.Recipent}}<br>
-                    <i>Versendet am: {{.GetTimeWritten $acc}}</i>
+                    {{- end}} {{/*letterPersonalSearch*/}}<strong>{{.Title}}</strong> von {{.Author}}<br>
+                    {{/*letterPersonalSearch*/}}Empfänger: {{.Recipient}}<br>
+                    {{/*letterPersonalSearch*/}}<i>Versendet am: {{.GetTimeWritten $acc}}</i>
                 </a>
             {{end}}
         {{end}}
@@ -49,13 +49,13 @@
                 {{if .HasPrevious}}
                     <a hx-put="/my/letter" hx-include="#search-form"
                        hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
-                        &laquo; Vorherige Seite
+                        {{/*letterPersonalSearch*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
                     <a hx-put="/my/letter" hx-include="#search-form"
                        hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
-                        Nächste Seite &raquo;
+                        {{/*letterPersonalSearch*/}}Nächste Seite &raquo;
                     </a>
                 {{end}}
             </div>

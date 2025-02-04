@@ -6,8 +6,8 @@
             <div class="block-view">
                 <h1>{{.Letter.Title}}</h1>
                 <p>
-                    Geschrieben von: {{.Letter.GetAuthor}}<br>
-                    <i>Verfasst am: {{.Letter.GetTimeWritten .NavInfo.Account}}</i><br><br>
+                    {{/*letterView*/}}Geschrieben von: {{.Letter.GetAuthor}}<br>
+                    {{/*letterView*/}}<i>Verfasst am: {{.Letter.GetTimeWritten .NavInfo.Account}}</i><br><br>
                     {{.Letter.GetReader}}{{if .Letter.Signable}}<br>
                         {{.Letter.GetAgreed}}<br>
                         {{.Letter.GetDeclined}}{{if .Letter.SomeoneHasNotDecidedYet}}<br>
@@ -20,11 +20,11 @@
                 <div class="wrapper note pager">
                     <a hx-patch="/view/letter/{{.Letter.ID}}?viewer={{urlquery .Letter.Recipient}}&decision=accept"
                        hx-target="#page-body">
-                        Als {{.Letter.Recipient}} zustimmen
+                        {{/*letterView*/}}Als {{.Letter.Recipient}} zustimmen
                     </a>
                     <a hx-patch="/view/letter/{{.Letter.ID}}?viewer={{urlquery .Letter.Recipient}}&decision=decline"
                        hx-target="#page-body">
-                        Als {{.Letter.Recipient}} ablehnen
+                        {{/*letterView*/}}Als {{.Letter.Recipient}} ablehnen
                     </a>
                 </div>
             {{end}}

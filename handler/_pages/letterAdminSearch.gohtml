@@ -11,14 +11,14 @@
     {{- /*gotype: PoliSim/handler.AdminSearchLetterPage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
-    <label for="search" style="width: var(--standard-width);">Brief ID</label>
+    <label for="search" style="width: var(--standard-width);">{{/*letterAdminSearch*/}}Brief ID</label>
     <input id="search" type="text" style="width: var(--standard-width);"
            onkeyup="updateLink(this.value, '{{urlquery .AccountNameToUse}}')"
            onchange="updateLink(this.value, '{{urlquery .AccountNameToUse}}')">
     <a class="button-link hide" id="link-opener"
        href="/view/letter/EMPTY?viewer={{urlquery .AccountNameToUse}}"
        target="_blank">
-        Brief öffnen
+        {{/*letterAdminSearch*/}}Brief öffnen
     </a>
     </body>
 {{end}}

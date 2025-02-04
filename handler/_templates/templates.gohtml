@@ -29,11 +29,19 @@
                 <ul>
                     <li><a href="/view/titles">{{/*templates*/}}Titelübersicht</a></li>
                     <li><a href="/view/organisations">{{/*templates*/}}Organisationsübersicht</a></li>
-                    <li><a href="/search/documents">{{/*templates*/}}Dokumente durchsuchen</a></li>
-                    {{if .Account.Exists}}
-                        <li><a href="/manage/tag-colors">{{/*templates*/}}Tag-Farben verwalten</a></li>
-                    {{end}}
                 </ul>
+            </li>
+            <li>
+                <a href="/search/documents">{{/*templates*/}}Dokumente</a>
+                {{if .Account.Exists}}
+                <ul>
+                    <li><a href="/create/document">{{/*templates*/}}Dokument erstellen</a></li>
+                    <li><a href="/create/discussion">{{/*templates*/}}Diskussion erstellen</a></li>
+                    <li><a href="/create/vote">{{/*templates*/}}Abstimmung erstellen</a></li>
+                    <li><a href="/create/vote/element">{{/*templates*/}}Abstimmungen verwalten</a></li>
+                    <li><a href="/manage/tag-colors">{{/*templates*/}}Tag-Farben verwalten</a></li>
+                </ul>
+                {{end}}
             </li>
             {{if .Account.Exists}}
                 <li>
@@ -41,11 +49,7 @@
                     <ul>
                         <li><a href="/my/letter">{{/*templates*/}}Meine Briefe</a></li>
                         <li><a href="/create/letter">{{/*templates*/}}Brief schreiben</a></li>
-                        <li><a href="/my/posts">{{/*templates*/}}Meine Posts</a></li>
-                        <li><a href="/create/document">{{/*templates*/}}Dokument erstellen</a></li>
-                        <li><a href="/create/discussion">{{/*templates*/}}Diskussion erstellen</a></li>
-                        <li><a href="/create/vote/element">{{/*templates*/}}Abstimmung verwalten</a></li>
-                        <li><a href="/create/vote">{{/*templates*/}}Abstimmungsdokument erstellen</a></li>
+                        <li><a href="/my/documents">{{/*templates*/}}Meine Dokumente</a></li>
                     </ul>
                 </li>
             {{end}}
@@ -151,10 +155,10 @@
                     <th class="contrast">{{.}}</th>
                 {{end}}
             </tr>
-            {{$anoynm := .Anonymous}}
+            {{$anonym := .Anonymous}}
             {{range $voter, $votes := .VoteIterator}}
                 <tr>
-                    <td class="contrast">{{/*templates*/}}{{if $anoynm}}{{$voter}}. Wahlzettel{{else}}{{$voter}}{{end}}</td>
+                    <td class="contrast">{{/*templates*/}}{{if $anonym}}{{$voter}}. Wahlzettel{{else}}{{$voter}}{{end}}</td>
                     {{range $votes}}
                         <td>{{.}}</td>
                     {{end}}

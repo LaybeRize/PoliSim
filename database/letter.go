@@ -27,13 +27,13 @@ CREATE (a)<-[:RECIPIENT {signature: $signature, viewed: false}]-(l);`
 )
 
 type ReducedLetter struct {
-	ID       string
-	Title    string
-	Author   string
-	Flair    string
-	Written  time.Time
-	Recipent string
-	Viewed   bool
+	ID        string
+	Title     string
+	Author    string
+	Flair     string
+	Written   time.Time
+	Recipient string
+	Viewed    bool
 }
 
 func (r *ReducedLetter) GetTimeWritten(a *Account) string {
@@ -177,13 +177,13 @@ ORDER BY l.written DESC, a.name SKIP $skip LIMIT $amount;`,
 	list := make([]ReducedLetter, len(result))
 	for i, record := range result {
 		list[i] = ReducedLetter{
-			ID:       record.Values[0].(string),
-			Title:    record.Values[1].(string),
-			Author:   record.Values[2].(string),
-			Flair:    record.Values[3].(string),
-			Written:  record.Values[4].(time.Time),
-			Recipent: record.Values[5].(string),
-			Viewed:   record.Values[6].(bool),
+			ID:        record.Values[0].(string),
+			Title:     record.Values[1].(string),
+			Author:    record.Values[2].(string),
+			Flair:     record.Values[3].(string),
+			Written:   record.Values[4].(time.Time),
+			Recipient: record.Values[5].(string),
+			Viewed:    record.Values[6].(bool),
 		}
 	}
 	return list, nil
