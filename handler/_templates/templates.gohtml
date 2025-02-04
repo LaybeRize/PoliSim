@@ -6,63 +6,63 @@
     <header>
         <ul>
             <li>
-                <a href="/">Home</a>
+                <a href="/">{{/*templates*/}}Home</a>
             </li>
             <li>
-                <a href="/search/notes">Notizen</a>
+                <a href="/search/notes">{{/*templates*/}}Notizen</a>
                 {{if .Account.Exists}}
                     <ul>
-                        <li><a href="/create/note">Notiz erstellen</a></li>
+                        <li><a href="/create/note">{{/*templates*/}}Notiz erstellen</a></li>
                     </ul>
                 {{end}}
             </li>
             <li>
-                <a href="/search/publications">Zeitungen</a>
+                <a href="/search/publications">{{/*templates*/}}Zeitungen</a>
                 {{if .Account.Exists}}
                     <ul>
-                        <li><a href="/create/article">Zeitungsartikel erstellen</a></li>
+                        <li><a href="/create/article">{{/*templates*/}}Zeitungsartikel erstellen</a></li>
                     </ul>
                 {{end}}
             </li>
             <li>
-                <a>Übersichten</a>
+                <a>{{/*templates*/}}Übersichten</a>
                 <ul>
-                    <li><a href="/view/titles">Titelübersicht</a></li>
-                    <li><a href="/view/organisations">Organisationsübersicht</a></li>
-                    <li><a href="/search/documents">Dokumente durchsuchen</a></li>
+                    <li><a href="/view/titles">{{/*templates*/}}Titelübersicht</a></li>
+                    <li><a href="/view/organisations">{{/*templates*/}}Organisationsübersicht</a></li>
+                    <li><a href="/search/documents">{{/*templates*/}}Dokumente durchsuchen</a></li>
                     {{if .Account.Exists}}
-                        <li><a href="/manage/tag-colors">Tag-Farben verwalten</a></li>
+                        <li><a href="/manage/tag-colors">{{/*templates*/}}Tag-Farben verwalten</a></li>
                     {{end}}
                 </ul>
             </li>
             {{if .Account.Exists}}
                 <li>
-                    <a href="/my/profile">Profil</a>
+                    <a href="/my/profile">{{/*templates*/}}Profil</a>
                     <ul>
-                        <li><a href="/my/letter">Meine Briefe</a></li>
-                        <li><a href="/create/letter">Brief schreiben</a></li>
-                        <li><a href="/my/posts">Meine Posts</a></li>
-                        <li><a href="/create/document">Dokument erstellen</a></li>
-                        <li><a href="/create/discussion">Diskussion erstellen</a></li>
-                        <li><a href="/create/vote/element">Abstimmung verwalten</a></li>
-                        <li><a href="/create/vote">Abstimmungsdokument erstellen</a></li>
+                        <li><a href="/my/letter">{{/*templates*/}}Meine Briefe</a></li>
+                        <li><a href="/create/letter">{{/*templates*/}}Brief schreiben</a></li>
+                        <li><a href="/my/posts">{{/*templates*/}}Meine Posts</a></li>
+                        <li><a href="/create/document">{{/*templates*/}}Dokument erstellen</a></li>
+                        <li><a href="/create/discussion">{{/*templates*/}}Diskussion erstellen</a></li>
+                        <li><a href="/create/vote/element">{{/*templates*/}}Abstimmung verwalten</a></li>
+                        <li><a href="/create/vote">{{/*templates*/}}Abstimmungsdokument erstellen</a></li>
                     </ul>
                 </li>
             {{end}}
             {{if .Account.IsAtLeastPressAdmin}}
                 <li>
-                    <a>Administration</a>
+                    <a>{{/*templates*/}}Administration</a>
                     <ul>
-                        <li><a href="/check/newspapers">Zeitung verwalten</a></li>
+                        <li><a href="/check/newspapers">{{/*templates*/}}Zeitung verwalten</a></li>
                         {{if .Account.IsAtLeastAdmin}}
-                            <li><a href="/admin/letter/search">Brief untersuchen</a></li>
-                            <li><a href="/edit/account">Nutzer verwalten</a></li>
-                            <li><a href="/edit/organisation">Organisation verwalten</a></li>
-                            <li><a href="/edit/title">Titel verwalten</a></li>
+                            <li><a href="/admin/letter/search">{{/*templates*/}}Brief untersuchen</a></li>
+                            <li><a href="/edit/account">{{/*templates*/}}Nutzer verwalten</a></li>
+                            <li><a href="/edit/organisation">{{/*templates*/}}Organisation verwalten</a></li>
+                            <li><a href="/edit/title">{{/*templates*/}}Titel verwalten</a></li>
                             {{if .Account.IsAtLeastHeadAdmin}}
-                                <li><a href="/create/account">Nutzer erstellen</a></li>
-                                <li><a href="/create/organisation">Organisation erstellen</a></li>
-                                <li><a href="/create/title">Titel erstellen</a></li>
+                                <li><a href="/create/account">{{/*templates*/}}Nutzer erstellen</a></li>
+                                <li><a href="/create/organisation">{{/*templates*/}}Organisation erstellen</a></li>
+                                <li><a href="/create/title">{{/*templates*/}}Titel erstellen</a></li>
                             {{end}}
                         {{end}}
                     </ul>
@@ -91,7 +91,7 @@
 {{define "organisationDropdown"}}
     {{- /*gotype: PoliSim/handler.UpdateOrganisationForUser*/ -}}
     <select id="organisation" name="organisation">
-        <option value="" selected>-- Organisation auswählen --</option>
+        <option value="" selected>{{/*templates*/}}-- Organisation auswählen --</option>
         {{range .PossibleOrganisations}}
             <option value="{{.}}">{{.}}</option>
         {{end}}
@@ -101,7 +101,7 @@
 {{define "readerAndParticipants"}}
     <div id="reader-and-participants" class="wrapper">
         <button type="button" onclick="copy('input-for-reader', 'participants-adder')">
-            Leser hinzufügen
+            {{/*templates*/}}Leser hinzufügen
         </button>
         <label for="reader">Leser</label>
         <div id="input-for-reader" class="name-list hide">
@@ -115,7 +115,7 @@
             </div>
         {{end}}
         <button id="participants-adder" type="button" onclick="copy('input-for-participants', 'block-end-div')">
-            Teilnehmer hinzufügen
+            {{/*templates*/}}Teilnehmer hinzufügen
         </button>
         <label for="participants">Teilnehmer</label>
         <div id="input-for-participants" class="name-list hide">
@@ -136,12 +136,15 @@
     {{- /*gotype: PoliSim/database.AccountVotes*/ -}}
     <hr class="splitter">
     {{if .NoVotes}}
-        <p>Es wurden keine gültigen Stimmen abgegeben</p>
+        <p>{{/*templates*/}}Es wurden keine gültigen Stimmen abgegeben</p>
     {{else}}
         <table class="view-vote">
             <tr>
-                <th rowspan="2" class="contrast">Abstimmender</th>
-                <th colspan="{{.AnswerAmount}}" class="contrast">{{if .Type.IsRankedVoting}}Rang{{else}}Stimme(n){{end}}</th>
+                <th colspan="{{.GetHeaderWidth}}" class="contrast">{{/*templates*/}}Frage: {{.Question}}</th>
+            </tr>
+            <tr>
+                <th rowspan="2" class="contrast">{{/*templates*/}}Abstimmende Person</th>
+                <th colspan="{{.AnswerAmount}}" class="contrast">{{/*templates*/}}{{if .Type.IsRankedVoting}}Rang{{else}}Stimme(n){{end}}</th>
             </tr>
             <tr>
                 {{range .IterableAnswers}}
@@ -151,7 +154,7 @@
             {{$anoynm := .Anonymous}}
             {{range $voter, $votes := .VoteIterator}}
                 <tr>
-                    <td class="contrast">{{if $anoynm}}{{$voter}}. Wahlzettel{{else}}{{$voter}}{{end}}</td>
+                    <td class="contrast">{{/*templates*/}}{{if $anoynm}}{{$voter}}. Wahlzettel{{else}}{{$voter}}{{end}}</td>
                     {{range $votes}}
                         <td>{{.}}</td>
                     {{end}}
@@ -159,5 +162,5 @@
             {{end}}
         </table>
     {{end}}
-    <p>Ungültige Stimmen: {{.GetIllegalVotes}}</p>
+    <p>{{/*templates*/}}Ungültige Stimmen: {{.GetIllegalVotes}}</p>
 {{end}}

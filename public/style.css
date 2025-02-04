@@ -352,6 +352,7 @@ hr.splitter {
 
 table.view-vote {
     border-collapse: collapse;
+    max-width: 95vmax;
 
     th, td {
         border: 0.1rem solid var(--text-color);

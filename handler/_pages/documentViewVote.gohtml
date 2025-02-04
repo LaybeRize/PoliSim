@@ -4,9 +4,9 @@
     {{template "header" .NavInfo}}
     <a class="button-link" href="/view/document/{{.VoteInstance.DocumentID}}">Zurück zum Dokument</a>
     {{if .CanVote}}
-        <p><b>Frage: {{.VoteInstance.Question}}</b></p>
+        <p><b>{{/*documentViewVote*/}}Frage: {{.VoteInstance.Question}}</b></p>
         <form hx-post="/vote/on/{{.VoteInstance.ID}}" hx-target="#page-body">
-            <label for="voter">Abstimmender Account</label>
+            <label for="voter">{{/*documentViewVote*/}}Abstimmender Account</label>
             <select id="voter" name="voter">
                 {{range .Voter}}
                     <option value="{{.}}">{{.}}</option>
@@ -14,44 +14,44 @@
             </select>
             {{if .VoteInstance.Type.IsSingleVote}}
                 {{range $pos, $answer := .VoteInstance.AnswerIterator}}
-                    <label for="pos-{{$pos}}">Antwort {{$pos}}.: {{$answer}}</label>
+                    <label for="pos-{{$pos}}">{{/*documentViewVote*/}}{{$pos}}. Antwort: {{$answer}}</label>
                     <input type="radio" id="pos-{{$pos}}" name="vote" value="{{$pos}}">
                 {{end}}
             {{end}}
             {{if .VoteInstance.Type.IsMultipleVotes}}
                 {{range $pos, $answer := .VoteInstance.AnswerIterator}}
-                    <label for="pos-{{$pos}}">Antwort {{$pos}}.: {{$answer}}</label>
+                    <label for="pos-{{$pos}}">{{/*documentViewVote*/}}{{$pos}}. Antwort: {{$answer}}</label>
                     <input type="checkbox" id="pos-{{$pos}}" name="vote-{{$pos}}" value="true">
                 {{end}}
             {{end}}
             {{if .VoteInstance.Type.IsVoteSharing}}
-                <p><b>Es dürfen maximal {{.VoteInstance.MaxVotes}} Stimmen vergeben werden</b></p>
+                <p><b>{{/*documentViewVote*/}}Es dürfen maximal {{.VoteInstance.MaxVotes}} Stimmen vergeben werden</b></p>
                 {{range $pos, $answer := .VoteInstance.AnswerIterator}}
-                    <label for="pos-{{$pos}}">Stimmen für Antwort {{$pos}}.: {{$answer}}</label>
+                    <label for="pos-{{$pos}}">{{/*documentViewVote*/}}Stimmen für die {{$pos}}. Antwort: {{$answer}}</label>
                     <input type="number" id="pos-{{$pos}}" name="vote-{{$pos}}" value="0" min="0">
                 {{end}}
             {{end}}
             {{if .VoteInstance.Type.IsRankedVoting}}
-                <p><b>Position 0 und kleiner bedeutet, dass die Antwort keinen Rang erhält. Der 1. Rang ist der höchste.</b></p>
+                <p><b>{{/*documentViewVote*/}}Position 0 und kleiner bedeutet, dass die Antwort keinen Rang erhält. Der 1. Rang ist der höchste.</b></p>
                 {{$answers := .VoteInstance}}
                 {{range $pos, $answer := $answers.AnswerIterator}}
-                    <label for="pos-{{$pos}}">Rang der Antwort {{$pos}}.: {{$answer}}</label>
+                    <label for="pos-{{$pos}}">{{/*documentViewVote*/}}Rang der {{$pos}}. Antwort: {{$answer}}</label>
                     <input type="number" id="pos-{{$pos}}" name="vote-{{$pos}}" value="0" max="{{$answers.AnswerLength}}">
                 {{end}}
             {{end}}
-            <label for="invalid">Ungültige Stimme abgeben</label>
+            <label for="invalid">{{/*documentViewVote*/}}Ungültige Stimme abgeben</label>
             <input type="checkbox" id="invalid" name="invalid" value="true">
-            <button>Stimme abgeben</button>
+            <button>{{/*documentViewVote*/}}Stimme abgeben</button>
         </form>
     {{else}}
-        <p>Teilnahme setzte einen Account voraus</p>
+        <p>{{/*documentViewVote*/}}Teilnahme setzte einen Account voraus</p>
     {{end}}
     {{template "message" .}}
     {{if .VoteInstance.ShowVotesDuringVoting}}
         {{template "voteResults" .VoteResults}}
     {{else}}
         <hr class="splitter">
-        <p>Das Ergebnis ist erst nach Ende der Abstimmung einsehbar</p>
+        <p>{{/*documentViewVote*/}}Das Ergebnis ist erst nach Ende der Abstimmung einsehbar</p>
     {{end}}
     </body>
 {{end}}

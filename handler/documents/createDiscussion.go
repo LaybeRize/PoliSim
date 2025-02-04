@@ -15,7 +15,7 @@ import (
 const (
 	addMin     = time.Hour * 24
 	addMax     = time.Hour * 24 * 15
-	runMinDays = 2
+	runMinDays = 1
 	runMaxDays = 14
 )
 

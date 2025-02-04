@@ -13,7 +13,7 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     {{if .Document.ShowRemovedMessage .NavInfo.Account}}
-        <p>Das Dokument wurde entfernt</p>
+        <p>{{/*documentView*/}}Das Dokument wurde entfernt</p>
     {{else}}
     <div class="wrapper">
         <div class="aside-tags">
@@ -27,7 +27,7 @@
                     {{- else -}}
                         <i class="bi bi-incoming"></i>
                     {{- end}} {{$tag.Text}}<br>
-                    <i>Hinzugefügt am {{$tag.GetTimeWritten $acc}}</i>{{if $tag.HasLinks}}<br>
+                    <i>{{/*documentView*/}}Hinzugefügt am {{$tag.GetTimeWritten $acc}}</i>{{if $tag.HasLinks}}<br>
                         {{range $link := $tag.QueriedLinks}}
                             <a href="/view/document/{{$link}}">{{$link}}</a>
                         {{end}}
@@ -38,15 +38,15 @@
         <div class="block-view">
             <h1>{{.Document.Title}}</h1>
             <p>
-                Geschrieben von: {{.Document.GetAuthor}}<br>
-                Veröffentlicht in: {{.Document.Organisation}}<br>
-                <i>Verfasst am: {{.Document.GetTimeWritten .NavInfo.Account}}</i>
+                {{/*documentView*/}}Geschrieben von: {{.Document.GetAuthor}}<br>
+                {{/*documentView*/}}Veröffentlicht in: {{.Document.Organisation}}<br>
+                <i>{{/*documentView*/}}Verfasst am: {{.Document.GetTimeWritten .NavInfo.Account}}</i>
                 {{if not .Document.IsPost}}<br>
                     {{if .Document.Ended}}
-                        <i>Die {{if .Document.IsDiscussion}}Diskussion{{else}}Abstimmung{{end}} ist bereits vorbei.<br>
-                        Ende war am {{.Document.GetTimeEnd .NavInfo.Account}}</i>
+                        <i>{{/*documentView*/}}Die {{if .Document.IsDiscussion}}Diskussion{{else}}Abstimmung{{end}} ist bereits vorbei.<br>
+                            {{/*documentView*/}}Ende war am {{.Document.GetTimeEnd .NavInfo.Account}}</i>
                     {{else}}
-                        <i>Endet: {{.Document.GetTimeEnd .NavInfo.Account}}</i>
+                        <i>{{/*documentView*/}}Endet: {{.Document.GetTimeEnd .NavInfo.Account}}</i>
                     {{end}}
                 {{end}}
                 <br><br>
@@ -55,9 +55,9 @@
             </p>
             {{if .Document.AllowedToAddTags}}
             <details>
-                <summary>Tag erstellen</summary>
-                <form hx-post="/create/tag/on/{{.Document.ID}}" hx-target="#page-body" hx-confirm="Willst du den Tag so hinzufügen?">
-                    <label for="color-palette">Farbpaletten</label>
+                <summary>{{/*documentView*/}}Tag erstellen</summary>
+                <form hx-post="/create/tag/on/{{.Document.ID}}" hx-target="#page-body" hx-confirm="{{/*documentView*/}}Willst du den Tag so hinzufügen?">
+                    <label for="color-palette">{{/*documentView*/}}Farbpaletten</label>
                     <select id="color-palette" name="color-palette">
                         {{range $pos, $color := .ColorIterator}}
                             <option id="color-{{$pos}}" value="color-{{$pos}}"
@@ -66,18 +66,18 @@
                                     data-link="{{$color.Link}}">{{$color.Name}}</option>
                         {{end}}
                     </select>
-                    <button type="button" onclick="copyColors()">Farbe aus Farbpalette kopieren</button>
-                    <label for="text">Inhalt</label>
+                    <button type="button" onclick="copyColors()">{{/*documentView*/}}Farbe aus Farbpalette kopieren</button>
+                    <label for="text">{{/*documentView*/}}Inhalt</label>
                     <input id="text" name="text" type="text">
-                    <label for="background-color">Hintergrundfarbe</label>
+                    <label for="background-color">{{/*documentView*/}}Hintergrundfarbe</label>
                     <input id="background-color" name="background-color" type="color" value="#000000">
-                    <label for="text-color">Textfarbe</label>
+                    <label for="text-color">{{/*documentView*/}}Textfarbe</label>
                     <input id="text-color" name="text-color" type="color" value="#FFFFFF">
-                    <label for="link-color">Link-Farbe</label>
+                    <label for="link-color">{{/*documentView*/}}Link-Farbe</label>
                     <input id="link-color" name="link-color" type="color" value="#FFFFFF">
-                    <label for="links">Referenzen zu anderen Dokumenten</label>
+                    <label for="links">{{/*documentView*/}}Referenzen zu anderen Dokumenten</label>
                     <input id="links" name="links" type="text">
-                    <button>Tag hinzufügen</button>
+                    <button>{{/*documentView*/}}Tag hinzufügen</button>
                 </form>
                 <div id="tag-message" hidden></div>
             </details>
@@ -88,7 +88,7 @@
             {{if .NavInfo.Account.IsAtLeastAdmin}}
                 <a class="button-link spacing" hx-patch="/change/blocked/document/{{.Document.ID}}"
                    hx-target="#page-body">
-                    {{if .Document.Removed}}Dokument wieder freigeben{{else}}Dokument blockieren{{end}}
+                    {{/*documentView*/}}{{if .Document.Removed}}Dokument wieder freigeben{{else}}Dokument blockieren{{end}}
                 </a>
             {{end}}
         </div>
@@ -103,7 +103,7 @@
     {{$acc := .NavInfo.Account}}
     {{if .Document.HasComments}}
         <div class="block-view">
-            <h1>Kommentare</h1>
+            <h1>{{/*documentView*/}}Kommentare</h1>
         </div>
     {{end}}
     {{$isAdmin := $acc.IsAtLeastAdmin}}
@@ -111,21 +111,21 @@
     {{range $comment := .Document.Comments}}
         <hr class="splitter">
         <div class="block-view">
-            Geschrieben von: {{$comment.GetAuthor}}<br>
-            <i>Verfasst am: {{$comment.GetTimeWritten $acc}}</i>
+            {{/*documentView*/}}Geschrieben von: {{$comment.GetAuthor}}<br>
+            <i>{{/*documentView*/}}Verfasst am: {{$comment.GetTimeWritten $acc}}</i>
         </div>
         <div class="markdown {{if $comment.Removed}}removed{{end}}">{{$comment.GetBody $acc}}</div>
         {{if $isAdmin}}
             <a class="button-link spacing" hx-patch="/change/blocked/comment/{{$comment.ID}}/on/{{$docID}}"
                hx-target="#page-body">
-                {{if $comment.Removed}}Kommentar wieder freigeben{{else}}Kommentar blockieren{{end}}
+                {{/*documentView*/}}{{if $comment.Removed}}Kommentar wieder freigeben{{else}}Kommentar blockieren{{end}}
             </a>
         {{end}}
     {{end}}
     {{if .CanComment}}
         <hr class="splitter">
         <form hx-post="/create/discussion/comment/{{.Document.ID}}" hx-target="#page-body">
-            <label for="author">Autor</label>
+            <label for="author">{{/*documentView*/}}Autor</label>
             <select id="author" name="author">
                 {{range .Commentator}}
                     <option value="{{.}}">{{.}}</option>
@@ -135,20 +135,24 @@
             <textarea id="markdown" name="markdown" rows="10"
                       hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                       hx-target="#markdown-box"></textarea>
-            <button>Kommentar schreiben</button>
+            <button>{{/*documentView*/}}Kommentar schreiben</button>
         </form>
         {{template "message" .}}
-        <h1>Vorschau</h1>
+        <h1>{{/*documentView*/}}Vorschau</h1>
         {{template "markdownBox" .}}
     {{end}}
 {{end}}
 {{define "vote"}}
     {{- /*gotype: PoliSim/handler.DocumentViewPage*/ -}}
+    <div class="block-view">
+        <h1>{{/*documentView*/}}Abstimmungen</h1>
+    </div>
     {{if .Document.HasResults}}
         {{range .Document.Result}}
             {{template "voteResults" .}}
         {{end}}
     {{else}}
+        <hr class="splitter">
         <div class="block-view">
             {{range $link := .Document.Links}}
                 <a href="/view/vote/{{$link.ID}}"

@@ -44,6 +44,10 @@ type (
 	}
 )
 
+func (a *AccountVotes) GetHeaderWidth() int {
+	return a.AnswerAmount + 1
+}
+
 func (a *AccountVotes) GetIllegalVotes() string {
 	if a.IllegalVotes == nil {
 		if a.Anonymous {
