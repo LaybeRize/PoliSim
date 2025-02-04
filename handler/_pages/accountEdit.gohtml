@@ -3,24 +3,24 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     {{if .Account.Exists}}
-        <a class="button-link" href="/edit/account">Zurück zur Suche</a>
+        <a class="button-link" href="/edit/account">{{/*accountEdit*/}}Zurück zur Suche</a>
         <form hx-patch="/edit/account?name={{urlquery .Account.Name}}" hx-target="#page-body">
-            <label for="name">Anzeigename</label>
+            <label for="name">{{/*accountEdit*/}}Anzeigename</label>
             <input id="name" name="name" type="text" value="{{.Account.Name}}" readonly>
-            <label for="username">Nutzername</label>
+            <label for="username">{{/*accountEdit*/}}Nutzername</label>
             <input id="username" name="username" type="text" value="{{.Account.Username}}" readonly>
-            <label for="role">Rolle</label>
+            <label for="role">{{/*accountEdit*/}}Rolle</label>
             <select id="role" name="role" {{if .Account.IsPressUser}}disabled{{end}}>
-                <option value="4">Nutzer</option>
-                <option value="5" {{if .Account.IsPressUser}}selected{{end}}>Presse-Nutzer</option>
-                <option value="3" {{if .Account.IsPressAdmin}}selected{{end}}>Presse-Administrator</option>
-                <option value="2" {{if .Account.IsAdmin}}selected{{end}}>Administrator</option>
-                <option value="1" {{if .Account.IsHeadAdmin}}selected{{end}}>Oberadministrator</option>
+                <option value="4">{{/*accountEdit*/}}Nutzer</option>
+                <option value="5" {{if .Account.IsPressUser}}selected{{end}}>{{/*accountEdit*/}}Presse-Nutzer</option>
+                <option value="3" {{if .Account.IsPressAdmin}}selected{{end}}>{{/*accountEdit*/}}Presse-Administrator</option>
+                <option value="2" {{if .Account.IsAdmin}}selected{{end}}>{{/*accountEdit*/}}Administrator</option>
+                <option value="1" {{if .Account.IsHeadAdmin}}selected{{end}}>{{/*accountEdit*/}}Oberadministrator</option>
             </select>
-            <label for="blocked">Blockiert</label>
+            <label for="blocked">{{/*accountEdit*/}}Blockiert</label>
             <input type="checkbox" id="blocked" name="blocked" value="true" {{if .Account.Blocked}}checked{{end}}>
             {{if .Account.IsPressUser}}
-                <label for="linked">Account-Besitzer</label>
+                <label for="linked">{{/*accountEdit*/}}Account-Besitzer</label>
                 <input type="text" id="linked" name="linked" list="names" value="{{.LinkedAccountName}}">
                 <datalist id="names">
                     {{range .AccountNames}}
@@ -28,25 +28,25 @@
                     {{end}}
                 </datalist>
             {{end}}
-            <button type="submit">Nutzer anpassen</button>
+            <button type="submit">{{/*accountEdit*/}}Nutzer anpassen</button>
         </form>
     {{else}}
         <form hx-put="/edit/account/search" hx-target="#page-body">
-            <label for="name">Anzeigename</label>
+            <label for="name">{{/*accountEdit*/}}Anzeigename</label>
             <input id="name" name="name" type="text" list="names">
             <datalist id="names">
                 {{range .AccountNames}}
                     <option>{{.}}</option>
                 {{end}}
             </datalist>
-            <label for="username">Nutzername</label>
+            <label for="username">{{/*accountEdit*/}}Nutzername</label>
             <input id="username" name="username" type="text" list="usernames">
             <datalist id="usernames">
                 {{range .AccountUsernames}}
                     <option>{{.}}</option>
                 {{end}}
             </datalist>
-            <button type="submit">Nutzer suchen</button>
+            <button type="submit">{{/*accountEdit*/}}Nutzer suchen</button>
         </form>
     {{end}}
     {{template "message" .}}

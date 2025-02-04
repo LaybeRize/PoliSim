@@ -8,6 +8,8 @@ import (
 )
 
 const (
+	LanguageTag = "de"
+
 	AdministrationName            = "Administration"
 	AdministrationAccountName     = "Max Musteradministrator"
 	AdministrationAccountUsername = ""
@@ -281,9 +283,14 @@ const (
 	PagesSearchDocumentsPage    = "Dokumente durchsuchen"
 	PagesViewVotePage           = "Abstimmungsansicht"
 	PagesEditColorPage          = "Farbpaletten anpassen"
+
+	// language=HTML
+	homePageElement = ``
 )
 
-var replaceMap = map[string]string{}
+var replaceMap = map[string]string{
+	"$$home-page$$": homePageElement,
+}
 
 func LocaliseTemplateString(input []byte) string {
 	result := string(input)

@@ -26,29 +26,29 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/vote" hx-target="#page-body">
-        <label for="title">Titel</label>
+        <label for="title">{{/*documentCreateVote*/}}Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
-        <label for="author">Autor</label>
+        <label for="author">{{/*documentCreateVote*/}}Autor</label>
         <select id="author" name="author" hx-get="/organisations/for/account" hx-trigger="change" hx-target="#organisation">
             {{$author := .Author}}
             {{range .PossibleAuthors}}
                 <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <label for="organisation">Organisation</label>
+        <label for="organisation">{{/*documentCreateVote*/}}Organisation</label>
         {{template "organisationDropdown" .}}
-        <label for="end-time">Ende der Abstimmung (Endet immer um 23:50 UTC des ausgewählten Tages)</label>
+        <label for="end-time">{{/*documentCreateVote*/}}Ende der Abstimmung (Endet immer um 23:50 UTC des ausgewählten Tages)</label>
         <input  type="date"
                 id="end-time"
                 name="end-time"
                 value="{{.DateTime}}"
                 min="{{.MinTime}}"
                 max="{{.MaxTime}}" />
-        <label for="public">Abstimmung ist öffentlich (Pflicht in öffentlichen Organisationen)</label>
+        <label for="public">{{/*documentCreateVote*/}}Abstimmung ist öffentlich (Pflicht in öffentlichen Organisationen)</label>
         <input type="checkbox" id="public" name="public" value="true" {{if .Public}}checked{{end}}>
-        <label for="member">Alle Organisationsmitglieder dürfen teilnehmen</label>
+        <label for="member">{{/*documentCreateVote*/}}Alle Organisationsmitglieder dürfen teilnehmen</label>
         <input type="checkbox" id="member" name="member" value="true" {{if .LetMemberParticipate}}checked{{end}}>
-        <label for="admin">Alle Organisationsadministratoren dürfen teilnehmen</label>
+        <label for="admin">{{/*documentCreateVote*/}}Alle Organisationsadministratoren dürfen teilnehmen</label>
         <input type="checkbox" id="admin" name="admin" value="true" {{if .LetAdminsParticipate}}checked{{end}}>
         {{template "readerAndParticipants" .}}
         <datalist id="account-names">
@@ -56,30 +56,30 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
-        <label for="vote-choice">Abstimmungsliste</label>
+        <label for="vote-choice">{{/*documentCreateVote*/}}Abstimmungsliste</label>
         <select id="vote-choice" name="vote-choice">
             {{range .VoteChoice}}
                 <option value="{{.ID}}">{{.Question}}</option>
             {{end}}
         </select>
         <button type="button" onclick="copyElementValueAndAppendIt('vote-choice', 'votes')">
-            ID der ausgewählten Abstimmung übertragen
+            {{/*documentCreateVote*/}}ID der ausgewählten Abstimmung übertragen
         </button>
-        <label for="votes">Angehängte Abstimmungen</label>
+        <label for="votes">{{/*documentCreateVote*/}}Angehängte Abstimmungen</label>
         <input id="votes" name="votes" type="text" value="{{.VoteChoiceList}}">
-        <label for="markdown">Inhalt</label>
+        <label for="markdown">{{/*documentCreateVote*/}}Inhalt</label>
         <textarea id="markdown" name="markdown" rows="10"
                   hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                   hx-target="#markdown-box">
             {{- .Body -}}
         </textarea>
         <button hx-patch="/check/reader/and/participants" hx-target="#reader-and-participants">
-            Leser und Teilnehmer überprüfen
+            {{/*documentCreateVote*/}}Leser und Teilnehmer überprüfen
         </button>
-        <button type="submit">Dokument erstellen</button>
+        <button type="submit">{{/*documentCreateVote*/}}Abstimmungsdokument erstellen</button>
     </form>
     {{template "message" .}}
-    <h1>Vorschau</h1>
+    <h1>{{/*documentCreateVote*/}}Vorschau</h1>
     {{template "markdownBox" .}}
     </body>
 {{end}}

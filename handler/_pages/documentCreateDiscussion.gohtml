@@ -17,29 +17,29 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/discussion" hx-target="#page-body">
-        <label for="title">Titel</label>
+        <label for="title">{{/*documentCreateDiscussion*/}}Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
-        <label for="author">Autor</label>
+        <label for="author">{{/*documentCreateDiscussion*/}}Autor</label>
         <select id="author" name="author" hx-get="/organisations/for/account" hx-trigger="change" hx-target="#organisation">
             {{$author := .Author}}
             {{range .PossibleAuthors}}
                 <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <label for="organisation">Organisation</label>
+        <label for="organisation">{{/*documentCreateDiscussion*/}}Organisation</label>
         {{template "organisationDropdown" .}}
-        <label for="end-time">Ende der Abstimmung ({{.NavInfo.Account.TimeZone.String}})</label>
+        <label for="end-time">{{/*documentCreateDiscussion*/}}Ende der Diskussion ({{.NavInfo.Account.TimeZone.String}})</label>
         <input  type="datetime-local"
                 id="end-time"
                 name="end-time"
                 value="{{.DateTime}}"
                 min="{{.MinTime}}"
                 max="{{.MaxTime}}" />
-        <label for="public">Diskussion ist öffentlich (Pflicht in öffentlichen Organisationen)</label>
+        <label for="public">{{/*documentCreateDiscussion*/}}Diskussion ist öffentlich (Pflicht in öffentlichen Organisationen)</label>
         <input type="checkbox" id="public" name="public" value="true" {{if .Public}}checked{{end}}>
-        <label for="member">Alle Organisationsmitglieder dürfen teilnehmen</label>
+        <label for="member">{{/*documentCreateDiscussion*/}}Alle Organisationsmitglieder dürfen teilnehmen</label>
         <input type="checkbox" id="member" name="member" value="true" {{if .LetMemberParticipate}}checked{{end}}>
-        <label for="admin">Alle Organisationsadministratoren dürfen teilnehmen</label>
+        <label for="admin">{{/*documentCreateDiscussion*/}}Alle Organisationsadministratoren dürfen teilnehmen</label>
         <input type="checkbox" id="admin" name="admin" value="true" {{if .LetAdminsParticipate}}checked{{end}}>
         {{template "readerAndParticipants" .}}
         <datalist id="account-names">
@@ -47,19 +47,19 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
-        <label for="markdown">Inhalt</label>
+        <label for="markdown">{{/*documentCreateDiscussion*/}}Inhalt</label>
         <textarea id="markdown" name="markdown" rows="10"
                   hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                   hx-target="#markdown-box">
             {{- .Body -}}
         </textarea>
         <button hx-patch="/check/reader/and/participants" hx-target="#reader-and-participants">
-            Leser und Teilnehmer überprüfen
+            {{/*documentCreateDiscussion*/}}Leser und Teilnehmer überprüfen
         </button>
-        <button type="submit">Dokument erstellen</button>
+        <button type="submit">{{/*documentCreateDiscussion*/}}Diskussion erstellen</button>
     </form>
     {{template "message" .}}
-    <h1>Vorschau</h1>
+    <h1>{{/*documentCreateDiscussion*/}}Vorschau</h1>
     {{template "markdownBox" .}}
     </body>
 {{end}}

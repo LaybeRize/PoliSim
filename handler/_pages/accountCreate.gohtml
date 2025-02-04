@@ -3,21 +3,21 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/account" hx-target="#page-body">
-        <label for="name">Anzeigename</label>
+        <label for="name">{{/*accountCreate*/}}Anzeigename</label>
         <input id="name" name="name" type="text" value="{{.Account.Name}}">
-        <label for="username">Nutzername</label>
+        <label for="username">{{/*accountCreate*/}}Nutzername</label>
         <input id="username" name="username" type="text" value="{{.Account.Username}}">
-        <label for="password">Passwort</label>
+        <label for="password">{{/*accountCreate*/}}Passwort</label>
         <input id="password" name="password" type="text" value="{{.Account.Password}}">
-        <label for="role">Rolle</label>
+        <label for="role">{{/*accountCreate*/}}Rolle</label>
         <select id="role" name="role">
-            <option value="4">Nutzer</option>
-            <option value="5" {{if eq .Account.Role 5}}selected{{end}}>Presse-Nutzer</option>
-            <option value="3" {{if eq .Account.Role 3}}selected{{end}}>Presse-Administrator</option>
-            <option value="2" {{if eq .Account.Role 2}}selected{{end}}>Administrator</option>
-            <option value="1" {{if eq .Account.Role 1}}selected{{end}}>Oberadministrator</option>
+            <option value="4">{{/*accountCreate*/}}Nutzer</option>
+            <option value="5" {{if eq .Account.Role 5}}selected{{end}}>{{/*accountCreate*/}}Presse-Nutzer</option>
+            <option value="3" {{if eq .Account.Role 3}}selected{{end}}>{{/*accountCreate*/}}Presse-Administrator</option>
+            <option value="2" {{if eq .Account.Role 2}}selected{{end}}>{{/*accountCreate*/}}Administrator</option>
+            <option value="1" {{if eq .Account.Role 1}}selected{{end}}>{{/*accountCreate*/}}Oberadministrator</option>
         </select>
-        <button type="submit">Nutzer erstellen</button>
+        <button type="submit">{{/*accountCreate*/}}Nutzer erstellen</button>
     </form>
     {{template "message" .}}
     </body>

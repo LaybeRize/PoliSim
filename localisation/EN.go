@@ -8,6 +8,8 @@ import (
 )
 
 const (
+	LanguageTag = "en"
+
 	AdministrationName            = "Administration"
 	AdministrationAccountName     = "John Administrator"
 	AdministrationAccountUsername = ""
@@ -281,9 +283,115 @@ const (
 	PagesSearchDocumentsPage    = "Search Documents"
 	PagesViewVotePage           = "Vote View"
 	PagesEditColorPage          = "Manage Color Palettes"
+
+	// language=HTML
+	homePageElement = ``
 )
 
-var replaceMap = map[string]string{}
+var replaceMap = map[string]string{
+	"$$home-page$$": homePageElement,
+	"{{/*_home*/}}Herzlich willkommen, {{.Account.Name}}": "Welcome, {{.Account.Name}}",
+	"{{/*_home*/}}Abmelden":                               "Sign out",
+	"{{/*_home*/}}Nutzername":                             "Username",
+	"{{/*_home*/}}Passwort":                               "Password",
+	"{{/*_home*/}}Einloggen":                              "Sign in",
+
+	"{{/*_notFound*/}}Die Seite, die Sie suchen, existiert nicht": "The Page you requested does not exist",
+
+	"{{/*accountCreate*/}}Anzeigename":          "Display Name",
+	"{{/*accountCreate*/}}Nutzername":           "Username",
+	"{{/*accountCreate*/}}Passwort":             "Password",
+	"{{/*accountCreate*/}}Rolle":                "Role",
+	"{{/*accountCreate*/}}Nutzer":               "User",
+	"{{/*accountCreate*/}}Presse-Nutzer":        "Press User",
+	"{{/*accountCreate*/}}Presse-Administrator": "Press Administrator",
+	"{{/*accountCreate*/}}Administrator":        "Administrator",
+	"{{/*accountCreate*/}}Oberadministrator":    "Head Administrator",
+	"{{/*accountCreate*/}}Nutzer erstellen":     "Create User",
+
+	"{{/*accountEdit*/}}Zurück zur Suche":     "Back to Search",
+	"{{/*accountEdit*/}}Anzeigename":          "Display Name",
+	"{{/*accountEdit*/}}Nutzername":           "Username",
+	"{{/*accountEdit*/}}Rolle":                "Role",
+	"{{/*accountEdit*/}}Nutzer":               "User",
+	"{{/*accountEdit*/}}Presse-Nutzer":        "Press User",
+	"{{/*accountEdit*/}}Presse-Administrator": "Press Administrator",
+	"{{/*accountEdit*/}}Administrator":        "Administrator",
+	"{{/*accountEdit*/}}Oberadministrator":    "Head Administrator",
+	"{{/*accountEdit*/}}Blockiert":            "Blocked",
+	"{{/*accountEdit*/}}Account-Besitzer":     "Account Owner",
+	"{{/*accountEdit*/}}Nutzer anpassen":      "Update User",
+	"{{/*accountEdit*/}}Nutzer suchen":        "Search for User",
+
+	"{{/*documentColorEdit*/}}Farbpaletten":                   "Color Palette",
+	"{{/*documentColorEdit*/}}Farbpalette auswählen":          "Select Color Palette",
+	"{{/*documentColorEdit*/}}Name":                           "Name",
+	"{{/*documentColorEdit*/}}Hintergrundfarbe":               "Background Color",
+	"{{/*documentColorEdit*/}}Textfarbe":                      "Text Color",
+	"{{/*documentColorEdit*/}}Link-Farbe":                     "Link Color",
+	"{{/*documentColorEdit*/}}Farbpalette erstellen/anpassen": "Create/Update Color Palette",
+	"{{/*documentColorEdit*/}}Farbpalette löschen":            "Delete Color Palette",
+
+	"{{/*documentCreate*/}}Titel":              "Title",
+	"{{/*documentCreate*/}}Autor":              "Author",
+	"{{/*documentCreate*/}}Organisation":       "Organisation",
+	"{{/*documentCreate*/}}Inhalt":             "Content",
+	"{{/*documentCreate*/}}Dokument erstellen": "Create Document",
+	"{{/*documentCreate*/}}Vorschau":           "Preview",
+
+	"{{/*documentCreateDiscussion*/}}Titel":                                                              "Title",
+	"{{/*documentCreateDiscussion*/}}Autor":                                                              "Author",
+	"{{/*documentCreateDiscussion*/}}Organisation":                                                       "Organisation",
+	"{{/*documentCreateDiscussion*/}}Ende der Diskussion ({{.NavInfo.Account.TimeZone.String}})":         "End Timestamp for Discussion ({{.NavInfo.Account.TimeZone.String}})",
+	"{{/*documentCreateDiscussion*/}}Diskussion ist öffentlich (Pflicht in öffentlichen Organisationen)": "Discussion is Public (Must be checked when posting in a Public Organisation)",
+	"{{/*documentCreateDiscussion*/}}Alle Organisationsmitglieder dürfen teilnehmen":                     "All Organisation Member are allowed to Participate",
+	"{{/*documentCreateDiscussion*/}}Alle Organisationsadministratoren dürfen teilnehmen":                "All Organisation Administrators are allowed to Participate",
+	"{{/*documentCreateDiscussion*/}}Inhalt":                                                             "Content",
+	"{{/*documentCreateDiscussion*/}}Leser und Teilnehmer überprüfen":                                    "Check Reader and Participants",
+	"{{/*documentCreateDiscussion*/}}Diskussion erstellen":                                               "Create Discussion",
+	"{{/*documentCreateDiscussion*/}}Vorschau":                                                           "Preview",
+
+	"{{/*documentCreateVote*/}}Titel":        "Title",
+	"{{/*documentCreateVote*/}}Autor":        "Author",
+	"{{/*documentCreateVote*/}}Organisation": "Organisation",
+	"{{/*documentCreateVote*/}}Ende der Abstimmung (Endet immer um 23:50 UTC des ausgewählten Tages)": "End Timestamp for Vote (Always ends at 23:50 UTC of the selected day)",
+	"{{/*documentCreateVote*/}}Abstimmung ist öffentlich (Pflicht in öffentlichen Organisationen)":    "Vote is Public (Must be checked when posting in a Public Organisation)",
+	"{{/*documentCreateVote*/}}Alle Organisationsmitglieder dürfen teilnehmen":                        "All Organisation Member are allowed to Participate",
+	"{{/*documentCreateVote*/}}Alle Organisationsadministratoren dürfen teilnehmen":                   "All Organisation Administrators are allowed to Participate",
+	"{{/*documentCreateVote*/}}Abstimmungsliste":                                                      "Vote List",
+	"{{/*documentCreateVote*/}}ID der ausgewählten Abstimmung übertragen":                             "Insert ID of selected Vote",
+	"{{/*documentCreateVote*/}}Angehängte Abstimmungen":                                               "Attached Votes",
+	"{{/*documentCreateVote*/}}Inhalt":                                                                "Content",
+	"{{/*documentCreateVote*/}}Leser und Teilnehmer überprüfen":                                       "Check Reader and Participants",
+	"{{/*documentCreateVote*/}}Abstimmungsdokument erstellen":                                         "Create Vote Document",
+	"{{/*documentCreateVote*/}}Vorschau":                                                              "Preview",
+
+	"{{/*documentCreateVoteElement*/}}Abstimmungsnummer":                                              "Vote Number",
+	"{{/*documentCreateVoteElement*/}}Abstimmungs-ID":                                                 "Vote ID",
+	"{{/*documentCreateVoteElement*/}}Abstimmungsart":                                                 "Vote Type",
+	"{{/*documentCreateVoteElement*/}}Eine Stimme pro Nutzer":                                         "Single Choice Vote",
+	"{{/*documentCreateVoteElement*/}}Mehrere Stimmen pro Nutzer":                                     "Multiple Choice Vote",
+	"{{/*documentCreateVoteElement*/}}Rangwahl":                                                       "Option Ranking",
+	"{{/*documentCreateVoteElement*/}}Gewichtete Wahl":                                                "Weighted Vote",
+	"{{/*documentCreateVoteElement*/}}Maximale Stimmen pro Nutzer (Nur relevant für Gewichtete Wahl)": "Maximum Amount of Votes per User (only relevant for Weighted Vote)",
+	"{{/*documentCreateVoteElement*/}}Zeige Teilnehmerbezogene Stimmen während der Wahl":              "Show current Ballots during Vote Period",
+	"{{/*documentCreateVoteElement*/}}Geheime Wahl":                                                   "Secret Ballot",
+	"{{/*documentCreateVoteElement*/}}Frage":                                                          "Question",
+	"{{/*documentCreateVoteElement*/}}Antwort hinzufügen":                                             "Add New Option",
+	"{{/*documentCreateVoteElement*/}}Antworten":                                                      "Options",
+	"{{/*documentCreateVoteElement*/}}Abstimmung erstellen/bearbeiten":                                "Create/Update Vote",
+
+	"{{/*documentSearch*/}}\"Die Anfrage hat zu einem Fehler auf der Serverseite geführt\"":                 "\"Requested could not be processed. Internal Server Error\"",
+	"{{/*documentSearch*/}}Blockierte Dokumente anzeigen":                                                   "Show Blocked Documents",
+	"{{/*documentSearch*/}}Anzahl der Ergebnisse":                                                           "Number of Entries per Page",
+	"{{/*documentSearch*/}}Suchen":                                                                          "Search",
+	"{{/*documentSearch*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden": "No Entries found",
+	"{{/*documentSearch*/}}<strong>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</strong>":             "<strong>{{if .Removed}}[Removed]{{else}}{{.Title}}{{end}}</strong>",
+	"{{/*documentSearch*/}}<i>Veröffentlicht am: {{.GetTimeWritten $acc}}</i>":                              "<i>Written: {{.GetTimeWritten $acc}}</i>",
+	"{{/*documentSearch*/}}Veröffentlicht von <i>{{.Author}}</i> im <i>{{.Organisation}}</i>":               "Written by <i>{{.Author}}</i> for <i>{{.Organisation}}</i>",
+	"{{/*documentSearch*/}}&laquo; Vorherige Seite":                                                         "&laquo; Previous Page",
+	"{{/*documentSearch*/}}Nächste Seite &raquo;":                                                           "Next Page &raquo;",
+}
 
 func LocaliseTemplateString(input []byte) string {
 	result := string(input)

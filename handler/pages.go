@@ -803,7 +803,7 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	data.SetNavInfo(navInfo)
 
 	fullPage := FullPage{
-		Language: "de",
+		Language: loc.LanguageTag,
 		Base: BaseInfo{
 			Icon: iconPath,
 		},
