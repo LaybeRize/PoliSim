@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	loc "PoliSim/localisation"
 	"embed"
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
@@ -644,6 +645,19 @@ func (p *EditColorPage) getPageName() string {
 	return "documentColorEdit"
 }
 
+type AdminPage struct {
+	NavInfo NavigationInfo
+	MessageUpdate
+}
+
+func (p *AdminPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *AdminPage) getPageName() string {
+	return "_admin"
+}
+
 type PartialStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 }
@@ -765,9 +779,25 @@ var templates embed.FS
 
 var templateForge = make(map[string]*template.Template)
 
-var iconPath = "/public/fallback_icon.png"
+var IconPath = "/public/fallback_icon.png"
 
 func init() {
+	log.Println("Updating Welcome Page HTML")
+	const pageAdditon = "./public/welcome." + loc.LanguageTag + ".html"
+	_, err := os.Stat(pageAdditon)
+	if errors.Is(err, os.ErrNotExist) {
+		log.Println("No Welcome Page HTML found")
+	} else if err != nil {
+		log.Fatalf("Welcome Page Search ecountered an error: %v", err)
+	} else {
+		var file []byte
+		file, err = os.ReadFile(pageAdditon)
+		if err != nil {
+			log.Fatalf("While opening Welcome Page ecountered an error: %v", err)
+		}
+		loc.HomePageElement = string(file)
+	}
+
 	log.Println("Reading All Templates")
 	templateString := getTemplatesAsSingleString()
 	templateForge["templates"] = template.Must(template.New("").Parse(templateString))
@@ -785,9 +815,10 @@ func init() {
 			template.Must(template.New("").Parse(templateString)).Parse(
 				loc.LocaliseTemplateString(page, name)))
 	}
+
 	log.Println("Successfully created the Template Forge")
 	if os.Getenv("ICON_PATH") != "" {
-		iconPath = os.Getenv("ICON_PATH")
+		IconPath = os.Getenv("ICON_PATH")
 	}
 }
 
@@ -831,7 +862,7 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	fullPage := FullPage{
 		Language: loc.LanguageTag,
 		Base: BaseInfo{
-			Icon: iconPath,
+			Icon: IconPath,
 		},
 		Content: data,
 	}
@@ -899,6 +930,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = loc.PagesEditColorPage
 	case *SearchPersonalDocumentsPage:
 		fullPage.Base.Title = loc.PagesPersonDocumentPage
+	case *AdminPage:
+		fullPage.Base.Title = "Webserver Administration"
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

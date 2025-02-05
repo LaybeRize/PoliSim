@@ -1,0 +1,11 @@
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.AdminPage*/ -}}
+    <body id="page-body">
+    <form hx-post="/administration/file" hx-target="#page-body" hx-encoding="multipart/form-data">
+        <label for="file">File</label>
+        <input id="file" type="file" name="file" />
+        <button>Create/Update File</button>
+    </form>
+    {{template "message" .}}
+    </body>
+{{end}}

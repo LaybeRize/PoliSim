@@ -23,6 +23,7 @@ services:
       - stack.env
     volumes:
       - web_data:/app/data
+      - web_public:/app/public
     image:
       layberize/polisim:testing
 
@@ -31,3 +32,4 @@ volumes:
   neo_data:
   neo_logs:
   web_data:
+  web_public:

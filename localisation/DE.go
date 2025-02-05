@@ -289,14 +289,13 @@ const (
 	PagesViewVotePage           = "Abstimmungsansicht"
 	PagesEditColorPage          = "Farbpaletten anpassen"
 	PagesPersonDocumentPage     = "Persönliche Dokumente"
-
-	// language=HTML
-	homePageElement = ``
 )
+
+var HomePageElement = ""
 
 var replaceMap = map[string]map[string]string{
 	"_home": {
-		"$$home-page$$": homePageElement,
+		"$$home-page$$": HomePageElement,
 	},
 }
 

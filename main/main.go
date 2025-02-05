@@ -116,6 +116,9 @@ func main() {
 	http.HandleFunc("GET /view/letter/{id}", letter.GetLetterViewPage)
 	http.HandleFunc("PATCH /view/letter/{id}", letter.PatchLetterViewPage)
 
+	http.HandleFunc("GET /administration", handler.GetManagementPage)
+	http.HandleFunc("POST /administration/file", handler.PostFileManagementPage)
+
 	http.HandleFunc("GET /", handler.GetHomePage)
 
 	http.HandleFunc("/", handler.GetNotFoundPage)
