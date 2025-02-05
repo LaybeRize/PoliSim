@@ -107,7 +107,7 @@
         <button type="button" onclick="copy('input-for-reader', 'participants-adder')">
             {{/*templates*/}}Leser hinzufügen
         </button>
-        <label for="reader">Leser</label>
+        <label for="reader">{{/*templates*/}}Leser</label>
         <div id="input-for-reader" class="name-list hide">
             <input id="reader" name="[]reader" type="text" list="account-names">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -121,7 +121,7 @@
         <button id="participants-adder" type="button" onclick="copy('input-for-participants', 'block-end-div')">
             {{/*templates*/}}Teilnehmer hinzufügen
         </button>
-        <label for="participants">Teilnehmer</label>
+        <label for="participants">{{/*templates*/}}Teilnehmer</label>
         <div id="input-for-participants" class="name-list hide">
             <input id="participants" name="[]participants" type="text" list="account-names">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>

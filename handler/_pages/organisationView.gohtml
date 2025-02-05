@@ -3,10 +3,10 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     {{if .HadError}}
-        <i class="alert-red">Fehler beim Laden der Organisationen</i>
+        <i class="alert-red">{{/*organisationView*/}}Fehler beim Laden der Organisationen</i>
     {{else}}
         {{if eq (len .Hierarchy) 0}}
-            <p>Es existieren keine Organisationen</p>
+            <p>{{/*organisationView*/}}Es existieren keine Organisationen</p>
         {{else}}
         <div class="wrapper hierarchy-view">
         {{range $MainGroupName, $SubGroupMap := .Hierarchy}}
@@ -39,14 +39,14 @@
             <a _="on click toggle .hide on the next <div/>"
             ><i class="bi {{.Organisation.GetClassType}}"></i> {{.Organisation.Name}}</a>
             <div class="">
-                {{if .Organisation.HasFlair}}<i>Flair: {{.Organisation.Flair}}</i>
-                {{else}}<i>Kein Flair</i>{{end}}
+                {{if .Organisation.HasFlair}}<i>{{/*organisationView*/}}Flair: {{.Organisation.Flair}}</i>
+                {{else}}<i>{{/*organisationView*/}}Kein Flair</i>{{end}}
                 <p>{{.User}}<br>{{.Admin}}</p>
             </div>
         {{else}}
             <a _="on click toggle .hide on the next <div/>"><i class="bi bi-not-found"></i> {{.Name}}</a>
             <div class="">
-                <i class="alert-red">Titelinformationen nicht gefunden</i>
+                <i class="alert-red">{{/*organisationView*/}}Organisationsinformationen nicht gefunden</i>
             </div>
         {{end}}
     </div>

@@ -3,7 +3,7 @@
         window.onload = function () {
             document.body.addEventListener("htmx:afterRequest", function (evt) {
                 if (evt.failed) {
-                    alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+                    alert({{/*newspaperSearch*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
                 }
             })
         }
@@ -15,22 +15,22 @@
     {{template "header" .NavInfo}}
     {{$acc := .NavInfo.Account}}
     <form id="search-form" hx-put="/search/publications" hx-target="#page-body">
-        <label for="query">Suche</label>
+        <label for="query">{{/*newspaperSearch*/}}Suchanfrage</label>
         <input id="query" name="query" type="text" value="{{.Query}}">
-        <label for="amount">Anzahl der Ergebnisse</label>
+        <label for="amount">{{/*newspaperSearch*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
-        <button>Suchen</button>
+        <button>{{/*newspaperSearch*/}}Suchen</button>
     </form>
     <div class="wrapper note">
         {{if eq (len .Results) 0}}
-            <p>Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
+            <p>{{/*newspaperSearch*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.Publication*/ -}}
                 <a href="/publication/view/{{.ID}}" target="_blank">{{if .Special -}}
                     <i class="bi bi-important"></i>
-                    {{- end }} <strong>{{.NewspaperName}}</strong><br>
-                    <i>Veröffentlicht am: {{.GetPublishedDate $acc}}</i>
+                    {{- end }} {{/*newspaperSearch*/}}<strong>{{.NewspaperName}}</strong><br>
+                    {{/*newspaperSearch*/}}<i>Veröffentlicht am: {{.GetPublishedDate $acc}}</i>
                 </a>
             {{end}}
         {{end}}
@@ -40,13 +40,13 @@
                 {{if .HasPrevious}}
                     <a hx-put="/search/publications" hx-include="#search-form"
                        hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
-                        &laquo; Vorherige Seite
+                        {{/*newspaperSearch*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
                     <a hx-put="/search/publications" hx-include="#search-form"
                        hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
-                        Nächste Seite &raquo;
+                        {{/*newspaperSearch*/}}Nächste Seite &raquo;
                     </a>
                 {{end}}
             </div>

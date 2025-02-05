@@ -19,7 +19,7 @@
     <form hx-post="/create/vote/element" hx-target="#page-body">
         <label for="number">{{/*documentCreateVoteElement*/}}Abstimmungsnummer</label>
         <select id="number" name="number" hx-patch="/retrieve/vote/element" hx-trigger="change" hx-target="#page-body"
-                hx-confirm="Sicher, dass du die Abstimmung wechseln willst?">
+                hx-confirm="{{/*documentCreateVoteElement*/}}Sicher, dass du die Abstimmung wechseln willst?">
             {{$num := .CurrNumber}}
             {{range .VoteNumbers}}
                 <option value="{{.}}" {{if eq $num .}}selected{{end}}>{{.}}</option>

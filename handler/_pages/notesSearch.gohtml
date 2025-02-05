@@ -3,7 +3,7 @@
         window.onload = function () {
             document.body.addEventListener("htmx:afterRequest", function (evt) {
                 if (evt.failed) {
-                    alert("Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+                    alert({{/*noteSearch*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
                 }
             })
         }
@@ -15,24 +15,24 @@
         {{template "header" .NavInfo}}
         {{$acc := .NavInfo.Account}}
         <form id="search-form" hx-put="/search/notes" hx-target="#page-body">
-            <label for="query">Suche</label>
+            <label for="query">{{/*noteSearch*/}}Suchanfrage</label>
             <input id="query" name="query" type="text" value="{{.Query}}">
             {{if $acc.IsAtLeastAdmin}}
-                <label for="blocked">Blockierte Notizen anzeigen</label>
+                <label for="blocked">{{/*noteSearch*/}}Blockierte Notizen anzeigen</label>
                 <input type="checkbox" id="blocked" name="blocked" value="true" {{if .ShowBlocked}}checked{{end}}>
             {{end}}
-            <label for="amount">Anzahl der Ergebnisse</label>
+            <label for="amount">{{/*noteSearch*/}}Anzahl der Ergebnisse</label>
             <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
-            <button>Suchen</button>
+            <button>{{/*noteSearch*/}}Suchen</button>
         </form>
         <div class="wrapper note">
             {{if eq (len .Results) 0}}
-            <p>Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
+            <p>{{/*noteSearch*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
             {{else}}
                 {{range .Results}}
                     {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
-                    <a href="/notes?loaded={{.ID}}" target="_blank"><strong>{{.Title}}</strong> von {{.GetAuthor}}<br>
-                        <i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>
+                    <a href="/notes?loaded={{.ID}}" target="_blank">{{/*noteSearch*/}}<strong>{{.Title}}</strong> von {{.GetAuthor}}<br>
+                        {{/*noteSearch*/}}<i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>
                     </a>
                 {{end}}
             {{end}}
@@ -42,13 +42,13 @@
                     {{if .HasPrevious}}
                     <a hx-put="/search/notes" hx-include="#search-form"
                        hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
-                        &laquo; Vorherige Seite
+                        {{/*noteSearch*/}}&laquo; Vorherige Seite
                     </a>
                     {{end}}
                     {{if .HasNext}}
                         <a hx-put="/search/notes" hx-include="#search-form"
                            hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
-                            Nächste Seite &raquo;
+                            {{/*noteSearch*/}}Nächste Seite &raquo;
                         </a>
                     {{end}}
                 </div>

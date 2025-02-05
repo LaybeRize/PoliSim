@@ -17,31 +17,31 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/organisation" hx-target="#page-body">
-        <label for="name">Name</label>
+        <label for="name">{{/*organisationCreate*/}}Name</label>
         <input id="name" name="name" type="text" value="{{.Organisation.Name}}">
-        <label for="main-group">Hauptgruppe</label>
+        <label for="main-group">{{/*organisationCreate*/}}Hauptgruppe</label>
         <input id="main-group" name="main-group" type="text" value="{{.Organisation.MainType}}">
-        <label for="sub-group">Untergruppe</label>
+        <label for="sub-group">{{/*organisationCreate*/}}Untergruppe</label>
         <input id="sub-group" name="sub-group" type="text" value="{{.Organisation.SubType}}">
-        <label for="visiblity">Sichtbarkeit</label>
+        <label for="visiblity">{{/*organisationCreate*/}}Sichtbarkeit</label>
         <select id="visiblity" name="visiblity">
-            <option value="0">Öffentlich</option>
+            <option value="0">{{/*organisationCreate*/}}Öffentlich</option>
             <option value="1" {{if .Organisation.IsPrivate}}selected{{end}}>
-                Privat
+                {{/*organisationCreate*/}}Privat
             </option>
             <option value="2" {{if .Organisation.IsSecret}}selected{{end}}>
-                Geheim
+                {{/*organisationCreate*/}}Geheim
             </option>
             <option value="3" {{if .Organisation.IsHidden}}selected{{end}}>
-                Versteckt
+                {{/*organisationCreate*/}}Versteckt
             </option>
         </select>
-        <label for="flair">Flair</label>
+        <label for="flair">{{/*organisationCreate*/}}Flair</label>
         <input id="flair" name="flair" type="text" value="{{.Organisation.Flair}}">
         <button type="button" onclick="copy('input-for-user', 'org-admin-adder')">
-            Organisationsmitglied hinzufügen
+            {{/*organisationCreate*/}}Organisationsmitglied hinzufügen
         </button>
-        <label for="user">Organisationsmitglieder</label>
+        <label for="user">{{/*organisationCreate*/}}Organisationsmitglieder</label>
         <div id="input-for-user" class="name-list hide">
             <input id="user" name="[]user" type="text" list="account-names">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -53,9 +53,9 @@
             </div>
         {{end}}
         <button id="org-admin-adder" type="button" onclick="copy('input-for-admin', 'account-names')">
-            Organisationsadministrator hinzufügen
+            {{/*organisationCreate*/}}Organisationsadministrator hinzufügen
         </button>
-        <label for="user">Organisationsadministratoren</label>
+        <label for="user">{{/*organisationCreate*/}}Organisationsadministratoren</label>
         <div id="input-for-admin" class="name-list hide">
             <input id="user" name="[]admin" type="text" list="account-names">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -71,7 +71,7 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
-        <button type="submit">Organisation erstellen</button>
+        <button type="submit">{{/*organisationCreate*/}}Organisation erstellen</button>
     </form>
     {{template "message" .}}
 {{end}}

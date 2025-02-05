@@ -4,8 +4,13 @@ package loc
 
 import (
 	"html/template"
+	"log"
 	"strings"
 )
+
+func init() {
+	log.Println("Using the German Language Configuration")
+}
 
 const (
 	LanguageTag = "de"
@@ -288,14 +293,20 @@ const (
 	homePageElement = ``
 )
 
-var replaceMap = map[string]string{
-	"$$home-page$$": homePageElement,
+var replaceMap = map[string]map[string]string{
+	"_home": {
+		"$$home-page$$": homePageElement,
+	},
 }
 
-func LocaliseTemplateString(input []byte) string {
+func LocaliseTemplateString(input []byte, name string) string {
 	result := string(input)
 	for key, value := range replaceMap {
-		result = strings.ReplaceAll(result, key, value)
+		if name == key {
+			for left, right := range value {
+				result = strings.ReplaceAll(result, left, right)
+			}
+		}
 	}
 	return result
 }

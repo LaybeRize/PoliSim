@@ -758,7 +758,7 @@ func init() {
 		}
 		templateForge[name] = template.Must(
 			template.Must(template.New("").Parse(templateString)).Parse(
-				loc.LocaliseTemplateString(page)))
+				loc.LocaliseTemplateString(page, name)))
 	}
 	log.Println("Successfully created the Template Forge")
 	if os.Getenv("ICON_PATH") != "" {
@@ -773,11 +773,12 @@ func getTemplatesAsSingleString() string {
 	}
 	arr := make([]string, len(files))
 	for i, file := range files {
+		name := strings.TrimSuffix(file.Name(), ".gohtml")
 		temp, templateErr := templates.ReadFile("_templates/" + file.Name())
 		if templateErr != nil {
 			log.Fatalf("template read content error: %v", templateErr)
 		}
-		arr[i] = loc.LocaliseTemplateString(temp)
+		arr[i] = loc.LocaliseTemplateString(temp, name)
 	}
 	return strings.Join(arr, "\n")
 }
