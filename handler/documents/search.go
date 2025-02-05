@@ -71,3 +71,65 @@ func PutSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 		fmt.Sprintf("?amount=%d&page=%d", page.Amount, page.Page))
 	handler.MakePage(writer, acc, page)
 }
+
+func GetPersonalSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	query := helper.GetAdvancedURLValues(request)
+
+	page := &handler.SearchPersonalDocumentsPage{
+		Amount: query.GetInt("amount"),
+		Page:   query.GetInt("page"),
+	}
+
+	if page.Page < 1 {
+		page.Page = 1
+	}
+	if page.Amount < 10 || page.Amount > 50 {
+		page.Amount = 20
+	}
+
+	page.HasPrevious = page.Page > 1
+	var err error
+	page.Results, err = database.GetPersonalDocumentList(page.Amount+1, page.Page, acc)
+	if err != nil {
+		page.Results = make([]database.SmallDocument, 0)
+	}
+	if len(page.Results) > page.Amount {
+		page.HasNext = true
+		page.Results = page.Results[:page.Amount]
+	}
+	handler.MakeFullPage(writer, acc, page)
+}
+
+func PutPersonalSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	values, err := helper.GetAdvancedFormValues(request)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	page := &handler.SearchPersonalDocumentsPage{
+		Amount: values.GetInt("amount"),
+		Page:   values.GetInt("page"),
+	}
+
+	if page.Page < 1 {
+		page.Page = 1
+	}
+	if page.Amount < 10 || page.Amount > 50 {
+		page.Amount = 20
+	}
+
+	page.HasPrevious = page.Page > 1
+	page.Results, err = database.GetPersonalDocumentList(page.Amount+1, page.Page, acc)
+	if err != nil {
+		page.Results = make([]database.SmallDocument, 0)
+	}
+	if len(page.Results) > page.Amount {
+		page.HasNext = true
+		page.Results = page.Results[:page.Amount]
+	}
+	writer.Header().Add("Hx-Push-Url", "/my/posts"+
+		fmt.Sprintf("?amount=%d&page=%d", page.Amount, page.Page))
+	handler.MakePage(writer, acc, page)
+}

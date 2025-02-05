@@ -288,6 +288,7 @@ const (
 	PagesSearchDocumentsPage    = "Dokumente durchsuchen"
 	PagesViewVotePage           = "Abstimmungsansicht"
 	PagesEditColorPage          = "Farbpaletten anpassen"
+	PagesPersonDocumentPage     = "Persönliche Dokumente"
 
 	// language=HTML
 	homePageElement = ``

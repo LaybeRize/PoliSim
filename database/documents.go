@@ -628,3 +628,30 @@ ORDER BY d.written DESC SKIP $skip LIMIT $amount;`,
 	}
 	return arr, nil
 }
+
+func GetPersonalDocumentList(amount int, page int, acc *Account) ([]SmallDocument, error) {
+	result, err := makeRequest(`MATCH (a:Account)-[:OWNER|WRITTEN]->(d:Document) WHERE a.name = $name AND d.removed = false 
+RETURN d.id, d.type, o.name, d.title, d.author, d.written, d.removed 
+ORDER BY d.written DESC SKIP $skip LIMIT $amount;`,
+		map[string]any{
+			"amount": amount,
+			"skip":   (page - 1) * amount,
+			"name":   acc.Name,
+		})
+	if err != nil {
+		return nil, err
+	}
+	arr := make([]SmallDocument, 0, len(result))
+	for _, record := range result {
+		arr = append(arr, SmallDocument{
+			ID:           record.Values[0].(string),
+			Type:         DocumentType(record.Values[1].(int64)),
+			Organisation: record.Values[2].(string),
+			Title:        record.Values[3].(string),
+			Author:       record.Values[4].(string),
+			Written:      record.Values[5].(time.Time),
+			Removed:      record.Values[6].(bool),
+		})
+	}
+	return arr, nil
+}

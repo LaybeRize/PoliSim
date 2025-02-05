@@ -288,6 +288,7 @@ const (
 	PagesSearchDocumentsPage    = "Search Documents"
 	PagesViewVotePage           = "Vote View"
 	PagesEditColorPage          = "Manage Color Palettes"
+	PagesPersonDocumentPage     = "Personal Documents"
 
 	// language=HTML
 	homePageElement = ``
@@ -403,6 +404,16 @@ var replaceMap = map[string]map[string]string{
 		"{{/*documentCreateVoteElement*/}}Antwort hinzufügen":                                             "Add New Option",
 		"{{/*documentCreateVoteElement*/}}Antworten":                                                      "Options",
 		"{{/*documentCreateVoteElement*/}}Abstimmung erstellen/bearbeiten":                                "Create/Update Vote",
+	},
+
+	"documentPersonalSearch": {
+		"{{/*documentPersonalSearch*/}}\"Die Anfrage hat zu einem Fehler auf der Serverseite geführt\"":     "\"Requested could not be processed. Internal Server Error\"",
+		"{{/*documentPersonalSearch*/}}Es konnten keine Einträge gefunden werden":                           "No Entries found",
+		"{{/*documentPersonalSearch*/}}<strong>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</strong>": "<strong>{{if .Removed}}[Removed]{{else}}{{.Title}}{{end}}</strong>",
+		"{{/*documentPersonalSearch*/}}<i>Veröffentlicht am: {{.GetTimeWritten $acc}}</i>":                  "<i>Publish Date: {{.GetTimeWritten $acc}}</i>",
+		"{{/*documentPersonalSearch*/}}Veröffentlicht von <i>{{.Author}}</i> im <i>{{.Organisation}}</i>":   "Written by <i>{{.Author}}</i> for <i>{{.Organisation}}</i>",
+		"{{/*documentPersonalSearch*/}}&laquo; Vorherige Seite":                                             "&laquo; Previous Page",
+		"{{/*documentPersonalSearch*/}}Nächste Seite &raquo;":                                               "Next Page &raquo;",
 	},
 
 	"documentSearch": {

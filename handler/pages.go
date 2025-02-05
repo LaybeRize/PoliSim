@@ -590,6 +590,31 @@ func (p *SearchDocumentsPage) getPageName() string {
 	return "documentSearch"
 }
 
+type SearchPersonalDocumentsPage struct {
+	NavInfo     NavigationInfo
+	Amount      int
+	Page        int
+	HasNext     bool
+	HasPrevious bool
+	Results     []database.SmallDocument
+}
+
+func (p *SearchPersonalDocumentsPage) NextPage() int {
+	return p.Page + 1
+}
+
+func (p *SearchPersonalDocumentsPage) PreviousPage() int {
+	return p.Page - 1
+}
+
+func (p *SearchPersonalDocumentsPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *SearchPersonalDocumentsPage) getPageName() string {
+	return "documentPersonalSearch"
+}
+
 type EditColorPage struct {
 	NavInfo         NavigationInfo
 	AllowedToCreate bool
@@ -872,6 +897,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = loc.PagesViewVotePage
 	case *EditColorPage:
 		fullPage.Base.Title = loc.PagesEditColorPage
+	case *SearchPersonalDocumentsPage:
+		fullPage.Base.Title = loc.PagesPersonDocumentPage
 	default:
 		log.Fatalf("Struct of type %T given to MakeFullPage() is not registered", data)
 	}

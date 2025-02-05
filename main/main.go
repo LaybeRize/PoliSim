@@ -93,7 +93,8 @@ func main() {
 	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
 	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)
 	http.HandleFunc("PATCH /my/profile/settings", accounts.PostUpdateMySettings)
-	// Todo: implement the GET /my/posts route
+	http.HandleFunc("GET /my/posts", documents.GetPersonalSearchDocumentsPage)
+	http.HandleFunc("PUT /my/posts", documents.PutPersonalSearchDocumentsPage)
 
 	http.HandleFunc("POST /login", accounts.PostLoginAccount)
 	http.HandleFunc("POST /logout", accounts.PostLogOutAccount)
