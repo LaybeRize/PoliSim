@@ -129,7 +129,7 @@ func PutPersonalSearchDocumentsPage(writer http.ResponseWriter, request *http.Re
 		page.HasNext = true
 		page.Results = page.Results[:page.Amount]
 	}
-	writer.Header().Add("Hx-Push-Url", "/my/posts"+
+	writer.Header().Add("Hx-Push-Url", "/my/documents"+
 		fmt.Sprintf("?amount=%d&page=%d", page.Amount, page.Page))
 	handler.MakePage(writer, acc, page)
 }

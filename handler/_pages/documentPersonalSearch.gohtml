@@ -36,13 +36,13 @@
             <hr style="width: var(--standard-width); margin: 0.3rem 0;">
             <div class="wrapper note pager">
                 {{if .HasPrevious}}
-                    <a hx-put="/my/posts"
+                    <a hx-put="/my/documents"
                        hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
                         {{/*documentPersonalSearch*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
-                    <a hx-put="/my/posts"
+                    <a hx-put="/my/documents"
                        hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
                         {{/*documentPersonalSearch*/}}Nächste Seite &raquo;
                     </a>

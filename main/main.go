@@ -93,8 +93,8 @@ func main() {
 	http.HandleFunc("GET /my/profile", accounts.GetMyProfile)
 	http.HandleFunc("PATCH /my/profile/password", accounts.PostUpdateMyPassword)
 	http.HandleFunc("PATCH /my/profile/settings", accounts.PostUpdateMySettings)
-	http.HandleFunc("GET /my/posts", documents.GetPersonalSearchDocumentsPage)
-	http.HandleFunc("PUT /my/posts", documents.PutPersonalSearchDocumentsPage)
+	http.HandleFunc("GET /my/documents", documents.GetPersonalSearchDocumentsPage)
+	http.HandleFunc("PUT /my/documents", documents.PutPersonalSearchDocumentsPage)
 
 	http.HandleFunc("POST /login", accounts.PostLoginAccount)
 	http.HandleFunc("POST /logout", accounts.PostLogOutAccount)
