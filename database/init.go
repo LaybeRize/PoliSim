@@ -57,7 +57,7 @@ func init() {
 	loadCookiesFromDisk()
 	createConstraints()
 	createRootAccount()
-	createAdminstrationAccount()
+	createAdministrationAccount()
 	log.Println("Starting Vote Cleanup Routine")
 	go resultRoutine()
 }
@@ -99,7 +99,7 @@ func createRootAccount() {
 	}
 }
 
-func createAdminstrationAccount() {
+func createAdministrationAccount() {
 	acc, err := GetAccountByName(loc.AdministrationAccountName)
 	if err == nil && acc != nil {
 		log.Println("Administration Account already exists")

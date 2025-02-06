@@ -3,27 +3,27 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/document" hx-target="#page-body">
-        <label for="title">{{/*documentCreate*/}}Titel</label>
+        <label for="title">{{/*documentCreate-1*/}}Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
-        <label for="author">{{/*documentCreate*/}}Autor</label>
+        <label for="author">{{/*documentCreate-2*/}}Autor</label>
         <select id="author" name="author" hx-get="/organisations/for/account" hx-trigger="change" hx-target="#organisation">
             {{$author := .Author}}
             {{range .PossibleAuthors}}
                 <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <label for="organisation">{{/*documentCreate*/}}Organisation</label>
+        <label for="organisation">{{/*documentCreate-3*/}}Organisation</label>
         {{template "organisationDropdown" .}}
-        <label for="markdown">{{/*documentCreate*/}}Inhalt</label>
+        <label for="markdown">{{/*documentCreate-4*/}}Inhalt</label>
         <textarea id="markdown" name="markdown" rows="10"
                   hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                   hx-target="#markdown-box">
             {{- .Body -}}
         </textarea>
-        <button type="submit">{{/*documentCreate*/}}Dokument erstellen</button>
+        <button type="submit">{{/*documentCreate-5*/}}Dokument erstellen</button>
     </form>
     {{template "message" .}}
-    <h1>{{/*documentCreate*/}}Vorschau</h1>
+    <h1>{{/*documentCreate-6*/}}Vorschau</h1>
     {{template "markdownBox" .}}
     </body>
 {{end}}

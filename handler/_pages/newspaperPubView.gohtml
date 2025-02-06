@@ -5,16 +5,16 @@
     {{$acc := .NavInfo.Account}}
     {{$published := .Publication.Published}}
     {{if .QueryError}}
-        <p>{{/*newspaperPubView*/}}Es ist ein Fehler beim Verarbeiten der Publikation für den Nutzer aufgetreten</p>
+        <p>{{/*newspaperPubView-1*/}}Es ist ein Fehler beim Verarbeiten der Publikation für den Nutzer aufgetreten</p>
     {{else}}
         <h1 class="big-header">{{.Publication.NewspaperName}} | {{if .Publication.Special -}}
-            {{/*newspaperPubView*/}}Sonderausgabe vom {{.Publication.GetPublishedDate $acc}}{{- else -}}
-            {{/*newspaperPubView*/}}Ausgabe vom {{.Publication.GetPublishedDate $acc}}{{- end -}}</h1>
-    {{if eq (len .Articles) 0}}<p>{{/*newspaperPubView*/}}Für diese Publikation existieren noch keine Artikel</p>
+            {{/*newspaperPubView-2*/}}Sonderausgabe vom {{.Publication.GetPublishedDate $acc}}{{- else -}}
+            {{/*newspaperPubView-3*/}}Ausgabe vom {{.Publication.GetPublishedDate $acc}}{{- end -}}</h1>
+    {{if eq (len .Articles) 0}}<p>{{/*newspaperPubView-4*/}}Für diese Publikation existieren noch keine Artikel</p>
     {{- else -}}
         {{if not $published}}
             <button hx-patch="/publicate/{{.Publication.ID}}" hx-target="#page-body">
-                {{/*newspaperPubView*/}}Publikation freigeben
+                {{/*newspaperPubView-5*/}}Publikation freigeben
             </button>
             {{template "message" .}}
         {{end}}
@@ -27,18 +27,18 @@
                 <h1>{{.Title}}</h1>
                 {{if .HasSubtitle}}<h2>{{.Subtitle}}</h2>{{end}}
                 <p>
-                    {{/*newspaperPubView*/}}Geschrieben von: {{.GetAuthor}}<br>
-                    {{/*newspaperPubView*/}}<i>Verfasst am: {{.GetTimeWritten $acc}}</i>
+                    {{/*newspaperPubView-6*/}}Geschrieben von: {{.GetAuthor}}<br>
+                    {{/*newspaperPubView-7*/}}<i>Verfasst am: {{.GetTimeWritten $acc}}</i>
                 </p>
             </div>
             <div class="markdown">{{.Body}}</div>
             {{if not $published}}
                 <details>
-                    <summary>{{/*newspaperPubView*/}}Artikel zurückweisen</summary>
+                    <summary>{{/*newspaperPubView-8*/}}Artikel zurückweisen</summary>
                     <form hx-delete="/article/{{.ID}}" hx-target="#page-body">
-                        <label for="rejection">{{/*newspaperPubView*/}}Zurückweisungsgrund</label>
+                        <label for="rejection">{{/*newspaperPubView-9*/}}Zurückweisungsgrund</label>
                         <textarea id="rejection" name="rejection" rows="3"></textarea>
-                        <button>{{/*newspaperPubView*/}}Artikel zurückweisen</button>
+                        <button>{{/*newspaperPubView-10*/}}Artikel zurückweisen</button>
                     </form>
                 </details>
             {{end}}

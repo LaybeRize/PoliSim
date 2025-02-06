@@ -17,16 +17,16 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/title" hx-target="#page-body">
-        <label for="name">{{/*titleCreate*/}}Name</label>
+        <label for="name">{{/*titleCreate-1*/}}Name</label>
         <input id="name" name="name" type="text" value="{{.Title.Name}}">
-        <label for="main-group">{{/*titleCreate*/}}Hauptgruppe</label>
+        <label for="main-group">{{/*titleCreate-2*/}}Hauptgruppe</label>
         <input id="main-group" name="main-group" type="text" value="{{.Title.MainType}}">
-        <label for="sub-group">{{/*titleCreate*/}}Untergruppe</label>
+        <label for="sub-group">{{/*titleCreate-3*/}}Untergruppe</label>
         <input id="sub-group" name="sub-group" type="text" value="{{.Title.SubType}}">
-        <label for="flair">{{/*titleCreate*/}}Flair</label>
+        <label for="flair">{{/*titleCreate-4*/}}Flair</label>
         <input id="flair" name="flair" type="text" value="{{.Title.Flair}}">
-        <button type="button" onclick="copy()">{{/*titleCreate*/}}Titel-Halter hinzufügen</button>
-        <label for="holder">{{/*titleCreate*/}}Titel-Halter</label>
+        <button type="button" onclick="copy()">{{/*titleCreate-5*/}}Titel-Halter hinzufügen</button>
+        <label for="holder">{{/*titleCreate-6*/}}Titel-Halter</label>
         <div id="input-for-holder" class="name-list hide">
             <input id="holder" name="[]holder" type="text" list="holder-names">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -42,7 +42,7 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
-        <button type="submit">{{/*titleCreate*/}}Titel erstellen</button>
+        <button type="submit">{{/*titleCreate-7*/}}Titel erstellen</button>
     </form>
     {{template "message" .}}
 {{end}}

@@ -3,7 +3,7 @@
         window.onload = function () {
             document.body.addEventListener("htmx:afterRequest", function (evt) {
                 if (evt.failed) {
-                    alert({{/*documentSearch*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+                    alert({{/*documentSearch-1*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
                 }
             })
         }
@@ -16,16 +16,16 @@
     {{$acc := .NavInfo.Account}}
     <form id="search-form" hx-put="/search/documents" hx-target="#page-body">
         {{if .NavInfo.Account.IsAtLeastAdmin}}
-            <label for="blocked">{{/*documentSearch*/}}Blockierte Dokumente anzeigen</label>
+            <label for="blocked">{{/*documentSearch-2*/}}Blockierte Dokumente anzeigen</label>
             <input type="checkbox" id="blocked" name="blocked" value="true" {{if .ShowBlocked}}checked{{end}}>
         {{end}}
-        <label for="amount">{{/*documentSearch*/}}Anzahl der Ergebnisse</label>
+        <label for="amount">{{/*documentSearch-3*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
-        <button>{{/*documentSearch*/}}Suchen</button>
+        <button>{{/*documentSearch-4*/}}Suchen</button>
     </form>
     <div class="wrapper note">
         {{if eq (len .Results) 0}}
-            <p>{{/*documentSearch*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
+            <p>{{/*documentSearch-5*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.SmallDocument*/ -}}
@@ -35,9 +35,9 @@
                         <i class="bi bi-discussion"></i>
                     {{- end }}{{- if .IsVote -}}
                         <i class="bi bi-vote"></i>
-                    {{- end }} {{/*documentSearch*/}}<strong>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</strong><br>
-                    {{/*documentSearch*/}}<i>Veröffentlicht am: {{.GetTimeWritten $acc}}</i><br>
-                    {{/*documentSearch*/}}Veröffentlicht von <i>{{.Author}}</i> im <i>{{.Organisation}}</i>
+                    {{- end }} {{/*documentSearch-6*/}}<strong>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</strong><br>
+                    {{/*documentSearch-7*/}}<i>Veröffentlicht am: {{.GetTimeWritten $acc}}</i><br>
+                    {{/*documentSearch-8*/}}Veröffentlicht von <i>{{.Author}}</i> im <i>{{.Organisation}}</i>
                 </a>
             {{end}}
         {{end}}
@@ -47,13 +47,13 @@
                 {{if .HasPrevious}}
                     <a hx-put="/search/documents" hx-include="#search-form"
                        hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
-                        {{/*documentSearch*/}}&laquo; Vorherige Seite
+                        {{/*documentSearch-9*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
                     <a hx-put="/search/documents" hx-include="#search-form"
                        hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
-                        {{/*documentSearch*/}}Nächste Seite &raquo;
+                        {{/*documentSearch-10*/}}Nächste Seite &raquo;
                     </a>
                 {{end}}
             </div>

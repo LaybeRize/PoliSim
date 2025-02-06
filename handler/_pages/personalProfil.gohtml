@@ -5,14 +5,14 @@
         {{block "changeMySettings" .Settings}}
             {{- /*gotype: PoliSim/handler.ModifyPersonalSettings*/ -}}
             <div class="wrapper" id="change-personal-settings">
-                <h1 class="section-headline">{{/*personalProfil*/}}Persönliche Einstellungen</h1>
+                <h1 class="section-headline">{{/*personalProfil-1*/}}Persönliche Einstellungen</h1>
                 <form hx-patch="/my/profile/settings" hx-target="#change-personal-settings">
-                    <label for="fontScaling">{{/*personalProfil*/}}Seitenskalierung (in Prozent)</label>
+                    <label for="fontScaling">{{/*personalProfil-2*/}}Seitenskalierung (in Prozent)</label>
                     <input id="fontScaling" name="fontScaling" type="number" value="{{.FontScaling}}">
-                    <label for="timeZone">{{/*personalProfil*/}}Persönliche Zeitzone</label>
+                    <label for="timeZone">{{/*personalProfil-3*/}}Persönliche Zeitzone</label>
                     <input id="timeZone" name="timeZone" type="text" value="{{.TimeZone}}" list="timezone-names">
                     {{template "timeZoneList"}}
-                    <button type="submit">{{/*personalProfil*/}}Einstellungen speichern</button>
+                    <button type="submit">{{/*personalProfil-4*/}}Einstellungen speichern</button>
                 </form>
                 {{template "message" .}}
             </div>
@@ -20,15 +20,15 @@
         {{block "changeMyPassword" .Password}}
             {{- /*gotype: PoliSim/handler.ChangePassword*/ -}}
             <div class="wrapper" id="change-password">
-                <h1 class="section-headline">{{/*personalProfil*/}}Passwort ändern</h1>
+                <h1 class="section-headline">{{/*personalProfil-5*/}}Passwort ändern</h1>
                 <form hx-patch="/my/profile/password" hx-target="#change-password">
-                    <label for="oldPassword">{{/*personalProfil*/}}Altes Passwort</label>
+                    <label for="oldPassword">{{/*personalProfil-6*/}}Altes Passwort</label>
                     <input id="oldPassword" name="oldPassword" type="password" value="{{.OldPassword}}">
-                    <label for="newPassword">{{/*personalProfil*/}}Neues Passwort</label>
+                    <label for="newPassword">{{/*personalProfil-7*/}}Neues Passwort</label>
                     <input id="newPassword" name="newPassword" type="password" value="{{.NewPassword}}">
-                    <label for="newPasswordRepeat">{{/*personalProfil*/}}Neues Passwort wiederholen</label>
+                    <label for="newPasswordRepeat">{{/*personalProfil-8*/}}Neues Passwort wiederholen</label>
                     <input id="newPasswordRepeat" name="newPasswordRepeat" type="password" value="{{.RepeatNewPassword}}">
-                    <button type="submit">{{/*personalProfil*/}}Passwort ändern</button>
+                    <button type="submit">{{/*personalProfil-9*/}}Passwort ändern</button>
                 </form>
                 {{template "message" .}}
             </div>

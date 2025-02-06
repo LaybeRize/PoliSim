@@ -15,7 +15,7 @@
     {{template "header" .NavInfo}}
     <form hx-post="/create/tag-color" hx-target="#page-body" {{if not .AllowedToCreate}}inert{{end}}>
         {{if .AllowedToCreate}}
-        <label for="color-palette">{{/*documentColorEdit*/}}Farbpaletten</label>
+        <label for="color-palette">{{/*documentColorEdit-1*/}}Farbpaletten</label>
         <select id="color-palette" name="color-palette">
             {{range $pos, $color := .ColorIterator}}
                 <option id="color-{{$pos}}" value="color-{{$pos}}"
@@ -26,19 +26,19 @@
             {{end}}
         </select>
         {{end}}
-        <button type="button" onclick="copyColors()">{{/*documentColorEdit*/}}Farbpalette auswählen</button>
-        <label for="name">{{/*documentColorEdit*/}}Name</label>
+        <button type="button" onclick="copyColors()">{{/*documentColorEdit-2*/}}Farbpalette auswählen</button>
+        <label for="name">{{/*documentColorEdit-3*/}}Name</label>
         <input id="name" name="name" type="text" value="{{.Color.Name}}">
-        <label for="background-color">{{/*documentColorEdit*/}}Hintergrundfarbe</label>
+        <label for="background-color">{{/*documentColorEdit-4*/}}Hintergrundfarbe</label>
         <input id="background-color" name="background-color" type="color" value="{{.Color.Background}}">
-        <label for="text-color">{{/*documentColorEdit*/}}Textfarbe</label>
+        <label for="text-color">{{/*documentColorEdit-5*/}}Textfarbe</label>
         <input id="text-color" name="text-color" type="color" value="{{.Color.Text}}">
-        <label for="link-color">{{/*documentColorEdit*/}}Link-Farbe</label>
+        <label for="link-color">{{/*documentColorEdit-6*/}}Link-Farbe</label>
         <input id="link-color" name="link-color" type="color" value="{{.Color.Link}}">
-        <button type="submit">{{/*documentColorEdit*/}}Farbpalette erstellen/anpassen</button>
+        <button type="submit">{{/*documentColorEdit-7*/}}Farbpalette erstellen/anpassen</button>
         {{if .AllowedToDelete}}
             <button hx-post="/delete/tag-color" hx-target="#page-body">
-                {{/*documentColorEdit*/}}Farbpalette löschen
+                {{/*documentColorEdit-8*/}}Farbpalette löschen
             </button>
         {{end}}
     </form>

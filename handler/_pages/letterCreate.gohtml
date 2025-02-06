@@ -17,17 +17,17 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/letter" hx-target="#page-body">
-        <label for="title">{{/*letterCreate*/}}Titel</label>
+        <label for="title">{{/*letterCreate-1*/}}Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
-        <label for="author">{{/*letterCreate*/}}Autor</label>
+        <label for="author">{{/*letterCreate-2*/}}Autor</label>
         <select id="author" name="author" hx-get="/newspaper/for/account" hx-trigger="change" hx-target="#newspaper">
             {{$author := .Author}}
             {{range .PossibleAuthors}}
                 <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <button type="button" onclick="copy()">{{/*letterCreate*/}}Empfänger hinzufügen</button>
-        <label for="recipient">{{/*letterCreate*/}}Empfänger</label>
+        <button type="button" onclick="copy()">{{/*letterCreate-3*/}}Empfänger hinzufügen</button>
+        <label for="recipient">{{/*letterCreate-4*/}}Empfänger</label>
         <div id="input-for-recipient" class="name-list hide">
             <input id="recipient" name="[]recipient" type="text" list="recipient-names">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -43,19 +43,19 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
-        <label for="signable">{{/*letterCreate*/}}Mit Unterschrift</label>
+        <label for="signable">{{/*letterCreate-5*/}}Mit Unterschrift</label>
         <input type="checkbox" id="signable" name="signable" value="true" {{if .Signable}}checked{{end}}>
-        <label for="markdown">{{/*letterCreate*/}}Inhalt</label>
+        <label for="markdown">{{/*letterCreate-6*/}}Inhalt</label>
         <textarea id="markdown" name="markdown" rows="10"
                   hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                   hx-target="#markdown-box">
             {{- .Body -}}
         </textarea>
-        <button hx-patch="/check/create/letter">{{/*letterCreate*/}}Brief überprüfen</button>
-        <button type="submit">{{/*letterCreate*/}}Brief erstellen</button>
+        <button hx-patch="/check/create/letter">{{/*letterCreate-7*/}}Brief überprüfen</button>
+        <button type="submit">{{/*letterCreate-8*/}}Brief erstellen</button>
     </form>
     {{template "message" .}}
-    <h1>{{/*letterCreate*/}}Vorschau</h1>
+    <h1>{{/*letterCreate-9*/}}Vorschau</h1>
     {{template "markdownBox" .}}
     </body>
 {{end}}

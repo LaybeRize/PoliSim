@@ -3,15 +3,15 @@
     <body id="page-body">
         {{template "header" .NavInfo}}
         {{if .NavInfo.Account.Exists}}
-            <p>{{/*_home*/}}Herzlich willkommen, {{.Account.Name}}</p>
-            <button hx-post="/logout" hx-target="#page-body">{{/*_home*/}}Abmelden</button>
+            <p>{{/*_home-1*/}}Herzlich willkommen, {{.Account.Name}}</p>
+            <button hx-post="/logout" hx-target="#page-body">{{/*_home-2*/}}Abmelden</button>
         {{else}}
             <form hx-post="/login" hx-target="#page-body" style="width: var(--standard-small-width);">
-                <label for="username">{{/*_home*/}}Nutzername</label>
+                <label for="username">{{/*_home-3*/}}Nutzername</label>
                 <input id="username" name="username" type="text">
-                <label for="password">{{/*_home*/}}Passwort</label>
+                <label for="password">{{/*_home-4*/}}Passwort</label>
                 <input id="password" name="password" type="password">
-                <button type="submit">{{/*_home*/}}Einloggen</button>
+                <button type="submit">{{/*_home-5*/}}Einloggen</button>
             </form>
         {{end}}
         {{template "message" .}}

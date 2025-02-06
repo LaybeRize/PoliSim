@@ -4,9 +4,9 @@
     {{template "header" .NavInfo}}
     <a class="button-link" href="/view/document/{{.VoteInstance.DocumentID}}">Zurück zum Dokument</a>
     {{if .CanVote}}
-        <p><b>{{/*documentViewVote*/}}Frage: {{.VoteInstance.Question}}</b></p>
+        <p><b>{{/*documentViewVote-1*/}}Frage: {{.VoteInstance.Question}}</b></p>
         <form hx-post="/vote/on/{{.VoteInstance.ID}}" hx-target="#page-body">
-            <label for="voter">{{/*documentViewVote*/}}Abstimmender Account</label>
+            <label for="voter">{{/*documentViewVote-2*/}}Abstimmender Account</label>
             <select id="voter" name="voter">
                 {{range .Voter}}
                     <option value="{{.}}">{{.}}</option>
@@ -14,44 +14,50 @@
             </select>
             {{if .VoteInstance.Type.IsSingleVote}}
                 {{range $pos, $answer := .VoteInstance.AnswerIterator}}
-                    <label for="pos-{{$pos}}">{{/*documentViewVote*/}}{{$pos}}. Antwort: {{$answer}}</label>
+                    <label for="pos-{{$pos}}">{{/*documentViewVote-3*/}}{{$pos}}. Antwort: {{$answer}}</label>
                     <input type="radio" id="pos-{{$pos}}" name="vote" value="{{$pos}}">
                 {{end}}
             {{end}}
             {{if .VoteInstance.Type.IsMultipleVotes}}
                 {{range $pos, $answer := .VoteInstance.AnswerIterator}}
-                    <label for="pos-{{$pos}}">{{/*documentViewVote*/}}{{$pos}}. Antwort: {{$answer}}</label>
+                    <label for="pos-{{$pos}}">{{/*documentViewVote-4*/}}{{$pos}}. Antwort: {{$answer}}</label>
                     <input type="checkbox" id="pos-{{$pos}}" name="vote-{{$pos}}" value="true">
                 {{end}}
             {{end}}
             {{if .VoteInstance.Type.IsVoteSharing}}
-                <p><b>{{/*documentViewVote*/}}Es dürfen maximal {{.VoteInstance.MaxVotes}} Stimmen vergeben werden</b></p>
+                <p><b>{{/*documentViewVote-5*/}}Es dürfen maximal {{.VoteInstance.MaxVotes}} Stimmen vergeben werden</b></p>
                 {{range $pos, $answer := .VoteInstance.AnswerIterator}}
-                    <label for="pos-{{$pos}}">{{/*documentViewVote*/}}Stimmen für die {{$pos}}. Antwort: {{$answer}}</label>
+                    <label for="pos-{{$pos}}">{{/*documentViewVote-6*/}}Stimmen für die {{$pos}}. Antwort: {{$answer}}</label>
                     <input type="number" id="pos-{{$pos}}" name="vote-{{$pos}}" value="0" min="0">
                 {{end}}
             {{end}}
             {{if .VoteInstance.Type.IsRankedVoting}}
-                <p><b>{{/*documentViewVote*/}}Position 0 und kleiner bedeutet, dass die Antwort keinen Rang erhält. Der 1. Rang ist der höchste.</b></p>
+                <p><b>{{/*documentViewVote-7*/}}Position 0 und kleiner bedeutet, dass die Antwort keinen Rang erhält. Der 1. Rang ist der höchste.</b></p>
                 {{$answers := .VoteInstance}}
                 {{range $pos, $answer := $answers.AnswerIterator}}
-                    <label for="pos-{{$pos}}">{{/*documentViewVote*/}}Rang der {{$pos}}. Antwort: {{$answer}}</label>
+                    <label for="pos-{{$pos}}">{{/*documentViewVote-8*/}}Rang der {{$pos}}. Antwort: {{$answer}}</label>
                     <input type="number" id="pos-{{$pos}}" name="vote-{{$pos}}" value="0" max="{{$answers.AnswerLength}}">
                 {{end}}
             {{end}}
-            <label for="invalid">{{/*documentViewVote*/}}Ungültige Stimme abgeben</label>
+            <label for="invalid">{{/*documentViewVote-9*/}}Ungültige Stimme abgeben</label>
             <input type="checkbox" id="invalid" name="invalid" value="true">
-            <button>{{/*documentViewVote*/}}Stimme abgeben</button>
+            <button>{{/*documentViewVote-10*/}}Stimme abgeben</button>
         </form>
     {{else}}
-        <p>{{/*documentViewVote*/}}Teilnahme setzte einen Account voraus</p>
+        <div class="block-view">
+            <p>{{/*documentViewVote-11*/}}Teilnahme setzte einen Account voraus</p>
+            <p>
+                {{/*documentViewVote-12*/}}Es wird über die folgende Frage abgestimmt: <strong>{{.VoteInstance.Question}}</strong><br>
+                {{/*documentViewVote-13*/}}Die Antwortmöglichkeiten sind: <strong>{{.VoteInstance.GetAnswerAsList}}</strong>
+            </p>
+        </div>
     {{end}}
     {{template "message" .}}
     {{if .VoteInstance.ShowVotesDuringVoting}}
         {{template "voteResults" .VoteResults}}
     {{else}}
         <hr class="splitter">
-        <p>{{/*documentViewVote*/}}Das Ergebnis ist erst nach Ende der Abstimmung einsehbar</p>
+        <p>{{/*documentViewVote-14*/}}Das Ergebnis ist erst nach Ende der Abstimmung einsehbar</p>
     {{end}}
     </body>
 {{end}}

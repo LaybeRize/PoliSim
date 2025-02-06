@@ -3,27 +3,27 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/note" hx-target="#page-body">
-        <label for="references">{{/*noteCreate*/}}Referenzen (Komma-seperiert)</label>
+        <label for="references">{{/*noteCreate-1*/}}Referenzen (Komma-seperiert)</label>
         <input id="references" name="references" type="text" value="{{.References}}">
-        <label for="title">{{/*noteCreate*/}}Titel</label>
+        <label for="title">{{/*noteCreate-2*/}}Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
-        <label for="author">{{/*noteCreate*/}}Autor</label>
+        <label for="author">{{/*noteCreate-3*/}}Autor</label>
         <select id="author" name="author">
             {{$author := .Author}}
             {{range .PossibleAuthors}}
                 <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <label for="markdown">{{/*noteCreate*/}}Inhalt</label>
+        <label for="markdown">{{/*noteCreate-4*/}}Inhalt</label>
         <textarea id="markdown" name="markdown" rows="10"
                   hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                   hx-target="#markdown-box">
             {{- .Body -}}
         </textarea>
-        <button type="submit">{{/*noteCreate*/}}Notiz erstellen</button>
+        <button type="submit">{{/*noteCreate-5*/}}Notiz erstellen</button>
     </form>
     {{template "message" .}}
-    <h1>{{/*noteCreate*/}}Vorschau</h1>
+    <h1>{{/*noteCreate-6*/}}Vorschau</h1>
     {{template "markdownBox" .}}
     </body>
 {{end}}

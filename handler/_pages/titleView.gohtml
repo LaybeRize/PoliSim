@@ -3,7 +3,7 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     {{if eq (len .TitleHierarchy) 0}}
-        <p>{{/*titleView*/}}Es existieren keine Titel</p>
+        <p>{{/*titleView-1*/}}Es existieren keine Titel</p>
     {{else}}
         <div class="wrapper hierarchy-view">
         {{range $MainGroupName, $SubGroupMap := .TitleHierarchy}}
@@ -32,11 +32,11 @@
         <a _="on click toggle .hide on the next <div/>">{{.Title}}</a>
         <div class="">
             {{if .Found}}
-                {{if .HasFlair}}<i>{{/*titleView*/}}Flair: {{.Flair}}</i>
-                {{else}}<i>{{/*titleView*/}}Kein Flair</i>{{end}}
+                {{if .HasFlair}}<i>{{/*titleView-2*/}}Flair: {{.Flair}}</i>
+                {{else}}<i>{{/*titleView-3*/}}Kein Flair</i>{{end}}
                 <p>{{.Holder}}</p>
             {{else}}
-                <i class="alert-red">{{/*titleView*/}}Titelinformationen nicht gefunden</i>
+                <i class="alert-red">{{/*titleView-4*/}}Titelinformationen nicht gefunden</i>
             {{end}}
         </div>
     </div>

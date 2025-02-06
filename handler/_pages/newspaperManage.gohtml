@@ -35,20 +35,20 @@
         {{if .NavInfo.Account.IsAtLeastAdmin}}
         <div class="block-view">
             <details id="newspaper-create">
-                <summary>{{/*newspaperManage*/}}Zeitung erstellen</summary>
+                <summary>{{/*newspaperManage-1*/}}Zeitung erstellen</summary>
                 <form id="form-create-newspaper" hx-post="/newspaper/create" hx-target="#page-body">
-                    <label for="name">{{/*newspaperManage*/}}Name</label>
+                    <label for="name">{{/*newspaperManage-2*/}}Name</label>
                     <input id="name" name="name" type="text" value="">
-                    <button>{{/*newspaperManage*/}}Zeitung erstellen</button>
+                    <button>{{/*newspaperManage-3*/}}Zeitung erstellen</button>
                 </form>
             </details>
         </div>
         {{block "updateNewspaper" .}}
         <div id="change-newspaper" class="block-view">
             <details id="newspaper-change">
-                <summary>{{/*newspaperManage*/}}Zeitung verändern</summary>
+                <summary>{{/*newspaperManage-4*/}}Zeitung verändern</summary>
                 <form hx-patch="/newspaper/update" hx-target="#change-newspaper">
-                    <label for="name">{{/*newspaperManage*/}}Name</label>
+                    <label for="name">{{/*newspaperManage-5*/}}Name</label>
                     <input id="name" name="name" type="text" value="{{.Newspaper.Name}}" list="newspaper-names">
                     <datalist id="newspaper-names">
                         {{range .NewspaperNames}}
@@ -56,9 +56,9 @@
                         {{end}}
                     </datalist>
                     <button type="button" onclick="copy()">
-                        {{/*newspaperManage*/}}Autor hinzufügen
+                        {{/*newspaperManage-6*/}}Autor hinzufügen
                     </button>
-                    <label for="author">{{/*newspaperManage*/}}Autoren</label>
+                    <label for="author">{{/*newspaperManage-7*/}}Autoren</label>
                     <div id="input-for-author" class="name-list hide">
                         <input id="author" name="[]author" type="text" list="account-names">
                         <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -74,8 +74,8 @@
                             <option>{{.}}</option>
                         {{end}}
                     </datalist>
-                    <button hx-put="/newspaper/search">{{/*newspaperManage*/}}Zeitung suchen</button>
-                    <button>{{/*newspaperManage*/}}Zeitung anpassen</button>
+                    <button hx-put="/newspaper/search">{{/*newspaperManage-8*/}}Zeitung suchen</button>
+                    <button>{{/*newspaperManage-9*/}}Zeitung anpassen</button>
                 </form>
             </details>
             {{template "message" .}}
@@ -84,17 +84,17 @@
         {{end}}
         <div class="wrapper note">
             {{if .HadError}}
-                <p>{{/*newspaperManage*/}}Es ist ein Fehler beim Suchen der Publikationen aufgetreten</p>
+                <p>{{/*newspaperManage-10*/}}Es ist ein Fehler beim Suchen der Publikationen aufgetreten</p>
             {{else}}
             {{if eq (len .Publications) 0}}
-                <p>{{/*newspaperManage*/}}Es konnten keine Publikationen gefunden werden</p>
+                <p>{{/*newspaperManage-11*/}}Es konnten keine Publikationen gefunden werden</p>
             {{else}}
                 {{range .Publications}}
                     {{- /*gotype: PoliSim/database.Publication*/ -}}
                     <a href="/publication/view/{{.ID}}" target="_blank">{{if .Special -}}
                             <i class="bi bi-important"></i>
-                        {{- end }} {{/*newspaperManage*/}}Zeitung: <strong>{{.NewspaperName}}</strong><br>
-                        {{/*newspaperManage*/}}<i>Erstellt am: {{.GetPublishedDate $acc}}</i>
+                        {{- end }} {{/*newspaperManage-12*/}}Zeitung: <strong>{{.NewspaperName}}</strong><br>
+                        {{/*newspaperManage-13*/}}<i>Erstellt am: {{.GetPublishedDate $acc}}</i>
                     </a>
                 {{end}}
             {{end}}

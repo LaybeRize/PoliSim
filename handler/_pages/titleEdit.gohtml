@@ -17,20 +17,20 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     {{if .Title.Exists}}
-        <a class="button-link" href="/edit/title">{{/*titleEdit*/}}Zurück zur Suche</a>
+        <a class="button-link" href="/edit/title">{{/*titleEdit-1*/}}Zurück zur Suche</a>
         <form hx-patch="/edit/title" hx-target="#page-body">
-            <label for="oldName">{{/*titleEdit*/}}Bisheriger Name</label>
+            <label for="oldName">{{/*titleEdit-2*/}}Bisheriger Name</label>
             <input id="oldName" name="oldName" type="text" value="{{.Title.Name}}" readonly>
-            <label for="name">{{/*titleEdit*/}}Name</label>
+            <label for="name">{{/*titleEdit-3*/}}Name</label>
             <input id="name" name="name" type="text" value="{{.Title.Name}}">
-            <label for="main-group">{{/*titleEdit*/}}Hauptgruppe</label>
+            <label for="main-group">{{/*titleEdit-4*/}}Hauptgruppe</label>
             <input id="main-group" name="main-group" type="text" value="{{.Title.MainType}}">
-            <label for="sub-group">{{/*titleEdit*/}}Untergruppe</label>
+            <label for="sub-group">{{/*titleEdit-5*/}}Untergruppe</label>
             <input id="sub-group" name="sub-group" type="text" value="{{.Title.SubType}}">
-            <label for="flair">{{/*titleEdit*/}}Flair</label>
+            <label for="flair">{{/*titleEdit-6*/}}Flair</label>
             <input id="flair" name="flair" type="text" value="{{.Title.Flair}}">
-            <button type="button" onclick="copy()">{{/*titleEdit*/}}Titel-Halter hinzufügen</button>
-            <label for="holder">{{/*titleEdit*/}}Titel-Halter</label>
+            <button type="button" onclick="copy()">{{/*titleEdit-7*/}}Titel-Halter hinzufügen</button>
+            <label for="holder">{{/*titleEdit-8*/}}Titel-Halter</label>
             <div id="input-for-holder" class="name-list hide">
                 <input id="holder" name="[]holder" type="text" list="holder-names">
                 <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -46,18 +46,18 @@
                     <option>{{.}}</option>
                 {{end}}
             </datalist>
-            <button type="submit">{{/*titleEdit*/}}Titel anpassen</button>
+            <button type="submit">{{/*titleEdit-9*/}}Titel anpassen</button>
         </form>
     {{else}}
         <form hx-put="/edit/title/search" hx-target="#page-body">
-            <label for="name">{{/*titleEdit*/}}Titelname</label>
+            <label for="name">{{/*titleEdit-10*/}}Titelname</label>
             <input id="name" name="name" type="text" list="names">
             <datalist id="names">
                 {{range .Titels}}
                     <option>{{.}}</option>
                 {{end}}
             </datalist>
-            <button type="submit">{{/*titleEdit*/}}Titel suchen</button>
+            <button type="submit">{{/*titleEdit-11*/}}Titel suchen</button>
         </form>
     {{end}}
     {{template "message" .}}

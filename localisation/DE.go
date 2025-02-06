@@ -297,6 +297,10 @@ var replaceMap = map[string]map[string]string{
 	"_home": {
 		"$$home-page$$": HomePageElement,
 	},
+
+	"base": {
+		"{{/*base-1-language*/}}": LanguageTag,
+	},
 }
 
 func LocaliseTemplateString(input []byte, name string) string {

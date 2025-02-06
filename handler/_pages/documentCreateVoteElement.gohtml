@@ -17,35 +17,35 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/vote/element" hx-target="#page-body">
-        <label for="number">{{/*documentCreateVoteElement*/}}Abstimmungsnummer</label>
+        <label for="number">{{/*documentCreateVoteElement-1*/}}Abstimmungsnummer</label>
         <select id="number" name="number" hx-patch="/retrieve/vote/element" hx-trigger="change" hx-target="#page-body"
-                hx-confirm="{{/*documentCreateVoteElement*/}}Sicher, dass du die Abstimmung wechseln willst?">
+                hx-confirm="{{/*documentCreateVoteElement-2*/}}Sicher, dass du die Abstimmung wechseln willst?">
             {{$num := .CurrNumber}}
             {{range .VoteNumbers}}
                 <option value="{{.}}" {{if eq $num .}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <label for="id">{{/*documentCreateVoteElement*/}}Abstimmungs-ID</label>
+        <label for="id">{{/*documentCreateVoteElement-3*/}}Abstimmungs-ID</label>
         <input id="id" name="id" type="text" value="{{.Vote.ID}}" disabled>
-        <label for="type">{{/*documentCreateVoteElement*/}}Abstimmungsart</label>
+        <label for="type">{{/*documentCreateVoteElement-4*/}}Abstimmungsart</label>
         <select id="type" name="type">
-            <option value="0">{{/*documentCreateVoteElement*/}}Eine Stimme pro Nutzer</option>
-            <option value="1" {{if .Vote.Type.IsMultipleVotes}}selected{{end}}>{{/*documentCreateVoteElement*/}}Mehrere Stimmen pro Nutzer</option>
-            <option value="2" {{if .Vote.Type.IsRankedVoting}}selected{{end}}>{{/*documentCreateVoteElement*/}}Rangwahl</option>
-            <option value="3" {{if .Vote.Type.IsVoteSharing}}selected{{end}}>{{/*documentCreateVoteElement*/}}Gewichtete Wahl</option>
+            <option value="0">{{/*documentCreateVoteElement-5*/}}Eine Stimme pro Nutzer</option>
+            <option value="1" {{if .Vote.Type.IsMultipleVotes}}selected{{end}}>{{/*documentCreateVoteElement-6*/}}Mehrere Stimmen pro Nutzer</option>
+            <option value="2" {{if .Vote.Type.IsRankedVoting}}selected{{end}}>{{/*documentCreateVoteElement-7*/}}Rangwahl</option>
+            <option value="3" {{if .Vote.Type.IsVoteSharing}}selected{{end}}>{{/*documentCreateVoteElement-8*/}}Gewichtete Wahl</option>
         </select>
-        <label for="max-votes" title="Nur relevant bei Gewichteter Wahl">{{/*documentCreateVoteElement*/}}Maximale Stimmen pro Nutzer (Nur relevant für Gewichtete Wahl)</label>
+        <label for="max-votes" title="Nur relevant bei Gewichteter Wahl">{{/*documentCreateVoteElement-9*/}}Maximale Stimmen pro Nutzer (Nur relevant für Gewichtete Wahl)</label>
         <input id="max-votes" title="Nur relevant bei Gewichteter Wahl" name="max-votes" type="number" value="{{.Vote.MaxVotes}}">
-        <label for="show-during">{{/*documentCreateVoteElement*/}}Zeige Teilnehmerbezogene Stimmen während der Wahl</label>
+        <label for="show-during">{{/*documentCreateVoteElement-10*/}}Zeige Teilnehmerbezogene Stimmen während der Wahl</label>
         <input type="checkbox" id="show-during" name="show-during" value="true" {{if .Vote.ShowVotesDuringVoting}}checked{{end}}>
-        <label for="anonymous">{{/*documentCreateVoteElement*/}}Geheime Wahl</label>
+        <label for="anonymous">{{/*documentCreateVoteElement-11*/}}Geheime Wahl</label>
         <input type="checkbox" id="anonymous" name="anonymous" value="true" {{if .Vote.Anonymous}}checked{{end}}>
-        <label for="question">{{/*documentCreateVoteElement*/}}Frage</label>
+        <label for="question">{{/*documentCreateVoteElement-12*/}}Frage</label>
         <input id="question" name="question" type="text" value="{{.Vote.Question}}">
         <button type="button" onclick="copy('input-for-answers', 'submit-button')">
-            {{/*documentCreateVoteElement*/}}Antwort hinzufügen
+            {{/*documentCreateVoteElement-13*/}}Antwort hinzufügen
         </button>
-        <label for="answers">{{/*documentCreateVoteElement*/}}Antworten</label>
+        <label for="answers">{{/*documentCreateVoteElement-14*/}}Antworten</label>
         <div id="input-for-answers" class="name-list hide">
             <input id="answers" name="[]answers" type="text">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -56,7 +56,7 @@
                 <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
             </div>
         {{end}}
-        <button id="submit-button" type="submit">{{/*documentCreateVoteElement*/}}Abstimmung erstellen/bearbeiten</button>
+        <button id="submit-button" type="submit">{{/*documentCreateVoteElement-15*/}}Abstimmung erstellen/bearbeiten</button>
     </form>
     {{template "message" .}}
     </body>

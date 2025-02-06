@@ -148,6 +148,11 @@ func (v *VoteInstance) ConvertToAnswer() {
 	}
 }
 
+func (v *VoteInstance) GetAnswerAsList() string {
+	v.ConvertToAnswer()
+	return strings.Join(v.Answers, ", ")
+}
+
 func (v *VoteInstance) GetTimeEnd(a *Account) string {
 	if a.Exists() {
 		return v.EndDate.In(a.TimeZone).Format(loc.TimeFormatString)

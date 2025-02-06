@@ -3,7 +3,7 @@
         window.onload = function () {
             document.body.addEventListener("htmx:afterRequest", function (evt) {
                 if (evt.failed) {
-                    alert({{/*letterPersonalSearch*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+                    alert({{/*letterPersonalSearch-1*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
                 }
             })
         }
@@ -15,21 +15,21 @@
     {{template "header" .NavInfo}}
     {{$acc := .NavInfo.Account}}
     <form id="search-form" hx-put="/my/letter" hx-target="#page-body">
-        <label for="account">{{/*letterPersonalSearch*/}}Account</label>
+        <label for="account">{{/*letterPersonalSearch-2*/}}Account</label>
         <select id="account" name="account">
-            <option value="">{{/*letterPersonalSearch*/}}-- Alle Accounts --</option>
+            <option value="">{{/*letterPersonalSearch-3*/}}-- Alle Accounts --</option>
             {{$account := .Account}}
             {{range .PossibleAccounts}}
                 <option value="{{.}}" {{if eq . $account}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <label for="amount">{{/*letterPersonalSearch*/}}Anzahl der Ergebnisse</label>
+        <label for="amount">{{/*letterPersonalSearch-4*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
-        <button>{{/*letterPersonalSearch*/}}Suchen</button>
+        <button>{{/*letterPersonalSearch-5*/}}Suchen</button>
     </form>
     <div class="wrapper note">
         {{if eq (len .Results) 0}}
-            <p>{{/*letterPersonalSearch*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
+            <p>{{/*letterPersonalSearch-6*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden</p>
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.ReducedLetter*/ -}}
@@ -37,9 +37,9 @@
                    {{if .Viewed}}class="read"{{end}}>
                     {{- if .Viewed -}}<i class="bi bi-letter-open"></i>
                     {{- else -}}<i class="bi bi-letter-closed"></i>
-                    {{- end}} {{/*letterPersonalSearch*/}}<strong>{{.Title}}</strong> von {{.Author}}<br>
-                    {{/*letterPersonalSearch*/}}Empfänger: {{.Recipient}}<br>
-                    {{/*letterPersonalSearch*/}}<i>Versendet am: {{.GetTimeWritten $acc}}</i>
+                    {{- end}} {{/*letterPersonalSearch-7*/}}<strong>{{.Title}}</strong> von {{.Author}}<br>
+                    {{/*letterPersonalSearch-8*/}}Empfänger: {{.Recipient}}<br>
+                    {{/*letterPersonalSearch-9*/}}<i>Versendet am: {{.GetTimeWritten $acc}}</i>
                 </a>
             {{end}}
         {{end}}
@@ -49,13 +49,13 @@
                 {{if .HasPrevious}}
                     <a hx-put="/my/letter" hx-include="#search-form"
                        hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
-                        {{/*letterPersonalSearch*/}}&laquo; Vorherige Seite
+                        {{/*letterPersonalSearch-10*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
                     <a hx-put="/my/letter" hx-include="#search-form"
                        hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
-                        {{/*letterPersonalSearch*/}}Nächste Seite &raquo;
+                        {{/*letterPersonalSearch-11*/}}Nächste Seite &raquo;
                     </a>
                 {{end}}
             </div>

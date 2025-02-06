@@ -3,38 +3,38 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/article" hx-target="#page-body">
-        <label for="title">{{/*newspaperCreate*/}}Titel</label>
+        <label for="title">{{/*newspaperCreate-1*/}}Titel</label>
         <input id="title" name="title" type="text" value="{{.Title}}">
-        <label for="subtitle">{{/*newspaperCreate*/}}Untertitel</label>
+        <label for="subtitle">{{/*newspaperCreate-2*/}}Untertitel</label>
         <input id="subtitle" name="subtitle" type="text" value="{{.Subtitle}}">
-        <label for="author">{{/*newspaperCreate*/}}Autor</label>
+        <label for="author">{{/*newspaperCreate-3*/}}Autor</label>
         <select id="author" name="author" hx-get="/newspaper/for/account" hx-trigger="change" hx-target="#newspaper">
             {{$author := .Author}}
             {{range .PossibleAuthors}}
                 <option value="{{.}}" {{if eq . $author}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
-        <label for="newspaper">{{/*newspaperCreate*/}}Zeitung</label>
+        <label for="newspaper">{{/*newspaperCreate-4*/}}Zeitung</label>
         {{block "newspaperDropdown" .}}
         <select id="newspaper" name="newspaper">
-            <option value="" selected>{{/*newspaperCreate*/}}-- Zeitung auswählen --</option>
+            <option value="" selected>{{/*newspaperCreate-5*/}}-- Zeitung auswählen --</option>
             {{range .PossibleNewspaper}}
                 <option value="{{.}}">{{.}}</option>
             {{end}}
         </select>
         {{end}}
-        <label for="special">{{/*newspaperCreate*/}}Eilmeldung</label>
+        <label for="special">{{/*newspaperCreate-6*/}}Eilmeldung</label>
         <input type="checkbox" id="special" name="special" value="true" {{if .Special}}checked{{end}}>
-        <label for="markdown">{{/*newspaperCreate*/}}Inhalt</label>
+        <label for="markdown">{{/*newspaperCreate-7*/}}Inhalt</label>
         <textarea id="markdown" name="markdown" rows="10"
                   hx-trigger="keyup changed delay:1s" hx-put="/markdown"
                   hx-target="#markdown-box">
             {{- .Body -}}
         </textarea>
-        <button type="submit">{{/*newspaperCreate*/}}Artikel erstellen</button>
+        <button type="submit">{{/*newspaperCreate-8*/}}Artikel erstellen</button>
     </form>
     {{template "message" .}}
-    <h1>{{/*newspaperCreate*/}}Vorschau</h1>
+    <h1>{{/*newspaperCreate-9*/}}Vorschau</h1>
     {{template "markdownBox" .}}
     </body>
 {{end}}

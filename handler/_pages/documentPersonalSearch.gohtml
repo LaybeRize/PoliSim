@@ -3,7 +3,7 @@
         window.onload = function () {
             document.body.addEventListener("htmx:afterRequest", function (evt) {
                 if (evt.failed) {
-                    alert({{/*documentPersonalSearch*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
+                    alert({{/*documentPersonalSearch-1*/}}"Die Anfrage hat zu einem Fehler auf der Serverseite geführt")
                 }
             })
         }
@@ -16,7 +16,7 @@
     {{$acc := .NavInfo.Account}}
     <div class="wrapper note">
         {{if eq (len .Results) 0}}
-            <p>{{/*documentPersonalSearch*/}}Es konnten keine Einträge gefunden werden</p>
+            <p>{{/*documentPersonalSearch-2*/}}Es konnten keine Einträge gefunden werden</p>
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.SmallDocument*/ -}}
@@ -26,9 +26,9 @@
                         <i class="bi bi-discussion"></i>
                     {{- end }}{{- if .IsVote -}}
                         <i class="bi bi-vote"></i>
-                    {{- end }} {{/*documentPersonalSearch*/}}<strong>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</strong><br>
-                    {{/*documentPersonalSearch*/}}<i>Veröffentlicht am: {{.GetTimeWritten $acc}}</i><br>
-                    {{/*documentPersonalSearch*/}}Veröffentlicht von <i>{{.Author}}</i> im <i>{{.Organisation}}</i>
+                    {{- end }} {{/*documentPersonalSearch-3*/}}<strong>{{if .Removed}}[Entfernt]{{else}}{{.Title}}{{end}}</strong><br>
+                    {{/*documentPersonalSearch-4*/}}<i>Veröffentlicht am: {{.GetTimeWritten $acc}}</i><br>
+                    {{/*documentPersonalSearch-5*/}}Veröffentlicht von <i>{{.Author}}</i> im <i>{{.Organisation}}</i>
                 </a>
             {{end}}
         {{end}}
@@ -38,13 +38,13 @@
                 {{if .HasPrevious}}
                     <a hx-put="/my/documents"
                        hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
-                        {{/*documentPersonalSearch*/}}&laquo; Vorherige Seite
+                        {{/*documentPersonalSearch-6*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
                     <a hx-put="/my/documents"
                        hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
-                        {{/*documentPersonalSearch*/}}Nächste Seite &raquo;
+                        {{/*documentPersonalSearch-7*/}}Nächste Seite &raquo;
                     </a>
                 {{end}}
             </div>

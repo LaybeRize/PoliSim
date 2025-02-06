@@ -13,9 +13,8 @@ import (
 )
 
 type FullPage struct {
-	Language string
-	Base     BaseInfo
-	Content  PageStruct
+	Base    BaseInfo
+	Content PageStruct
 }
 
 type BaseInfo struct {
@@ -860,7 +859,6 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	data.SetNavInfo(navInfo)
 
 	fullPage := FullPage{
-		Language: loc.LanguageTag,
 		Base: BaseInfo{
 			Icon: IconPath,
 		},

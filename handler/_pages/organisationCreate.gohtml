@@ -17,31 +17,31 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <form hx-post="/create/organisation" hx-target="#page-body">
-        <label for="name">{{/*organisationCreate*/}}Name</label>
+        <label for="name">{{/*organisationCreate-1*/}}Name</label>
         <input id="name" name="name" type="text" value="{{.Organisation.Name}}">
-        <label for="main-group">{{/*organisationCreate*/}}Hauptgruppe</label>
+        <label for="main-group">{{/*organisationCreate-2*/}}Hauptgruppe</label>
         <input id="main-group" name="main-group" type="text" value="{{.Organisation.MainType}}">
-        <label for="sub-group">{{/*organisationCreate*/}}Untergruppe</label>
+        <label for="sub-group">{{/*organisationCreate-3*/}}Untergruppe</label>
         <input id="sub-group" name="sub-group" type="text" value="{{.Organisation.SubType}}">
-        <label for="visiblity">{{/*organisationCreate*/}}Sichtbarkeit</label>
+        <label for="visiblity">{{/*organisationCreate-4*/}}Sichtbarkeit</label>
         <select id="visiblity" name="visiblity">
-            <option value="0">{{/*organisationCreate*/}}Öffentlich</option>
+            <option value="0">{{/*organisationCreate-5*/}}Öffentlich</option>
             <option value="1" {{if .Organisation.IsPrivate}}selected{{end}}>
-                {{/*organisationCreate*/}}Privat
+                {{/*organisationCreate-6*/}}Privat
             </option>
             <option value="2" {{if .Organisation.IsSecret}}selected{{end}}>
-                {{/*organisationCreate*/}}Geheim
+                {{/*organisationCreate-7*/}}Geheim
             </option>
             <option value="3" {{if .Organisation.IsHidden}}selected{{end}}>
-                {{/*organisationCreate*/}}Versteckt
+                {{/*organisationCreate-8*/}}Versteckt
             </option>
         </select>
-        <label for="flair">{{/*organisationCreate*/}}Flair</label>
+        <label for="flair">{{/*organisationCreate-9*/}}Flair</label>
         <input id="flair" name="flair" type="text" value="{{.Organisation.Flair}}">
         <button type="button" onclick="copy('input-for-user', 'org-admin-adder')">
-            {{/*organisationCreate*/}}Organisationsmitglied hinzufügen
+            {{/*organisationCreate-10*/}}Organisationsmitglied hinzufügen
         </button>
-        <label for="user">{{/*organisationCreate*/}}Organisationsmitglieder</label>
+        <label for="user">{{/*organisationCreate-11*/}}Organisationsmitglieder</label>
         <div id="input-for-user" class="name-list hide">
             <input id="user" name="[]user" type="text" list="account-names">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -53,9 +53,9 @@
             </div>
         {{end}}
         <button id="org-admin-adder" type="button" onclick="copy('input-for-admin', 'account-names')">
-            {{/*organisationCreate*/}}Organisationsadministrator hinzufügen
+            {{/*organisationCreate-12*/}}Organisationsadministrator hinzufügen
         </button>
-        <label for="user">{{/*organisationCreate*/}}Organisationsadministratoren</label>
+        <label for="user">{{/*organisationCreate-13*/}}Organisationsadministratoren</label>
         <div id="input-for-admin" class="name-list hide">
             <input id="user" name="[]admin" type="text" list="account-names">
             <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
@@ -71,7 +71,7 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
-        <button type="submit">{{/*organisationCreate*/}}Organisation erstellen</button>
+        <button type="submit">{{/*organisationCreate-14*/}}Organisation erstellen</button>
     </form>
     {{template "message" .}}
 {{end}}
