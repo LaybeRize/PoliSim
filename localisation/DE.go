@@ -291,11 +291,13 @@ const (
 	PagesPersonDocumentPage     = "Persönliche Dokumente"
 )
 
-var HomePageElement = ""
+func SetHomePage(text []byte) {
+	replaceMap["_home"]["$$home-page$$"] = string(text)
+}
 
 var replaceMap = map[string]map[string]string{
 	"_home": {
-		"$$home-page$$": HomePageElement,
+		"$$home-page$$": "",
 	},
 
 	"base": {

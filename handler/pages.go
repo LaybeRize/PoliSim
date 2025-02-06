@@ -794,7 +794,7 @@ func init() {
 		if err != nil {
 			log.Fatalf("While opening Welcome Page ecountered an error: %v", err)
 		}
-		loc.HomePageElement = string(file)
+		loc.SetHomePage(file)
 	}
 
 	log.Println("Reading All Templates")
