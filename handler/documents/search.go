@@ -4,7 +4,6 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
-	"fmt"
 	"net/http"
 )
 
@@ -67,8 +66,7 @@ func PutSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 		page.HasNext = true
 		page.Results = page.Results[:page.Amount]
 	}
-	writer.Header().Add("Hx-Push-Url", "/search/documents"+
-		fmt.Sprintf("?amount=%d&page=%d", page.Amount, page.Page))
+	writer.Header().Add("Hx-Push-Url", "/search/documents?"+values.Encode())
 	handler.MakePage(writer, acc, page)
 }
 
@@ -129,7 +127,6 @@ func PutPersonalSearchDocumentsPage(writer http.ResponseWriter, request *http.Re
 		page.HasNext = true
 		page.Results = page.Results[:page.Amount]
 	}
-	writer.Header().Add("Hx-Push-Url", "/my/documents"+
-		fmt.Sprintf("?amount=%d&page=%d", page.Amount, page.Page))
+	writer.Header().Add("Hx-Push-Url", "/my/documents?"+values.Encode())
 	handler.MakePage(writer, acc, page)
 }

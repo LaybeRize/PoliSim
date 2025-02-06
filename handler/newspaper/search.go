@@ -4,9 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
-	"fmt"
 	"net/http"
-	"net/url"
 )
 
 func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request) {
@@ -69,7 +67,6 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 		page.HasNext = true
 		page.Results = page.Results[:page.Amount]
 	}
-	writer.Header().Add("Hx-Push-Url", "/search/publications?query="+url.QueryEscape(page.Query)+
-		fmt.Sprintf("&amount=%d&page=%d", page.Amount, page.Page))
+	writer.Header().Add("Hx-Push-Url", "/search/publications?"+values.Encode())
 	handler.MakePage(writer, acc, page)
 }

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -183,6 +184,10 @@ func (a AdvancedValues) GetTime(field string, format string, location *time.Loca
 		return time.Time{}
 	}
 	return val
+}
+
+func (a AdvancedValues) Encode() string {
+	return url.Values(a).Encode()
 }
 
 func (a AdvancedValues) Has(field string) bool {

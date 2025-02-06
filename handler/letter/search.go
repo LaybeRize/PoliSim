@@ -5,10 +5,8 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
 )
 
 func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
@@ -112,7 +110,6 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		page.Results = page.Results[:page.Amount]
 	}
 
-	writer.Header().Add("Hx-Push-Url", "/my/letter?account="+url.QueryEscape(page.Account)+
-		fmt.Sprintf("&amount=%d&page=%d", page.Amount, page.Page))
+	writer.Header().Add("Hx-Push-Url", "/my/letter?"+values.Encode())
 	handler.MakePage(writer, acc, page)
 }
