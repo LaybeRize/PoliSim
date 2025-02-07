@@ -58,7 +58,7 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 	}
 	page := &handler.CreateVoteElementPage{
 		VoteNumbers: voteArray,
-		CurrNumber:  values.GetInt("number"),
+		CurrNumber:  values.GetInt("current-number"),
 	}
 
 	if page.CurrNumber < voteArray[0] || page.CurrNumber > voteArray[len(voteArray)-1] {

@@ -407,6 +407,7 @@ var replaceMap = map[string]map[string]string{
 		"{{/*documentCreateVoteElement-13*/}}Antwort hinzufügen":                                            "Add New Option",
 		"{{/*documentCreateVoteElement-14*/}}Antworten":                                                     "Options",
 		"{{/*documentCreateVoteElement-15*/}}Abstimmung erstellen/bearbeiten":                               "Create/Update Vote",
+		"{{/*documentCreateVoteElement-16*/}}Momentane Abstimmungsnummer":                                   "Current Vote Number",
 	},
 
 	"documentPersonalSearch": {

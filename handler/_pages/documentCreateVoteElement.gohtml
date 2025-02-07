@@ -25,6 +25,8 @@
                 <option value="{{.}}" {{if eq $num .}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
+        <label for="current-number">{{/*documentCreateVoteElement-16*/}}Momentane Abstimmungsnummer</label>
+        <input id="current-number" name="current-number" type="number" value="{{.CurrNumber}}" readonly>
         <label for="id">{{/*documentCreateVoteElement-3*/}}Abstimmungs-ID</label>
         <input id="id" name="id" type="text" value="{{.Vote.ID}}" disabled>
         <label for="type">{{/*documentCreateVoteElement-4*/}}Abstimmungsart</label>
