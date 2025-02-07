@@ -72,7 +72,7 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	titleUpdate := &database.Title{
 		Name:     values.GetTrimmedString("name"),
 		MainType: values.GetTrimmedString("main-group"),
-		SubType:  values.GetTrimmedString("sub"),
+		SubType:  values.GetTrimmedString("sub-group"),
 		Flair:    values.GetTrimmedString("flair"),
 	}
 	names := values.GetTrimmedArray("[]holder")

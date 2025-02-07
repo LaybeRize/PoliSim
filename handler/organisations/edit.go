@@ -72,7 +72,7 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 	oldOrganisationName := values.GetTrimmedString("oldName")
 	organisationUpdate := &database.Organisation{
 		Name:       values.GetTrimmedString("name"),
-		Visibility: database.OrganisationVisibility(values.GetInt("visiblity")),
+		Visibility: database.OrganisationVisibility(values.GetInt("visibility")),
 		MainType:   values.GetTrimmedString("main-group"),
 		SubType:    values.GetTrimmedString("sub-group"),
 		Flair:      values.GetTrimmedString("flair"),

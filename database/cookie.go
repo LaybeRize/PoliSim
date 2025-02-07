@@ -166,6 +166,7 @@ func loadCookiesFromDisk() {
 		sessionStore = make(map[string]*SessionData)
 		return
 	}
+
 	file, err := os.Open(cookiesFilePath)
 	if err != nil {
 		log.Fatalf("Cookie file not found: %v", err)
@@ -183,7 +184,6 @@ func loadCookiesFromDisk() {
 			continue
 		}
 	}
-
 }
 
 func saveCookiesToDisk() {

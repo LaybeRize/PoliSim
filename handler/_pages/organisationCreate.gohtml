@@ -23,8 +23,8 @@
         <input id="main-group" name="main-group" type="text" value="{{.Organisation.MainType}}">
         <label for="sub-group">{{/*organisationCreate-3*/}}Untergruppe</label>
         <input id="sub-group" name="sub-group" type="text" value="{{.Organisation.SubType}}">
-        <label for="visiblity">{{/*organisationCreate-4*/}}Sichtbarkeit</label>
-        <select id="visiblity" name="visiblity">
+        <label for="visibility">{{/*organisationCreate-4*/}}Sichtbarkeit</label>
+        <select id="visibility" name="visibility">
             <option value="0">{{/*organisationCreate-5*/}}Öffentlich</option>
             <option value="1" {{if .Organisation.IsPrivate}}selected{{end}}>
                 {{/*organisationCreate-6*/}}Privat
