@@ -516,6 +516,7 @@ var replaceMap = map[string]map[string]string{
 		"{{/*letterView-2*/}}<i>Verfasst am: {{.Letter.GetTimeWritten .NavInfo.Account}}</i>": "<i>Publish Date: {{.Letter.GetTimeWritten .NavInfo.Account}}</i>",
 		"{{/*letterView-3*/}}Als {{.Letter.Recipient}} zustimmen":                             "Accept as {{.Letter.Recipient}}",
 		"{{/*letterView-4*/}}Als {{.Letter.Recipient}} ablehnen":                              "Decline as {{.Letter.Recipient}}",
+		"{{/*letterView-5*/}}ID: {{.Letter.ID}}":                                              "ID: {{.Letter.ID}}",
 	},
 
 	"newspaperCreate": {

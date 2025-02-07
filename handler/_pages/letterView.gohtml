@@ -6,6 +6,7 @@
             <div class="block-view">
                 <h1>{{.Letter.Title}}</h1>
                 <p>
+                    {{/*letterView-5*/}}ID: {{.Letter.ID}}<br>
                     {{/*letterView-1*/}}Geschrieben von: {{.Letter.GetAuthor}}<br>
                     {{/*letterView-2*/}}<i>Verfasst am: {{.Letter.GetTimeWritten .NavInfo.Account}}</i><br><br>
                     {{.Letter.GetReader}}{{if .Letter.Signable}}<br>
