@@ -28,7 +28,7 @@ const (
 	ErrorFindingAllOrganisationsForAccount = "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"
 	ContentOrBodyAreEmpty                  = "Titel oder Inhalt sind leer"
 	ContentIsEmpty                         = "Inhalt ist leer"
-	ErrorLoadingFlairInfoForAccount        = "Fehler beim laden der Flairs für den Autor"
+	ErrorLoadingFlairInfoForAccount        = "Fehler beim Laden der Flairs für den Autor"
 	ErrorTitleTooLong                      = "Titel überschreitet die maximal erlaubte Länge von %d Zeichen"
 	ErrorSearchingForAccountNames          = "Es ist ein Fehler bei der Suche nach der Accountnamensliste aufgetreten"
 	MissingPermissions                     = "Fehlende Berechtigung"
@@ -75,23 +75,23 @@ const (
 
 	AccountDisplayNameTooLongOrNotAtAll        = "Der Anzeigename des Accounts ist entweder leer oder überschreitet das Zeichenlimit von %d"
 	AccountUsernameTooLongOrNotAtAll           = "Der Nutzername des Accounts ist entweder leer oder überschreitet das Zeichenlimit von %d"
-	AccountPasswordTooShort                    = "Das Password hat weniger als %d Zeichen"
+	AccountPasswordTooShort                    = "Das Passwort hat weniger als %d Zeichen"
 	AccountSelectedInvalidRole                 = "Die ausgewählte Rolle für den Nutzer ist nicht erlaubt"
-	AccountNotAllowedToCreateAccountOfThatRank = "Sie sind nicht berechtigt eine Account mit den selben oder höheren Berechtigungen zu erstellen"
-	AccountPasswordHashingError                = "Es ist ein Fehler beim verschlüsseln des Passworts aufgetreten"
-	AccountCreationError                       = "Der Nutzer konnte nicht erstellt werden\nBitte überprüfe ob Anzeigename oder Nutzername einzigartig sind"
+	AccountNotAllowedToCreateAccountOfThatRank = "Sie sind nicht berechtigt, einen Account mit den selben oder höheren Berechtigungen zu erstellen"
+	AccountPasswordHashingError                = "Es ist ein Fehler beim Verschlüsseln des Passworts aufgetreten"
+	AccountCreationError                       = "Der Nutzer konnte nicht erstellt werden\nBitte überprüfe, ob Anzeigename oder Nutzername einzigartig sind"
 	AccountSuccessfullyCreated                 = "Account erfolgreich erstellt\nDer Nutzername ist: %s\nDas Passwort ist: %s"
 
 	AccountSearchedNameDoesNotCorrespond  = "Der gesuchte Name ist mit keinem Account verbunden"
 	AccountErrorFindingNamesForOwner      = "Konnte Namen für mögliche Accountbesitzer nicht laden"
 	AccountFoundSearchedName              = "Gesuchten Account gefunden"
 	AccountErrorSearchingNameList         = "Es ist ein Fehler bei der Suche nach den Namenslisten aufgetreten"
-	AccountErrorNoAccountToModify         = "Konnte keinen Account zum bearbeiten finden"
-	AccountNoPermissionToEdit             = "Sie besitzen nicht die Berechtigung diesen Account anzupassen"
+	AccountErrorNoAccountToModify         = "Konnte keinen Account zum Bearbeiten finden"
+	AccountNoPermissionToEdit             = "Sie besitzen nicht die Berechtigung, diesen Account anzupassen"
 	AccountRoleIsNotAllowed               = "Die ausgewählte Rolle ist nicht erlaubt"
 	AccountErrorWhileUpdating             = "Es ist ein Fehler beim Speichern der Accountupdates aufgetreten"
 	AccountPressUserOwnerIsPressUser      = "Ein Presse-Nutzer kann kein Besitzer eines anderen Presse-Nutzers sein"
-	AccountPressUserOwnerRemovingError    = "Es ist ein Fehler beim Entferne des bisherigen Besitzers aufgetreten"
+	AccountPressUserOwnerRemovingError    = "Es ist ein Fehler beim Entfernen des bisherigen Besitzers aufgetreten"
 	AccountPressUserOwnerAddError         = "Es ist ein Fehler beim Hinzufügen des neuen Besitzers aufgetreten"
 	AccountSuccessfullyUpdated            = "Account erfolgreich angepasst"
 	AccountSearchedNamesDoesNotCorrespond = "Die gesuchten Namen sind mit keinem Account verbunden"
@@ -114,7 +114,7 @@ const (
 	DocumentGeneralTimestampInvalid                     = "Der angegebene Zeitstempel für das Ende ist nicht gültig"
 
 	DocumentColorPaletteNameNotEmpty               = "Name der Farbpalette darf nicht leer sein"
-	DocumentInvalidColor                           = "Einer der übergebene Farben ist kein valider, 6-stelliger Hexadezimal-Code"
+	DocumentInvalidColor                           = "Eine der übergebenen Farben ist kein valider, 6-stelliger Hexadezimal-Code"
 	DocumentErrorCreatingColorPalette              = "Fehler beim Erstellen der Farbpalette"
 	DocumentSuccessfullyCreatedChangedColorPalette = "Farbpalette erfolgreich erstellt/bearbeitet"
 	DocumentStandardColorNotAllowedToBeDeleted     = "Die Standardfarbe darf nicht gelöscht werden"
@@ -131,13 +131,13 @@ const (
 	DocumentCreatePostError = "Fehler beim Erstellen des Dokuments"
 
 	DocumentTimeNotInAreaDiscussion     = "Der angegebene Zeitstempel ist entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"
-	DocumentCreateDiscussionError       = "Fehler beim erstellen der Diskussion"
-	DocumentMissingPermissionForComment = "Fehlende Berechtigung um mit diesem Account ein Kommentar zu erstellen"
+	DocumentCreateDiscussionError       = "Fehler beim Erstellen der Diskussion"
+	DocumentMissingPermissionForComment = "Fehlende Berechtigung, um mit diesem Account ein Kommentar zu erstellen"
 	DocumentErrorWhileSavingComment     = "Fehler beim Speichern des Kommentars"
 
-	DocumentSearchErrorVotes  = "Es ist ein Fehler bei der Suche nach den Abstimmung des Accounts aufgetreten"
+	DocumentSearchErrorVotes  = "Es ist ein Fehler bei der Suche nach den Abstimmungen des Accounts aufgetreten"
 	DocumentTimeNotInAreaVote = "Das angegebene Datum ist nach der Zeitanpassung entweder in weniger als 24 Stunden oder in mehr als 15 Tagen"
-	DocumentCreateVoteError   = "Fehler beim erstellen des Abstimmung"
+	DocumentCreateVoteError   = "Fehler beim Erstellen der Abstimmung"
 
 	DocumentCouldNotFilterReaders      = "Konnte Lesernamensliste nicht filtern"
 	DocumentCouldNotFilterParticipants = "Konnte Teilnehmernamensliste nicht filtern"
@@ -149,37 +149,37 @@ const (
 	DocumentAmountAnswersTooSmall     = "Es muss mindestens eine Antwort zur Abstimmung stehen"
 	DocumentVoteMustHaveAQuestion     = "Die Abstimmung muss eine Frage haben, über die abgestimmt wird"
 	DocumentVoteQuestionTooLong       = "Die Abstimmungsfrage darf nicht länger als %d Zeichen sein"
-	DocumentErrorSavingUserVote       = "Es ist ein Fehler beim speichern der Abstimmung aufgetreten"
+	DocumentErrorSavingUserVote       = "Es ist ein Fehler beim Speichern der Abstimmung aufgetreten"
 	DocumentSuccessfullySavedUserVote = "Abstimmung erfolgreich gespeichert"
 
 	DocumentNotAllowedToVoteWithThatAccount = "Fehlende Berechtigung um mit diesem Account abzustimmen"
 	DocumentNotAllowedToVoteOnThis          = "Für diese Abstimmung kann keine Stimme abgegeben werden"
-	DocumentVoteIsInvalid                   = "Die Abgegebene Stimme ist invalide"
+	DocumentVoteIsInvalid                   = "Die abgegebene Stimme ist invalide"
 	DocumentVotePositionInvalid             = "Die ausgewählte Position der Antwort ist nicht gültig"
 	DocumentVoteShareNotSmallerZero         = "Die Anzahl an Stimmen pro Antwort darf nicht kleiner als 0 sein"
 	DocumentVoteSumTooBig                   = "Die Summe aller abgegebenen Stimmen überschreitet das festgelegte Maximum"
 	DocumentVoteRankTooBig                  = "Einer der Ränge ist größer als maximal erlaubt"
 	DocumentVoteInvalidDoubleRank           = "Der selbe Rang darf nicht doppelt vergeben werden"
 	DocumentAlreadyVotedWithThatAccount     = "Mit dem Account wurde bereits abgestimmt"
-	DocumentErrorWhileVoting                = "Fehler beim Versuch die Stimme abzugeben\nÜberprüfe ob der Account stimmberechtigt ist"
+	DocumentErrorWhileVoting                = "Fehler beim Versuch, die Stimme abzugeben\nÜberprüfe, ob der Account stimmberechtigt ist"
 	DocumentSuccessfullyVoted               = "Stimme erfolgreich abgegeben"
 
 	// Handler Letter
 
 	LetterErrorLoadingRecipients          = "Konnte mögliche Empfängernamen nicht laden"
-	LetterNotAllowedToPostWithThatAccount = "Der Brief darf nicht mit dem angegeben Account als Autor verschickt werden"
+	LetterNotAllowedToPostWithThatAccount = "Der Brief darf nicht mit dem angegebenen Account als Autor verschickt werden"
 	LetterRecipientListUnvalidated        = "Konnte Empfängerliste nicht validieren"
 	LetterNeedAtLeastOneRecipient         = "Die Anzahl an Empfängern für den Brief darf nicht 0 sein"
 	LetterAllowedToBeSent                 = "Der Brief darf so versendet werden"
-	LetterErrorWhileSending               = "Es ist ein Fehler beim erstellen des Briefs aufgetreten"
+	LetterErrorWhileSending               = "Es ist ein Fehler beim Erstellen des Briefs aufgetreten"
 	LetterSuccessfullySendLetter          = "Brief erfolgreich erstellt"
 
 	// Handler Newspaper
 
 	NewspaperCouldNotLoadAllNewspaperForAccount = "Konnte nicht alle möglichen Zeitungen für ausgewählten Account finden"
 	NewspaperSubtitleTooLong                    = "Untertitel überschreitet die maximal erlaubte Länge von %d Zeichen"
-	NewspaperMissingPermissionForNewspaper      = "Fehlende Berechtigung um mit diesem Account in dieser Zeitung zu posten"
-	NewspaperErrorWhileCreatingArticle          = "Fehler beim erstellen des Artikels"
+	NewspaperMissingPermissionForNewspaper      = "Fehlende Berechtigung, um mit diesem Account in dieser Zeitung zu posten"
+	NewspaperErrorWhileCreatingArticle          = "Fehler beim Erstellen des Artikels"
 	NewspaperSuccessfullyCreatedArticle         = "Artikel erfolgreich erstellt"
 
 	NewspaperErrorLoadingNewspaperNames   = "Konnte Zeitungsnamen nicht laden"
@@ -188,7 +188,7 @@ const (
 	NewspaperErrorWhileSearchingNewspaper = "Fehler bei der Suche der Zeitung"
 	NewspaperSuccessfullyFoundNewspaper   = "Zeitung gefunden"
 	NewspaperErrorWhileChangingNewspaper  = "Fehler beim Anpassen der Zeitung"
-	NewspaperErrorWhileAddingReporters    = "Fehler beim hinzufügen der neuen Autoren zur Zeitung"
+	NewspaperErrorWhileAddingReporters    = "Fehler beim Hinzufügen der neuen Autoren zur Zeitung"
 	NewspaperSuccessfullyChangedNewspaper = "Zeitung angepasst"
 
 	NewspaperErrorDuringPublication       = "Es ist ein Fehler beim Publizieren aufgetreten"
@@ -197,12 +197,12 @@ const (
 	NewspaperErrorDeletingArticle         = "Konnte den Artikel nicht löschen"
 	NewspaperFormatTitleForRejection      = "Zurückweisung des Artikels '%s' geschrieben für %s"
 	NewspaperFormatContentForRejection    = "# Zurückweisungsgrund\n\n%s\n\n# Artikelinhalt\n\n```%s```"
-	NewspaperErrorCreatingRejectionLetter = "Fehler beim erstellen des Briefs an den Autor des Artikels"
+	NewspaperErrorCreatingRejectionLetter = "Fehler beim Erstellen des Briefs an den Autor des Artikels"
 
 	// Handler Notes
 
-	NoteAuthorIsInvalid         = "Mit dem ausgewählte Autor ist es nicht möglich eine Notiz zu verfassen"
-	NoteErrorWhileCreatingNote  = "Es ist ein Fehler beim erstellen der Notiz aufgetreten"
+	NoteAuthorIsInvalid         = "Mit dem ausgewählten Autor ist es nicht möglich eine Notiz zu verfassen"
+	NoteErrorWhileCreatingNote  = "Es ist ein Fehler beim Erstellen der Notiz aufgetreten"
 	NoteSuccessfullyCreatedNote = "Notiz erfolgreich erstellt"
 
 	// Handler Organisations
@@ -214,13 +214,13 @@ const (
 	OrganisationGeneralFlairContainsInvalidCharactersOrIsTooLong = "Flair enthält ein Komma, Semikolon oder ist länger als %d Zeichen"
 	OrganisationGeneralInvalidVisibility                         = "Die ausgewählte Sichtbarkeit ist nicht valide"
 
-	OrganisationErrorWhileCreating  = "Es ist ein Fehler beim erstellen der Organisation aufgetreten (Überprüf ob der Name der Organisation einzigartig ist)"
+	OrganisationErrorWhileCreating  = "Es ist ein Fehler beim Erstellen der Organisation aufgetreten (Überprüfe, ob der Name der Organisation einzigartig ist)"
 	OrganisationSuccessfullyCreated = "Organisation erfolgreich erstellt"
 
 	OrganisationNoOrganisationWithThatName        = "Der gesuchte Name ist mit keiner Organisation verbunden"
 	OrganisationFoundOrganisation                 = "Gesuchte Organisation gefunden"
 	OrganisationErrorSearchingForOrganisationList = "Es ist ein Fehler bei der Suche nach der Organisationsnamensliste aufgetreten"
-	OrganisationErrorUpdatingOrganisation         = "Es ist ein Fehler beim überarbeiten der Organisation aufgetreten"
+	OrganisationErrorUpdatingOrganisation         = "Es ist ein Fehler beim Überarbeiten der Organisation aufgetreten"
 	OrganisationErrorUpdatingOrganisationMember   = "Konnte Organisationsmitglieder nicht erfolgreich updaten"
 	OrganisationSuccessfullyUpdated               = "Organisation erfolgreich angepasst"
 	OrganisationNotFoundByName                    = "Konnte keine Organisation finden, die den Namen trägt"
@@ -238,13 +238,13 @@ const (
 	TitleGeneralSubGroupTooLong                           = "Untergruppe überschreitet die maximal erlaubte Länge von %d Zeichen"
 	TitleGeneralFlairContainsInvalidCharactersOrIsTooLong = "Flair enthält ein Komma, Semikolon oder ist länger als %d Zeichen"
 
-	TitleErrorWhileCreating  = "Es ist ein Fehler beim erstellen des Titels aufgetreten (Überprüf ob der Name des Titel einzigartig ist)"
+	TitleErrorWhileCreating  = "Es ist ein Fehler beim Erstellen des Titels aufgetreten (Überprüfe, ob der Name des Titel einzigartig ist)"
 	TitleSuccessfullyCreated = "Titel erfolgreich erstellt"
 
 	TitleNoTitleWithThatName           = "Der gesuchte Name ist mit keinem Titel verbunden"
 	TitleFoundTitle                    = "Gesuchter Titel gefunden"
 	TitleErrorSearchingForTitleList    = "Es ist ein Fehler bei der Suche nach der Titelnamensliste aufgetreten"
-	TitleErrorWhileUpdatingTitle       = "Es ist ein Fehler beim überarbeiten des Titels aufgetreten"
+	TitleErrorWhileUpdatingTitle       = "Es ist ein Fehler beim Überarbeiten des Titels aufgetreten"
 	TitleErrorWhileUpdatingTitleHolder = "Konnte Titel-Halter nicht erfolgreich updaten"
 	TitleSuccessfullyUpdated           = "Titel erfolgreich angepasst"
 	TitleNotFoundByName                = "Konnte keinen Titel finden, der den Namen trägt"
