@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"log/slog"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -45,6 +46,10 @@ type (
 		CSV             string
 	}
 )
+
+func (a *AccountVotes) GetEscapeCSV() string {
+	return strings.ReplaceAll(url.QueryEscape(a.CSV), "+", "%20")
+}
 
 func (a *AccountVotes) GetHeaderWidth() int {
 	return a.AnswerAmount + 1

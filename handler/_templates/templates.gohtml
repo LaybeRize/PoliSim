@@ -167,4 +167,5 @@
         </table>
     {{end}}
     <p>{{/*templates-38*/}}Ungültige Stimmen: {{.GetIllegalVotes}}</p>
+    <a href="data:text/plain;charset=utf-8,{{.GetEscapeCSV}}" download="result.csv" class="button-link">{{/*templates-39*/}}CSV Herunterladen</a>
 {{end}}

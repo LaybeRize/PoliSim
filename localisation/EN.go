@@ -742,6 +742,7 @@ var replaceMap = map[string]map[string]string{
 		"{{/*templates-36*/}}{{if .Type.IsRankedVoting}}Rang{{else}}Stimme(n){{end}}":       "{{if .Type.IsRankedVoting}}Rank{{else}}Vote(s){{end}}",
 		"{{/*templates-37*/}}{{if $anonym}}{{$voter}}. Wahlzettel{{else}}{{$voter}}{{end}}": "{{if $anonym}}Ballot {{$voter}}{{else}}{{$voter}}{{end}}",
 		"{{/*templates-38*/}}Ungültige Stimmen: {{.GetIllegalVotes}}":                       "Invalid Votes: {{.GetIllegalVotes}}",
+		"{{/*templates-39*/}}CSV Herunterladen":                                             "Download CSV",
 	},
 }
 

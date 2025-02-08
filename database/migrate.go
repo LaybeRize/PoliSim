@@ -51,9 +51,11 @@ WHERE r.csv IS NULL RETURN r, elementId(r);`, nil)
 				log.Fatalf("Failed to execute update Votes")
 			}
 		}
-	}
-	err = tx.Commit()
-	if err != nil {
-		log.Fatalf(err.Error())
+		err = tx.Commit()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	} else {
+		log.Println("No Votes to migrate")
 	}
 }
