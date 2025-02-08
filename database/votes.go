@@ -394,7 +394,6 @@ ORDER BY r.written;`,
 }
 
 func resultRoutine() {
-	generateResults()
 	curr := time.Now().UTC()
 	next := time.Date(curr.Year(), curr.Month(), curr.Day()+1, 0, 0, 0, 0, time.UTC)
 	ticker := time.NewTicker(next.Sub(curr) + time.Second)
@@ -413,8 +412,9 @@ func generateResults() {
 	shutdown.Lock()
 	defer shutdown.Unlock()
 
-	result, err := makeRequest(`MATCH (a:Account)-[r:VOTED]->(v:Vote)<-[:LINKS]-(d:Document) 
+	result, err := makeRequest(`MATCH (v:Vote)<-[:LINKS]-(d:Document) 
 WHERE datetime($now) > datetime(d.end_time) 
+OPTIONAL MATCH (a:Account)-[r:VOTED]->(v) 
 WITH v, d.id AS docID,a.name AS accName, r ORDER BY r.written 
 RETURN v, docID, collect(accName), collect(r);`, map[string]any{"now": time.Now().UTC()})
 	if err != nil {

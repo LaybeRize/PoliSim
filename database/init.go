@@ -60,6 +60,7 @@ func init() {
 	createAdministrationAccount()
 	migrate()
 	log.Println("Starting Vote Cleanup Routine")
+	generateResults()
 	go resultRoutine()
 }
 
