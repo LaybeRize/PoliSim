@@ -58,6 +58,7 @@ func init() {
 	createConstraints()
 	createRootAccount()
 	createAdministrationAccount()
+	migrate()
 	log.Println("Starting Vote Cleanup Routine")
 	go resultRoutine()
 }

@@ -409,6 +409,7 @@ WHERE d.id = $id RETURN r;`,
 					List:            nil,
 					Voter:           props.GetArray("voter"),
 					Votes:           props.GetArray("votes"),
+					CSV:             props.GetString("csv"),
 				})
 			}
 		} else {

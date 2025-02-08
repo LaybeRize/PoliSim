@@ -2,6 +2,7 @@ package database
 
 import (
 	loc "PoliSim/localisation"
+	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"log/slog"
 	"strconv"
@@ -41,6 +42,7 @@ type (
 		List            map[string][]any
 		Voter           []any
 		Votes           []any
+		CSV             string
 	}
 )
 
@@ -431,7 +433,7 @@ RETURN v, docID, collect(accName), collect(r);`, map[string]any{"now": time.Now(
 		}
 		err = tx.RunWithoutResult(`MATCH (d:Document) WHERE d.id = $id 
 CREATE (r:Result {type: $Type, anonymous: $Anonymous, amount: $AnswerAmount, illegal: $IllegalVotes, 
-question: $question, answers: $answers, voter: $voter, votes: $votes}) 
+question: $question, answers: $answers, voter: $voter, votes: $votes, csv: $csv}) 
 MERGE (d)-[:VOTED]->(r);`,
 			map[string]any{
 				"id":           docIds[i],
@@ -443,6 +445,7 @@ MERGE (d)-[:VOTED]->(r);`,
 				"answers":      vote.IterableAnswers,
 				"voter":        vote.Voter,
 				"votes":        vote.Votes,
+				"csv":          vote.CSV,
 			})
 		if err != nil {
 			slog.Error(err.Error())
@@ -474,6 +477,7 @@ func transformVotesForResults(result []*neo4j.Record) ([]AccountVotes, []string,
 			Anonymous:       voteProps.GetBool("anonymous"),
 			Type:            VoteType(voteProps.GetInt("type")),
 			IllegalVotes:    []string{},
+			List:            nil,
 			Voter:           make([]any, 0),
 			Votes:           make([]any, 0),
 		}
@@ -491,7 +495,33 @@ func transformVotesForResults(result []*neo4j.Record) ([]AccountVotes, []string,
 			votes[i].Voter = append(votes[i].Voter, name)
 			votes[i].Votes = append(votes[i].Votes, props.GetArray("vote")...)
 		}
+
+		generateCSV(&votes[i])
 	}
 
 	return votes, docIDs, voteIDs
+}
+
+func generateCSV(vote *AccountVotes) {
+	(*vote).CSV = "\"" + strings.ReplaceAll(vote.Question, "\"", "\"\"") + "\""
+	for _, answer := range vote.IterableAnswers {
+		(*vote).CSV += ",\"" + strings.ReplaceAll(answer.(string), "\"", "\"\"") + "\""
+	}
+	for name, votes := range vote.VoteIterator() {
+		if vote.Anonymous {
+			(*vote).CSV += "\n,"
+		} else {
+			(*vote).CSV += "\n\"" + strings.ReplaceAll(name, "\"", "\"\"") + "\","
+		}
+
+		if vote.Type != RankedVoting {
+			for i, count := range votes {
+				if count == "" {
+					votes[i] = "0"
+				}
+			}
+		}
+		(*vote).CSV += strings.Join(votes, ",")
+	}
+	(*vote).CSV += fmt.Sprintf("\nInvalid,%d", len(vote.IllegalVotes)) + strings.Repeat(",", len(vote.IterableAnswers)-1)
 }
