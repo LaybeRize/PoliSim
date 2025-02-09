@@ -549,3 +549,81 @@ div.markdown del {
 .bi-outgoing::before { content: "\f1c3"; }
 .bi-incoming::before { content: "\f1be"; }
 
+/* Info Box */
+
+.hover-container {
+    position: relative;
+}
+
+.hover-target {
+    position: relative;
+}
+
+.hover-popup {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    top: 70%;
+    left: 5%;
+    width: 50ch;
+    margin: min(1rem, 20px);
+    font-size: .8rem;
+    background-color: rgb(15 23 42);
+    border-radius: 8px;
+    padding: 1em;
+    z-index: 42;
+    transform: scale(0);
+    transition: transform 200ms ease;
+    transform-origin: 8% -10px;
+}
+
+.hover-target:hover + .hover-popup,
+.hover-target:focus + .hover-popup,
+.hover-popup:hover{
+    transform: scale(1);
+}
+
+.hover-popup :not(:first-child) {
+    margin-top: 1rem;
+}
+
+.hover-popup span {
+    color: rgb(190, 20, 0);
+    font-weight: 700;
+}
+
+.hover-popup::before {
+    /* This is the triangle/arrow */
+    content: '';
+    position: absolute;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid rgb(15 23 42);
+    top: -10px;
+}
+
+.hover-popup::after {
+    /* This is merely here to expand the hoverable area, as a buffer between the "Hover me" text and the popup. */
+    content: '';
+    position: absolute;
+    top: -1rem;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-delay: -1ms !important;
+        animation-duration: -1ms !important;
+        animation-iteration-count: 1 !important;
+        background-attachment: initial !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+    }
+}
