@@ -56,7 +56,8 @@
                 <option>{{.}}</option>
             {{end}}
         </datalist>
-        <label for="vote-choice">{{/*documentCreateVote-8*/}}Abstimmungsliste</label>
+        <label for="vote-choice" title="{{/*documentCreateVote-15*/}}Um Abstimmungen vorzubereiten öffne die Seite unter Dokumente->Abstimmungen verwalten">
+            {{/*documentCreateVote-8*/}}Abstimmungsliste &#x1F6C8;</label>
         <select id="vote-choice" name="vote-choice">
             {{range .VoteChoice}}
                 <option value="{{.ID}}">{{.Question}}</option>
