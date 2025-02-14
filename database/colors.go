@@ -93,7 +93,8 @@ func loadColorPalettesFromDB() {
 func saveColorPalettesToDB() {
 	queryStmt := `
         INSERT INTO colors (name, background, text, link)
-        VALUES ($1, $2, $3, $4);
+        VALUES ($1, $2, $3, $4) 
+        ON CONFLICT (name) DO UPDATE SET background=$2, text = $3, link = $4;
     `
 	for name := range ColorPaletteMap {
 		color := ColorPaletteMap[name]

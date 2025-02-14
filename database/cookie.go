@@ -156,14 +156,14 @@ func loadCookiesFromDB() {
 	_, err := postgresDB.Exec(`CREATE TABLE IF NOT EXISTS cookies (
     session_key TEXT PRIMARY KEY,
 	name TEXT,
-    expiresAt TIMESTAMP,
-    updateAt TIMESTAMP
+    expires_at TIMESTAMP,
+    update_at TIMESTAMP
 )`)
 	if err != nil {
 		log.Fatalf("Could not create postgres cookies tabel: %v", err)
 	}
 
-	results, err := postgresDB.Query("SELECT session_key, name, expiresAt, updateAt FROM cookies;")
+	results, err := postgresDB.Query("SELECT session_key, name, expires_at, update_at FROM cookies;")
 	if err != nil {
 		log.Fatalf("Could not read postgres cookies tabel: %v", err)
 	}
@@ -193,8 +193,8 @@ func loadCookiesFromDB() {
 
 func saveCookiesToDB() {
 	queryStmt := `
-        INSERT INTO cookies (session_key, name, expiresAt, updateAt)
-        VALUES ($1, $2, $3, $4);
+        INSERT INTO cookies (session_key, name, expires_at, update_at)
+        VALUES ($1, $2, $3, $4) ON CONFLICT (session_key) DO UPDATE SET name = $2, expires_at = $3, update_at = $4;
     `
 	for key := range sessionStore {
 		session := sessionStore[key]
