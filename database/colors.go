@@ -2,26 +2,20 @@ package database
 
 import (
 	loc "PoliSim/localisation"
-	"encoding/json"
-	"errors"
 	"log"
 	"log/slog"
-	"os"
 )
 
 type ColorPalette struct {
-	Name       string `json:"Name,omitempty"`
-	Background string `json:"Background,omitempty"`
-	Text       string `json:"Text,omitempty"`
-	Link       string `json:"Link,omitempty"`
+	Name       string
+	Background string
+	Text       string
+	Link       string
 }
 
-var ColorPaletteMap map[string]ColorPalette
-
-const colorFilePath = folderPath + "/colors.json"
+var ColorPaletteMap = map[string]ColorPalette{}
 
 func init() {
-	loadColorPalettesFromDisk()
 	_, exists := ColorPaletteMap[loc.StandardColorName]
 	if !exists {
 		ColorPaletteMap[loc.StandardColorName] = ColorPalette{
@@ -68,43 +62,44 @@ func RemoveColorPalette(name string, acc *Account) (*ColorPalette, error) {
 	return &result, nil
 }
 
-func loadColorPalettesFromDisk() {
-	if _, err := os.Stat(colorFilePath); errors.Is(err, os.ErrNotExist) {
-		err = os.MkdirAll(folderPath, os.ModePerm)
+func loadColorPalettesFromDB() {
+	_, err := postgresDB.Exec(`CREATE TABLE IF NOT EXISTS colors (
+    name TEXT PRIMARY KEY,
+    background TEXT,
+    text TEXT,
+    link TEXT
+)`)
+	if err != nil {
+		log.Fatalf("Could not create postgres color tabel: %v", err)
+	}
+
+	results, err := postgresDB.Query("SELECT name, background, text, link FROM colors;")
+	if err != nil {
+		log.Fatalf("Could not read postgres color tabel: %v", err)
+	}
+
+	for results.Next() {
+		var color ColorPalette
+
+		err = results.Scan(&color.Name, &color.Background, &color.Text, &color.Link)
 		if err != nil {
-			log.Fatalf("Directioary can not be created: %v", err)
+			slog.Error("could not scan entry correctly:", "err", err)
 		}
-		ColorPaletteMap = make(map[string]ColorPalette)
-		return
-	}
-	file, err := os.Open(colorFilePath)
-	if err != nil {
-		log.Fatalf("Color file not found: %v", err)
-	}
-	err = json.NewDecoder(file).Decode(&ColorPaletteMap)
-	if err != nil {
-		log.Fatalf("Color file not correctly decoded: %v", err)
+
+		ColorPaletteMap[color.Name] = color
 	}
 }
 
-func saveColorPalettesToDisk() {
-	file, err := os.Create(colorFilePath)
-	if err != nil {
-		slog.Error(err.Error())
-		return
-	}
-	err = file.Truncate(0)
-	if err != nil {
-		slog.Error(err.Error())
-		return
-	}
-	_, err = file.Seek(0, 0)
-	if err != nil {
-		slog.Error(err.Error())
-		return
-	}
-	err = json.NewEncoder(file).Encode(&ColorPaletteMap)
-	if err != nil {
-		slog.Error(err.Error())
+func saveColorPalettesToDB() {
+	queryStmt := `
+        INSERT INTO colors (name, background, text, link)
+        VALUES ($1, $2, $3, $4);
+    `
+	for name := range ColorPaletteMap {
+		color := ColorPaletteMap[name]
+		_, err := postgresDB.Exec(queryStmt, &color.Name, &color.Background, &color.Text, &color.Link)
+		if err != nil {
+			slog.Error("While saving colors encountered an error: ", "err", err)
+		}
 	}
 }

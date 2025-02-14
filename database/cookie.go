@@ -4,13 +4,10 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 )
@@ -19,9 +16,9 @@ var sessionStore = make(map[string]*SessionData)
 var mu sync.Mutex
 
 type SessionData struct {
-	Account   *Account  `json:"Account,omitempty"`
-	ExpiresAt time.Time `json:"ExpireDate,omitempty"`
-	UpdateAt  time.Time `json:"UpdateDate,omitempty"`
+	Account   *Account
+	ExpiresAt time.Time
+	UpdateAt  time.Time
 }
 
 const cleanupInterval = 5 * time.Hour
@@ -155,26 +152,34 @@ func doCleanup() {
 	}
 }
 
-const cookiesFilePath = folderPath + "/cookies.json"
+func loadCookiesFromDB() {
+	_, err := postgresDB.Exec(`CREATE TABLE IF NOT EXISTS cookies (
+    session_key TEXT PRIMARY KEY,
+	name TEXT,
+    expiresAt TIMESTAMP,
+    updateAt TIMESTAMP
+)`)
+	if err != nil {
+		log.Fatalf("Could not create postgres cookies tabel: %v", err)
+	}
 
-func loadCookiesFromDisk() {
-	if _, err := os.Stat(cookiesFilePath); errors.Is(err, os.ErrNotExist) {
-		err = os.MkdirAll(folderPath, os.ModePerm)
+	results, err := postgresDB.Query("SELECT session_key, name, expiresAt, updateAt FROM cookies;")
+	if err != nil {
+		log.Fatalf("Could not read postgres cookies tabel: %v", err)
+	}
+
+	for results.Next() {
+		var key string
+		var session = SessionData{Account: &Account{}}
+
+		err = results.Scan(&key, &session.Account.Name, &session.ExpiresAt, &session.UpdateAt)
 		if err != nil {
-			log.Fatalf("Directioary can not be created: %v", err)
+			slog.Error("could not scan entry correctly:", "err", err)
 		}
-		sessionStore = make(map[string]*SessionData)
-		return
+
+		sessionStore[key] = &session
 	}
 
-	file, err := os.Open(cookiesFilePath)
-	if err != nil {
-		log.Fatalf("Cookie file not found: %v", err)
-	}
-	err = json.NewDecoder(file).Decode(&sessionStore)
-	if err != nil {
-		log.Fatalf("Cookie file not correctly decoded: %v", err)
-	}
 	doCleanup()
 	for key, session := range sessionStore {
 		session.Account, err = GetAccountByName(session.Account.Name)
@@ -186,24 +191,16 @@ func loadCookiesFromDisk() {
 	}
 }
 
-func saveCookiesToDisk() {
-	file, err := os.Create(cookiesFilePath)
-	if err != nil {
-		slog.Error(err.Error())
-		return
-	}
-	err = file.Truncate(0)
-	if err != nil {
-		slog.Error(err.Error())
-		return
-	}
-	_, err = file.Seek(0, 0)
-	if err != nil {
-		slog.Error(err.Error())
-		return
-	}
-	err = json.NewEncoder(file).Encode(&sessionStore)
-	if err != nil {
-		slog.Error(err.Error())
+func saveCookiesToDB() {
+	queryStmt := `
+        INSERT INTO cookies (session_key, name, expiresAt, updateAt)
+        VALUES ($1, $2, $3, $4);
+    `
+	for key := range sessionStore {
+		session := sessionStore[key]
+		_, err := postgresDB.Exec(queryStmt, &key, &session.Account.Name, &session.ExpiresAt, &session.UpdateAt)
+		if err != nil {
+			slog.Error("While saving colors encountered an error: ", "err", err)
+		}
 	}
 }

@@ -779,8 +779,12 @@ var templates embed.FS
 var templateForge = make(map[string]*template.Template)
 
 var IconPath = "/public/fallback_icon.png"
+var pageNameText = ""
 
 func init() {
+	if os.Getenv("PAGE_NAME") != "" {
+		pageNameText = os.Getenv("PAGE_NAME") + ": "
+	}
 	log.Println("Updating Welcome Page HTML")
 	const pageAdditon = "./public/welcome." + loc.LanguageTag + ".html"
 	_, err := os.Stat(pageAdditon)
@@ -867,67 +871,67 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 
 	switch data.(type) {
 	case *HomePage:
-		fullPage.Base.Title = loc.PagesHomePage
+		fullPage.Base.Title = pageNameText + loc.PagesHomePage
 	case *NotFoundPage:
-		fullPage.Base.Title = loc.PagesNotFoundPage
+		fullPage.Base.Title = pageNameText + loc.PagesNotFoundPage
 	case *CreateAccountPage:
-		fullPage.Base.Title = loc.PagesCreateAccountPage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateAccountPage
 	case *MyProfilePage:
-		fullPage.Base.Title = loc.PagesMyProfilePage
+		fullPage.Base.Title = pageNameText + loc.PagesMyProfilePage
 	case *EditAccountPage:
-		fullPage.Base.Title = loc.PagesEditAccountPage
+		fullPage.Base.Title = pageNameText + loc.PagesEditAccountPage
 	case *NotesPage:
-		fullPage.Base.Title = loc.PagesNotesPage
+		fullPage.Base.Title = pageNameText + loc.PagesNotesPage
 	case *CreateNotesPage:
-		fullPage.Base.Title = loc.PagesCreateNotesPage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateNotesPage
 	case *SearchNotesPage:
-		fullPage.Base.Title = loc.PagesSearchNotesPage
+		fullPage.Base.Title = pageNameText + loc.PagesSearchNotesPage
 	case *CreateTitlePage:
-		fullPage.Base.Title = loc.PagesCreateTitlePage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateTitlePage
 	case *EditTitlePage:
-		fullPage.Base.Title = loc.PagesEditTitlePage
+		fullPage.Base.Title = pageNameText + loc.PagesEditTitlePage
 	case *CreateOrganisationPage:
-		fullPage.Base.Title = loc.PagesCreateOrganisationPage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateOrganisationPage
 	case *EditOrganisationPage:
-		fullPage.Base.Title = loc.PagesEditOrganisationPage
+		fullPage.Base.Title = pageNameText + loc.PagesEditOrganisationPage
 	case *ViewTitlePage:
-		fullPage.Base.Title = loc.PagesViewTitlePage
+		fullPage.Base.Title = pageNameText + loc.PagesViewTitlePage
 	case *ViewOrganisationPage:
-		fullPage.Base.Title = loc.PagesViewOrganisationPage
+		fullPage.Base.Title = pageNameText + loc.PagesViewOrganisationPage
 	case *ManageNewspaperPage:
-		fullPage.Base.Title = loc.PagesManageNewspaperPage
+		fullPage.Base.Title = pageNameText + loc.PagesManageNewspaperPage
 	case *CreateArticlePage:
-		fullPage.Base.Title = loc.PagesCreateArticlePage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateArticlePage
 	case *ViewPublicationPage:
-		fullPage.Base.Title = loc.PagesViewPublicationPage
+		fullPage.Base.Title = pageNameText + loc.PagesViewPublicationPage
 	case *SearchPublicationsPage:
-		fullPage.Base.Title = loc.PagesSearchPublicationsPage
+		fullPage.Base.Title = pageNameText + loc.PagesSearchPublicationsPage
 	case *SearchLetterPage:
-		fullPage.Base.Title = loc.PagesSearchLetterPage
+		fullPage.Base.Title = pageNameText + loc.PagesSearchLetterPage
 	case *CreateLetterPage:
-		fullPage.Base.Title = loc.PagesCreateLetterPage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateLetterPage
 	case *AdminSearchLetterPage:
-		fullPage.Base.Title = loc.PagesAdminSearchLetterPage
+		fullPage.Base.Title = pageNameText + loc.PagesAdminSearchLetterPage
 	case *ViewLetterPage:
-		fullPage.Base.Title = loc.PagesViewLetterPage
+		fullPage.Base.Title = pageNameText + loc.PagesViewLetterPage
 	case *DocumentViewPage:
-		fullPage.Base.Title = loc.PagesDocumentViewPage
+		fullPage.Base.Title = pageNameText + loc.PagesDocumentViewPage
 	case *CreateDocumentPage:
-		fullPage.Base.Title = loc.PagesCreateDocumentPage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateDocumentPage
 	case *CreateDiscussionPage:
-		fullPage.Base.Title = loc.PagesCreateDiscussionPage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateDiscussionPage
 	case *CreateVoteElementPage:
-		fullPage.Base.Title = loc.PagesCreateVoteElementPage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateVoteElementPage
 	case *CreateVotePage:
-		fullPage.Base.Title = loc.PagesCreateVotePage
+		fullPage.Base.Title = pageNameText + loc.PagesCreateVotePage
 	case *SearchDocumentsPage:
-		fullPage.Base.Title = loc.PagesSearchDocumentsPage
+		fullPage.Base.Title = pageNameText + loc.PagesSearchDocumentsPage
 	case *ViewVotePage:
-		fullPage.Base.Title = loc.PagesViewVotePage
+		fullPage.Base.Title = pageNameText + loc.PagesViewVotePage
 	case *EditColorPage:
-		fullPage.Base.Title = loc.PagesEditColorPage
+		fullPage.Base.Title = pageNameText + loc.PagesEditColorPage
 	case *SearchPersonalDocumentsPage:
-		fullPage.Base.Title = loc.PagesPersonDocumentPage
+		fullPage.Base.Title = pageNameText + loc.PagesPersonDocumentPage
 	case *AdminPage:
 		fullPage.Base.Title = "Webserver Administration"
 	default:

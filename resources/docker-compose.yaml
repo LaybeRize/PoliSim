@@ -14,7 +14,18 @@ services:
       - neo_logs:/logs
     restart: always
 
+  postgres-db:
+    image: postgres:17
+    ports:
+      - "5433:5432"
+    env_file:
+      - ../stack.env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: always
+
 
 volumes:
+  pg_data:
   neo_data:
   neo_logs:

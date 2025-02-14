@@ -1,9 +1,8 @@
 version: '3.8'
 
 services:
-  db:
+  neo-db:
     image: neo4j:5.26.0
-    container_name: db-neo4j
     ports:
       - "7687:7687"
     env_file:
@@ -13,16 +12,25 @@ services:
       - neo_logs:/logs
     restart: always
 
+  postgres-db:
+    image: postgres:17
+    ports:
+      - "5433:5432"
+    env_file:
+      - stack.env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: always
+
   web:
     container_name: web-golang-polisim
     depends_on:
       - db
     ports:
-      - "1350:8080"
+      - "8080:8080"
     env_file:
       - stack.env
     volumes:
-      - web_data:/app/data
       - web_public:/app/public
     image:
       layberize/polisim:testing
@@ -31,5 +39,5 @@ services:
 volumes:
   neo_data:
   neo_logs:
-  web_data:
+  pg_data:
   web_public:

@@ -3,18 +3,21 @@ package database
 import (
 	loc "PoliSim/localisation"
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
 	"sync"
-)
 
-const folderPath = "./data"
+	_ "github.com/lib/pq"
+)
 
 var ctx context.Context
 var driver neo4j.DriverWithContext
+var postgresDB *sql.DB
 var notFoundError = errors.New("item not found")
 var notAllowedError = errors.New("action is for user not allowed")
 var noRecipientFoundError = errors.New("no recipient found for letter")
@@ -39,6 +42,12 @@ func VerifyPassword(storedHash, password string) bool {
 }
 
 func init() {
+	startNeo4jDatabase()
+	startPostgresDatabase()
+	afterStartProcesses()
+}
+
+func startNeo4jDatabase() {
 	var err error
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
@@ -49,12 +58,34 @@ func init() {
 	err = driver.VerifyConnectivity(ctx)
 	if err != nil {
 		closeErr := driver.Close(ctx)
-		log.Fatalf("DB connection error: %v | Driver close error: %v", err, closeErr)
+		log.Fatalf("Neo DB connection error: %v | Driver close error: %v", err, closeErr)
 	}
 
-	log.Println("Opened connection to the DB")
+	log.Println("Opened connection to the Neo DB")
+}
+
+func startPostgresDatabase() {
+	psqlInfo := fmt.Sprintf("host=localhost port=5433 user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_DB"))
+	var err error
+	postgresDB, err = sql.Open("postgres", psqlInfo)
+	if err != nil {
+		closeErr := postgresDB.Close()
+		log.Fatalf("Postgres DB connection error: %v | Driver close error: %v", err, closeErr)
+	}
+	err = postgresDB.Ping()
+	if err != nil {
+		closeErr := postgresDB.Close()
+		log.Fatalf("Postgres DB Ping error: %v | Driver close error: %v", err, closeErr)
+	}
+	log.Println("Opened connection to the Postgres DB")
+}
+
+func afterStartProcesses() {
+	loadColorPalettesFromDB()
 	log.Println("Loading Cookies")
-	loadCookiesFromDisk()
+	loadCookiesFromDB()
 	createConstraints()
 	createRootAccount()
 	createAdministrationAccount()
@@ -67,11 +98,15 @@ func init() {
 func Shutdown() {
 	shutdown.Lock()
 	defer shutdown.Unlock()
-	saveColorPalettesToDisk()
-	saveCookiesToDisk()
+	saveColorPalettesToDB()
+	saveCookiesToDB()
 	err := driver.Close(ctx)
 	if err != nil {
-		log.Fatalf("DB close error: %v", err)
+		log.Printf("Neo DB close error: %v\n", err)
+	}
+	err = postgresDB.Close()
+	if err != nil {
+		log.Printf("Postgres DB close error: %v\n", err)
 	}
 }
 
