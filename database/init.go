@@ -18,11 +18,22 @@ import (
 var ctx context.Context
 var driver neo4j.DriverWithContext
 var postgresDB *sql.DB
-var notFoundError = errors.New("item not found")
-var notAllowedError = errors.New("action is for user not allowed")
-var noRecipientFoundError = errors.New("no recipient found for letter")
-var multipleItemsError = errors.New("more then one item found")
-var AlreadyVoted = errors.New("you already voted")
+
+type DbError string
+
+func (d DbError) Error() string {
+	return string(d)
+}
+
+const (
+	NotFoundError                DbError = "item not found"
+	NotAllowedError              DbError = "action is for user not allowed"
+	NoRecipientFoundError        DbError = "no recipient found for letter"
+	MultipleItemsError           DbError = "more then one item found"
+	AlreadyVoted                 DbError = "you already voted"
+	DocumentHasInvalidVisibility DbError = "document has invalid visibility"
+	DocumentHasNoAttachedVotes   DbError = "document has no attached votes"
+)
 
 var shutdown sync.Mutex
 
@@ -115,7 +126,7 @@ func createRootAccount() {
 	if err == nil && acc != nil {
 		log.Println("Head Admin Account already exists")
 		return
-	} else if errors.Is(err, notFoundError) && acc == nil {
+	} else if errors.Is(err, NotFoundError) && acc == nil {
 		pass, hashError := HashPassword(os.Getenv("PASSWORD"))
 		if hashError != nil {
 			log.Fatalf("password hashing error for Head Admin Account: %v", hashError)
@@ -141,7 +152,7 @@ func createAdministrationAccount() {
 	if err == nil && acc != nil {
 		log.Println("Administration Account already exists")
 		return
-	} else if errors.Is(err, notFoundError) && acc == nil {
+	} else if errors.Is(err, NotFoundError) && acc == nil {
 		createError := CreateAccount(&Account{
 			Name:     loc.AdministrationAccountName,
 			Username: loc.AdministrationAccountUsername,

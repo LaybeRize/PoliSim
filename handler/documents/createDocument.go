@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -103,7 +104,15 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	err = database.CreateDocument(doc, acc)
-	if err != nil {
+	if errors.Is(err, database.DocumentHasInvalidVisibility) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentCreatePostHasInvalidVisibility})
+		return
+	} else if errors.Is(err, database.NotAllowedError) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentCreatePostNotAllowedError})
+		return
+	} else if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreatePostError})

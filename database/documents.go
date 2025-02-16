@@ -201,9 +201,9 @@ WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation AND 
 	if err != nil {
 		return err
 	} else if result.Next(); result.Record() == nil {
-		return notAllowedError
+		return NotAllowedError
 	} else if vis := OrganisationVisibility(result.Record().Values[0].(int64)); (vis == SECRET && document.Public) || (vis == PUBLIC && !document.Public) {
-		return notAllowedError
+		return DocumentHasInvalidVisibility
 	}
 
 	err = tx.RunWithoutResult(`MATCH (a:Account) WHERE a.name = $author 
@@ -249,7 +249,7 @@ RETURN v.id;`, map[string]any{
 		if err != nil {
 			return err
 		} else if !result.Peek() {
-			return notAllowedError
+			return DocumentHasNoAttachedVotes
 		}
 	}
 
@@ -276,14 +276,14 @@ RETURN d, o.name;`, map[string]any{
 	if err != nil {
 		return nil, nil, err
 	} else if !result.Next() {
-		return nil, nil, notAllowedError
+		return nil, nil, NotAllowedError
 	}
 	props := GetPropsMapForRecordPosition(result.Record(), 0)
 	public := props.GetBool("public")
 	allowedToAddTags := false
 
 	if !public && !acc.Exists() {
-		return nil, nil, notAllowedError
+		return nil, nil, NotAllowedError
 	} else if acc.Exists() {
 		var userCheck *dbResult
 		userCheck, err = tx.Run(`
@@ -301,7 +301,7 @@ RETURN d.id, b.name;`, map[string]any{
 		if err != nil {
 			return nil, nil, err
 		} else if !userCheck.Peek() && !acc.IsAtLeastAdmin() && !public {
-			return nil, nil, notAllowedError
+			return nil, nil, NotAllowedError
 		} else if userCheck.Next() {
 			slog.Debug("Document Connections", "id", id, "query output", userCheck.Record().Values)
 			allowedToAddTags = userCheck.Record().Values[1] != nil
@@ -492,7 +492,7 @@ RETURN a.name;`, map[string]any{"name": acc.Name, "id": docID})
 	if err != nil {
 		return err
 	} else if result.Next(); result.Record() == nil {
-		return notAllowedError
+		return NotAllowedError
 	}
 
 	err = tx.RunWithoutResult(`MATCH (d:Document) WHERE d.id = $id  
@@ -546,7 +546,7 @@ RETURN a;`,
 	if err != nil {
 		return err
 	} else if !result.Peek() {
-		return notAllowedError
+		return NotAllowedError
 	}
 
 	err = tx.RunWithoutResult(`MATCH (a:Account) WHERE a.name = $author 

@@ -171,13 +171,13 @@ WHERE t.name = $name RETURN a.name AS name;`,
 
 func getSingleTitle(pos int, records []*neo4j.Record) (*Title, error) {
 	if len(records) == 0 {
-		return nil, notFoundError
+		return nil, NotFoundError
 	} else if len(records) > 1 {
-		return nil, multipleItemsError
+		return nil, MultipleItemsError
 	}
 	props := GetPropsMapForRecordPosition(records[0], pos)
 	if props == nil {
-		return nil, notFoundError
+		return nil, NotFoundError
 	}
 	title := &Title{
 		Name:     props.GetString("name"),

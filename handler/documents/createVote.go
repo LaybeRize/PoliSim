@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -137,7 +138,19 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	err = database.CreateDocument(doc, acc)
-	if err != nil {
+	if errors.Is(err, database.DocumentHasInvalidVisibility) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentCreateVoteHasInvalidVisibility})
+		return
+	} else if errors.Is(err, database.NotAllowedError) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentCreateVoteNotAllowedError})
+		return
+	} else if errors.Is(err, database.DocumentHasNoAttachedVotes) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentCreateVoteHasNoAttachedVotes})
+		return
+	} else if err != nil {
 		slog.Info(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreateVoteError})

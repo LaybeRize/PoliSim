@@ -288,7 +288,7 @@ RETURN a;`,
 	if err != nil {
 		return err
 	} else if !result.Next() {
-		return notAllowedError
+		return NotAllowedError
 	}
 
 	result, err = tx.Run(`MATCH (a:Account)-[:VOTED]->(v:Vote) WHERE a.name = $author AND v.id = $id 
@@ -326,7 +326,7 @@ RETURN o }`
 		return nil, -1, -1, err
 	}
 	if len(result) == 0 {
-		return nil, -1, -1, notAllowedError
+		return nil, -1, -1, NotAllowedError
 	}
 	return result[0].Values[0].([]any), VoteType(result[0].Values[1].(int64)), int(result[0].Values[2].(int64)), nil
 }
@@ -347,7 +347,7 @@ RETURN o }`
 		return nil, nil, err
 	}
 	if len(result) == 0 {
-		return nil, nil, notAllowedError
+		return nil, nil, NotAllowedError
 	}
 	props := GetPropsMapForRecordPosition(result[0], 2)
 	vote := &VoteInstance{

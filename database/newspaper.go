@@ -84,7 +84,7 @@ func GetFullNewspaperInfo(name string) (*Newspaper, error) {
 	result, err := makeRequest(`MATCH (t:Newspaper) WHERE t.name = $name RETURN t;`,
 		map[string]any{"name": name})
 	if err != nil || len(result) != 1 {
-		return nil, notFoundError
+		return nil, NotFoundError
 	}
 
 	newspaper := &Newspaper{Name: name}
@@ -188,7 +188,7 @@ AND p.special = $special AND p.published = false RETURN p.id;`,
 			return err
 		}
 	} else if result.Record() == nil {
-		return notFoundError
+		return NotFoundError
 	} else {
 		id = result.Record().Values[0].(string)
 	}
@@ -199,7 +199,7 @@ RETURN acc;`,
 	if err != nil {
 		return err
 	} else if !result.Next() {
-		return notAllowedError
+		return NotAllowedError
 	}
 
 	err = tx.RunWithoutResult(
@@ -229,8 +229,8 @@ func createSpecialPublication(tx *dbTransaction, name string) (string, error) {
 	result, err := tx.Run(`MATCH (t:Newspaper) WHERE t.name = $newspaper 
 RETURN t;`,
 		map[string]any{"newspaper": name})
-	if !result.Next() || err != nil {
-		return "", notFoundError
+	if err != nil || !result.Next() {
+		return "", NotFoundError
 	}
 	id := helper.GetUniqueID(name)
 	err = tx.RunWithoutResult(`MATCH (n:Newspaper) WHERE n.name = $name
@@ -259,8 +259,8 @@ func PublishPublication(id string) error {
 WHERE p.id = $id AND p.published = false SET p.published = true, 
  p.published_date = $publishedDate RETURN p.special, n.name;`,
 		map[string]any{"id": id, "publishedDate": time.Now().UTC()})
-	if !result.Next() || err != nil {
-		return notFoundError
+	if err != nil || !result.Next() {
+		return NotFoundError
 	}
 
 	if list := result.Record().Values; !list[0].(bool) {
@@ -302,9 +302,9 @@ func GetPublication(id string) (*Publication, []NewspaperArticle, error) {
 WHERE p.id = $id 
 RETURN t, p;`, map[string]any{
 		"id": id})
-	if !result.Next() || err != nil {
+	if err != nil || !result.Next() {
 		slog.Debug("", "Error", err, "ID", id)
-		return nil, nil, notFoundError
+		return nil, nil, NotFoundError
 	}
 	pub := getArrayOfPublications(1, 0, []*neo4j.Record{result.Record()})[0]
 
@@ -412,7 +412,7 @@ WHERE a.id = $id AND p.published = false RETURN a, n.name;`, map[string]any{
 		return nil, err
 	} else if !result.Next() {
 		reject.tx.Close()
-		return nil, notFoundError
+		return nil, NotFoundError
 	}
 
 	reject.NewspaperName = result.Record().Values[1].(string)

@@ -135,9 +135,9 @@ func GetNote(id string) (*BlackboardNote, error) {
 		return nil, err
 	}
 	if len(result) == 0 {
-		return nil, notFoundError
+		return nil, NotFoundError
 	} else if len(result) > 1 {
-		return nil, multipleItemsError
+		return nil, MultipleItemsError
 	}
 	props := GetPropsMapForRecordPosition(result[0], 0)
 	note := &BlackboardNote{
@@ -202,7 +202,7 @@ RETURN n ORDER BY n.posted_at DESC SKIP $skip LIMIT $amount;`,
 }
 
 var queryRegexNotes = regexp.MustCompile(`^\s*(.*?)\s*(\[|$)`)
-var authorRegexNotes = regexp.MustCompile(`\[[bB][yY]:\]\s*(.+?)\s*(\[|$)`)
+var authorRegexNotes = regexp.MustCompile(`\[[bB][yY]:]\s*(.+?)\s*(\[|$)`)
 
 func queryAnalyzer(acc *Account, input string, showBlocked bool) (query string, parameter map[string]any) {
 	parameter = make(map[string]any)

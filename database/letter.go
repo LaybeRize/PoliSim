@@ -136,7 +136,7 @@ RETURN acc;`,
 	if err != nil {
 		return err
 	} else if !result.Peek() {
-		return notAllowedError
+		return NotAllowedError
 	}
 
 	result, err = tx.Run(`MATCH (a:Account) WHERE a.name IN $reader AND a.blocked = false 
@@ -145,7 +145,7 @@ RETURN a;`,
 	if err != nil {
 		return err
 	} else if !result.Peek() {
-		return noRecipientFoundError
+		return NoRecipientFoundError
 	}
 
 	err = tx.RunWithoutResult(letterCreation, letter.GetCreationMap())
@@ -205,7 +205,7 @@ RETURN l;`,
 		if err != nil {
 			return nil, err
 		} else if !result.Next() {
-			return nil, notFoundError
+			return nil, NotFoundError
 		}
 	} else {
 		result, err = tx.Run(`MATCH (a:Account)<-[r:RECIPIENT]-(l:Letter)
@@ -216,7 +216,7 @@ RETURN l, r.signature;`,
 		if err != nil {
 			return nil, err
 		} else if !result.Next() {
-			return nil, notFoundError
+			return nil, NotFoundError
 		}
 	}
 

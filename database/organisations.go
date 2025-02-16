@@ -358,13 +358,13 @@ ORDER BY o.main_type, o.sub_type, o.name;`,
 
 func getSingleOrganisation(pos int, records []*neo4j.Record) (*Organisation, error) {
 	if len(records) == 0 {
-		return nil, notFoundError
+		return nil, NotFoundError
 	} else if len(records) > 1 {
-		return nil, multipleItemsError
+		return nil, MultipleItemsError
 	}
 	props := GetPropsMapForRecordPosition(records[0], pos)
 	if props == nil {
-		return nil, notFoundError
+		return nil, NotFoundError
 	}
 	title := &Organisation{
 		Name:       props.GetString("name"),

@@ -47,7 +47,7 @@ func HasPrivilegesForColorsDelete(acc *Account) bool {
 
 func AddColorPalette(color *ColorPalette, acc *Account) error {
 	if !HasPrivilegesForColorsAdd(acc) {
-		return notAllowedError
+		return NotAllowedError
 	}
 	ColorPaletteMap[color.Name] = *color
 	return nil
@@ -55,7 +55,7 @@ func AddColorPalette(color *ColorPalette, acc *Account) error {
 
 func RemoveColorPalette(name string, acc *Account) (*ColorPalette, error) {
 	if !HasPrivilegesForColorsDelete(acc) {
-		return nil, notAllowedError
+		return nil, NotAllowedError
 	}
 	result := ColorPaletteMap[name]
 	delete(ColorPaletteMap, name)

@@ -75,7 +75,7 @@ const (
 
 func CreateAccount(acc *Account) error {
 	if acc.Name == loc.AdministrationName {
-		return notAllowedError
+		return NotAllowedError
 	}
 	_, err := makeRequest(
 		`CREATE (:Account {name: $name , username: $username ,
@@ -90,7 +90,7 @@ func CreateAccount(acc *Account) error {
 
 func GetAccountByUsername(username string) (*Account, error) {
 	if username == loc.AdministrationAccountUsername {
-		return nil, notFoundError
+		return nil, NotFoundError
 	}
 	result, err := makeRequest(`MATCH (a:Account) WHERE a.username = $name RETURN a;`,
 		map[string]any{"name": username})
@@ -160,7 +160,7 @@ OPTIONAL MATCH (t:Account)-[:OWNER]->(a) RETURN a, t;`,
 		return
 	}
 	owner, err = getSingleAccount(1, result)
-	if errors.Is(err, notFoundError) {
+	if errors.Is(err, NotFoundError) {
 		err = nil
 	}
 	return
@@ -312,13 +312,13 @@ RETURN n.flair AS flair ORDER BY flair;`,
 
 func getSingleAccount(pos int, records []*neo4j.Record) (*Account, error) {
 	if len(records) == 0 {
-		return nil, notFoundError
+		return nil, NotFoundError
 	} else if len(records) > 1 {
-		return nil, multipleItemsError
+		return nil, MultipleItemsError
 	}
 	result := GetPropsMapForRecordPosition(records[0], pos)
 	if result == nil {
-		return nil, notFoundError
+		return nil, NotFoundError
 	}
 	acc := &Account{
 		Name:     result.GetString("name"),
