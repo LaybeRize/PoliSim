@@ -12,6 +12,7 @@ body {
     flex-direction: column;
     align-items: center;
     display: flex;
+    max-width: 100vw;
 }
 
 div.block-view {
@@ -21,6 +22,7 @@ div.block-view {
     align-items: start;
     display: inherit;
     width: var(--standard-width);
+    max-width: 100vw;
 }
 
 .spacing {
@@ -35,6 +37,7 @@ div.wrapper {
     align-items: inherit;
     display: inherit;
     width: inherit;
+    max-width: inherit;
 }
 
 .section-headline {
@@ -49,6 +52,7 @@ form {
     align-items: start;
     display: flex;
     width: var(--standard-width);
+    max-width: 100vw;
 }
 
 .error-div {
@@ -196,23 +200,25 @@ a.dropdown {
 }
 
 div.note {
+    max-width: 100vw;
+    width: var(--standard-width);
     a {
         background-color: rgb(51 65 85);
         color: rgb(34 211 238);
         padding: 0.3rem;
         margin: 0.2rem 0;
-        text-underline: rgb(34 211 238);
         text-decoration: none;
         cursor: pointer;
+        width: 100%;
     }
     a.read {
         background-color: rgb(15 23 42);
         color: var(--text-color);
         padding: 0.3rem;
         margin: 0.2rem 0;
-        text-underline: var(--text-color);
         text-decoration: none;
         cursor: pointer;
+        width: 100%;
     }
     h1 {
         font-size: 2rem;
@@ -251,6 +257,8 @@ div.pager {
 div.hierarchy-view {
     box-sizing:border-box;
     width: var(--standard-width);
+    max-width: 100vw;
+    word-break: break-word;
     align-items: start;
     a {
         color: var(--text-color);
@@ -372,6 +380,7 @@ table.view-vote {
 
 div.markdown {
     width: var(--standard-width);
+    max-width: 100vw;
     background-color: rgb(15 23 42);
     filter: drop-shadow(0.3rem 0.3rem 0.125rem rgb(2 6 23));
     padding: 1rem;
@@ -588,9 +597,17 @@ div.markdown del {
     margin-top: 1rem;
 }
 
-.hover-popup span {
-    color: rgb(190, 20, 0);
-    font-weight: 700;
+.hover-popup {
+    span {
+        color: rgb(190, 20, 0);
+        font-weight: 700;
+    }
+    a {
+        color: rgb(34 211 238);
+    }
+    a:visited {
+        color: rgb(64 100 278);
+    }
 }
 
 .hover-popup::before {

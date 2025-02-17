@@ -97,7 +97,7 @@ const (
 	AccountSearchedNamesDoesNotCorrespond = "Die gesuchten Namen sind mit keinem Account verbunden"
 
 	AccountFontSizeMustBeBiggerThen          = "Die Seitenskalierung darf nicht kleiner als %d%% sein"
-	AccountGivenTimezoneInvalid              = "Die ausgewählte Zeitzone ist nicht erlaubt"
+	AccountGivenTimezoneInvalid              = "Die ausgewählte Zeitzone ist nicht erlaubt.\nVerwende eine Zeitzone wie 'Europe/Berlin' oder 'Etc/GMT+5'"
 	AccountErrorSavingPersonalSettings       = "Fehler beim speichern der persönlichen Informationen"
 	AccountPersonalSettingsSavedSuccessfully = "Einstellungen erfolgreich gespeichert\nLaden Sie die Seite neu, um den Effekt zu sehen"
 	AccountWrongOldPassword                  = "Das alte Passwort ist falsch"

@@ -116,6 +116,9 @@ func main() {
 	http.HandleFunc("GET /view/letter/{id}", letter.GetLetterViewPage)
 	http.HandleFunc("PATCH /view/letter/{id}", letter.PatchLetterViewPage)
 
+	//http.HandleFunc("GET /chat/{self}/{target}", chat.GetShowChat)
+	//http.HandleFunc("GET /connect/chat/{self}/{target}", chat.ConnectToWebsocket)
+
 	http.HandleFunc("GET /administration", handler.GetManagementPage)
 	http.HandleFunc("POST /administration/file", handler.PostFileManagementPage)
 

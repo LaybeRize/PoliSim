@@ -9,7 +9,11 @@
                 <form hx-patch="/my/profile/settings" hx-target="#change-personal-settings">
                     <label for="fontScaling">{{/*personalProfil-2*/}}Seitenskalierung (in Prozent)</label>
                     <input id="fontScaling" name="fontScaling" type="number" value="{{.FontScaling}}">
-                    <label for="timeZone">{{/*personalProfil-3*/}}Persönliche Zeitzone</label>
+                    <label for="timeZone" class="hover-container">{{/*personalProfil-3*/}}Persönliche Zeitzo<span class="hover-target">ne &#x1F6C8;</span>
+                        <aside class="hover-popup">
+                            <p>{{/*personalProfil-10*/}}Mögliche gültige Zeitzonen sind z.B auf der Wikipedia Seite <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones" target="_blank">List of tz database time zones</a> zu finden.</p>
+                        </aside>
+                    </label>
                     <input id="timeZone" name="timeZone" type="text" value="{{.TimeZone}}" list="timezone-names">
                     {{template "timeZoneList"}}
                     <button type="submit">{{/*personalProfil-4*/}}Einstellungen speichern</button>

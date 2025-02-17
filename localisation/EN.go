@@ -97,7 +97,7 @@ const (
 	AccountSearchedNamesDoesNotCorrespond = "the searched names don't correspond to any account"
 
 	AccountFontSizeMustBeBiggerThen          = "the font scaling can't be set to any number smaller then %d%%"
-	AccountGivenTimezoneInvalid              = "chosen timezone is not allowed"
+	AccountGivenTimezoneInvalid              = "chosen timezone is not allowed\nuse a timezone like 'Europe/Berlin' or 'Etc/GMT+5'"
 	AccountErrorSavingPersonalSettings       = "couldn't save personal settings"
 	AccountPersonalSettingsSavedSuccessfully = "personal settings saved successfully\nreload page to see the effects"
 	AccountWrongOldPassword                  = "the old password is invalid"
@@ -665,15 +665,16 @@ var replaceMap = map[string]map[string]string{
 	},
 
 	"personalProfil": {
-		"{{/*personalProfil-1*/}}Persönliche Einstellungen":     "Personal Settings",
-		"{{/*personalProfil-2*/}}Seitenskalierung (in Prozent)": "Page Scaling in Percent",
-		"{{/*personalProfil-3*/}}Persönliche Zeitzone":          "Personal Timezone",
-		"{{/*personalProfil-4*/}}Einstellungen speichern":       "Save Settings",
-		"{{/*personalProfil-5*/}}Passwort ändern":               "Change Password",
-		"{{/*personalProfil-6*/}}Altes Passwort":                "Old Password",
-		"{{/*personalProfil-7*/}}Neues Passwort":                "New Password",
-		"{{/*personalProfil-8*/}}Neues Passwort wiederholen":    "Repeat New Password",
-		"{{/*personalProfil-9*/}}Passwort ändern":               "Change Password",
+		"{{/*personalProfil-1*/}}Persönliche Einstellungen":                                          "Personal Settings",
+		"{{/*personalProfil-2*/}}Seitenskalierung (in Prozent)":                                      "Page Scaling in Percent",
+		"{{/*personalProfil-3*/}}Persönliche Zeitzo<span class=\"hover-target\">ne &#x1F6C8;</span>": "Personal Timezo<span class=\"hover-target\">ne &#x1F6C8;</span>",
+		"{{/*personalProfil-4*/}}Einstellungen speichern":                                            "Save Settings",
+		"{{/*personalProfil-5*/}}Passwort ändern":                                                    "Change Password",
+		"{{/*personalProfil-6*/}}Altes Passwort":                                                     "Old Password",
+		"{{/*personalProfil-7*/}}Neues Passwort":                                                     "New Password",
+		"{{/*personalProfil-8*/}}Neues Passwort wiederholen":                                         "Repeat New Password",
+		"{{/*personalProfil-9*/}}Passwort ändern":                                                    "Change Password",
+		"{{/*personalProfil-10*/}}Mögliche gültige Zeitzonen sind z.B auf der Wikipedia Seite <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones\" target=\"_blank\">List of tz database time zones</a> zu finden.": "Possible valid timezones can be found for example on the wikipedia page <a href=\"https://en.wikipedia.org/wiki/List_of_tz_database_time_zones\" target=\"_blank\">List of tz database time zones</a>.",
 	},
 
 	"titleCreate": {
