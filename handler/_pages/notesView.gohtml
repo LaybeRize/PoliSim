@@ -44,7 +44,7 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
         <div class="block-view note">
-            <a href="/create/note" id="link-all-entries" target="_blank">{{/*noteView-2*/}}Schreibe eine eigene Notiz zu allen offenen Beiträgen</a>
+            <a class="fit-content" href="/create/note" id="link-all-entries" target="_blank">{{/*noteView-2*/}}Schreibe eine eigene Notiz zu allen offenen Beiträgen</a>
         </div>
     {{range .LoadedNotes}}
         {{block "singleNote" .}}
@@ -60,17 +60,17 @@
                         {{/*noteView-5*/}}<i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>
                     </p>
                     {{if $acc.IsAtLeastAdmin}}
-                        <a hx-patch="/change/blocked/note/{{.ID}}" hx-target="#{{.ID}}">{{/*noteView-6*/}}{{if .Removed}}Notiz wieder freigeben{{else}}Notiz blockieren{{end}}</a>
+                        <a class="fit-content" hx-patch="/change/blocked/note/{{.ID}}" hx-target="#{{.ID}}">{{/*noteView-6*/}}{{if .Removed}}Notiz wieder freigeben{{else}}Notiz blockieren{{end}}</a>
                     {{end}}
                 </div>
                 <div class="markdown {{if .Removed}}removed{{end}}">{{.GetBody $acc}}</div>
                 <div class="block-view">
-                    <a href="/create/note?loaded={{.ID}}" target="_blank">{{/*noteView-7*/}}Schreibe eine eigene Notiz zu diesem Beitrag</a>
+                    <a class="fit-content" href="/create/note?loaded={{.ID}}" target="_blank">{{/*noteView-7*/}}Schreibe eine eigene Notiz zu diesem Beitrag</a>
                     {{if .HasChildren}}
                         <h2>{{/*noteView-8*/}}Referenzen</h2>
                         {{range .Children}}
                             {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
-                            <a  data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
+                            <a class="fit-content" data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
                                 hx-target="#end-div" hx-swap="beforebegin">{{if .Removed}}{{/*noteView-9*/}}<strong>[Entfernt]</strong>
                                 {{- else -}}
                                     {{/*noteView-10*/}}<strong>{{.Title}}</strong> von {{.Author}}{{end}}</a>
@@ -80,7 +80,7 @@
                         <h2>{{/*noteView-11*/}}Kommentare</h2>
                         {{range .Parents}}
                             {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
-                            <a  data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
+                            <a class="fit-content" data-link="{{.ID}}" hx-get="/notes/request?request={{.ID}}"
                                 hx-target="#end-div" hx-swap="beforebegin">{{if .Removed}}{{/*noteView-12*/}}<strong>[Entfernt]</strong>
                                 {{- else -}}
                                     {{/*noteView-13*/}}<strong>{{.Title}}</strong> von {{.Author}}{{end}}</a>

@@ -38,6 +38,7 @@
         <div class="block-view">
             <h1>{{.Document.Title}}</h1>
             <p>
+                {{/*documentView-28*/}}ID: {{.Document.ID}}<br>
                 {{/*documentView-3*/}}Geschrieben von: {{.Document.GetAuthor}}<br>
                 {{/*documentView-4*/}}Veröffentlicht in: {{.Document.Organisation}}<br>
                 <i>{{/*documentView-5*/}}Verfasst am: {{.Document.GetTimeWritten .NavInfo.Account}}</i>

@@ -469,6 +469,7 @@ var replaceMap = map[string]map[string]string{
 		"{{/*documentView-25*/}}Kommentar schreiben":                                                                     "Write Comment",
 		"{{/*documentView-26*/}}Vorschau":                                                                                "Preview",
 		"{{/*documentView-27*/}}Abstimmungen":                                                                            "Votes",
+		"{{/*documentView-28*/}}ID:":                                                                                     "ID:",
 	},
 
 	"documentViewVote": {

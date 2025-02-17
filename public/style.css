@@ -185,6 +185,7 @@ select {
 a.button-link {
     background-color: rgb(51 65 85);
     color: var(--text-color);
+    cursor: pointer;
     padding: 0.5rem;
     text-decoration: none;
 }
@@ -203,6 +204,7 @@ div.note {
     max-width: 100vw;
     width: var(--standard-width);
     a {
+        box-sizing:border-box;
         background-color: rgb(51 65 85);
         color: rgb(34 211 238);
         padding: 0.3rem;
@@ -212,6 +214,7 @@ div.note {
         width: 100%;
     }
     a.read {
+        box-sizing:border-box;
         background-color: rgb(15 23 42);
         color: var(--text-color);
         padding: 0.3rem;
@@ -221,13 +224,19 @@ div.note {
         width: 100%;
     }
     h1 {
+        box-sizing:border-box;
         font-size: 2rem;
         line-height: 2.2rem;
         color: var(--text-color);
     }
     h2 {
+        box-sizing:border-box;
         font-size: 1.5rem;
         line-height: 1.7rem;
+    }
+    a.fit-content {
+        width: fit-content;
+        max-width: inherit;
     }
 }
 
@@ -240,7 +249,6 @@ div.name-list {
         width: 95%;
     }
     button {
-        box-sizing:border-box;
         width: 5%;
         margin: 0.5rem 0.2rem;
         background-color: var(--error-red);
