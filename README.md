@@ -35,10 +35,7 @@ as sparking discussions in the organisations.
 
 The container composition needs the following environment information to run:
 `````
-DB_PASSWORD=[test]
-DB_USER=neo4j
-NEO4J_AUTH=neo4j/[test]
-DB_ADDRESS=db:7687
+DB_ADDRESS=db
 ADDRESS=0.0.0.0:[8080]
 NAME=[Your Name Here]
 USERNAME=[Your Username Here]

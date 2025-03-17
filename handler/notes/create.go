@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
-	"time"
 )
 
 func GetNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
@@ -77,7 +76,6 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		Title:    values.GetTrimmedString("title"),
 		Author:   author,
 		Flair:    flairString,
-		PostedAt: time.Now().UTC(),
 		Body:     handler.MakeMarkdown(values.GetTrimmedString("markdown")),
 		Removed:  false,
 		Parents:  nil,

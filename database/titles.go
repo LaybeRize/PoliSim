@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/lib/pq"
 	"log"
 	"slices"
 )
@@ -54,154 +54,114 @@ func removeOldTitleFromMap(titleName string) {
 	}
 }
 
+// Todo: transfer to migration
+const titleTableDefinition = `CREATE TABLE title(
+    name TEXT PRIMARY KEY,
+    main_group TEXT NOT NULL,
+    sub_group TEXT NOT NULL,
+    flair TEXT NOT NULL
+);
+CREATE TABLE title_to_account(
+    title_name TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    CONSTRAINT fk_organisation_name
+        FOREIGN KEY(title_name) REFERENCES title(name),
+    CONSTRAINT fk_account_name
+        FOREIGN KEY(account_name) REFERENCES account(name)
+);`
+
 func CreateTitle(title *Title, holderNames []string) error {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		return err
-	}
-	err = tx.RunWithoutResult(
-		`CREATE (:Title {name: $name , main_type: $maintype , 
-sub_type: $subtype , flair: $flair});`, map[string]any{
-			"name":     title.Name,
-			"maintype": title.MainType,
-			"subtype":  title.SubType,
-			"flair":    title.Flair})
-	if err != nil {
-		return err
-	}
-	err = tx.RunWithoutResult(`MATCH (a:Account), (t:Title) WHERE a.name IN $names  
-AND t.name = $title CREATE (a)-[:HAS]->(t);`, map[string]any{
-		"title": title.Name,
-		"names": holderNames})
-	if err != nil {
-		return err
-	}
-	err = tx.Commit()
+	_, err := postgresDB.Exec(`
+INSERT INTO title (name, main_group, sub_group, flair) 
+	VALUES ($1, $2, $3, $4);
+-- Insert into connection table
+INSERT INTO title_to_account (title_name, account_name) 
+SELECT $1 AS title_name, name FROM account
+WHERE name = ANY($5) AND blocked = false;`,
+		&title.Name, &title.MainType, &title.SubType, &title.Flair,
+		pq.Array(holderNames))
 	if err == nil {
 		addTitleToMap(title)
 	}
 	return err
 }
 
-func UpdateTitle(oldtitle string, title *Title) error {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		return err
-	}
-	err = tx.RunWithoutResult(
-		`MATCH (t:Title) WHERE t.name = $oldName 
-SET t.name = $name , t.main_type = $maintype , 
-t.sub_type = $subtype , t.flair = $flair;`,
-		map[string]any{
-			"oldName":  oldtitle,
-			"name":     title.Name,
-			"maintype": title.MainType,
-			"subtype":  title.SubType,
-			"flair":    title.Flair})
-	if err != nil {
-		return err
-	}
-	err = tx.RunWithoutResult(`MATCH (a:Account)-[r:HAS]->(t:Title) WHERE t.name = $title 
-DELETE r;`, map[string]any{"title": title.Name})
-	if err != nil {
-		return err
-	}
-	err = tx.Commit()
+func UpdateTitle(oldTitle string, title *Title) error {
+	_, err := postgresDB.Exec(`
+DELETE FROM title_to_account WHERE title_name = $1;
+UPDATE title SET name = $2, main_group = $3, sub_group = $4, flair = $5 WHERE name = $1;`,
+		&oldTitle, &title.Name, &title.MainType, &title.SubType, &title.Flair)
 	if err == nil {
-		removeOldTitleFromMap(oldtitle)
+		removeOldTitleFromMap(oldTitle)
 		addTitleToMap(title)
 	}
 	return err
 }
 
 func AddTitleHolder(title *Title, holderNames []string) error {
-	_, err := makeRequest(`MATCH (a:Account), (t:Title) 
-WHERE a.name IN $names AND a.blocked = false AND t.name = $title 
-MERGE (a)-[r:HAS]->(t);`,
-		map[string]any{"title": title.Name, "names": holderNames})
+	_, err := postgresDB.Exec(`
+INSERT INTO title_to_account (title_name, account_name) 
+SELECT $1 AS title_name, name FROM account
+WHERE name = ANY($2) AND blocked = false;`,
+		&title.Name, pq.Array(holderNames))
 	return err
 }
 
 func GetTitleNameList() ([]string, error) {
-	result, err := makeRequest(`MATCH (t:Title) RETURN t.name AS name;`, nil)
+	result, err := postgresDB.Query(`SELECT name FROM title ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
-
-	names := make([]string, len(result))
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
+	defer result.Close()
+	names := make([]string, 0)
+	name := ""
+	for result.Next() {
+		err = result.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
 	}
 	return names, err
 }
 
 func GetTitleByName(name string) (*Title, error) {
-	result, err := makeRequest(`MATCH (t:Title) WHERE t.name = $name RETURN t;`,
-		map[string]any{"name": name})
+	title := &Title{}
+	err := postgresDB.QueryRow(`SELECT name, main_group, sub_group, flair FROM title WHERE name = $1`,
+		&name).Scan(&title.Name, &title.MainType, &title.SubType, &title.Flair)
 	if err != nil {
 		return nil, err
 	}
-	return getSingleTitle(0, result)
+	return title, err
 }
 
 func GetTitleAndHolder(name string) (*Title, []string, error) {
-	result, err := makeRequest(`MATCH (t:Title) WHERE t.name = $name RETURN t;`,
-		map[string]any{"name": name})
+	title := &Title{}
+	names := make([]string, 0)
+	err := postgresDB.QueryRow(`SELECT name, main_group, sub_group, flair, 
+       ARRAY(SELECT account_name FROM title_to_account WHERE title_name = $1 ORDER BY account_name) AS account 
+       FROM title WHERE name = $1`,
+		&name).Scan(&title.Name, &title.MainType, &title.SubType, &title.Flair, pq.Array(names))
 	if err != nil {
 		return nil, nil, err
-	}
-	title, err := getSingleTitle(0, result)
-	if err != nil {
-		return title, nil, err
-	}
-	result, err = makeRequest(`MATCH (a:Account)-[:HAS]->(t:Title) 
-WHERE t.name = $name RETURN a.name AS name;`,
-		map[string]any{"name": name})
-	if err != nil {
-		return title, nil, err
-	}
-	names := make([]string, len(result))
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
 	}
 	return title, names, err
 }
 
-func getSingleTitle(pos int, records []*neo4j.Record) (*Title, error) {
-	if len(records) == 0 {
-		return nil, NotFoundError
-	} else if len(records) > 1 {
-		return nil, MultipleItemsError
-	}
-	props := GetPropsMapForRecordPosition(records[0], pos)
-	if props == nil {
-		return nil, NotFoundError
-	}
-	title := &Title{
-		Name:     props.GetString("name"),
-		MainType: props.GetString("main_type"),
-		SubType:  props.GetString("sub_type"),
-		Flair:    props.GetString("flair"),
-	}
-
-	return title, nil
-}
-
 func GetAllTitles() ([]Title, error) {
-	result, err := makeRequest(`MATCH (t:Title) RETURN t;`, nil)
+	result, err := postgresDB.Query(`SELECT name, main_group, sub_group FROM title`)
 	if err != nil {
 		return nil, err
 	}
-	titles := make([]Title, len(result))
-	for i, record := range result {
-		props := GetPropsMapForRecordPosition(record, 0)
-		titles[i] = Title{
-			Name:     props.GetString("name"),
-			MainType: props.GetString("main_type"),
-			SubType:  props.GetString("sub_type"),
+	defer result.Close()
+	titles := make([]Title, 0)
+	title := Title{}
+	for result.Next() {
+		err = result.Scan(&title.Name, &title.MainType, &title.SubType)
+		if err != nil {
+			return nil, err
 		}
+		titles = append(titles, title)
 	}
 	return titles, err
 }

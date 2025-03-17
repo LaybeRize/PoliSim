@@ -153,17 +153,23 @@ func doCleanup() {
 }
 
 func loadCookiesFromDB() {
-	_, err := postgresDB.Exec(`CREATE TABLE IF NOT EXISTS cookies (
+	//Todo: move this into the migration function
+	_, err := postgresDB.Exec(`CREATE TABLE cookies (
     session_key TEXT PRIMARY KEY,
-	name TEXT,
-    expires_at TIMESTAMP,
-    update_at TIMESTAMP
+	name TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    update_at TIMESTAMP NOT NULL,
+    CONSTRAINT account_name 
+        FOREIGN KEY(name) REFERENCES account(name)
 )`)
 	if err != nil {
 		log.Fatalf("Could not create postgres cookies tabel: %v", err)
 	}
 
-	results, err := postgresDB.Query("SELECT session_key, name, expires_at, update_at FROM cookies;")
+	results, err := postgresDB.Query(`
+SELECT account.username, account.password, account.role, account.blocked, account.font_size, account.time_zone,
+    cookies.session_key, cookies.name, cookies.expires_at, cookies.update_at 
+FROM cookies LEFT JOIN account ON cookies.name = account.name;`)
 	if err != nil {
 		log.Fatalf("Could not read postgres cookies tabel: %v", err)
 	}
@@ -171,24 +177,26 @@ func loadCookiesFromDB() {
 	for results.Next() {
 		var key string
 		var session = SessionData{Account: &Account{}}
+		timeZoneStr := ""
 
-		err = results.Scan(&key, &session.Account.Name, &session.ExpiresAt, &session.UpdateAt)
+		err = results.Scan(&session.Account.Username, &session.Account.Password, &session.Account.Role,
+			&session.Account.Blocked, &session.Account.FontSize, &timeZoneStr, &key, &session.Account.Name,
+			&session.ExpiresAt, &session.UpdateAt)
 		if err != nil {
 			slog.Error("could not scan entry correctly:", "err", err)
+			continue
+		}
+		session.Account.TimeZone, err = time.LoadLocation(timeZoneStr)
+		if err != nil {
+			slog.Error("could not convert account time zone correctly:",
+				"account_name", session.Account.Name, "err", err)
+			continue
 		}
 
 		sessionStore[key] = &session
 	}
 
 	doCleanup()
-	for key, session := range sessionStore {
-		session.Account, err = GetAccountByName(session.Account.Name)
-		if err != nil {
-			slog.Error("Could not retrieve Account for Cookie:", "error", err.Error())
-			delete(sessionStore, key)
-			continue
-		}
-	}
 }
 
 func saveCookiesToDB() {

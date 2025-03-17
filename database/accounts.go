@@ -2,9 +2,8 @@ package database
 
 import (
 	loc "PoliSim/localisation"
-	"errors"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	"strings"
+	"database/sql"
+	"github.com/lib/pq"
 	"time"
 )
 
@@ -19,6 +18,30 @@ type Account struct {
 	FontSize int
 	TimeZone *time.Location
 }
+
+// Todo move this to migration
+const accountTableCreateStatement = ` 
+CREATE TABLE account (
+ 	name TEXT PRIMARY KEY,
+ 	username TEXT UNIQUE NOT NULL,
+ 	password TEXT NOT NULL,
+ 	role INT NOT NULL,
+ 	blocked BOOLEAN NOT NULL,
+ 	font_size INT NOT NULL,
+ 	time_zone TEXT NOT NULL
+);
+CREATE INDEX account_is_blocked ON account USING hash (blocked);
+CREATE TABLE ownership (
+    account_name TEXT NOT NULL,
+    owner_name TEXT NOT NULL,
+    CONSTRAINT fk_account_name
+        FOREIGN KEY(account_name) REFERENCES account(name),
+    CONSTRAINT fk_owner_name
+        FOREIGN KEY(owner_name) REFERENCES account(name)
+);
+CREATE INDEX ownership_account_name ON ownership USING hash (account_name);
+CREATE INDEX ownership_owner_name ON ownership USING hash (owner_name);
+`
 
 func (a *Account) GetName() string {
 	if a == nil {
@@ -77,48 +100,47 @@ func CreateAccount(acc *Account) error {
 	if acc.Name == loc.AdministrationName {
 		return NotAllowedError
 	}
-	_, err := makeRequest(
-		`CREATE (:Account {name: $name , username: $username ,
-                password: $password , role: $role , blocked: $blocked, fontSize: 100, timezone: 'UTC' });`,
-		map[string]any{"name": acc.Name,
-			"username": acc.Username,
-			"password": acc.Password,
-			"role":     acc.Role,
-			"blocked":  acc.Blocked})
+	_, err := postgresDB.Exec(`
+INSERT INTO account(name, username, password, role, blocked, font_size, time_zone) VALUES ($1,$2,$3,$4,$5,100,'UTC'); 
+INSERT INTO ownership(account_name, owner_name) VALUES ($1, $1);`,
+		&acc.Name, &acc.Username, &acc.Password, &acc.Role, &acc.Blocked)
 	return err
 }
 
 func GetAccountByUsername(username string) (*Account, error) {
 	if username == loc.AdministrationAccountUsername {
-		return nil, NotFoundError
+		return nil, sql.ErrNoRows
 	}
-	result, err := makeRequest(`MATCH (a:Account) WHERE a.username = $name RETURN a;`,
-		map[string]any{"name": username})
+	acc := &Account{}
+	timeZoneStr := ""
+	err := postgresDB.QueryRow(`SELECT name,username,password,role,blocked,font_size,time_zone FROM account 
+                                      WHERE username = $1;`,
+		&username).Scan(&acc.Name, &acc.Username, &acc.Password, &acc.Role, &acc.Blocked, &acc.FontSize,
+		&timeZoneStr)
 	if err != nil {
 		return nil, err
 	}
-	return getSingleAccount(0, result)
+	acc.TimeZone, err = time.LoadLocation(timeZoneStr)
+	return acc, err
 }
 
 func GetAccountByName(name string) (*Account, error) {
-	result, err := makeRequest(`MATCH (a:Account) WHERE a.name = $name RETURN a;`,
-		map[string]any{"name": name})
+	acc := &Account{}
+	timeZoneStr := ""
+	err := postgresDB.QueryRow(`SELECT name,username,password,role,blocked,font_size,time_zone FROM account
+                                      WHERE name = $1;`,
+		&name).Scan(&acc.Name, &acc.Username, &acc.Password, &acc.Role, &acc.Blocked, &acc.FontSize, &timeZoneStr)
 	if err != nil {
 		return nil, err
 	}
-	return getSingleAccount(0, result)
+	acc.TimeZone, err = time.LoadLocation(timeZoneStr)
+	return acc, err
 }
 
 func UpdateAccount(acc *Account) error {
-	_, err := makeRequest(
-		`MATCH (a:Account)  WHERE a.name = $name 
-MATCH (s:Account)-[r]->() WHERE s.name = $name AND type(r) <> 'WRITTEN' AND $blocked 
-DELETE r 
-SET a.blocked = $blocked , a.role = $role 
-RETURN a;`,
-		map[string]any{"name": acc.Name,
-			"role":    acc.Role,
-			"blocked": acc.Blocked})
+	_, err := postgresDB.Exec(`UPDATE account SET role = $2, blocked = $3 
+                                     WHERE name = $1;`, &acc.Name, &acc.Role, &acc.Blocked)
+	//Todo remove any relationships to organisations/titles or newspapers the account has
 	if err == nil {
 		updateAccount(acc)
 	}
@@ -126,10 +148,8 @@ RETURN a;`,
 }
 
 func UpdatePassword(acc *Account) error {
-	_, err := makeRequest(
-		`MATCH (a:Account)  WHERE a.name = $name SET a.password = $password RETURN a;`,
-		map[string]any{"name": acc.Name,
-			"password": acc.Password})
+	_, err := postgresDB.Exec(`UPDATE account SET password = $2 
+                                     WHERE name = $1;`, &acc.Name, &acc.Password)
 	if err == nil {
 		updateAccount(acc)
 	}
@@ -137,11 +157,9 @@ func UpdatePassword(acc *Account) error {
 }
 
 func SetPersonalSettings(acc *Account) error {
-	_, err := makeRequest(
-		`MATCH (a:Account) WHERE a.name = $name SET a.fontSize = $fontSize, a.timezone = $timezone RETURN a;`,
-		map[string]any{"name": acc.Name,
-			"fontSize": acc.FontSize,
-			"timezone": acc.TimeZone.String()})
+	timeZoneStr := acc.TimeZone.String()
+	_, err := postgresDB.Exec(`UPDATE account SET font_size = $2, time_zone = $3 
+                                     WHERE name = $1;`, &acc.Name, &acc.FontSize, &timeZoneStr)
 	if err == nil {
 		updateAccount(acc)
 	}
@@ -149,186 +167,181 @@ func SetPersonalSettings(acc *Account) error {
 }
 
 func GetAccountAndOwnerByAccountName(name string) (account *Account, owner *Account, err error) {
-	result, err := makeRequest(`MATCH (a:Account) WHERE a.name = $name 
-OPTIONAL MATCH (t:Account)-[:OWNER]->(a) RETURN a, t;`,
-		map[string]any{"name": name})
+	owner = nil
+	account, err = GetAccountByName(name)
 	if err != nil {
 		return
 	}
-	account, err = getSingleAccount(0, result)
-	if err != nil {
+	ownerName := ""
+	err = postgresDB.QueryRow(`SELECT owner_name FROM ownership WHERE account_name = $1`, &name).Scan(&ownerName)
+	if err != nil || ownerName == name {
 		return
 	}
-	owner, err = getSingleAccount(1, result)
-	if errors.Is(err, NotFoundError) {
-		err = nil
-	}
+	owner, err = GetAccountByName(ownerName)
 	return
 }
 
 func IsAccountAllowedToPostWith(user *Account, poster string) (bool, error) {
-	if user.Name == poster {
-		return true, nil
-	}
-	result, err := makeRequest(`MATCH (t:Account)-[:OWNER]->(a:Account) 
-WHERE a.name = $name AND t.name = $owner RETURN a;`, map[string]any{"name": poster, "owner": user.Name})
+	ownerName := ""
+	err := postgresDB.QueryRow(`SELECT owner_name FROM ownership WHERE account_name = $1`, &poster).Scan(&ownerName)
 	if err != nil {
 		return false, err
 	}
-	return len(result) >= 1, err
+	return user.Name == ownerName, nil
 }
 
 // GetNames returns first an array of Names, then the array of Usernames and then the error, if one occurred
 func GetNames() ([]string, []string, error) {
-	result, err := makeRequest(`MATCH (a:Account) 
-RETURN a.name AS name, a.username AS username;`, nil)
+	result, err := postgresDB.Query(`SELECT name, username FROM account`)
 	if err != nil {
 		return nil, nil, err
 	}
-	names := make([]string, len(result))
-	usernames := make([]string, len(result))
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
-		usernames[i] = record.Values[1].(string)
+	defer result.Close()
+	names := make([]string, 0)
+	usernames := make([]string, 0)
+	name := ""
+	username := ""
+	for result.Next() {
+		err = result.Scan(&name, &username)
+		if err != nil {
+			return nil, nil, err
+		}
+		names = append(names, name)
+		usernames = append(usernames, username)
 	}
 
 	return names, usernames, err
 }
 
 func GetNonBlockedNames() ([]string, error) {
-	result, err := makeRequest(`MATCH (a:Account) 
-WHERE a.blocked = false 
-RETURN a.name AS name ORDER BY name;`, nil)
-
+	result, err := postgresDB.Query(`SELECT name FROM account WHERE blocked = false ORDER BY name;`)
 	if err != nil {
 		return nil, err
 	}
-	names := make([]string, len(result))
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
+	defer result.Close()
+	names := make([]string, 0)
+	name := ""
+	for result.Next() {
+		err = result.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
 	}
-
 	return names, err
 }
 
 func FilterNameListForNonBlocked(list []string, extraEmptyEntries int) ([]string, error) {
-	result, err := makeRequest(`MATCH (a:Account) 
-WHERE a.blocked = false AND a.name IN $list
-RETURN a.name AS name ORDER BY name;`, map[string]any{"list": list})
-
+	result, err := postgresDB.Query(`
+SELECT name FROM account WHERE blocked = false AND name = ANY($1) ORDER BY name;`, pq.Array(list))
 	if err != nil {
 		return nil, err
 	}
-	names := make([]string, len(result)+extraEmptyEntries)
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
+	defer result.Close()
+	names := make([]string, 0)
+	name := ""
+	for result.Next() {
+		err = result.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
 	}
 
+	for range extraEmptyEntries {
+		names = append(names, "")
+	}
 	return names, err
 }
 
 func GetNamesForActiveUsers() ([]string, error) {
-	result, err := makeRequest(`MATCH (a:Account) WHERE a.role <> $role 
-AND a.blocked = false RETURN a.name AS name;`, map[string]any{"role": PressUser})
+	result, err := postgresDB.Query(`SELECT name FROM account WHERE blocked = false AND role <> $1 ORDER BY name;`, PressUser)
 	if err != nil {
 		return nil, err
 	}
-
-	names := make([]string, len(result))
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
+	defer result.Close()
+	names := make([]string, 0)
+	name := ""
+	for result.Next() {
+		err = result.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
 	}
 	return names, err
 }
 
 func GetOwnedAccountNames(owner *Account) ([]string, error) {
-	result, err := makeRequest(`MATCH (o:Account) WHERE o.name = $name 
-MATCH (o)-[:OWNER]->(a:Account) 
-RETURN a.name AS name ORDER BY name;`,
-		map[string]any{"name": owner.Name})
+	result, err := postgresDB.Query(`SELECT account_name FROM ownership 
+                    WHERE owner_name = $1 AND account_name <> $1 ORDER BY account_name;`, &owner.Name)
 	if err != nil {
 		return nil, err
 	}
-	names := make([]string, len(result))
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
+	defer result.Close()
+	names := make([]string, 0)
+	name := ""
+	for result.Next() {
+		err = result.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
 	}
 	return names, err
 }
 
 func GetMyAccountNames(owner *Account) ([]string, error) {
-	result, err := makeRequest(`MATCH (o:Account) WHERE o.name = $name 
-MATCH (o)-[:OWNER]->(a:Account) 
-RETURN a.name AS name ORDER BY name;`,
-		map[string]any{"name": owner.Name})
+	result, err := postgresDB.Query(`SELECT account_name FROM ownership 
+                    WHERE owner_name = $1 AND account_name <> $1 ORDER BY account_name;`, &owner.Name)
 	if err != nil {
 		return nil, err
 	}
-	names := make([]string, len(result)+1)
+	defer result.Close()
+	names := make([]string, 1)
 	names[0] = owner.Name
-	for i, record := range result {
-		names[i+1] = record.Values[0].(string)
+	name := ""
+	for result.Next() {
+		err = result.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
 	}
 	return names, err
 }
 
 func MakeOwner(ownerName string, targetName string) error {
-	_, err := makeRequest(`MATCH (a:Account), (t:Account) WHERE a.name = $owner 
-AND t.name = $target MERGE (a)-[:OWNER]->(t);`,
-		map[string]any{"owner": ownerName,
-			"target": targetName})
+	_, err := postgresDB.Exec(`UPDATE ownership SET owner_name = $1 WHERE account_name = $2`, &ownerName, &targetName)
 	return err
 }
 
 func RemoveOwner(targetName string) error {
-	_, err := makeRequest(`MATCH (t:Account) WHERE t.name = $target 
-MATCH (a:Account)-[r:OWNER]->(t) DELETE r;`,
-		map[string]any{"target": targetName})
+	_, err := postgresDB.Exec(`UPDATE ownership SET owner_name = $1 WHERE account_name = $1`, &targetName)
 	return err
 }
 
 func GetAccountFlairs(acc *Account) (string, error) {
-	result, err := makeRequest(`CALL {
-MATCH (a:Account)-[:HAS]->(n:Title)
-WHERE a.name = $name
-RETURN n
-UNION
-MATCH (a:Account)-[:USER|ADMIN]->(n:Organisation)
-WHERE a.name = $name
-RETURN n }
-RETURN n.flair AS flair ORDER BY flair;`,
-		map[string]any{"name": acc.Name})
-	if err != nil || len(result) == 0 {
-		return "", err
-	}
-	flairs := make([]string, 0, len(result))
-	for _, record := range result {
-		if flair := strings.TrimSpace(record.Values[0].(string)); flair != "" {
-			flairs = append(flairs, flair)
+	//Todo: rewrite this for postgres
+	/*result, err := makeRequest(`CALL {
+	MATCH (a:Account)-[:HAS]->(n:Title)
+	WHERE a.name = $name
+	RETURN n
+	UNION
+	MATCH (a:Account)-[:USER|ADMIN]->(n:Organisation)
+	WHERE a.name = $name
+	RETURN n }
+	RETURN n.flair AS flair ORDER BY flair;`,
+			map[string]any{"name": acc.Name})
+		if err != nil || len(result) == 0 {
+			return "", err
 		}
-	}
-	return strings.Join(flairs, ", "), err
-}
-
-func getSingleAccount(pos int, records []*neo4j.Record) (*Account, error) {
-	if len(records) == 0 {
-		return nil, NotFoundError
-	} else if len(records) > 1 {
-		return nil, MultipleItemsError
-	}
-	result := GetPropsMapForRecordPosition(records[0], pos)
-	if result == nil {
-		return nil, NotFoundError
-	}
-	acc := &Account{
-		Name:     result.GetString("name"),
-		Username: result.GetString("username"),
-		Role:     AccountRole(result.GetInt("role")),
-		Blocked:  result.GetBool("blocked"),
-		Password: result.GetString("password"),
-		FontSize: result.GetInt("fontSize"),
-	}
-	acc.TimeZone, _ = time.LoadLocation(result.GetString("timezone"))
-
-	return acc, nil
+		flairs := make([]string, 0, len(result))
+		for _, record := range result {
+			if flair := strings.TrimSpace(record.Values[0].(string)); flair != "" {
+				flairs = append(flairs, flair)
+			}
+		}
+		return strings.Join(flairs, ", "), err*/
+	return "", nil
 }

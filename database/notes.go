@@ -2,6 +2,7 @@ package database
 
 import (
 	loc "PoliSim/localisation"
+	"github.com/lib/pq"
 	"html/template"
 	"regexp"
 	"time"
@@ -88,141 +89,124 @@ func (b *BlackboardNote) GetTimePostedAt(a *Account) string {
 	return b.PostedAt.Format(loc.TimeFormatString)
 }
 
+// Todo move this to migration
+const tableDefinitionNotes = `
+CREATE TABLE blackboard_note(
+	id TEXT PRIMARY KEY,
+	title TEXT NOT NULL,
+    author  TEXT NOT NULL,
+    flair  TEXT NOT NULL,
+    posted TIMESTAMP NOT NULL,
+    body  TEXT NOT NULL,
+	blocked BOOLEAN NOT NULL
+);
+CREATE TABLE blackboard_references(
+	base_note_id TEXT NOT NULL,
+	reference_id TEXT NOT NULL,
+	CONSTRAINT fk_base_note_id
+        FOREIGN KEY(base_note_id) REFERENCES blackboard_note(id),
+    CONSTRAINT fk_reference_id
+        FOREIGN KEY(reference_id) REFERENCES blackboard_note(id)
+);
+`
+
 func CreateNote(note *BlackboardNote, references []string) error {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		return err
-	}
-	err = tx.RunWithoutResult(
-		`MATCH (a:Account) WHERE a.name = $Author
-CREATE (n:Note {id: $id , title: $title , author: $Author , flair: $Flair, 
-posted_at: $PostedAt , body: $Body, removed: $Removed}) 
-MERGE (a)-[:WRITTEN]->(n);`,
-		map[string]any{"id": note.ID,
-			"title":    note.Title,
-			"Author":   note.Author,
-			"Flair":    note.Flair,
-			"PostedAt": note.PostedAt,
-			"Body":     string(note.Body),
-			"Removed":  note.Removed})
-	if err != nil {
-		return err
-	}
-	err = tx.RunWithoutResult(
-		`MATCH (c:Note), (p:Note) WHERE c.id = $child AND p.id IN $parent MERGE (c)-[:LINKS]->(p);`,
-		map[string]any{"parent": references,
-			"child": note.ID})
-	if err != nil {
-		return err
-	}
-	err = tx.Commit()
+	_, err := postgresDB.Exec(`INSERT INTO blackboard_note (id, title, author, flair, posted, body, blocked) 
+VALUES ($1, $2, $3, $4, $5, $6, $7);
+INSERT INTO blackboard_references (base_note_id, reference_id)  
+SELECT $1 AS base_note_id, id FROM blackboard_note
+WHERE id = ANY($8);`,
+		&note.ID, &note.Title, &note.Author, &note.Flair, time.Now().UTC(), &note.Body, &note.Removed,
+		pq.Array(references))
 	return err
 }
 
 func UpdateNoteRemovedStatus(note *BlackboardNote) error {
-	_, err := makeRequest(`MATCH (n:Note) WHERE n.id = $id 
-SET n.removed = $removed
-RETURN n;`, map[string]any{"id": note.ID, "removed": note.Removed})
+	_, err := postgresDB.Exec(`UPDATE blackboard_note SET blocked = $2 WHERE id = $1`, &note.ID, &note.Removed)
 	return err
 }
 
 func GetNote(id string) (*BlackboardNote, error) {
-	idMap := map[string]any{"id": id}
-	result, err := makeRequest(`MATCH (n:Note) WHERE n.id = $id RETURN n;`,
-		idMap)
+	note := &BlackboardNote{}
+	err := postgresDB.QueryRow(`SELECT id, title, author, flair, posted, body, blocked FROM blackboard_note
+WHERE id = $1;`, &id).Scan(&note.ID, &note.Title, &note.Author, &note.Flair, &note.PostedAt, &note.Body, &note.Removed)
 	if err != nil {
 		return nil, err
 	}
-	if len(result) == 0 {
-		return nil, NotFoundError
-	} else if len(result) > 1 {
-		return nil, MultipleItemsError
-	}
-	props := GetPropsMapForRecordPosition(result[0], 0)
-	note := &BlackboardNote{
-		ID:       props.GetString("id"),
-		Title:    props.GetString("title"),
-		Author:   props.GetString("author"),
-		Flair:    props.GetString("flair"),
-		PostedAt: props.GetTime("posted_at"),
-		Body:     template.HTML(props.GetString("body")),
-		Removed:  props.GetBool("removed"),
-	}
-
-	note.Parents, err = queryForRelations(`MATCH (n:Note) WHERE n.id = $id MATCH (r:Note)-[:LINKS]->(n) RETURN r;`, idMap)
+	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM blackboard_note 
+    INNER JOIN blackboard_references br ON blackboard_note.id = br.reference_id WHERE base_note_id = $1`, &id)
 	if err != nil {
 		return nil, err
 	}
-	note.Children, err = queryForRelations(`MATCH (n:Note) WHERE n.id = $id MATCH (n)-[:LINKS]->(r:Note) RETURN r;`, idMap)
+	defer result.Close()
+	note.Parents = make([]TruncatedBlackboardNotes, 0)
+	trunc := TruncatedBlackboardNotes{}
+	for result.Next() {
+		err = result.Scan(&trunc.ID, &trunc.Title, &trunc.Author, &trunc.Flair, &trunc.PostedAt, &trunc.Removed)
+		if err != nil {
+			return nil, err
+		}
+		note.Parents = append(note.Parents, trunc)
+	}
+	result, err = postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM blackboard_note 
+    INNER JOIN blackboard_references br ON blackboard_note.id = br.base_note_id WHERE reference_id = $1`, &id)
+	if err != nil {
+		return nil, err
+	}
+	defer result.Close()
+	note.Children = make([]TruncatedBlackboardNotes, 0)
+	for result.Next() {
+		err = result.Scan(&trunc.ID, &trunc.Title, &trunc.Author, &trunc.Flair, &trunc.PostedAt, &trunc.Removed)
+		if err != nil {
+			return nil, err
+		}
+		note.Children = append(note.Children, trunc)
+	}
 	return note, err
 }
 
-func queryForRelations(query string, idMap map[string]any) ([]TruncatedBlackboardNotes, error) {
-	result, err := makeRequest(query, idMap)
-	if err != nil {
-		return nil, err
-	}
-	arr := make([]TruncatedBlackboardNotes, len(result))
-	for i, record := range result {
-		props := GetPropsMapForRecordPosition(record, 0)
-		arr[i] = TruncatedBlackboardNotes{
-			ID:      props.GetString("id"),
-			Title:   props.GetString("title"),
-			Author:  props.GetString("author"),
-			Removed: props.GetBool("removed"),
-		}
-	}
-	return arr, err
-}
-
 func SearchForNotes(acc *Account, amount int, page int, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
-	query, parameter := queryAnalyzer(acc, input, showBlocked)
-	parameter["amount"] = amount
-	parameter["skip"] = (page - 1) * amount
-	result, err := makeRequest(`MATCH (n:Note) 
-WHERE `+query+` 
-RETURN n ORDER BY n.posted_at DESC SKIP $skip LIMIT $amount;`,
-		parameter)
+	parameter := []any{amount, (page - 1) * amount}
+	query, parameter := queryAnalyzer(acc, parameter, input, showBlocked)
+	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM blackboard_note
+WHERE `+query+` ORDER BY posted DESC OFFSET $1 LIMIT $2;`, parameter...)
 	if err != nil {
 		return nil, err
 	}
-	arr := make([]TruncatedBlackboardNotes, len(result))
-	for i, record := range result {
-		props := GetPropsMapForRecordPosition(record, 0)
-		arr[i] = TruncatedBlackboardNotes{
-			ID:       props.GetString("id"),
-			Title:    props.GetString("title"),
-			Author:   props.GetString("author"),
-			Flair:    props.GetString("flair"),
-			PostedAt: props.GetTime("posted_at"),
+	defer result.Close()
+	arr := make([]TruncatedBlackboardNotes, 0)
+	trunc := TruncatedBlackboardNotes{}
+	for result.Next() {
+		err = result.Scan(&trunc.ID, &trunc.Title, &trunc.Author, &trunc.Flair, &trunc.PostedAt, &trunc.Removed)
+		if err != nil {
+			return nil, err
 		}
+		arr = append(arr, trunc)
 	}
-	return arr, err
+	return arr, nil
 }
 
 var queryRegexNotes = regexp.MustCompile(`^\s*(.*?)\s*(\[|$)`)
 var authorRegexNotes = regexp.MustCompile(`\[[bB][yY]:]\s*(.+?)\s*(\[|$)`)
 
-func queryAnalyzer(acc *Account, input string, showBlocked bool) (query string, parameter map[string]any) {
-	parameter = make(map[string]any)
-	query = ""
+func queryAnalyzer(acc *Account, parameter []any, input string, showBlocked bool) (string, []any) {
+	query := ""
 	if showBlocked && acc.IsAtLeastAdmin() {
 		query += "true"
 	} else {
-		query += "n.removed = false"
+		query += "blocked = false"
 	}
 
 	result := queryRegexNotes.FindStringSubmatch(input)
 	if result != nil && result[1] != "" {
-		parameter["title"] = result[1]
-		query += " AND n.title CONTAINS $title"
+		parameter = append(parameter, result[1])
+		query += " AND title LIKE '%' || $3 || '%'"
 	}
 
 	if result = authorRegexNotes.FindStringSubmatch(input); result != nil {
-		parameter["author"] = result[1]
-		query += " AND n.author CONTAINS $author"
+		parameter = append(parameter, result[1])
+		query += " AND author LIKE '%' || $4 || '%'"
 	}
 
-	return
+	return query, parameter
 }

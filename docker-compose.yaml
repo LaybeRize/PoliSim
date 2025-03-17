@@ -1,21 +1,11 @@
 version: '3.8'
 
 services:
-  neo-db:
-    image: neo4j:5.26.0
-    ports:
-      - "7687:7687"
-    env_file:
-      - stack.env
-    volumes:
-      - neo_data:/data
-      - neo_logs:/logs
-    restart: always
-
-  postgres-db:
+  db:
+    container_name: postgres-db
     image: postgres:17
     ports:
-      - "5433:5432"
+      - "5432:5432"
     env_file:
       - stack.env
     volumes:
