@@ -13,11 +13,9 @@ import (
 func GetSpecificPublicationPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	pubID := request.PathValue("id")
-	found, err := database.GetPublicationForUser(pubID, acc.IsAtLeastPressAdmin())
-	if !found || err != nil {
-		if err != nil {
-			slog.Debug(err.Error())
-		}
+	err := database.GetPublicationForUser(pubID, acc.IsAtLeastPressAdmin())
+	if err != nil {
+		slog.Debug(err.Error())
 		handler.GetNotFoundPage(writer, request)
 		return
 	}
@@ -37,11 +35,9 @@ func GetSpecificPublicationPage(writer http.ResponseWriter, request *http.Reques
 func PatchPublishPublication(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	pubID := request.PathValue("id")
-	found, err := database.GetPublicationForUser(pubID, acc.IsAtLeastPressAdmin())
-	if !found || err != nil {
-		if err != nil {
-			slog.Debug(err.Error())
-		}
+	err := database.GetPublicationForUser(pubID, acc.IsAtLeastPressAdmin())
+	if err != nil {
+		slog.Debug(err.Error())
 		handler.PartialGetNotFoundPage(writer, request)
 		return
 	}

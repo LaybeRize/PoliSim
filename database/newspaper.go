@@ -3,9 +3,10 @@ package database
 import (
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
-	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"database/sql"
+	"errors"
+	"github.com/lib/pq"
 	"html/template"
-	"log/slog"
 	"time"
 )
 
@@ -58,338 +59,274 @@ func (n *Publication) GetPublishedDate(a *Account) string {
 	return n.PublishedDate.Format(loc.TimeFormatString)
 }
 
-func CreateNewspaper(newspaper *Newspaper) error {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		return err
-	}
-	err = tx.RunWithoutResult(
-		`CREATE (:Newspaper {name: $name})-[:PUBLISHED]->(:Publication {id: $id, special: $special, 
-published: $published, published_date: $publishedDate});`, map[string]any{
-			"name":          newspaper.Name,
-			"id":            helper.GetUniqueID(newspaper.Name),
-			"special":       false,
-			"published":     false,
-			"publishedDate": time.Now().UTC()})
-	if err != nil {
-		return err
-	}
+// Todo move to migration
+const newspaperCreatTableDefinition = `
+CREATE TABLE newspaper (
+    name TEXT PRIMARY KEY
+);
+CREATE TABLE newspaper_publication (
+    id TEXT PRIMARY KEY,
+    newspaper_name TEXT NOT NULL,
+    special BOOLEAN NOT NULL,
+    published BOOLEAN NOT NULL,
+    publish_date TIMESTAMP NOT NULL,
+    CONSTRAINT fk_newspaper_name
+        FOREIGN KEY (newspaper_name) REFERENCES newspaper(name)
+);
+CREATE TABLE newspaper_article (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    subtitle TEXT NOT NULL,
+    author TEXT NOT NULL,
+    flair TEXT NOT NULL,
+    html_body TEXT NOT NULL,
+    raw_body TEXT NOT NULL,
+    written TIMESTAMP NOT NULL,
+    publication_id TEXT NOT NULL,
+    CONSTRAINT fk_publication_id
+        FOREIGN KEY (publication_id) REFERENCES newspaper_publication(id)
+);
+CREATE TABLE newspaper_to_account (
+    newspaper_name TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    CONSTRAINT fk_newspaper_name
+        FOREIGN KEY (newspaper_name) REFERENCES newspaper(name),
+     CONSTRAINT fk_account_name
+        FOREIGN KEY (account_name) REFERENCES account(name)
+);`
 
-	err = tx.Commit()
+func CreateNewspaper(newspaper *Newspaper) error {
+	_, err := postgresDB.Exec(`INSERT INTO newspaper (name) VALUES ($1);
+INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) 
+                            VALUES ($2, $1, false, false, $3);`, &newspaper.Name, helper.GetUniqueID(newspaper.Name), time.Now().UTC())
+
 	return err
 }
 
 func GetFullNewspaperInfo(name string) (*Newspaper, error) {
-	result, err := makeRequest(`MATCH (t:Newspaper) WHERE t.name = $name RETURN t;`,
-		map[string]any{"name": name})
-	if err != nil || len(result) != 1 {
-		return nil, NotFoundError
-	}
-
-	newspaper := &Newspaper{Name: name}
-
-	result, err = makeRequest(`MATCH (a:Account)-[:AUTHOR]->(t:Newspaper) 
-WHERE t.name = $name RETURN a.name AS name;`,
-		map[string]any{"name": name})
+	newspaper := &Newspaper{}
+	err := postgresDB.QueryRow(`SELECT name FROM newspaper WHERE name = $1`, &name).Scan(&newspaper.Name)
 	if err != nil {
 		return nil, err
 	}
-
-	newspaper.Authors = make([]string, len(result))
-	for i, record := range result {
-		newspaper.Authors[i] = record.Values[0].(string)
+	newspaper.Authors = make([]string, 0)
+	result, err := postgresDB.Query(`SELECT account_name FROM newspaper_to_account WHERE newspaper_name = $1`, &name)
+	if err != nil {
+		return nil, err
+	}
+	accName := ""
+	for result.Next() {
+		err = result.Scan(&accName)
+		if err != nil {
+			return nil, err
+		}
+		newspaper.Authors = append(newspaper.Authors, accName)
 	}
 
 	return newspaper, err
 }
 
 func GetNewspaperNameList() ([]string, error) {
-	result, err := makeRequest(`MATCH (t:Newspaper) RETURN t.name AS name;`, nil)
+	result, err := postgresDB.Query(`SELECT name FROM newspaper ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
 
-	names := make([]string, len(result))
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
+	names := make([]string, 0)
+	name := ""
+	for result.Next() {
+		err = result.Scan(&name)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, name)
 	}
 	return names, err
 }
 
 func GetNewspaperNameListForAccount(name string) ([]string, error) {
-	result, err := makeRequest(`MATCH (a:Account)-[r:AUTHOR]->(t:Newspaper) 
-WHERE a.name = $name RETURN t.name AS name;`,
-		map[string]any{"name": name})
+	result, err := postgresDB.Query(`SELECT newspaper_name FROM newspaper_to_account WHERE account_name = $1`, &name)
 	if err != nil {
 		return nil, err
 	}
-
-	names := make([]string, len(result))
-	for i, record := range result {
-		names[i] = record.Values[0].(string)
+	names := make([]string, 0)
+	newspaperName := ""
+	for result.Next() {
+		err = result.Scan(&newspaperName)
+		if err != nil {
+			return nil, err
+		}
+		names = append(names, newspaperName)
 	}
 	return names, err
 }
 
 func RemoveAccountsFromNewspaper(newspaper *Newspaper) error {
-	_, err := makeRequest(`MATCH (a:Account)-[r:AUTHOR]->(t:Newspaper) 
-WHERE t.name = $newspaper DELETE r;`, map[string]any{
-		"newspaper": newspaper.Name})
+	_, err := postgresDB.Exec(`DELETE FROM newspaper_to_account WHERE newspaper_name = $1`, newspaper.Name)
 	return err
 }
 
 func UpdateNewspaper(newspaper *Newspaper) error {
-	_, err := makeRequest(`MATCH (a:Account), (t:Newspaper) 
-WHERE a.name IN $names AND a.blocked = false AND t.name = $newspaper 
-MERGE (a)-[:AUTHOR]->(t);`, map[string]any{
-		"newspaper": newspaper.Name,
-		"names":     newspaper.Authors})
+	_, err := postgresDB.Exec(`INSERT INTO newspaper_to_account (newspaper_name, account_name) 
+SELECT $1 AS newspaper_name, name FROM account
+WHERE name = ANY($2);`,
+		&newspaper.Name, pq.Array(newspaper.Authors))
 	return err
 }
 
 func CheckIfUserAllowedInNewspaper(acc *Account, author string, newspaper string) (bool, error) {
-	var result []*neo4j.Record
-	var err error
-	if acc.Name == author {
-		result, err = makeRequest(`MATCH (a:Account)-[:AUTHOR]->(t:Newspaper) 
-WHERE t.name = $newspaper AND a.name = $author RETURN a, t;`, map[string]any{
-			"newspaper": newspaper,
-			"author":    author})
-	} else {
-		result, err = makeRequest(`
-MATCH (b:Account)-[:OWNER]->(a:Account)-[:AUTHOR]->(t:Newspaper) 
-WHERE t.name = $newspaper AND a.name = $author AND b.name = $owner 
-RETURN b, a, t;`, map[string]any{
-			"newspaper": newspaper,
-			"author":    author,
-			"owner":     acc.Name})
-	}
-	return len(result) == 1, err
+	err := postgresDB.QueryRow(`SELECT newspaper_name FROM newspaper_to_account
+ INNER JOIN ownership o on newspaper_to_account.account_name = o.account_name 
+ WHERE newspaper_name = $1 AND o.account_name = $2 AND owner_name = $3`, &newspaper, &author, &acc.Name).Scan(&newspaper)
+	return err == nil, err
 }
 
 func CreateArticle(article *NewspaperArticle, special bool, newspaperName string) error {
-	tx, err := openTransaction()
-	defer tx.Close()
+	tx, err := postgresDB.Begin()
 	if err != nil {
 		return err
 	}
-
 	var id string
-	result, err := tx.Run(`MATCH (t:Newspaper)-[:PUBLISHED]->(p:Publication) WHERE t.name = $newspaper 
-AND p.special = $special AND p.published = false RETURN p.id;`,
-		map[string]any{"newspaper": newspaperName, "special": special})
-
-	if err != nil {
-		return err
-	} else if !result.Next() && special {
+	err = tx.QueryRow(`SELECT id FROM newspaper_publication WHERE newspaper_name = $1 AND special = $2;`,
+		&newspaperName, &special).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) && special {
 		id, err = createSpecialPublication(tx, newspaperName)
 		if err != nil {
 			return err
 		}
-	} else if result.Record() == nil {
-		return NotFoundError
-	} else {
-		id = result.Record().Values[0].(string)
-	}
-
-	result, err = tx.Run(`MATCH (acc:Account) WHERE acc.name = $Author AND acc.blocked = false 
-RETURN acc;`,
-		map[string]any{"Author": article.Author})
-	if err != nil {
-		return err
-	} else if !result.Next() {
-		return NotAllowedError
-	}
-
-	err = tx.RunWithoutResult(
-		`MATCH (p:Publication) WHERE p.id = $id
-MATCH (acc:Account) WHERE acc.name = $Author
-CREATE (a:Article {id: $articleID, title: $title , subtitle: $subtitle , author: $Author , flair: $Flair, 
-written: $written , raw_body: $rawbody , body: $Body})
-MERGE (a)-[:IN]->(p) 
-MERGE (acc)-[:WRITTEN]->(a);`, map[string]any{
-			"id":        id,
-			"articleID": helper.GetUniqueID(article.Author),
-			"title":     article.Title,
-			"subtitle":  article.Subtitle,
-			"Author":    article.Author,
-			"Flair":     article.Flair,
-			"written":   time.Now().UTC(),
-			"rawbody":   article.RawBody,
-			"Body":      article.Body})
-	if err != nil {
+	} else if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
-	err = tx.Commit()
-	return err
+	var name string
+	err = tx.QueryRow(`SELECT name FROM account WHERE blocked = false AND name = $1`, &article.Author).Scan(&name)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	_, err = tx.Exec(`INSERT INTO newspaper_article (id, title, subtitle, author, flair, html_body, raw_body, written, publication_id) 
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, helper.GetUniqueID(article.Author), &article.Title, &article.Subtitle,
+		&article.Author, &article.Flair, &article.Body, &article.RawBody, time.Now().UTC(), &id)
+
+	return tx.Commit()
 }
 
-func createSpecialPublication(tx *dbTransaction, name string) (string, error) {
-	result, err := tx.Run(`MATCH (t:Newspaper) WHERE t.name = $newspaper 
-RETURN t;`,
-		map[string]any{"newspaper": name})
-	if err != nil || !result.Next() {
-		return "", NotFoundError
-	}
+func createSpecialPublication(tx *sql.Tx, name string) (string, error) {
 	id := helper.GetUniqueID(name)
-	err = tx.RunWithoutResult(`MATCH (n:Newspaper) WHERE n.name = $name
-CREATE (p:Publication {id: $id, special: $special, 
-published: $published, published_date: $publishedDate}) 
-MERGE (n)-[:PUBLISHED]->(p);`, map[string]any{
-		"name":          name,
-		"id":            id,
-		"special":       true,
-		"published":     false,
-		"publishedDate": time.Now().UTC()})
+	_, err := tx.Exec(`INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) 
+VALUES ($1, $2, true, false, $3)`, id, name, time.Now().UTC())
 	if err != nil {
-		return "", err
+		_ = tx.Rollback()
+		return id, err
 	}
-	return id, err
+	return id, nil
 }
 
 func PublishPublication(id string) error {
-	tx, err := openTransaction()
-	defer tx.Close()
+	tx, err := postgresDB.Begin()
 	if err != nil {
 		return err
 	}
-
-	result, err := tx.Run(`MATCH (n:Newspaper)-[:PUBLISHED]->(p:Publication)<-[:IN]-(:Article)
-WHERE p.id = $id AND p.published = false SET p.published = true, 
- p.published_date = $publishedDate RETURN p.special, n.name;`,
-		map[string]any{"id": id, "publishedDate": time.Now().UTC()})
-	if err != nil || !result.Next() {
-		return NotFoundError
+	var newspaperName string
+	err = tx.QueryRow(`SELECT id FROM newspaper_article WHERE publication_id = $1 LIMIT 1;`, &id).Scan(&newspaperName)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
 	}
-
-	if list := result.Record().Values; !list[0].(bool) {
-		name := list[1].(string)
-		err = tx.RunWithoutResult(
-			`MATCH (n:Newspaper) WHERE n.name = $name
-CREATE (p:Publication {id: $id, special: $special, 
-published: $published, published_date: $publishedDate}) 
-MERGE (n)-[:PUBLISHED]->(p);`, map[string]any{
-				"name":          name,
-				"id":            helper.GetUniqueID(name),
-				"special":       false,
-				"published":     false,
-				"publishedDate": time.Now().UTC()})
+	var special bool
+	err = tx.QueryRow(`UPDATE newspaper_publication 
+SET published = true, publish_date = $2 WHERE id = $1 RETURNING special, newspaper_name`,
+		&id, time.Now().UTC()).Scan(&special, &newspaperName)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if !special {
+		_, err = tx.Exec(`INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) 
+VALUES ($1, $2, false, false, $3)`, helper.GetUniqueID(newspaperName), newspaperName, time.Now().UTC())
 		if err != nil {
+			_ = tx.Rollback()
 			return err
 		}
 	}
+	return tx.Commit()
+}
 
-	err = tx.Commit()
+func GetPublicationForUser(id string, isAdmin bool) error {
+	var pubID string
+	err := postgresDB.QueryRow(`SELECT id FROM newspaper_publication 
+          WHERE id = $1 AND (published = true OR $2 = true);`, &id, &isAdmin).Scan(&pubID)
 	return err
 }
 
-func GetPublicationForUser(id string, isAdmin bool) (bool, error) {
-	result, err := makeRequest(`MATCH (p:Publication) 
-WHERE p.id = $id AND (p.published = true OR $admin = true) RETURN p;`, map[string]any{
-		"id":    id,
-		"admin": isAdmin})
-	return len(result) == 1, err
-}
-
 func GetPublication(id string) (*Publication, []NewspaperArticle, error) {
-	tx, err := openTransaction()
-	defer tx.Close()
+	pub := &Publication{ID: id}
+	err := postgresDB.QueryRow(`SELECT newspaper_name, special, published, publish_date 
+FROM newspaper_publication WHERE id = $1`, &id).Scan(&pub.NewspaperName, &pub.Special, &pub.Published, &pub.PublishedDate)
 	if err != nil {
 		return nil, nil, err
 	}
-	result, err := tx.Run(`MATCH (t:Newspaper)-[:PUBLISHED]->(p:Publication) 
-WHERE p.id = $id 
-RETURN t, p;`, map[string]any{
-		"id": id})
-	if err != nil || !result.Next() {
-		slog.Debug("", "Error", err, "ID", id)
-		return nil, nil, NotFoundError
-	}
-	pub := getArrayOfPublications(1, 0, []*neo4j.Record{result.Record()})[0]
-
-	result, err = tx.Run(
-		`MATCH (a:Article)-[:IN]->(p:Publication) 
-WHERE p.id = $id 
-RETURN a;`, map[string]any{
-			"id": id})
+	result, err := postgresDB.Query(`SELECT id, title, subtitle, author, flair, html_body, written 
+FROM newspaper_article WHERE publication_id = $1;`, &id)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	results := make([]*neo4j.Record, 0)
+	defer result.Close()
+	article := NewspaperArticle{}
+	list := make([]NewspaperArticle, 0)
 	for result.Next() {
-		results = append(results, result.Record())
+		err = result.Scan(&article.ID, &article.Title, &article.Subtitle, &article.Author, &article.Flair,
+			&article.Body, &article.Written)
+		if err != nil {
+			return nil, nil, err
+		}
+		list = append(list, article)
 	}
-
-	err = tx.Commit()
-	return &pub, getArrayOfArticles(0, results), err
+	return pub, list, nil
 }
 
 func GetUnpublishedPublications() ([]Publication, error) {
-	result, err := makeRequest(`MATCH (t:Newspaper)-[:PUBLISHED]->(p:Publication) 
-WHERE p.published = false RETURN p, t  ORDER BY p.special DESC, p.published_date;`, nil)
+	result, err := postgresDB.Query(`SELECT id, newspaper_name, special, publish_date 
+FROM newspaper_publication WHERE published = false ORDER BY special DESC, publish_date;`)
 	if err != nil {
 		return nil, err
 	}
-	return getArrayOfPublications(0, 1, result), err
+	defer result.Close()
+	pub := Publication{Published: false}
+	list := make([]Publication, 0)
+	for result.Next() {
+		err = result.Scan(&pub.ID, &pub.NewspaperName, &pub.Special, &pub.PublishedDate)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, pub)
+	}
+	return list, nil
 }
 
 func GetPublishedNewspaper(amount int, page int, newspaper string) ([]Publication, error) {
-	result, err := makeRequest(`MATCH (t:Newspaper)-[:PUBLISHED]->(p:Publication) 
-WHERE t.name CONTAINS $newspaper AND p.published = true 
-RETURN t, p ORDER BY p.published_date DESC SKIP $skip LIMIT $amount;`,
-		map[string]any{
-			"amount":    amount,
-			"skip":      (page - 1) * amount,
-			"newspaper": newspaper})
-	return getArrayOfPublications(1, 0, result), err
-}
-
-func getArrayOfPublications(pubPos int, newsPos int, records []*neo4j.Record) []Publication {
-	arr := make([]Publication, 0, len(records))
-	for _, record := range records {
-		pubProps := GetPropsMapForRecordPosition(record, pubPos)
-		if pubProps == nil {
-			continue
-		}
-		newsProps := GetPropsMapForRecordPosition(record, newsPos)
-		if newsProps == nil {
-			continue
-		}
-		arr = append(arr, Publication{
-			NewspaperName: newsProps.GetString("name"),
-			ID:            pubProps.GetString("id"),
-			Special:       pubProps.GetBool("special"),
-			Published:     pubProps.GetBool("published"),
-			PublishedDate: pubProps.GetTime("published_date"),
-		})
+	result, err := postgresDB.Query(`SELECT id, newspaper_name, special, publish_date FROM newspaper_publication 
+WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' ORDER BY publish_date DESC OFFSET $1 LIMIT $2;`,
+		(page-1)*amount, amount, newspaper)
+	if err != nil {
+		return nil, err
 	}
-	return arr
-}
-
-func getArrayOfArticles(pos int, records []*neo4j.Record) []NewspaperArticle {
-	arr := make([]NewspaperArticle, 0, len(records))
-	for _, record := range records {
-		props := GetPropsMapForRecordPosition(record, pos)
-		if props == nil {
-			continue
+	defer result.Close()
+	pub := Publication{Published: true}
+	list := make([]Publication, 0)
+	for result.Next() {
+		err = result.Scan(&pub.ID, &pub.NewspaperName, &pub.Special, &pub.PublishedDate)
+		if err != nil {
+			return nil, err
 		}
-		arr = append(arr, NewspaperArticle{
-			ID:       props.GetString("id"),
-			Title:    props.GetString("title"),
-			Subtitle: props.GetString("subtitle"),
-			Author:   props.GetString("author"),
-			Flair:    props.GetString("flair"),
-			Body:     template.HTML(props.GetString("body")),
-			Written:  props.GetTime("written"),
-		})
+		list = append(list, pub)
 	}
-	return arr
+	return list, nil
 }
 
 type ArticleRejectionTransaction struct {
-	tx            *dbTransaction
+	tx            *sql.Tx
 	NewspaperName string
 	Article       NewspaperArticle
 }
@@ -397,71 +334,52 @@ type ArticleRejectionTransaction struct {
 func RejectableArticle(id string) (*ArticleRejectionTransaction, error) {
 	reject := &ArticleRejectionTransaction{}
 	var err error
-	reject.tx, err = openTransaction()
+	reject.tx, err = postgresDB.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := reject.tx.Run(`
-MATCH (a:Article)-[:IN]->(p:Publication)<-[:PUBLISHED]-(n:Newspaper) 
-WHERE a.id = $id AND p.published = false RETURN a, n.name;`, map[string]any{
-
-		"id": id})
+	err = reject.tx.QueryRow(`SELECT newspaper_name, newspaper_article.id, author, title, subtitle, flair, 
+       html_body, raw_body, written  FROM newspaper_article 
+    INNER JOIN newspaper_publication np on np.id = newspaper_article.publication_id 
+         WHERE newspaper_article.id = $1 and published = false;`, &id).Scan(&reject.NewspaperName,
+		&reject.Article.ID, &reject.Article.Author,
+		&reject.Article.Title, &reject.Article.Subtitle, &reject.Article.Flair,
+		&reject.Article.Body, &reject.Article.RawBody, &reject.Article.Written)
 	if err != nil {
-		reject.tx.Close()
+		_ = reject.tx.Rollback()
 		return nil, err
-	} else if !result.Next() {
-		reject.tx.Close()
-		return nil, NotFoundError
 	}
-
-	reject.NewspaperName = result.Record().Values[1].(string)
-	reject.Article = getArrayOfArticles(0, []*neo4j.Record{result.Record()})[0]
-
 	return reject, nil
 }
 
 func (a *ArticleRejectionTransaction) DeleteArticle() error {
-	result, err := a.tx.Run(`MATCH (a:Article)-[:IN]->(:Publication)<-[:IN]-(r:Article) 
-WHERE a.id = $id 
-RETURN r;`, map[string]any{"id": a.Article.ID})
+	var publicationID string
+	err := a.tx.QueryRow(`DELETE FROM newspaper_article WHERE id = $1 RETURNING publication_id;`,
+		&a.Article.ID).Scan(&publicationID)
 	if err != nil {
-		a.tx.Close()
+		_ = a.tx.Rollback()
 		return err
-	} else if result.Next() {
-		err = a.tx.RunWithoutResult(`MATCH (a:Article) 
-WHERE a.id = $id 
-DETACH DELETE a;`, map[string]any{"id": a.Article.ID})
+	}
+	err = a.tx.QueryRow(`SELECT publication_id FROM newspaper_article WHERE publication_id = $1;`,
+		&publicationID).Scan(&publicationID)
+	if errors.Is(err, sql.ErrNoRows) {
+		_, err = a.tx.Exec(`DELETE FROM newspaper_publication WHERE id = $1 AND special = true;`, &publicationID)
 		if err != nil {
-			a.tx.Close()
+			_ = a.tx.Rollback()
 			return err
 		}
-	} else {
-		err = a.tx.RunWithoutResult(`MATCH (a:Article) WHERE a.id = $id 
-OPTIONAL MATCH (a)-[:IN]->(p:Publication) WHERE p.special = true
-DETACH DELETE a 
-DETACH DELETE p;`, map[string]any{"id": a.Article.ID})
-		if err != nil {
-			a.tx.Close()
-			return err
-		}
+	} else if err != nil {
+		_ = a.tx.Rollback()
+		return err
 	}
 	return nil
 }
 
 func (a *ArticleRejectionTransaction) CreateLetter(letter *Letter) error {
-	defer a.tx.Close()
-
-	err := a.tx.RunWithoutResult(letterCreation, letter.GetCreationMap())
+	err := createLetter(a.tx, letter)
 	if err != nil {
 		return err
 	}
-
-	err = a.tx.RunWithoutResult(letterLinkage, letter.GetCreationMap())
-	if err != nil {
-		return err
-	}
-
-	err = a.tx.Commit()
-	return err
+	return a.tx.Commit()
 }
