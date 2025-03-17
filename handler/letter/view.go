@@ -59,9 +59,9 @@ func PatchLetterViewPage(writer http.ResponseWriter, request *http.Request) {
 	var err error
 	switch query.GetTrimmedString("decision") {
 	case "accept":
-		err = database.UpdateSingatureStatus(id, reader, true)
+		err = database.UpdateSignatureStatus(id, reader, true)
 	case "decline":
-		err = database.UpdateSingatureStatus(id, reader, false)
+		err = database.UpdateSignatureStatus(id, reader, false)
 	default:
 		writer.WriteHeader(http.StatusNotAcceptable)
 		return

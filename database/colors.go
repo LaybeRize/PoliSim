@@ -31,11 +31,12 @@ func HasPrivilegesForColorsAdd(acc *Account) bool {
 	if acc.IsAtLeastAdmin() {
 		return true
 	}
-	result, err := makeRequest(`MATCH (a:Account)-[:ADMIN|OWNER*..]->(o:Organisation) WHERE a.name = $name 
-RETURN o.name;`, map[string]any{"name": acc.GetName()})
+	value := ""
+	err := postgresDB.QueryRow(`SELECT o.account_name FROM organisation_to_account 
+    INNER JOIN ownership o on organisation_to_account.account_name = o.account_name
+	WHERE is_admin = true AND owner_name = $1
+                    LIMIT 1;`, acc.GetName()).Scan(&value)
 	if err != nil {
-		return false
-	} else if len(result) == 0 {
 		return false
 	}
 	return true
@@ -63,7 +64,8 @@ func RemoveColorPalette(name string, acc *Account) (*ColorPalette, error) {
 }
 
 func loadColorPalettesFromDB() {
-	_, err := postgresDB.Exec(`CREATE TABLE IF NOT EXISTS colors (
+	//Todo: move this into the migration function
+	_, err := postgresDB.Exec(`CREATE TABLE colors (
     name TEXT PRIMARY KEY,
     background TEXT,
     text TEXT,
