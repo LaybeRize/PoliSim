@@ -186,6 +186,7 @@ func CreateArticle(article *NewspaperArticle, special bool, newspaperName string
 	if err != nil {
 		return err
 	}
+	defer rollback(tx)
 	var id string
 	err = tx.QueryRow(`SELECT id FROM newspaper_publication WHERE newspaper_name = $1 AND special = $2;`,
 		&newspaperName, &special).Scan(&id)
@@ -195,13 +196,11 @@ func CreateArticle(article *NewspaperArticle, special bool, newspaperName string
 			return err
 		}
 	} else if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 	var name string
 	err = tx.QueryRow(`SELECT name FROM account WHERE blocked = false AND name = $1`, &article.Author).Scan(&name)
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 
@@ -217,7 +216,6 @@ func createSpecialPublication(tx *sql.Tx, name string) (string, error) {
 	_, err := tx.Exec(`INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) 
 VALUES ($1, $2, true, false, $3)`, id, name, time.Now().UTC())
 	if err != nil {
-		_ = tx.Rollback()
 		return id, err
 	}
 	return id, nil
@@ -228,10 +226,10 @@ func PublishPublication(id string) error {
 	if err != nil {
 		return err
 	}
+	defer rollback(tx)
 	var newspaperName string
 	err = tx.QueryRow(`SELECT id FROM newspaper_article WHERE publication_id = $1 LIMIT 1;`, &id).Scan(&newspaperName)
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 	var special bool
@@ -239,14 +237,12 @@ func PublishPublication(id string) error {
 SET published = true, publish_date = $2 WHERE id = $1 RETURNING special, newspaper_name`,
 		&id, time.Now().UTC()).Scan(&special, &newspaperName)
 	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 	if !special {
 		_, err = tx.Exec(`INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) 
 VALUES ($1, $2, false, false, $3)`, helper.GetUniqueID(newspaperName), newspaperName, time.Now().UTC())
 		if err != nil {
-			_ = tx.Rollback()
 			return err
 		}
 	}
@@ -272,7 +268,7 @@ FROM newspaper_article WHERE publication_id = $1;`, &id)
 	if err != nil {
 		return nil, nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	article := NewspaperArticle{}
 	list := make([]NewspaperArticle, 0)
 	for result.Next() {
@@ -292,7 +288,7 @@ FROM newspaper_publication WHERE published = false ORDER BY special DESC, publis
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	pub := Publication{Published: false}
 	list := make([]Publication, 0)
 	for result.Next() {
@@ -312,7 +308,7 @@ WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' ORDER BY publish
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	pub := Publication{Published: true}
 	list := make([]Publication, 0)
 	for result.Next() {

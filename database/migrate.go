@@ -2,60 +2,50 @@ package database
 
 import (
 	"log"
-	"os"
-	"strings"
 )
 
+var version = 0
+
 func migrate() {
-	if strings.ToUpper(os.Getenv("MIGRATE")) != "YES" {
-		return
+	log.Println("Looking for migration status")
+	_, err := postgresDB.Exec(`CREATE TABLE IF NOT EXISTS version_management (
+    version INTEGER PRIMARY KEY
+    )`)
+	if err != nil {
+		log.Fatalf("Could not create version tabel to migrate automatically: %v", err)
 	}
-	log.Println("Trying to migrate old data")
-	updateVotes()
-	log.Println("Finished migrating old data")
+
+	results, err := postgresDB.Query("SELECT version FROM version_management ORDER BY version DESC LIMIT 1;")
+	if err != nil {
+		log.Fatalf("Could not read on the version management table: %v", err)
+	}
+	for results.Next() {
+		if results.Err() != nil {
+			log.Fatalf("Could not read on the version management table row: %v", err)
+		}
+		err = results.Scan(&version)
+		if err != nil {
+			log.Fatalf("Could not scan the version management row: %v", err)
+		}
+	}
+
+	switch version {
+	case 0:
+		migrateToCurrentVersion()
+	}
+
 }
 
-func updateVotes() {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
+func migrateToCurrentVersion() {
+	const currVersion = 1
+	log.Println("Setting up the database for current version ", currVersion)
+	var err error
 
-	result, err := tx.Run(`MATCH (r:Result)
-WHERE r.csv IS NULL RETURN r, elementId(r);`, nil)
+	// Todo create the chat tables
+
+	version = currVersion
+	_, err = postgresDB.Exec(`INSERT INTO version_management (version) VALUES ($1)`, &version)
 	if err != nil {
-		log.Fatalf("Failed to execute update Votes")
-	} else if result.Peek() {
-		for result.Next() {
-			props := GetPropsMapForRecordPosition(result.Record(), 0)
-			vote := AccountVotes{
-				Question:        props.GetString("question"),
-				IterableAnswers: props.GetArray("answers"),
-				Anonymous:       props.GetBool("anonymous"),
-				Type:            VoteType(props.GetInt("type")),
-				AnswerAmount:    props.GetInt("amount"),
-				IllegalVotes:    nil,
-				Illegal:         props.GetArray("illegal"),
-				List:            nil,
-				Voter:           props.GetArray("voter"),
-				Votes:           props.GetArray("votes"),
-			}
-			generateCSV(&vote)
-			err = tx.RunWithoutResult(`MATCH (r:Result) WHERE elementId(r) = $id SET r.csv = $csv;`,
-				map[string]any{
-					"id":  result.Record().Values[1],
-					"csv": vote.CSV,
-				})
-			if err != nil {
-				log.Fatalf("Failed to execute update Votes")
-			}
-		}
-		err = tx.Commit()
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-	} else {
-		log.Println("No Votes to migrate")
+		log.Fatalf("Could not save the information that the current version is now %d: %v", currVersion, err)
 	}
 }

@@ -137,7 +137,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = database.CreateDocument(doc, acc)
+	err = database.CreateDocument(doc)
 	if errors.Is(err, database.DocumentHasInvalidVisibility) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreateVoteHasInvalidVisibility})

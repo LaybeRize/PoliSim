@@ -36,8 +36,6 @@ func GetCreateVoteElementPage(writer http.ResponseWriter, request *http.Request)
 
 	if page.Vote == nil {
 		page.Vote = &referenceVote
-	} else {
-		page.Vote.ConvertToAnswer()
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -152,8 +150,6 @@ func PatchGetVoteElementPage(writer http.ResponseWriter, request *http.Request) 
 
 	if page.Vote == nil {
 		page.Vote = &referenceVote
-	} else {
-		page.Vote.ConvertToAnswer()
 	}
 
 	handler.MakePage(writer, acc, page)

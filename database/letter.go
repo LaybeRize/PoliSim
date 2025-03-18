@@ -175,7 +175,7 @@ func GetLetterList(viewer []string, amount int, page int) ([]ReducedLetter, erro
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	list := make([]ReducedLetter, 0)
 	item := ReducedLetter{}
 	for result.Next() {
@@ -208,7 +208,7 @@ RETURNING letter.title, letter.author, letter.flair, letter.written, letter.sign
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	letter.Reader = make([]string, 0)
 	if letter.Signable {
 		letter.Agreed = make([]string, 0)

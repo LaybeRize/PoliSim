@@ -138,7 +138,7 @@ WHERE id = $1;`, &id).Scan(&note.ID, &note.Title, &note.Author, &note.Flair, &no
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	note.Parents = make([]TruncatedBlackboardNotes, 0)
 	trunc := TruncatedBlackboardNotes{}
 	for result.Next() {
@@ -153,7 +153,7 @@ WHERE id = $1;`, &id).Scan(&note.ID, &note.Title, &note.Author, &note.Flair, &no
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	note.Children = make([]TruncatedBlackboardNotes, 0)
 	for result.Next() {
 		err = result.Scan(&trunc.ID, &trunc.Title, &trunc.Author, &trunc.Flair, &trunc.PostedAt, &trunc.Removed)
@@ -166,14 +166,14 @@ WHERE id = $1;`, &id).Scan(&note.ID, &note.Title, &note.Author, &note.Flair, &no
 }
 
 func SearchForNotes(acc *Account, amount int, page int, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
-	parameter := []any{amount, (page - 1) * amount}
+	parameter := []any{(page - 1) * amount, amount}
 	query, parameter := queryAnalyzer(acc, parameter, input, showBlocked)
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM blackboard_note
 WHERE `+query+` ORDER BY posted DESC OFFSET $1 LIMIT $2;`, parameter...)
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	arr := make([]TruncatedBlackboardNotes, 0)
 	trunc := TruncatedBlackboardNotes{}
 	for result.Next() {

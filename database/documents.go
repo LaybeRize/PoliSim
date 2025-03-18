@@ -2,9 +2,13 @@ package database
 
 import (
 	loc "PoliSim/localisation"
+	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/lib/pq"
 	"html/template"
-	"log/slog"
 	"strings"
 	"time"
 )
@@ -19,27 +23,27 @@ const (
 
 type (
 	Document struct {
-		ID                  string
-		Type                DocumentType
-		Organisation        string
-		Title               string
-		Author              string
-		Flair               string
-		Written             time.Time
-		Body                template.HTML
-		Public              bool
-		Removed             bool
-		MemberParticipation bool
-		AdminParticipation  bool
-		AllowedToAddTags    bool
-		End                 time.Time
-		Reader              []string
-		Participants        []string
-		Tags                []DocumentTag
-		Links               []VoteInfo
-		VoteIDs             []string
-		Comments            []DocumentComment
-		Result              []AccountVotes
+		ID                  string            `json:"-"`
+		Type                DocumentType      `json:"-"`
+		Organisation        string            `json:"-"`
+		Title               string            `json:"-"`
+		Author              string            `json:"-"`
+		Flair               string            `json:"-"`
+		Written             time.Time         `json:"-"`
+		Body                template.HTML     `json:"-"`
+		Public              bool              `json:"-"`
+		Removed             bool              `json:"-"`
+		MemberParticipation bool              `json:"-"`
+		AdminParticipation  bool              `json:"-"`
+		AllowedToAddTags    bool              `json:"-"`
+		End                 time.Time         `json:"-"`
+		Reader              []string          `json:"reader"`
+		Participants        []string          `json:"participants"`
+		Tags                []DocumentTag     `json:"tags"`
+		Links               []VoteInfo        `json:"links"`
+		VoteIDs             []string          `json:"-"`
+		Comments            []DocumentComment `json:"-"`
+		Result              []AccountVotes    `json:"result"`
 	}
 	SmallDocument struct {
 		ID           string
@@ -50,7 +54,76 @@ type (
 		Written      time.Time
 		Removed      bool
 	}
+	DocumentTag struct {
+		ID              string    `json:"id"`
+		Outgoing        bool      `json:"outgoing"`
+		Text            string    `json:"text"`
+		Written         time.Time `json:"written"`
+		BackgroundColor string    `json:"background_color"`
+		TextColor       string    `json:"text_color"`
+		LinkColor       string    `json:"link_color"`
+		Links           []string  `json:"links"`
+	}
+	DocumentComment struct {
+		ID      string
+		Author  string
+		Flair   string
+		Written time.Time
+		Body    template.HTML
+		Removed bool
+	}
 )
+
+// Todo move this to migration
+const documentTableCreateStatement = `
+CREATE TABLE document (
+    id TEXT PRIMARY KEY,
+    type INT NOT NULL,
+    organisation TEXT NOT NULL,
+    organisation_name TEXT NOT NULL,
+    title TEXT NOT NULL,
+    author  TEXT NOT NULL,
+    flair  TEXT NOT NULL,
+    body  TEXT NOT NULL,
+    written TIMESTAMP NOT NULL,
+    end_time TIMESTAMP,
+    public  BOOLEAN NOT NULL,
+    removed BOOLEAN NOT NULL,
+    member_participation BOOLEAN NOT NULL,
+    admin_participation BOOLEAN NOT NULL,
+    extra_info jsonb NOT NULL,
+    CONSTRAINT fk_organisation_name
+        FOREIGN KEY (organisation_name) REFERENCES organisation(name) ON UPDATE CASCADE
+);
+CREATE TABLE document_to_account (
+    document_id TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    participant BOOLEAN NOT NULL,
+    CONSTRAINT fk_document_id
+        FOREIGN KEY (document_id) REFERENCES document(id),
+    CONSTRAINT fk_account_name
+        FOREIGN KEY (account_name) REFERENCES account(name)
+);
+CREATE TABLE comment_to_document (
+	comment_id TEXT PRIMARY KEY,
+	document_id TEXT NOT NULL,
+    author  TEXT NOT NULL,
+    flair  TEXT NOT NULL,
+    body  TEXT NOT NULL,
+    written TIMESTAMP NOT NULL,
+    removed BOOLEAN NOT NULL,
+    CONSTRAINT fk_document_id
+        FOREIGN KEY (document_id) REFERENCES document(id)	
+);
+CREATE VIEW document_linked AS
+SELECT id, type, organisation, doc.organisation_name, title, author, flair, body, written, 
+       end_time, public, removed, member_participation, admin_participation, extra_info, 
+       dta.account_name as doc_account, ota.account_name as organisation_account, is_admin, 
+       dta.participant as participant, owner_name FROM document doc
+	LEFT JOIN document_to_account dta ON doc.id = dta.document_id
+	LEFT JOIN organisation_to_account ota ON doc.organisation_name = ota.organisation_name
+	LEFT JOIN ownership own ON ota.account_name = own.account_name OR dta.account_name = own.account_name;
+`
 
 func (s *SmallDocument) IsPost() bool { return s.Type == DocTypePost }
 
@@ -63,6 +136,21 @@ func (s *SmallDocument) GetTimeWritten(a *Account) string {
 		return s.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
 	return s.Written.Format(loc.TimeFormatString)
+}
+
+func (d *Document) Value() (driver.Value, error) {
+	return json.Marshal(d)
+}
+
+func (d *Document) Scan(src interface{}) error {
+	switch src.(type) {
+	case []byte:
+		return json.Unmarshal(src.([]byte), d)
+	case string:
+		return json.Unmarshal([]byte(src.(string)), d)
+	default:
+		return errors.New("value can not be unmarshalled into document")
+	}
 }
 
 func (d *Document) ShowRemovedMessage(acc *Account) bool {
@@ -132,16 +220,8 @@ func (d *Document) IsVote() bool { return d.Type == DocTypeVote }
 
 func (d *Document) Ended() bool { return time.Now().After(d.End) }
 
-type DocumentTag struct {
-	ID              string
-	Outgoing        bool
-	Text            string
-	Written         time.Time
-	BackgroundColor string
-	TextColor       string
-	LinkColor       string
-	Links           []string
-	QueriedLinks    []any
+func (t *DocumentTag) Value() (driver.Value, error) {
+	return json.Marshal(t)
 }
 
 func (t *DocumentTag) GetTimeWritten(a *Account) string {
@@ -152,16 +232,7 @@ func (t *DocumentTag) GetTimeWritten(a *Account) string {
 }
 
 func (t *DocumentTag) HasLinks() bool {
-	return len(t.QueriedLinks) != 0
-}
-
-type DocumentComment struct {
-	ID      string
-	Author  string
-	Flair   string
-	Written time.Time
-	Body    template.HTML
-	Removed bool
+	return len(t.Links) != 0
 }
 
 func (c *DocumentComment) GetBody(acc *Account) template.HTML {
@@ -185,335 +256,166 @@ func (c *DocumentComment) GetAuthor() string {
 	return c.Author + "; " + c.Flair
 }
 
-func CreateDocument(document *Document, acc *Account) error {
-	tx, err := openTransaction()
-	defer tx.Close()
+func CreateDocument(document *Document) error {
+	tx, err := postgresDB.Begin()
 	if err != nil {
 		return err
 	}
-
-	result, err := tx.Run(`MATCH (acc:Account)-[:ADMIN]->(o:Organisation) 
-WHERE acc.name = $Author AND acc.blocked = false AND o.name = $organisation AND o.visibility <> $hidden
-	RETURN o.visibility;`,
-		map[string]any{"Author": document.Author,
-			"organisation": document.Organisation,
-			"hidden":       HIDDEN})
-	if err != nil {
-		return err
-	} else if result.Next(); result.Record() == nil {
+	defer rollback(tx)
+	var vis OrganisationVisibility
+	err = tx.QueryRow(`SELECT visibility FROM organisation_linked WHERE visibility <> $1 AND name = $2 AND account_name = $3 AND is_admin = true;`,
+		HIDDEN, document.Organisation, document.Author).Scan(&vis)
+	if errors.Is(err, sql.ErrNoRows) {
 		return NotAllowedError
-	} else if vis := OrganisationVisibility(result.Record().Values[0].(int64)); (vis == SECRET && document.Public) || (vis == PUBLIC && !document.Public) {
+	} else if err != nil {
+		return err
+	} else if (vis == SECRET && document.Public) || (vis == PUBLIC && !document.Public) {
 		return DocumentHasInvalidVisibility
 	}
 
-	err = tx.RunWithoutResult(`MATCH (a:Account) WHERE a.name = $author 
-MATCH (o:Organisation) WHERE o.name = $organisation 
-CREATE (d:Document {id: $id, title: $title, type: $type, author: $author, flair: $flair, body: $body, removed: false,
-end_time: $end_time, written: $written, public: $public, member_part: $member_part, admin_part: $admin_part}) 
-MERGE (a)-[:WRITTEN]->(d)
-MERGE (d)-[:IN]->(o);`, map[string]any{
-		"organisation": document.Organisation,
-		"id":           document.ID,
-		"title":        document.Title,
-		"type":         document.Type,
-		"author":       document.Author,
-		"end_time":     document.End,
-		"written":      time.Now().UTC(),
-		"body":         document.Body,
-		"flair":        document.Flair,
-		"public":       document.Public,
-		"member_part":  document.MemberParticipation,
-		"admin_part":   document.AdminParticipation})
+	if document.Type != DocTypePost {
+		err = tx.QueryRow(`SELECT ARRAY(SELECT name FROM account WHERE name = ANY($1) AND blocked = false), 
+       ARRAY(SELECT name FROM account WHERE name = ANY($2) AND blocked = false);`,
+			pq.Array(document.Reader), pq.Array(document.Participants)).
+			Scan(pq.Array(&document.Reader), pq.Array(&document.Participants))
+		if err != nil {
+			return err
+		}
+	}
+
+	document.Tags = make([]DocumentTag, 0)
+
+	_, err = tx.Exec(`INSERT INTO document (id, type, organisation, organisation_name, title, author, flair, body, written, 
+                      end_time, public, removed, member_participation, admin_participation, extra_info) 
+VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9, false, $10, $11, $12, $13);`,
+		document.ID, document.Type, document.Organisation, document.Title, document.Author, document.Flair,
+		document.Body, time.Now().UTC(), document.End, document.Public, document.MemberParticipation,
+		document.AdminParticipation, &document)
 	if err != nil {
 		return err
 	}
 
 	if !document.Public {
-		err = tx.RunWithoutResult(`MATCH (a:Account), (d:Document) WHERE a.name IN $reader AND d.id = $id 
-CREATE (a)<-[:READER]-(d);`, map[string]any{"reader": document.Reader, "id": document.ID})
+		_, err = postgresDB.Exec(`INSERT INTO document_to_account (document_id, account_name, participant) 
+SELECT $1 AS document_id, name, false AS participant FROM account
+WHERE name = ANY($2);`, &document.ID, pq.Array(document.Reader))
+		if err != nil {
+			return err
+		}
+	}
+
+	if document.Type != DocTypePost {
+		_, err = postgresDB.Exec(`INSERT INTO document_to_account (document_id, account_name, participant) 
+SELECT $1 AS document_id, name, true AS participant FROM account
+WHERE name = ANY($2);`, &document.ID, pq.Array(document.Participants))
 		if err != nil {
 			return err
 		}
 	}
 
 	if document.Type == DocTypeVote {
-		result, err = tx.Run(`
-MATCH (a:Account)-[r:MANAGES]->(v:Vote) WHERE a.name = $user AND v.id IN $ids 
-MATCH (d:Document) WHERE d.id = $id 
-DELETE r 
-MERGE (d)-[:LINKS]->(v) 
-RETURN v.id;`, map[string]any{
-			"user": acc.Name,
-			"ids":  document.VoteIDs,
-			"id":   document.ID})
+		//Todo make this after reworking the vote system
+		// Idea: Two separate table and while copying return the value, check that it is at least one via Next() and if not call Close() on the value and
+		// return the correct DocumentHasNoAttachedVotes error
+		/*result, err = tx.Run(`
+		MATCH (a:Account)-[r:MANAGES]->(v:Vote) WHERE a.name = $user AND v.id IN $ids
+		MATCH (d:Document) WHERE d.id = $id
+		DELETE r
+		MERGE (d)-[:LINKS]->(v)
+		RETURN v.id;`, map[string]any{
+					"user": acc.Name,
+					"ids":  document.VoteIDs,
+					"id":   document.ID})
+				if err != nil {
+					return err
+				} else if !result.Peek() {
+					return DocumentHasNoAttachedVotes
+				}*/
+		_, err = tx.Exec(`UPDATE document SET extra_info = $2 WHERE id = $1`, document.ID, &document)
 		if err != nil {
 			return err
-		} else if !result.Peek() {
-			return DocumentHasNoAttachedVotes
 		}
 	}
 
-	err = tx.RunWithoutResult(`MATCH (a:Account), (d:Document) WHERE a.name IN $user AND d.id = $id 
-CREATE (a)<-[:PARTICIPANT]-(d);`, map[string]any{"user": document.Participants, "id": document.ID})
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit()
-	return err
+	return tx.Commit()
 }
 
 func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		return nil, nil, err
-	}
+	doc := &Document{}
+	err := postgresDB.QueryRow(`SELECT id, type, organisation, title, author, flair, 
+       written, body, public, removed, member_participation, admin_participation, end_time, extra_info, is_admin FROM document_linked 
+          WHERE id = $1 AND (public = true OR owner_name = $2 OR $3 = true) ORDER BY is_admin DESC NULLS LAST LIMIT 1;`,
+		id, acc.Name, acc.IsAtLeastAdmin()).Scan(
+		&doc.ID, &doc.Type, &doc.Organisation, &doc.Type, &doc.Author, &doc.Flair, &doc.Written, &doc.Body,
+		&doc.Public, &doc.Removed, &doc.MemberParticipation, &doc.AdminParticipation, &doc.End, doc, &doc.AllowedToAddTags)
+	doc.AllowedToAddTags = doc.AllowedToAddTags || acc.IsAtLeastAdmin()
 
-	result, err := tx.Run(`MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.id = $id 
-RETURN d, o.name;`, map[string]any{
-		"id": id})
-	if err != nil {
-		return nil, nil, err
-	} else if !result.Next() {
-		return nil, nil, NotAllowedError
-	}
-	props := GetPropsMapForRecordPosition(result.Record(), 0)
-	public := props.GetBool("public")
-	allowedToAddTags := false
-
-	if !public && !acc.Exists() {
-		return nil, nil, NotAllowedError
-	} else if acc.Exists() {
-		var userCheck *dbResult
-		userCheck, err = tx.Run(`
-CALL { 
-MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE a.name = $name AND d.id = $id 
-RETURN o, d 
-UNION 
-MATCH (o:Organisation)<-[:IN]-(d:Document)-[:READER|PARTICIPANT]->(a:Account) WHERE a.name = $name AND d.id = $id 
-RETURN o,d 
-} 
-OPTIONAL MATCH (b:Account)-[:OWNER|ADMIN*..]->(o) WHERE b.name = $name 
-RETURN d.id, b.name;`, map[string]any{
-			"id":   id,
-			"name": acc.Name})
-		if err != nil {
-			return nil, nil, err
-		} else if !userCheck.Peek() && !acc.IsAtLeastAdmin() && !public {
-			return nil, nil, NotAllowedError
-		} else if userCheck.Next() {
-			slog.Debug("Document Connections", "id", id, "query output", userCheck.Record().Values)
-			allowedToAddTags = userCheck.Record().Values[1] != nil
-		}
-	}
-
-	doc := &Document{
-		ID:                  id,
-		Type:                DocumentType(props.GetInt("type")),
-		Organisation:        result.Record().Values[1].(string),
-		Title:               props.GetString("title"),
-		Author:              props.GetString("author"),
-		Flair:               props.GetString("flair"),
-		Written:             props.GetTime("written"),
-		Body:                template.HTML(props.GetString("body")),
-		Public:              public,
-		Removed:             props.GetBool("removed"),
-		MemberParticipation: props.GetBool("member_part"),
-		AdminParticipation:  props.GetBool("admin_part"),
-		End:                 props.GetTime("end_time"),
-		Tags:                make([]DocumentTag, 0),
-		AllowedToAddTags:    allowedToAddTags,
-		Result:              nil,
-	}
-	var commentator []string
-
-	if !doc.Public {
-		doc.Reader = make([]string, 0)
-		result, err = tx.Run(`MATCH (d:Document)-[:READER]->(a:Account)
-WHERE d.id = $id RETURN a.name;`,
-			map[string]any{"id": id})
-		if err != nil {
-			return nil, nil, err
-		}
-		for result.Next() {
-			doc.Reader = append(doc.Reader, result.Record().Values[0].(string))
-		}
-	}
-
-	if !(doc.Type == DocTypePost) {
-		doc.Participants = make([]string, 0)
-		result, err = tx.Run(`MATCH (d:Document)-[:PARTICIPANT]->(a:Account)
-WHERE d.id = $id RETURN a.name;`,
-			map[string]any{"id": id})
-		if err != nil {
-			return nil, nil, err
-		}
-		for result.Next() {
-			doc.Participants = append(doc.Participants, result.Record().Values[0].(string))
-		}
-	}
+	commentator := make([]string, 0)
 
 	if doc.Type == DocTypeDiscussion {
-		doc.Comments = make([]DocumentComment, 0)
-		result, err = tx.Run(`MATCH (d:Document)<-[:ON]-(c:Comment)
-WHERE d.id = $id RETURN c.id, c.author, c.flair, c.written, c.body, c.removed ORDER BY c.written;`,
-			map[string]any{"id": id})
-		if err != nil {
-			return nil, nil, err
-		}
-		for result.Next() {
-			doc.Comments = append(doc.Comments, DocumentComment{
-				ID:      result.Record().Values[0].(string),
-				Author:  result.Record().Values[1].(string),
-				Flair:   result.Record().Values[2].(string),
-				Written: result.Record().Values[3].(time.Time),
-				Body:    template.HTML(result.Record().Values[4].(string)),
-				Removed: result.Record().Values[5].(bool),
-			})
-		}
-	}
 
-	if doc.Type == DocTypeDiscussion && !doc.Ended() && acc.Exists() {
-		commentator = make([]string, 0)
-		result, err = tx.Run(`
-MATCH (n:Account)-[:OWNER*0..]->(a:Account) WHERE n.name = $name 
-RETURN a.name;`,
-			map[string]any{"id": id, "name": acc.Name})
-		if err != nil {
-			return nil, nil, err
-		}
-		for result.Next() {
-			commentator = append(commentator, result.Record().Values[0].(string))
-		}
-	}
-
-	if doc.Type == DocTypeVote {
-		result, err = tx.Run(`MATCH (d:Document)-[:VOTED]->(r:Result)
-WHERE d.id = $id RETURN r;`,
-			map[string]any{"id": id})
-		if err != nil {
-			return nil, nil, err
-		} else if result.Peek() {
-			doc.Result = make([]AccountVotes, 0)
-			for result.Next() {
-				props = GetPropsMapForRecordPosition(result.Record(), 0)
-				doc.Result = append(doc.Result, AccountVotes{
-					Question:        props.GetString("question"),
-					IterableAnswers: props.GetArray("answers"),
-					Anonymous:       props.GetBool("anonymous"),
-					Type:            VoteType(props.GetInt("type")),
-					AnswerAmount:    props.GetInt("amount"),
-					IllegalVotes:    nil,
-					Illegal:         props.GetArray("illegal"),
-					List:            nil,
-					Voter:           props.GetArray("voter"),
-					Votes:           props.GetArray("votes"),
-					CSV:             props.GetString("csv"),
-				})
-			}
-		} else {
-			doc.Links = make([]VoteInfo, 0)
-			result, err = tx.Run(`MATCH (d:Document)-[:LINKS]->(v:Vote)
-WHERE d.id = $id RETURN v.id, v.question;`,
-				map[string]any{"id": id})
+		if !doc.Ended() && acc.Exists() {
+			commentator, err = GetMyAccountNames(acc)
 			if err != nil {
 				return nil, nil, err
 			}
-			for result.Next() {
-				doc.Links = append(doc.Links, VoteInfo{
-					ID:       result.Record().Values[0].(string),
-					Question: result.Record().Values[1].(string),
-				})
+		}
+
+		var result *sql.Rows
+		result, err = postgresDB.Query(`SELECT comment_id, author, flair, written, body, removed 
+FROM comment_to_document WHERE document_id = $1 ORDER BY written;`, &doc.ID)
+		if err != nil {
+			return nil, nil, err
+		}
+		defer closeRows(result)
+
+		doc.Comments = make([]DocumentComment, 0)
+		comment := DocumentComment{}
+		for result.Next() {
+			err = result.Scan(&comment.ID, &comment.Author, &comment.Flair, &comment.Written, &comment.Body, &comment.Removed)
+			if err != nil {
+				return nil, nil, err
 			}
+			doc.Comments = append(doc.Comments, comment)
 		}
 	}
 
-	result, err = tx.Run(`CALL { 
-MATCH (d:Document)-[:LINKS]->(t:Tag) 
-WHERE d.id = $id 
-OPTIONAL MATCH (t)-[:LINKS]->(r:Document) 
-RETURN t, collect(r.id) AS ids, true AS outgoing 
-UNION 
-MATCH (d:Document)<-[:LINKS]-(t:Tag)<-[:LINKS]-(r:Document) 
-WHERE d.id = $id 
-RETURN t, collect(r.id) AS ids, false AS outgoing 
-} 
-RETURN t, ids, outgoing ORDER BY t.written DESC;`, map[string]any{"id": id})
-	if err != nil {
-		return nil, nil, err
-	}
-	for result.Next() {
-		props = GetPropsMapForRecordPosition(result.Record(), 0)
-		doc.Tags = append(doc.Tags, DocumentTag{
-			ID:              props.GetString("id"),
-			Outgoing:        result.Record().Values[2].(bool),
-			Text:            props.GetString("text"),
-			Written:         props.GetTime("written"),
-			BackgroundColor: props.GetString("background"),
-			TextColor:       props.GetString("color"),
-			LinkColor:       props.GetString("link"),
-			QueriedLinks:    result.Record().Values[1].([]any),
-		})
-	}
-
-	err = tx.Commit()
 	return doc, commentator, err
 }
 
 func RemoveRestoreDocument(docId string) {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		return
-	}
-
-	err = tx.RunWithoutResult(`MATCH (d:Document) WHERE d.id = $id  
-SET d.removed = NOT d.removed;`, map[string]any{
-		"id": docId,
-	})
-	if err != nil {
-		return
-	}
-
-	_ = tx.Commit()
+	_, _ = postgresDB.Exec(`UPDATE document SET removed = NOT removed WHERE id = $1`, docId)
 }
 
 func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {
-	tx, err := openTransaction()
-	defer tx.Close()
+	tx, err := postgresDB.Begin()
 	if err != nil {
 		return err
 	}
+	defer rollback(tx)
 
-	result, err := tx.Run(`MATCH (a:Account)-[:ADMIN|OWNER*..]->(o:Organisation)<-[:IN]-(d:Document) 
-WHERE a.name = $name AND d.id = $id 
-RETURN a.name;`, map[string]any{"name": acc.Name, "id": docID})
-	if err != nil {
-		return err
-	} else if result.Next(); result.Record() == nil {
+	err = tx.QueryRow(`SELECT id FROM document_linked WHERE id = $1 AND is_admin = true AND owner_name = $2 LIMIT 1;`,
+		docID, acc.GetName()).Scan(&docID)
+	if errors.Is(err, sql.ErrNoRows) {
 		return NotAllowedError
+	} else if err != nil {
+		return err
 	}
+	var docIDs []string
+	err = tx.QueryRow(`SELECT ARRAY(SELECT id FROM document WHERE id = ANY($1) AND id <> $2)`,
+		pq.Array(tag.Links), docID).Scan(pq.Array(&docIDs))
 
-	err = tx.RunWithoutResult(`MATCH (d:Document) WHERE d.id = $id  
-CREATE (t:Tag {id: $tagId, text: $text, written: $written, background: $background, color: $color, link: $link}) 
-MERGE (d)-[:LINKS]->(t);`, map[string]any{
-		"id":         docID,
-		"tagId":      tag.ID,
-		"links":      tag.Links,
-		"text":       tag.Text,
-		"written":    time.Now().UTC(),
-		"background": tag.BackgroundColor,
-		"color":      tag.TextColor,
-		"link":       tag.LinkColor,
-	})
+	tag.Outgoing = true
+	tag.Links = docIDs
+
+	_, err = tx.Exec(`UPDATE document SET extra_info = jsonb_insert(extra_info, '{tags,0}', $2) WHERE id = $1`, docID, tag)
 	if err != nil {
 		return err
 	}
 
-	err = tx.RunWithoutResult(`MATCH (target:Document) WHERE target.id <> $id AND target.id IN $links 
-MATCH (t:Tag) WHERE t.id = $tagID 
-MERGE (t)-[:LINKS]->(target);`, map[string]any{"tagID": tag.ID, "id": docID, "links": tag.Links})
+	tag.Outgoing = false
+	tag.Links = []string{docID}
+	_, err = tx.Exec(`UPDATE document SET extra_info = jsonb_insert(extra_info, '{tags,0}', $2) WHERE id = ANY($1)`, pq.Array(docIDs), tag)
 	if err != nil {
 		return err
 	}
@@ -522,137 +424,75 @@ MERGE (t)-[:LINKS]->(target);`, map[string]any{"tagID": tag.ID, "id": docID, "li
 }
 
 func CreateDocumentComment(documentId string, comment *DocumentComment) error {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		return err
-	}
-
-	result, err := tx.Run(`CALL {
-MATCH (a:Account)<-[:PARTICIPANT]-(d:Document) 
-WHERE a.name = $author AND a.blocked = false AND d.id = $id AND datetime($now) < datetime(d.end_time) 
-RETURN a 
-UNION 
-MATCH (a:Account)-[:USER|ADMIN]->(:Organisation)<-[:IN]-(d:Document) 
-WHERE a.name = $author AND a.blocked = false AND d.id = $id AND d.member_part = true AND datetime($now) < datetime(d.end_time) 
-RETURN a 
-UNION 
-MATCH (a:Account)-[:ADMIN]->(:Organisation)<-[:IN]-(d:Document) 
-WHERE a.name = $author AND a.blocked = false AND d.id = $id AND d.admin_part = true AND datetime($now) < datetime(d.end_time) 
-RETURN a 
-} 
-RETURN a;`,
-		map[string]any{"id": documentId, "author": comment.Author, "now": time.Now().UTC()})
-	if err != nil {
-		return err
-	} else if !result.Peek() {
+	err := postgresDB.QueryRow(`SELECT id FROM document_linked WHERE id = $1 AND end_time > $2 AND
+                                     ((doc_account = $3 AND participant = true) OR 
+                                      (organisation_account = $3 AND member_participation = true) OR 
+                                      (organisation_account = $3 AND is_admin = true AND admin_participation = true)) LIMIT 1;`,
+		documentId, time.Now().UTC(), comment.Author).Scan(&documentId)
+	if errors.Is(err, sql.ErrNoRows) {
 		return NotAllowedError
-	}
-
-	err = tx.RunWithoutResult(`MATCH (a:Account) WHERE a.name = $author 
-MATCH (d:Document) WHERE d.id = $doc_ID 
-CREATE (c:Comment {id: $id, author: $author, flair: $flair, body: $body, removed: false, written: $written}) 
-MERGE (a)-[:WRITTEN]->(c)
-MERGE (c)-[:ON]->(d);`, map[string]any{
-		"doc_ID":  documentId,
-		"id":      comment.ID,
-		"author":  comment.Author,
-		"flair":   comment.Flair,
-		"written": time.Now().UTC(),
-		"body":    comment.Body})
-	if err != nil {
+	} else if err != nil {
 		return err
 	}
 
-	err = tx.Commit()
+	_, err = postgresDB.Exec(`INSERT INTO comment_to_document (comment_id, document_id, author, flair, body, written, removed) 
+VALUES ($1, $2, $3, $4, $5, $6, false)`, comment.ID, documentId, comment.Author, comment.Flair, comment.Body, time.Now().UTC())
 	return err
 }
 
 func RemoveRestoreComment(commentID string) {
-	tx, err := openTransaction()
-	defer tx.Close()
-	if err != nil {
-		return
-	}
-
-	err = tx.RunWithoutResult(`MATCH (c:Comment) WHERE c.id = $id  
-SET c.removed = NOT c.removed;`, map[string]any{
-		"id": commentID,
-	})
-	if err != nil {
-		return
-	}
-
-	_ = tx.Commit()
+	_, _ = postgresDB.Exec(`UPDATE comment_to_document SET removed = NOT removed WHERE comment_id = $1`, commentID)
 }
 
 func GetDocumentList(amount int, page int, acc *Account, showBlocked bool) ([]SmallDocument, error) {
 	var query string
+	parameter := []any{(page - 1) * amount, amount}
 	if !acc.Exists() {
-		query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true AND d.removed = false `
+		query = `SELECT id, type, organisation, title, author, written, removed FROM document WHERE public = true AND removed = false`
 	} else if !acc.IsAtLeastAdmin() {
-		query = `CALL { MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.public = true AND d.removed = false 
-RETURN d, o
-UNION
-MATCH (a:Account)-[*..]->(o:Organisation)<-[:IN]-(d:Document) WHERE d.public = false AND d.removed = false AND a.name = $name 
-RETURN d, o 
-} `
+		query = `SELECT DISTINCT ON (id) id, type, organisation, title, author, written, removed FROM document_linked WHERE (public = true OR owner_name = $3) AND removed = false`
+		parameter = append(parameter, acc.Name)
 	} else {
 		if showBlocked {
-			query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE true `
+			query = `SELECT id, type, organisation, title, author, written, removed FROM document`
 		} else {
-			query = `MATCH (o:Organisation)<-[:IN]-(d:Document) WHERE d.removed = false `
+			query = `SELECT id, type, organisation, title, author, written, removed FROM document WHERE removed = false`
 		}
 	}
 
-	result, err := makeRequest(query+`RETURN d.id, d.type, o.name, d.title, d.author, d.written, d.removed 
-ORDER BY d.written DESC SKIP $skip LIMIT $amount;`,
-		map[string]any{
-			"amount": amount,
-			"skip":   (page - 1) * amount,
-			"name":   acc.GetName(),
-		})
+	result, err := postgresDB.Query(query+` ORDER BY written DESC OFFSET $1 LIMIT $2;`, parameter...)
 	if err != nil {
 		return nil, err
 	}
-	arr := make([]SmallDocument, 0, len(result))
-	for _, record := range result {
-		arr = append(arr, SmallDocument{
-			ID:           record.Values[0].(string),
-			Type:         DocumentType(record.Values[1].(int64)),
-			Organisation: record.Values[2].(string),
-			Title:        record.Values[3].(string),
-			Author:       record.Values[4].(string),
-			Written:      record.Values[5].(time.Time),
-			Removed:      record.Values[6].(bool),
-		})
+	defer closeRows(result)
+	arr := make([]SmallDocument, 0)
+	trunc := SmallDocument{}
+	for result.Next() {
+		err = result.Scan(&trunc.ID, &trunc.Type, &trunc.Organisation, &trunc.Title, &trunc.Author, &trunc.Written, &trunc.Removed)
+		if err != nil {
+			return nil, err
+		}
+		arr = append(arr, trunc)
 	}
 	return arr, nil
 }
 
 func GetPersonalDocumentList(amount int, page int, acc *Account) ([]SmallDocument, error) {
-	result, err := makeRequest(`MATCH (a:Account)-[:OWNER|WRITTEN]->(d:Document) WHERE a.name = $name AND d.removed = false 
-RETURN d.id, d.type, o.name, d.title, d.author, d.written, d.removed 
-ORDER BY d.written DESC SKIP $skip LIMIT $amount;`,
-		map[string]any{
-			"amount": amount,
-			"skip":   (page - 1) * amount,
-			"name":   acc.Name,
-		})
+	result, err := postgresDB.Query(`SELECT id, type, organisation, title, author, written, removed FROM document 
+    LEFT JOIN ownership ON ownership.account_name = author 
+WHERE owner_name = $3 ORDER BY written DESC OFFSET $1 LIMIT $2;`, (page-1)*amount, amount, acc.GetName())
 	if err != nil {
 		return nil, err
 	}
-	arr := make([]SmallDocument, 0, len(result))
-	for _, record := range result {
-		arr = append(arr, SmallDocument{
-			ID:           record.Values[0].(string),
-			Type:         DocumentType(record.Values[1].(int64)),
-			Organisation: record.Values[2].(string),
-			Title:        record.Values[3].(string),
-			Author:       record.Values[4].(string),
-			Written:      record.Values[5].(time.Time),
-			Removed:      record.Values[6].(bool),
-		})
+	defer closeRows(result)
+	arr := make([]SmallDocument, 0)
+	trunc := SmallDocument{}
+	for result.Next() {
+		err = result.Scan(&trunc.ID, &trunc.Type, &trunc.Organisation, &trunc.Title, &trunc.Author, &trunc.Written, &trunc.Removed)
+		if err != nil {
+			return nil, err
+		}
+		arr = append(arr, trunc)
 	}
 	return arr, nil
 }

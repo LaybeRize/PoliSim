@@ -4,6 +4,7 @@ import (
 	loc "PoliSim/localisation"
 	"database/sql"
 	"github.com/lib/pq"
+	"strings"
 	"time"
 )
 
@@ -138,9 +139,18 @@ func GetAccountByName(name string) (*Account, error) {
 }
 
 func UpdateAccount(acc *Account) error {
-	_, err := postgresDB.Exec(`UPDATE account SET role = $2, blocked = $3 
-                                     WHERE name = $1;`, &acc.Name, &acc.Role, &acc.Blocked)
-	//Todo remove any relationships to organisations/titles or newspapers the account has
+	var err error
+	if acc.Blocked {
+		_, err = postgresDB.Exec(`UPDATE account SET role = $2, blocked = true 
+                                     WHERE name = $1;
+DELETE FROM organisation_to_account WHERE account_name = $1;
+DELETE FROM title_to_account WHERE account_name = $1;
+DELETE FROM newspaper_to_account WHERE account_name = $1;
+UPDATE ownership SET owner_name = $1 WHERE account_name = $1;`, &acc.Name, &acc.Role)
+	} else {
+		_, err = postgresDB.Exec(`UPDATE account SET role = $2, blocked = false 
+                                     WHERE name = $1;`, &acc.Name, &acc.Role)
+	}
 	if err == nil {
 		updateAccount(acc)
 	}
@@ -196,7 +206,7 @@ func GetNames() ([]string, []string, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 0)
 	usernames := make([]string, 0)
 	name := ""
@@ -218,7 +228,7 @@ func GetNonBlockedNames() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 0)
 	name := ""
 	for result.Next() {
@@ -237,7 +247,7 @@ SELECT name FROM account WHERE blocked = false AND name = ANY($1) ORDER BY name;
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 0)
 	name := ""
 	for result.Next() {
@@ -259,7 +269,7 @@ func GetNamesForActiveUsers() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 0)
 	name := ""
 	for result.Next() {
@@ -278,7 +288,7 @@ func GetOwnedAccountNames(owner *Account) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 0)
 	name := ""
 	for result.Next() {
@@ -297,7 +307,7 @@ func GetMyAccountNames(owner *Account) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 1)
 	names[0] = owner.Name
 	name := ""
@@ -322,26 +332,17 @@ func RemoveOwner(targetName string) error {
 }
 
 func GetAccountFlairs(acc *Account) (string, error) {
-	//Todo: rewrite this for postgres
-	/*result, err := makeRequest(`CALL {
-	MATCH (a:Account)-[:HAS]->(n:Title)
-	WHERE a.name = $name
-	RETURN n
-	UNION
-	MATCH (a:Account)-[:USER|ADMIN]->(n:Organisation)
-	WHERE a.name = $name
-	RETURN n }
-	RETURN n.flair AS flair ORDER BY flair;`,
-			map[string]any{"name": acc.Name})
-		if err != nil || len(result) == 0 {
-			return "", err
-		}
-		flairs := make([]string, 0, len(result))
-		for _, record := range result {
-			if flair := strings.TrimSpace(record.Values[0].(string)); flair != "" {
-				flairs = append(flairs, flair)
-			}
-		}
-		return strings.Join(flairs, ", "), err*/
-	return "", nil
+	flairArr := make([]string, 0)
+	err := postgresDB.QueryRow(`SELECT ARRAY(
+SELECT flair FROM organisation
+    LEFT JOIN organisation_to_account ota on organisation.name = ota.organisation_name
+    WHERE account_name = $1 
+UNION ALL
+SELECT flair FROM title
+    LEFT JOIN title_to_account tta on title.name = tta.title_name
+    WHERE account_name = $1 ORDER BY flair)`, acc.GetName()).Scan(pq.Array(&flairArr))
+	if err != nil {
+		return "", err
+	}
+	return strings.Join(flairArr, ", "), nil
 }

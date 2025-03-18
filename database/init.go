@@ -2,7 +2,6 @@ package database
 
 import (
 	loc "PoliSim/localisation"
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var ctx context.Context
 var postgresDB *sql.DB
 
 type DbError string
@@ -24,7 +22,6 @@ func (d DbError) Error() string {
 }
 
 const (
-	NotFoundError                DbError = "item not found"
 	NotAllowedError              DbError = "action is for user not allowed"
 	NoRecipientFoundError        DbError = "no recipient found for letter"
 	AlreadyVoted                 DbError = "you already voted"
@@ -142,4 +139,12 @@ func createAdministrationAccount() {
 	} else {
 		log.Fatalf("Administration Account search error: %v", err)
 	}
+}
+
+func rollback(tx *sql.Tx) {
+	_ = tx.Rollback()
+}
+
+func closeRows(result *sql.Rows) {
+	_ = result.Close()
 }

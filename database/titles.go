@@ -65,7 +65,7 @@ CREATE TABLE title_to_account(
     title_name TEXT NOT NULL,
     account_name TEXT NOT NULL,
     CONSTRAINT fk_organisation_name
-        FOREIGN KEY(title_name) REFERENCES title(name),
+        FOREIGN KEY(title_name) REFERENCES title(name) ON UPDATE CASCADE,
     CONSTRAINT fk_account_name
         FOREIGN KEY(account_name) REFERENCES account(name)
 );`
@@ -112,7 +112,7 @@ func GetTitleNameList() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 0)
 	name := ""
 	for result.Next() {
@@ -153,7 +153,7 @@ func GetAllTitles() ([]Title, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	titles := make([]Title, 0)
 	title := Title{}
 	for result.Next() {

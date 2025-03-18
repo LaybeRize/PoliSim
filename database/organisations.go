@@ -79,7 +79,7 @@ CREATE TABLE organisation_to_account(
     account_name TEXT NOT NULL,
     is_admin BOOLEAN NOT NULL,
     CONSTRAINT fk_organisation_name
-        FOREIGN KEY(organisation_name) REFERENCES organisation(name),
+        FOREIGN KEY(organisation_name) REFERENCES organisation(name) ON UPDATE CASCADE,
     CONSTRAINT fk_account_name
         FOREIGN KEY(account_name) REFERENCES account(name)
 );
@@ -163,7 +163,7 @@ func GetOrganisationNameList() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 0)
 	name := ""
 	for result.Next() {
@@ -187,7 +187,7 @@ ORDER BY main_group, sub_group, name;`, PUBLIC, PRIVATE, &name)
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	arr := make([]Organisation, 0)
 	org := Organisation{}
 	for result.Next() {
@@ -207,7 +207,7 @@ ORDER BY name;`, &name)
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	names := make([]string, 0)
 	orgName := ""
 	for result.Next() {
@@ -272,7 +272,7 @@ ORDER BY main_group, sub_group, name;`, HIDDEN)
 	if err != nil {
 		return nil, err
 	}
-	defer result.Close()
+	defer closeRows(result)
 	arr := make([]Organisation, 0)
 	org := Organisation{}
 	for result.Next() {

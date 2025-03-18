@@ -151,7 +151,7 @@
                 <th colspan="{{.AnswerAmount}}" class="contrast">{{/*templates-36*/}}{{if .Type.IsRankedVoting}}Rang{{else}}Stimme(n){{end}}</th>
             </tr>
             <tr>
-                {{range .IterableAnswers}}
+                {{range .Answers}}
                     <th class="contrast">{{.}}</th>
                 {{end}}
             </tr>
