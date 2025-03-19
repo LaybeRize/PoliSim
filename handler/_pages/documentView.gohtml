@@ -28,7 +28,7 @@
                         <i class="bi bi-incoming"></i>
                     {{- end}} {{$tag.Text}}<br>
                     <i>{{/*documentView-2*/}}Hinzugefügt am {{$tag.GetTimeWritten $acc}}</i>{{if $tag.HasLinks}}<br>
-                        {{range $link := $tag.QueriedLinks}}
+                        {{range $link := $tag.Links}}
                             <a href="/view/document/{{$link}}">{{$link}}</a>
                         {{end}}
                     {{end}}

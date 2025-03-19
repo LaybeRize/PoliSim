@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"github.com/lib/pq"
 )
 
@@ -63,81 +64,101 @@ const (
 	PRIVATE
 	SECRET
 	HIDDEN
-
-	// Todo transfer to migration
-	tableDefinition = `CREATE TABLE organisation(
-    name TEXT PRIMARY KEY,
-    main_group TEXT NOT NULL,
-    sub_group TEXT NOT NULL,
-    visibility INT NOT NULL,
-    flair TEXT NOT NULL,
-    users TEXT[] NOT NULL,
-    admins TEXT[] NOT NULL
-);
-CREATE TABLE organisation_to_account(
-    organisation_name TEXT NOT NULL,
-    account_name TEXT NOT NULL,
-    is_admin BOOLEAN NOT NULL,
-    CONSTRAINT fk_organisation_name
-        FOREIGN KEY(organisation_name) REFERENCES organisation(name) ON UPDATE CASCADE,
-    CONSTRAINT fk_account_name
-        FOREIGN KEY(account_name) REFERENCES account(name)
-);
-CREATE VIEW organisation_linked AS
-    SELECT organisation.*, ota.account_name, ota.is_admin, ownership.owner_name FROM organisation
-    LEFT JOIN organisation_to_account ota ON organisation.name = ota.organisation_name
-    LEFT JOIN ownership ON ota.account_name = ownership.account_name;`
 )
 
 func CreateOrganisation(org *Organisation, userNames []string, adminNames []string) error {
 	var err error
+	var tx *sql.Tx
 	if org.Visibility == HIDDEN {
 		_, err = postgresDB.Exec(`
 INSERT INTO organisation (name, main_group, sub_group, visibility, flair, users, admins) 
-	VALUES ($1, $2, $3, $4, $5, '{}', '{}')`, &org.Name, &org.MainType, &org.SubType, &org.Visibility, &org.Flair)
+	VALUES ($1, $2, $3, $4, $5, '{}', '{}');`, &org.Name, &org.MainType, &org.SubType, &org.Visibility, &org.Flair)
 	} else {
-		_, err = postgresDB.Exec(`
+		tx, err = postgresDB.Begin()
+		if err != nil {
+			return err
+		}
+		defer rollback(tx)
+		_, err = tx.Exec(`
 INSERT INTO organisation (name, main_group, sub_group, visibility, flair, users, admins) 
 	VALUES ($1, $2, $3, $4, $5, 
-	        ARRAY(SELECT name FROM account WHERE name = ANY($5) AND blocked = false), 
-	        ARRAY(SELECT name FROM account WHERE name = ANY($6) AND (NOT (name = ANY($5))) AND blocked = false));
--- Insert into connection table
-INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
-SELECT $1 AS organisation_name, name, false AS is_admin FROM account
-WHERE name = ANY($5) AND blocked = false;
-INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
-SELECT $1 AS organisation_name, name, true AS is_admin FROM account
-WHERE name = ANY($6) AND (NOT (name = ANY($5))) AND blocked = false;`,
+	        ARRAY(SELECT name FROM account WHERE name = ANY($6) AND blocked = false), 
+	        ARRAY(SELECT name FROM account WHERE name = ANY($7) AND (NOT (name = ANY($6))) AND blocked = false));`,
 			&org.Name, &org.MainType, &org.SubType, &org.Visibility, &org.Flair,
 			pq.Array(userNames), pq.Array(adminNames))
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
+SELECT $1 AS organisation_name, name, false AS is_admin FROM account
+WHERE name = ANY($2) AND blocked = false;`,
+			&org.Name, pq.Array(userNames))
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
+SELECT $1 AS organisation_name, name, true AS is_admin FROM account
+WHERE name = ANY($3) AND (NOT (name = ANY($2))) AND blocked = false;`,
+			&org.Name, pq.Array(userNames), pq.Array(adminNames))
+		if err != nil {
+			return err
+		}
+		err = tx.Commit()
 	}
 	return err
 }
 
 func UpdateOrganisation(oldName string, org *Organisation) error {
-	_, err := postgresDB.Exec(`
-DELETE FROM organisation_to_account WHERE organisation_name = $1;
+	tx, err := postgresDB.Begin()
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	_, err = tx.Exec(`DELETE FROM organisation_to_account WHERE organisation_name = $1;`, &oldName)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`
 UPDATE organisation SET name = $2, main_group = $3, sub_group = $4, visibility = $5, flair = $6, 
                         users = '{}', admins = '{}' WHERE name = $1;`,
 		&oldName, &org.Name, &org.MainType, &org.SubType, &org.Visibility, &org.Flair)
-	return err
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func AddOrganisationMember(org *Organisation, userNames []string, adminNames []string) error {
 	if org.Visibility == HIDDEN {
 		return nil
 	}
-	_, err := postgresDB.Exec(`
+	tx, err := postgresDB.Begin()
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	_, err = tx.Exec(`
 UPDATE organisation SET users = ARRAY(SELECT name FROM account WHERE name = ANY($2) AND blocked = false), 
                         admins = ARRAY(SELECT name FROM account WHERE name = ANY($3) AND (NOT (name = ANY($2))) AND blocked = false) 
-                    WHERE name = $1;
+                    WHERE name = $1;`, &org.Name, pq.Array(userNames), pq.Array(adminNames))
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`
 INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
 SELECT $1 AS organisation_name, name, false AS is_admin FROM account
-WHERE name = ANY($2) AND blocked = false;
+WHERE name = ANY($2) AND blocked = false;`, &org.Name, pq.Array(userNames))
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`
 INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
 SELECT $1 AS organisation_name, name, true AS is_admin FROM account
 WHERE name = ANY($3) AND (NOT (name = ANY($2))) AND blocked = false;`, &org.Name, pq.Array(userNames), pq.Array(adminNames))
-	return err
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func GetFullOrganisationInfo(name string) (*Organisation, []string, []string, error) {
@@ -146,7 +167,7 @@ func GetFullOrganisationInfo(name string) (*Organisation, []string, []string, er
 	admin := make([]string, 0)
 	err := postgresDB.QueryRow(`SELECT name, main_group, sub_group, visibility, flair, users, admins
     FROM organisation WHERE name = $1;`, &name).Scan(&organisation.Name, &organisation.MainType, &organisation.SubType,
-		&organisation.Visibility, &organisation.Flair, pq.Array(user), pq.Array(admin))
+		&organisation.Visibility, &organisation.Flair, pq.Array(&user), pq.Array(&admin))
 	return organisation, user, admin, err
 }
 
@@ -201,7 +222,7 @@ ORDER BY main_group, sub_group, name;`, PUBLIC, PRIVATE, &name)
 }
 
 func GetOrganisationNamesAdminIn(name string) ([]string, error) {
-	result, err := postgresDB.Query(`SELECT name, main_group, sub_group, visibility, flair 
+	result, err := postgresDB.Query(`SELECT name
 FROM organisation_linked WHERE is_admin = true AND account_name = $1
 ORDER BY name;`, &name)
 	if err != nil {
@@ -231,7 +252,7 @@ func GetFullOrganisationInfoForUserView(account *Account, orgName string) (*Orga
 	err := postgresDB.QueryRow(`SELECT name, main_group, sub_group, visibility, flair, users, admins
     FROM organisation_linked WHERE (visibility = $1 OR visibility = $2 OR owner_name = $3) AND name = $4
     LIMIT 1;`, PUBLIC, PRIVATE, &name, &orgName).Scan(&organisation.Name, &organisation.MainType, &organisation.SubType,
-		&organisation.Visibility, &organisation.Flair, pq.Array(user), pq.Array(admin))
+		&organisation.Visibility, &organisation.Flair, pq.Array(&user), pq.Array(&admin))
 	return organisation, user, admin, err
 }
 

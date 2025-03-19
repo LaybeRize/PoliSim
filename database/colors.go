@@ -64,17 +64,6 @@ func RemoveColorPalette(name string, acc *Account) (*ColorPalette, error) {
 }
 
 func loadColorPalettesFromDB() {
-	//Todo: move this into the migration function
-	_, err := postgresDB.Exec(`CREATE TABLE colors (
-    name TEXT PRIMARY KEY,
-    background TEXT,
-    text TEXT,
-    link TEXT
-)`)
-	if err != nil {
-		log.Fatalf("Could not create postgres color tabel: %v", err)
-	}
-
 	results, err := postgresDB.Query("SELECT name, background, text, link FROM colors;")
 	if err != nil {
 		log.Fatalf("Could not read postgres color tabel: %v", err)

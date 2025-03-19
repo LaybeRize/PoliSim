@@ -78,8 +78,8 @@ func main() {
 	http.HandleFunc("GET /search/publications", newspaper.GetSearchPublicationsPage)
 	http.HandleFunc("PUT /search/publications", newspaper.PutSearchPublicationPage)
 	http.HandleFunc("GET /publication/view/{id}", newspaper.GetSpecificPublicationPage)
-	http.HandleFunc("PATCH /publicate/{id}", newspaper.PatchPublishPublication)
-	http.HandleFunc("DELETE /article/{id}", newspaper.DeleteArticle)
+	http.HandleFunc("PATCH /publish/{id}", newspaper.PatchPublishPublication)
+	http.HandleFunc("PATCH /article/delete/{id}", newspaper.DeleteArticle)
 
 	http.HandleFunc("GET /create/article", newspaper.GetCreateArticlePage)
 	http.HandleFunc("GET /newspaper/for/account", newspaper.GetFindNewspaperForAccountPage)

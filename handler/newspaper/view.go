@@ -89,7 +89,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 
 	transaction, err := database.RejectableArticle(request.PathValue("id"))
 	if err != nil {
-		slog.Debug("Possible error while trying to localte article", "error", err)
+		slog.Debug("Possible error while trying to locate article", "error", err)
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
 			Message: loc.NewspaperErrorFindingArticleToReject,
 			IsError: true,

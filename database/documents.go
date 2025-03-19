@@ -74,57 +74,6 @@ type (
 	}
 )
 
-// Todo move this to migration
-const documentTableCreateStatement = `
-CREATE TABLE document (
-    id TEXT PRIMARY KEY,
-    type INT NOT NULL,
-    organisation TEXT NOT NULL,
-    organisation_name TEXT NOT NULL,
-    title TEXT NOT NULL,
-    author  TEXT NOT NULL,
-    flair  TEXT NOT NULL,
-    body  TEXT NOT NULL,
-    written TIMESTAMP NOT NULL,
-    end_time TIMESTAMP,
-    public  BOOLEAN NOT NULL,
-    removed BOOLEAN NOT NULL,
-    member_participation BOOLEAN NOT NULL,
-    admin_participation BOOLEAN NOT NULL,
-    extra_info jsonb NOT NULL,
-    CONSTRAINT fk_organisation_name
-        FOREIGN KEY (organisation_name) REFERENCES organisation(name) ON UPDATE CASCADE
-);
-CREATE TABLE document_to_account (
-    document_id TEXT NOT NULL,
-    account_name TEXT NOT NULL,
-    participant BOOLEAN NOT NULL,
-    CONSTRAINT fk_document_id
-        FOREIGN KEY (document_id) REFERENCES document(id),
-    CONSTRAINT fk_account_name
-        FOREIGN KEY (account_name) REFERENCES account(name)
-);
-CREATE TABLE comment_to_document (
-	comment_id TEXT PRIMARY KEY,
-	document_id TEXT NOT NULL,
-    author  TEXT NOT NULL,
-    flair  TEXT NOT NULL,
-    body  TEXT NOT NULL,
-    written TIMESTAMP NOT NULL,
-    removed BOOLEAN NOT NULL,
-    CONSTRAINT fk_document_id
-        FOREIGN KEY (document_id) REFERENCES document(id)	
-);
-CREATE VIEW document_linked AS
-SELECT id, type, organisation, doc.organisation_name, title, author, flair, body, written, 
-       end_time, public, removed, member_participation, admin_participation, extra_info, 
-       dta.account_name as doc_account, ota.account_name as organisation_account, is_admin, 
-       dta.participant as participant, owner_name FROM document doc
-	LEFT JOIN document_to_account dta ON doc.id = dta.document_id
-	LEFT JOIN organisation_to_account ota ON doc.organisation_name = ota.organisation_name
-	LEFT JOIN ownership own ON ota.account_name = own.account_name OR dta.account_name = own.account_name;
-`
-
 func (s *SmallDocument) IsPost() bool { return s.Type == DocTypePost }
 
 func (s *SmallDocument) IsDiscussion() bool { return s.Type == DocTypeDiscussion }
@@ -161,7 +110,7 @@ func (d *Document) ShowRemovedMessage(acc *Account) bool {
 }
 
 func (d *Document) HasResults() bool {
-	return d.Result != nil
+	return len(d.Result) != 0
 }
 
 func (d *Document) HasComments() bool { return len(d.Comments) != 0 }
@@ -256,7 +205,7 @@ func (c *DocumentComment) GetAuthor() string {
 	return c.Author + "; " + c.Flair
 }
 
-func CreateDocument(document *Document) error {
+func CreateDocument(document *Document, acc *Account) error {
 	tx, err := postgresDB.Begin()
 	if err != nil {
 		return err
@@ -287,7 +236,7 @@ func CreateDocument(document *Document) error {
 
 	_, err = tx.Exec(`INSERT INTO document (id, type, organisation, organisation_name, title, author, flair, body, written, 
                       end_time, public, removed, member_participation, admin_participation, extra_info) 
-VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9, false, $10, $11, $12, $13);`,
+VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9, $10, false, $11, $12, $13);`,
 		document.ID, document.Type, document.Organisation, document.Title, document.Author, document.Flair,
 		document.Body, time.Now().UTC(), document.End, document.Public, document.MemberParticipation,
 		document.AdminParticipation, &document)
@@ -296,7 +245,7 @@ VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9, false, $10, $11, $12, $13);`,
 	}
 
 	if !document.Public {
-		_, err = postgresDB.Exec(`INSERT INTO document_to_account (document_id, account_name, participant) 
+		_, err = tx.Exec(`INSERT INTO document_to_account (document_id, account_name, participant) 
 SELECT $1 AS document_id, name, false AS participant FROM account
 WHERE name = ANY($2);`, &document.ID, pq.Array(document.Reader))
 		if err != nil {
@@ -305,7 +254,7 @@ WHERE name = ANY($2);`, &document.ID, pq.Array(document.Reader))
 	}
 
 	if document.Type != DocTypePost {
-		_, err = postgresDB.Exec(`INSERT INTO document_to_account (document_id, account_name, participant) 
+		_, err = tx.Exec(`INSERT INTO document_to_account (document_id, account_name, participant) 
 SELECT $1 AS document_id, name, true AS participant FROM account
 WHERE name = ANY($2);`, &document.ID, pq.Array(document.Participants))
 		if err != nil {
@@ -313,24 +262,33 @@ WHERE name = ANY($2);`, &document.ID, pq.Array(document.Participants))
 		}
 	}
 
+	var result *sql.Rows
 	if document.Type == DocTypeVote {
-		//Todo make this after reworking the vote system
-		// Idea: Two separate table and while copying return the value, check that it is at least one via Next() and if not call Close() on the value and
-		// return the correct DocumentHasNoAttachedVotes error
-		/*result, err = tx.Run(`
-		MATCH (a:Account)-[r:MANAGES]->(v:Vote) WHERE a.name = $user AND v.id IN $ids
-		MATCH (d:Document) WHERE d.id = $id
-		DELETE r
-		MERGE (d)-[:LINKS]->(v)
-		RETURN v.id;`, map[string]any{
-					"user": acc.Name,
-					"ids":  document.VoteIDs,
-					"id":   document.ID})
-				if err != nil {
-					return err
-				} else if !result.Peek() {
-					return DocumentHasNoAttachedVotes
-				}*/
+		document.Links = make([]VoteInfo, 0)
+		document.Result = make([]AccountVotes, 0)
+
+		result, err = tx.Query(`INSERT INTO document_to_vote (id, document_id, question, answers, type, max_votes, show_votes, anonymous, end_date, vote_info) 
+SELECT id, $1 AS document_id, question, answers, type, max_votes, show_votes, anonymous, $4 as end_date, vote_info FROM personal_votes WHERE account_name = $2 AND id = ANY($3)
+ORDER BY id RETURNING id, question;`, document.ID, acc.GetName(), pq.Array(document.VoteIDs), document.End)
+		if err != nil {
+			return err
+		}
+		defer closeRows(result)
+
+		hasAnyResults := false
+		info := VoteInfo{}
+		for result.Next() {
+			hasAnyResults = true
+			err = result.Scan(&info.ID, &info.Question)
+			if err != nil {
+				return err
+			}
+			document.Links = append(document.Links, info)
+		}
+		if !hasAnyResults {
+			return DocumentHasNoAttachedVotes
+		}
+
 		_, err = tx.Exec(`UPDATE document SET extra_info = $2 WHERE id = $1`, document.ID, &document)
 		if err != nil {
 			return err
@@ -346,7 +304,7 @@ func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
        written, body, public, removed, member_participation, admin_participation, end_time, extra_info, is_admin FROM document_linked 
           WHERE id = $1 AND (public = true OR owner_name = $2 OR $3 = true) ORDER BY is_admin DESC NULLS LAST LIMIT 1;`,
 		id, acc.Name, acc.IsAtLeastAdmin()).Scan(
-		&doc.ID, &doc.Type, &doc.Organisation, &doc.Type, &doc.Author, &doc.Flair, &doc.Written, &doc.Body,
+		&doc.ID, &doc.Type, &doc.Organisation, &doc.Title, &doc.Author, &doc.Flair, &doc.Written, &doc.Body,
 		&doc.Public, &doc.Removed, &doc.MemberParticipation, &doc.AdminParticipation, &doc.End, doc, &doc.AllowedToAddTags)
 	doc.AllowedToAddTags = doc.AllowedToAddTags || acc.IsAtLeastAdmin()
 
@@ -405,6 +363,7 @@ func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {
 	err = tx.QueryRow(`SELECT ARRAY(SELECT id FROM document WHERE id = ANY($1) AND id <> $2)`,
 		pq.Array(tag.Links), docID).Scan(pq.Array(&docIDs))
 
+	tag.Written = time.Now().UTC()
 	tag.Outgoing = true
 	tag.Links = docIDs
 

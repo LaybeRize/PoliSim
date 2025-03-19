@@ -54,44 +54,51 @@ func removeOldTitleFromMap(titleName string) {
 	}
 }
 
-// Todo: transfer to migration
-const titleTableDefinition = `CREATE TABLE title(
-    name TEXT PRIMARY KEY,
-    main_group TEXT NOT NULL,
-    sub_group TEXT NOT NULL,
-    flair TEXT NOT NULL
-);
-CREATE TABLE title_to_account(
-    title_name TEXT NOT NULL,
-    account_name TEXT NOT NULL,
-    CONSTRAINT fk_organisation_name
-        FOREIGN KEY(title_name) REFERENCES title(name) ON UPDATE CASCADE,
-    CONSTRAINT fk_account_name
-        FOREIGN KEY(account_name) REFERENCES account(name)
-);`
-
 func CreateTitle(title *Title, holderNames []string) error {
-	_, err := postgresDB.Exec(`
+	tx, err := postgresDB.Begin()
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	_, err = tx.Exec(`
 INSERT INTO title (name, main_group, sub_group, flair) 
-	VALUES ($1, $2, $3, $4);
--- Insert into connection table
+	VALUES ($1, $2, $3, $4);`,
+		&title.Name, &title.MainType, &title.SubType, &title.Flair)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`
 INSERT INTO title_to_account (title_name, account_name) 
 SELECT $1 AS title_name, name FROM account
-WHERE name = ANY($5) AND blocked = false;`,
-		&title.Name, &title.MainType, &title.SubType, &title.Flair,
-		pq.Array(holderNames))
-	if err == nil {
+WHERE name = ANY($2) AND blocked = false;`,
+		&title.Name, pq.Array(holderNames))
+	if err != nil {
+		return err
+	}
+	if err = tx.Commit(); err == nil {
 		addTitleToMap(title)
 	}
 	return err
 }
 
 func UpdateTitle(oldTitle string, title *Title) error {
-	_, err := postgresDB.Exec(`
-DELETE FROM title_to_account WHERE title_name = $1;
+	tx, err := postgresDB.Begin()
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	_, err = tx.Exec(`
+DELETE FROM title_to_account WHERE title_name = $1;`, &oldTitle)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`
 UPDATE title SET name = $2, main_group = $3, sub_group = $4, flair = $5 WHERE name = $1;`,
 		&oldTitle, &title.Name, &title.MainType, &title.SubType, &title.Flair)
-	if err == nil {
+	if err != nil {
+		return err
+	}
+	if err = tx.Commit(); err == nil {
 		removeOldTitleFromMap(oldTitle)
 		addTitleToMap(title)
 	}
@@ -108,7 +115,7 @@ WHERE name = ANY($2) AND blocked = false;`,
 }
 
 func GetTitleNameList() ([]string, error) {
-	result, err := postgresDB.Query(`SELECT name FROM title ORDER BY name`)
+	result, err := postgresDB.Query(`SELECT name FROM title ORDER BY name;`)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +134,7 @@ func GetTitleNameList() ([]string, error) {
 
 func GetTitleByName(name string) (*Title, error) {
 	title := &Title{}
-	err := postgresDB.QueryRow(`SELECT name, main_group, sub_group, flair FROM title WHERE name = $1`,
+	err := postgresDB.QueryRow(`SELECT name, main_group, sub_group, flair FROM title WHERE name = $1;`,
 		&name).Scan(&title.Name, &title.MainType, &title.SubType, &title.Flair)
 	if err != nil {
 		return nil, err
@@ -140,8 +147,8 @@ func GetTitleAndHolder(name string) (*Title, []string, error) {
 	names := make([]string, 0)
 	err := postgresDB.QueryRow(`SELECT name, main_group, sub_group, flair, 
        ARRAY(SELECT account_name FROM title_to_account WHERE title_name = $1 ORDER BY account_name) AS account 
-       FROM title WHERE name = $1`,
-		&name).Scan(&title.Name, &title.MainType, &title.SubType, &title.Flair, pq.Array(names))
+       FROM title WHERE name = $1;`,
+		&name).Scan(&title.Name, &title.MainType, &title.SubType, &title.Flair, pq.Array(&names))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -149,7 +156,7 @@ func GetTitleAndHolder(name string) (*Title, []string, error) {
 }
 
 func GetAllTitles() ([]Title, error) {
-	result, err := postgresDB.Query(`SELECT name, main_group, sub_group FROM title`)
+	result, err := postgresDB.Query(`SELECT name, main_group, sub_group FROM title;`)
 	if err != nil {
 		return nil, err
 	}

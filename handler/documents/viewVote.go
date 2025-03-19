@@ -58,6 +58,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 	id := request.PathValue("id")
 	answers, voteType, maxVotes, err := database.GetAnswersAndTypeForVote(id, acc)
 	if err != nil {
+		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentNotAllowedToVoteOnThis})
 		return

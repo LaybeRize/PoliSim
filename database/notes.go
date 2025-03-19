@@ -89,36 +89,26 @@ func (b *BlackboardNote) GetTimePostedAt(a *Account) string {
 	return b.PostedAt.Format(loc.TimeFormatString)
 }
 
-// Todo move this to migration
-const tableDefinitionNotes = `
-CREATE TABLE blackboard_note(
-	id TEXT PRIMARY KEY,
-	title TEXT NOT NULL,
-    author  TEXT NOT NULL,
-    flair  TEXT NOT NULL,
-    posted TIMESTAMP NOT NULL,
-    body  TEXT NOT NULL,
-	blocked BOOLEAN NOT NULL
-);
-CREATE TABLE blackboard_references(
-	base_note_id TEXT NOT NULL,
-	reference_id TEXT NOT NULL,
-	CONSTRAINT fk_base_note_id
-        FOREIGN KEY(base_note_id) REFERENCES blackboard_note(id),
-    CONSTRAINT fk_reference_id
-        FOREIGN KEY(reference_id) REFERENCES blackboard_note(id)
-);
-`
-
 func CreateNote(note *BlackboardNote, references []string) error {
-	_, err := postgresDB.Exec(`INSERT INTO blackboard_note (id, title, author, flair, posted, body, blocked) 
-VALUES ($1, $2, $3, $4, $5, $6, $7);
-INSERT INTO blackboard_references (base_note_id, reference_id)  
+	tx, err := postgresDB.Begin()
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	_, err = tx.Exec(`INSERT INTO blackboard_note (id, title, author, flair, posted, body, blocked) 
+VALUES ($1, $2, $3, $4, $5, $6, $7);`,
+		&note.ID, &note.Title, &note.Author, &note.Flair, time.Now().UTC(), &note.Body, &note.Removed)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`INSERT INTO blackboard_references (base_note_id, reference_id)  
 SELECT $1 AS base_note_id, id FROM blackboard_note
-WHERE id = ANY($8);`,
-		&note.ID, &note.Title, &note.Author, &note.Flair, time.Now().UTC(), &note.Body, &note.Removed,
-		pq.Array(references))
-	return err
+WHERE id = ANY($2);`,
+		&note.ID, pq.Array(references))
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func UpdateNoteRemovedStatus(note *BlackboardNote) error {

@@ -17,29 +17,6 @@ const (
 	Declined
 	NoDecision
 	NoSignPossible
-
-	//Todo move this to migrate
-	letterTableDefinition = `
-CREATE TABLE letter(
-	id TEXT PRIMARY KEY,
-	title TEXT NOT NULL,
-	author TEXT NOT NULL,
-	flair TEXT NOT NULL,
-	signable BOOLEAN NOT NULL,
-	written TIMESTAMP NOT NULL,
-	body TEXT NOT NULL
-);
-CREATE TABLE letter_to_account(
-	letter_id TEXT NOT NULL,
-	account_name TEXT NOT NULL,
-	has_read BOOLEAN NOT NULL,
-	sign_status INT NOT NULL,
-	CONSTRAINT fk_letter_id
-        FOREIGN KEY(letter_id) REFERENCES letter(id),
-    CONSTRAINT fk_account_name
-        FOREIGN KEY(account_name) REFERENCES account(name)
-);
-`
 )
 
 type ReducedLetter struct {
@@ -157,14 +134,24 @@ func createLetter(tx *sql.Tx, letter *Letter) error {
 		signature = NoSignPossible
 		authorSign = NoSignPossible
 	}
-	_, err = tx.Exec(`INSERT INTO letter_to_account (letter_id, account_name, has_read, sign_status) 
-VALUES ($1, $2, true, $5);
+
+	if letter.Author != loc.AdministrationName {
+		_, err = tx.Exec(`INSERT INTO letter_to_account (letter_id, account_name, has_read, sign_status) 
+VALUES ($1, $2, true, $3);`, &letter.ID, &letter.Author, &authorSign)
+		if err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+
+	_, err = tx.Exec(`
 INSERT INTO letter_to_account (letter_id, account_name, has_read, sign_status)
-SELECT $1 AS letter_id, name, false AS has_read, $4 AS sign_status FROM account
-WHERE name = ANY($3) AND blocked = false;`, &letter.ID, &letter.Author, pq.Array(letter.Reader), &signature, &authorSign)
+SELECT $1 AS letter_id, name, false AS has_read, $3 AS sign_status FROM account
+WHERE name = ANY($2) AND blocked = false;`, &letter.ID, pq.Array(letter.Reader), &signature)
 	if err != nil {
 		_ = tx.Rollback()
 	}
+
 	return err
 }
 

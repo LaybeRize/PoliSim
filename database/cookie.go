@@ -153,19 +153,6 @@ func doCleanup() {
 }
 
 func loadCookiesFromDB() {
-	//Todo: move this into the migration function
-	_, err := postgresDB.Exec(`CREATE TABLE cookies (
-    session_key TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    update_at TIMESTAMP NOT NULL,
-    CONSTRAINT account_name 
-        FOREIGN KEY(name) REFERENCES account(name)
-)`)
-	if err != nil {
-		log.Fatalf("Could not create postgres cookies tabel: %v", err)
-	}
-
 	results, err := postgresDB.Query(`
 SELECT account.username, account.password, account.role, account.blocked, account.font_size, account.time_zone,
     cookies.session_key, cookies.name, cookies.expires_at, cookies.update_at 

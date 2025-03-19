@@ -97,6 +97,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 
 	err = database.CreateNote(note, references)
 	if err != nil {
+		slog.Error(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NoteErrorWhileCreatingNote})
 		return

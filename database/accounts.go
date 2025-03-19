@@ -20,30 +20,6 @@ type Account struct {
 	TimeZone *time.Location
 }
 
-// Todo move this to migration
-const accountTableCreateStatement = ` 
-CREATE TABLE account (
- 	name TEXT PRIMARY KEY,
- 	username TEXT UNIQUE NOT NULL,
- 	password TEXT NOT NULL,
- 	role INT NOT NULL,
- 	blocked BOOLEAN NOT NULL,
- 	font_size INT NOT NULL,
- 	time_zone TEXT NOT NULL
-);
-CREATE INDEX account_is_blocked ON account USING hash (blocked);
-CREATE TABLE ownership (
-    account_name TEXT NOT NULL,
-    owner_name TEXT NOT NULL,
-    CONSTRAINT fk_account_name
-        FOREIGN KEY(account_name) REFERENCES account(name),
-    CONSTRAINT fk_owner_name
-        FOREIGN KEY(owner_name) REFERENCES account(name)
-);
-CREATE INDEX ownership_account_name ON ownership USING hash (account_name);
-CREATE INDEX ownership_owner_name ON ownership USING hash (owner_name);
-`
-
 func (a *Account) GetName() string {
 	if a == nil {
 		return ""
@@ -101,11 +77,23 @@ func CreateAccount(acc *Account) error {
 	if acc.Name == loc.AdministrationName {
 		return NotAllowedError
 	}
-	_, err := postgresDB.Exec(`
-INSERT INTO account(name, username, password, role, blocked, font_size, time_zone) VALUES ($1,$2,$3,$4,$5,100,'UTC'); 
-INSERT INTO ownership(account_name, owner_name) VALUES ($1, $1);`,
+	tx, err := postgresDB.Begin()
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	_, err = tx.Exec(`
+INSERT INTO account(name, username, password, role, blocked, font_size, time_zone) VALUES ($1,$2,$3,$4,$5,100,'UTC');`,
 		&acc.Name, &acc.Username, &acc.Password, &acc.Role, &acc.Blocked)
-	return err
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`INSERT INTO ownership(account_name, owner_name) VALUES ($1, $1);`,
+		acc.Name)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func GetAccountByUsername(username string) (*Account, error) {
@@ -140,16 +128,37 @@ func GetAccountByName(name string) (*Account, error) {
 
 func UpdateAccount(acc *Account) error {
 	var err error
+	var tx *sql.Tx
 	if acc.Blocked {
-		_, err = postgresDB.Exec(`UPDATE account SET role = $2, blocked = true 
-                                     WHERE name = $1;
-DELETE FROM organisation_to_account WHERE account_name = $1;
-DELETE FROM title_to_account WHERE account_name = $1;
-DELETE FROM newspaper_to_account WHERE account_name = $1;
-UPDATE ownership SET owner_name = $1 WHERE account_name = $1;`, &acc.Name, &acc.Role)
+		tx, err = postgresDB.Begin()
+		if err != nil {
+			return err
+		}
+		defer rollback(tx)
+		_, err = tx.Exec(`UPDATE account SET role = $2, blocked = true WHERE name = $1;`, &acc.Name, &acc.Role)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`DELETE FROM organisation_to_account WHERE account_name = $1;`, &acc.Name)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`DELETE FROM title_to_account WHERE account_name = $1;`, &acc.Name)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`DELETE FROM newspaper_to_account WHERE account_name = $1;`, &acc.Name)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`UPDATE ownership SET owner_name = $1 WHERE account_name = $1;`, &acc.Name)
+		if err != nil {
+			return err
+		}
+		err = tx.Commit()
 	} else {
-		_, err = postgresDB.Exec(`UPDATE account SET role = $2, blocked = false 
-                                     WHERE name = $1;`, &acc.Name, &acc.Role)
+		_, err = postgresDB.Exec(`UPDATE account SET role = $2, blocked = false WHERE name = $1;`,
+			&acc.Name, &acc.Role)
 	}
 	if err == nil {
 		updateAccount(acc)

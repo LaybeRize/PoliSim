@@ -59,48 +59,23 @@ func (n *Publication) GetPublishedDate(a *Account) string {
 	return n.PublishedDate.Format(loc.TimeFormatString)
 }
 
-// Todo move to migration
-const newspaperCreatTableDefinition = `
-CREATE TABLE newspaper (
-    name TEXT PRIMARY KEY
-);
-CREATE TABLE newspaper_publication (
-    id TEXT PRIMARY KEY,
-    newspaper_name TEXT NOT NULL,
-    special BOOLEAN NOT NULL,
-    published BOOLEAN NOT NULL,
-    publish_date TIMESTAMP NOT NULL,
-    CONSTRAINT fk_newspaper_name
-        FOREIGN KEY (newspaper_name) REFERENCES newspaper(name)
-);
-CREATE TABLE newspaper_article (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    subtitle TEXT NOT NULL,
-    author TEXT NOT NULL,
-    flair TEXT NOT NULL,
-    html_body TEXT NOT NULL,
-    raw_body TEXT NOT NULL,
-    written TIMESTAMP NOT NULL,
-    publication_id TEXT NOT NULL,
-    CONSTRAINT fk_publication_id
-        FOREIGN KEY (publication_id) REFERENCES newspaper_publication(id)
-);
-CREATE TABLE newspaper_to_account (
-    newspaper_name TEXT NOT NULL,
-    account_name TEXT NOT NULL,
-    CONSTRAINT fk_newspaper_name
-        FOREIGN KEY (newspaper_name) REFERENCES newspaper(name),
-     CONSTRAINT fk_account_name
-        FOREIGN KEY (account_name) REFERENCES account(name)
-);`
-
 func CreateNewspaper(newspaper *Newspaper) error {
-	_, err := postgresDB.Exec(`INSERT INTO newspaper (name) VALUES ($1);
-INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) 
-                            VALUES ($2, $1, false, false, $3);`, &newspaper.Name, helper.GetUniqueID(newspaper.Name), time.Now().UTC())
-
-	return err
+	tx, err := postgresDB.Begin()
+	if err != nil {
+		return err
+	}
+	defer rollback(tx)
+	_, err = tx.Exec(`INSERT INTO newspaper (name) VALUES ($1);`, &newspaper.Name)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) 
+                            VALUES ($2, $1, false, false, $3);`,
+		&newspaper.Name, helper.GetUniqueID(newspaper.Name), time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func GetFullNewspaperInfo(name string) (*Newspaper, error) {
@@ -188,7 +163,7 @@ func CreateArticle(article *NewspaperArticle, special bool, newspaperName string
 	}
 	defer rollback(tx)
 	var id string
-	err = tx.QueryRow(`SELECT id FROM newspaper_publication WHERE newspaper_name = $1 AND special = $2;`,
+	err = tx.QueryRow(`SELECT id FROM newspaper_publication WHERE newspaper_name = $1 AND special = $2 AND published = false;`,
 		&newspaperName, &special).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) && special {
 		id, err = createSpecialPublication(tx, newspaperName)

@@ -13,7 +13,7 @@
     {{if eq (len .Articles) 0}}<p>{{/*newspaperPubView-4*/}}Für diese Publikation existieren noch keine Artikel</p>
     {{- else -}}
         {{if not $published}}
-            <button hx-patch="/publicate/{{.Publication.ID}}" hx-target="#page-body">
+            <button hx-patch="/publish/{{.Publication.ID}}" hx-target="#page-body">
                 {{/*newspaperPubView-5*/}}Publikation freigeben
             </button>
             {{template "message" .}}
@@ -35,7 +35,7 @@
             {{if not $published}}
                 <details>
                     <summary>{{/*newspaperPubView-8*/}}Artikel zurückweisen</summary>
-                    <form hx-delete="/article/{{.ID}}" hx-target="#page-body">
+                    <form hx-patch="/article/delete/{{.ID}}" hx-target="#page-body">
                         <label for="rejection">{{/*newspaperPubView-9*/}}Zurückweisungsgrund</label>
                         <textarea id="rejection" name="rejection" rows="3"></textarea>
                         <button>{{/*newspaperPubView-10*/}}Artikel zurückweisen</button>
