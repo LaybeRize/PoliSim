@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"html/template"
-	"log/slog"
 	"strings"
 	"time"
 )
@@ -471,26 +470,6 @@ func getDocumentListQuery(acc *Account, showBlocked bool, parameter []any) ([]an
 		}
 	}
 	return parameter, query
-}
-
-func GetPersonalDocumentList(amount int, page int, acc *Account) ([]SmallDocument, error) {
-	result, err := postgresDB.Query(`SELECT id, type, organisation, title, author, written, removed FROM document 
-    LEFT JOIN ownership ON ownership.account_name = author 
-WHERE owner_name = $3 ORDER BY written DESC OFFSET $1 LIMIT $2;`, (page-1)*amount, amount+1, acc.GetName())
-	if err != nil {
-		return nil, err
-	}
-	defer closeRows(result)
-	arr := make([]SmallDocument, 0)
-	trunc := SmallDocument{}
-	for result.Next() {
-		err = result.Scan(&trunc.ID, &trunc.Type, &trunc.Organisation, &trunc.Title, &trunc.Author, &trunc.Written, &trunc.Removed)
-		if err != nil {
-			return nil, err
-		}
-		arr = append(arr, trunc)
-	}
-	return arr, nil
 }
 
 func GetPersonalDocumentListForwards(amount int, timeStamp time.Time, acc *Account) ([]SmallDocument, error) {

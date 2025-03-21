@@ -155,10 +155,31 @@ WHERE name = ANY($2) AND blocked = false;`, &letter.ID, pq.Array(letter.Reader),
 	return err
 }
 
-func GetLetterList(viewer []string, amount int, page int) ([]ReducedLetter, error) {
+func GetLetterListForwards(viewer []string, amount int, timeStamp time.Time) ([]ReducedLetter, error) {
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, written, account_name, has_read FROM letter
- INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) 
- ORDER BY written DESC OFFSET $2 LIMIT $3;`, pq.Array(viewer), (page-1)*amount, amount+1)
+ INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) AND written <= $2
+ ORDER BY written DESC LIMIT $3;`, pq.Array(viewer), timeStamp, amount+1)
+	if err != nil {
+		return nil, err
+	}
+	defer closeRows(result)
+	list := make([]ReducedLetter, 0)
+	item := ReducedLetter{}
+	for result.Next() {
+		err = result.Scan(&item.ID, &item.Title, &item.Author, &item.Flair, &item.Written, &item.Recipient, &item.Viewed)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, item)
+	}
+	return list, err
+}
+
+func GetLetterListBackwards(viewer []string, amount int, timeStamp time.Time) ([]ReducedLetter, error) {
+	result, err := postgresDB.Query(`SELECT id, title, author, flair, written, account_name, has_read FROM (
+SELECT id, title, author, flair, written, account_name, has_read FROM letter
+ INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) AND written >= $2
+ ORDER BY written LIMIT $3) as let ORDER BY let.written DESC;`, pq.Array(viewer), timeStamp, amount+1)
 	if err != nil {
 		return nil, err
 	}

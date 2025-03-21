@@ -9,8 +9,6 @@ import (
 	"net/http"
 )
 
-// Todo use timestamps for paging in the future
-
 func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
@@ -23,7 +21,6 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	page := &handler.SearchLetterPage{
 		Account: query.GetTrimmedString("account"),
 		Amount:  query.GetInt("amount"),
-		Page:    query.GetInt("page"),
 	}
 
 	page.PossibleAccounts, err = database.GetMyAccountNames(acc)
@@ -34,12 +31,6 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	if acc.IsAtLeastAdmin() {
 		page.PossibleAccounts = append(page.PossibleAccounts, loc.AdministrationAccountName)
 	}
-	if page.Page < 1 {
-		page.Page = 1
-	}
-	if page.Amount < 10 || page.Amount > 50 {
-		page.Amount = 20
-	}
 	accounts := page.PossibleAccounts
 
 	if acc.IsAtLeastAdmin() && page.Account == loc.AdministrationAccountName {
@@ -48,14 +39,46 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		accounts = []string{page.Account}
 	}
 
-	page.Results, err = database.GetLetterList(accounts, page.Amount, page.Page)
-	page.HasPrevious = page.Page > 1
+	if page.Amount < 10 || page.Amount > 50 {
+		page.Amount = 20
+	}
+	var backward bool
+	page.PreviousItemTime, backward = query.GetUTCTime("backward", false)
+	page.NextItemTime, _ = query.GetUTCTime("forward", true)
+
+	if backward {
+		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime)
+	} else {
+		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime)
+	}
 	if err != nil {
 		slog.Debug(err.Error())
 		page.Results = make([]database.ReducedLetter, 0)
-	} else if len(page.Results) > page.Amount {
+	}
+
+	if len(page.Results) > 0 {
+		id := query.GetTrimmedString("id")
+		if !backward && id == page.Results[0].ID {
+			page.HasPrevious = true
+			page.PreviousItemTime = page.NextItemTime
+			page.PreviousItemID = id
+		} else if backward && id == page.Results[len(page.Results)-1].ID {
+			page.HasNext = true
+			page.NextItemTime = page.PreviousItemTime
+			page.NextItemID = id
+			page.Results = page.Results[:len(page.Results)-1]
+		}
+	}
+
+	if !backward && len(page.Results) > page.Amount {
 		page.HasNext = true
+		page.NextItemTime = page.Results[page.Amount].Written
+		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
+	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[0].Written
+		page.PreviousItemID = page.Results[0].ID
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -77,7 +100,6 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	page := &handler.SearchLetterPage{
 		Account: values.GetTrimmedString("account"),
 		Amount:  values.GetInt("amount"),
-		Page:    values.GetInt("page"),
 	}
 
 	page.PossibleAccounts, err = database.GetMyAccountNames(acc)
@@ -88,12 +110,6 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	if acc.IsAtLeastAdmin() {
 		page.PossibleAccounts = append(page.PossibleAccounts, loc.AdministrationAccountName)
 	}
-	if page.Page < 1 {
-		page.Page = 1
-	}
-	if page.Amount < 10 || page.Amount > 50 {
-		page.Amount = 20
-	}
 	accounts := page.PossibleAccounts
 
 	if acc.IsAtLeastAdmin() && page.Account == loc.AdministrationAccountName {
@@ -102,14 +118,46 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		accounts = []string{page.Account}
 	}
 
-	page.Results, err = database.GetLetterList(accounts, page.Amount, page.Page)
-	page.HasPrevious = page.Page > 1
+	if page.Amount < 10 || page.Amount > 50 {
+		page.Amount = 20
+	}
+	var backward bool
+	page.PreviousItemTime, backward = values.GetUTCTime("backward", false)
+	page.NextItemTime, _ = values.GetUTCTime("forward", true)
+
+	if backward {
+		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime)
+	} else {
+		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime)
+	}
 	if err != nil {
 		slog.Debug(err.Error())
 		page.Results = make([]database.ReducedLetter, 0)
-	} else if len(page.Results) > page.Amount {
+	}
+
+	if len(page.Results) > 0 {
+		id := values.GetTrimmedString("id")
+		if !backward && id == page.Results[0].ID {
+			page.HasPrevious = true
+			page.PreviousItemTime = page.NextItemTime
+			page.PreviousItemID = id
+		} else if backward && id == page.Results[len(page.Results)-1].ID {
+			page.HasNext = true
+			page.NextItemTime = page.PreviousItemTime
+			page.NextItemID = id
+			page.Results = page.Results[:len(page.Results)-1]
+		}
+	}
+
+	if !backward && len(page.Results) > page.Amount {
 		page.HasNext = true
+		page.NextItemTime = page.Results[page.Amount].Written
+		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
+	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[0].Written
+		page.PreviousItemID = page.Results[0].ID
 	}
 
 	writer.Header().Add("Hx-Push-Url", "/my/letter?"+values.Encode())

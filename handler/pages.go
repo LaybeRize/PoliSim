@@ -353,18 +353,21 @@ type SearchLetterPage struct {
 	Account          string
 	PossibleAccounts []string
 	Amount           int
-	Page             int
 	HasNext          bool
+	NextItemID       string
+	NextItemTime     time.Time
 	HasPrevious      bool
+	PreviousItemID   string
+	PreviousItemTime time.Time
 	Results          []database.ReducedLetter
 }
 
-func (p *SearchLetterPage) NextPage() int {
-	return p.Page + 1
+func (p *SearchLetterPage) NextPage() string {
+	return p.NextItemTime.Format(helper.ISOTimeFormat)
 }
 
-func (p *SearchLetterPage) PreviousPage() int {
-	return p.Page - 1
+func (p *SearchLetterPage) PreviousPage() string {
+	return p.PreviousItemTime.Format(helper.ISOTimeFormat)
 }
 
 func (p *SearchLetterPage) SetNavInfo(navInfo NavigationInfo) {
@@ -568,8 +571,8 @@ func (p *CreateVoteElementPage) getPageName() string {
 
 type SearchDocumentsPage struct {
 	NavInfo          NavigationInfo
-	Amount           int
 	ShowBlocked      bool
+	Amount           int
 	HasNext          bool
 	NextItemID       string
 	NextItemTime     time.Time
