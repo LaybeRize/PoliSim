@@ -40,11 +40,12 @@ func migrateToCurrentVersion() {
 	const currVersion = 1
 	log.Println("Setting up the database for current version ", currVersion)
 
+	// Todo create Indexes at least for document for better search performance on join
 	_, err := postgresDB.Exec(`
 -- Account --
 CREATE TABLE account (
  	name TEXT PRIMARY KEY,
- 	username TEXT UNIQUE NOT NULL,
+ 	username TEXT NOT NULL UNIQUE,
  	password TEXT NOT NULL,
  	role INT NOT NULL,
  	blocked BOOLEAN NOT NULL,
@@ -85,7 +86,7 @@ CREATE TABLE letter(
 	author TEXT NOT NULL,
 	flair TEXT NOT NULL,
 	signable BOOLEAN NOT NULL,
-	written TIMESTAMP NOT NULL,
+	written TIMESTAMP NOT NULL UNIQUE,
 	body TEXT NOT NULL
 );
 CREATE TABLE letter_to_account(
@@ -107,7 +108,7 @@ CREATE TABLE newspaper_publication (
     newspaper_name TEXT NOT NULL,
     special BOOLEAN NOT NULL,
     published BOOLEAN NOT NULL,
-    publish_date TIMESTAMP NOT NULL,
+    publish_date TIMESTAMP NOT NULL UNIQUE,
     CONSTRAINT fk_newspaper_name
         FOREIGN KEY (newspaper_name) REFERENCES newspaper(name)
 );
@@ -138,7 +139,7 @@ CREATE TABLE blackboard_note(
 	title TEXT NOT NULL,
     author  TEXT NOT NULL,
     flair  TEXT NOT NULL,
-    posted TIMESTAMP NOT NULL,
+    posted TIMESTAMP NOT NULL UNIQUE,
     body  TEXT NOT NULL,
 	blocked BOOLEAN NOT NULL
 );
@@ -183,7 +184,7 @@ CREATE TABLE document (
     author  TEXT NOT NULL,
     flair  TEXT NOT NULL,
     body  TEXT NOT NULL,
-    written TIMESTAMP NOT NULL,
+    written TIMESTAMP NOT NULL UNIQUE,
     end_time TIMESTAMP,
     public  BOOLEAN NOT NULL,
     removed BOOLEAN NOT NULL,
@@ -195,8 +196,8 @@ CREATE TABLE document (
 );
 CREATE TABLE document_to_account (
     document_id TEXT NOT NULL,
-    account_name TEXT NOT NULL,
-    participant BOOLEAN NOT NULL,
+    account_name TEXT,
+    participant BOOLEAN,
     CONSTRAINT fk_document_id
         FOREIGN KEY (document_id) REFERENCES document(id),
     CONSTRAINT fk_account_name
@@ -214,13 +215,19 @@ CREATE TABLE comment_to_document (
         FOREIGN KEY (document_id) REFERENCES document(id)	
 );
 CREATE VIEW document_linked AS
-SELECT id, type, organisation, doc.organisation_name, title, author, flair, body, written, 
-       end_time, public, removed, member_participation, admin_participation, extra_info, 
-       dta.account_name as doc_account, ota.account_name as organisation_account, is_admin, 
+SELECT id, type, organisation, doc.organisation_name, title, author, flair, body, written,
+       end_time, public, removed, member_participation, admin_participation, extra_info,
+       NULL as doc_account, ota.account_name as organisation_account, is_admin,
+       NULL as participant, owner_name FROM document doc
+    INNER JOIN organisation_to_account ota ON doc.organisation_name = ota.organisation_name
+    INNER JOIN ownership own ON ota.account_name = own.account_name
+UNION ALL
+SELECT id, type, organisation, doc.organisation_name, title, author, flair, body, written,
+       end_time, public, removed, member_participation, admin_participation, extra_info,
+       dta.account_name as doc_account, NULL as organisation_account, NULL as is_admin,
        dta.participant as participant, owner_name FROM document doc
-	LEFT JOIN document_to_account dta ON doc.id = dta.document_id
-	LEFT JOIN organisation_to_account ota ON doc.organisation_name = ota.organisation_name
-	LEFT JOIN ownership own ON ota.account_name = own.account_name OR dta.account_name = own.account_name;
+    INNER JOIN document_to_account dta ON doc.id = dta.document_id
+    LEFT JOIN ownership own ON dta.account_name = own.account_name;
 -- Title --
 CREATE TABLE title(
     name TEXT PRIMARY KEY,

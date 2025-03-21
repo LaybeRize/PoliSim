@@ -156,7 +156,7 @@ WHERE id = $1;`, &id).Scan(&note.ID, &note.Title, &note.Author, &note.Flair, &no
 }
 
 func SearchForNotes(acc *Account, amount int, page int, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
-	parameter := []any{(page - 1) * amount, amount}
+	parameter := []any{(page - 1) * amount, amount + 1}
 	query, parameter := queryAnalyzer(acc, parameter, input, showBlocked)
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM blackboard_note
 WHERE `+query+` ORDER BY posted DESC OFFSET $1 LIMIT $2;`, parameter...)

@@ -174,6 +174,26 @@ func (a AdvancedValues) GetInt(field string) int {
 	return res
 }
 
+const ISOTimeFormat = "2006-01-02T15:04:05.999999"
+
+func (a AdvancedValues) GetUTCTime(field string, onExceptionNow bool) (time.Time, bool) {
+	vs := a[field]
+	if len(vs) == 0 {
+		if onExceptionNow {
+			return time.Now().UTC(), false
+		}
+		return time.Time{}, false
+	}
+	val, err := time.ParseInLocation(ISOTimeFormat, strings.TrimSpace(vs[0]), time.UTC)
+	if err != nil {
+		if onExceptionNow {
+			return time.Now().UTC(), true
+		}
+		return time.Time{}, true
+	}
+	return val, true
+}
+
 func (a AdvancedValues) GetTime(field string, format string, location *time.Location) time.Time {
 	vs := a[field]
 	if len(vs) == 0 {

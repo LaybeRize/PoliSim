@@ -9,6 +9,8 @@ import (
 	"net/http"
 )
 
+// Todo use timestamps for paging in the future
+
 func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
@@ -46,10 +48,10 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		accounts = []string{page.Account}
 	}
 
-	page.Results, err = database.GetLetterList(accounts, page.Amount+1, page.Page)
+	page.Results, err = database.GetLetterList(accounts, page.Amount, page.Page)
 	page.HasPrevious = page.Page > 1
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Debug(err.Error())
 		page.Results = make([]database.ReducedLetter, 0)
 	} else if len(page.Results) > page.Amount {
 		page.HasNext = true
@@ -100,10 +102,10 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		accounts = []string{page.Account}
 	}
 
-	page.Results, err = database.GetLetterList(accounts, page.Amount+1, page.Page)
+	page.Results, err = database.GetLetterList(accounts, page.Amount, page.Page)
 	page.HasPrevious = page.Page > 1
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Debug(err.Error())
 		page.Results = make([]database.ReducedLetter, 0)
 	} else if len(page.Results) > page.Amount {
 		page.HasNext = true

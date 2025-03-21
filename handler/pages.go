@@ -2,6 +2,7 @@ package handler
 
 import (
 	"PoliSim/database"
+	"PoliSim/helper"
 	loc "PoliSim/localisation"
 	"embed"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type FullPage struct {
@@ -565,21 +567,24 @@ func (p *CreateVoteElementPage) getPageName() string {
 }
 
 type SearchDocumentsPage struct {
-	NavInfo     NavigationInfo
-	Amount      int
-	Page        int
-	ShowBlocked bool
-	HasNext     bool
-	HasPrevious bool
-	Results     []database.SmallDocument
+	NavInfo          NavigationInfo
+	Amount           int
+	ShowBlocked      bool
+	HasNext          bool
+	NextItemID       string
+	NextItemTime     time.Time
+	HasPrevious      bool
+	PreviousItemID   string
+	PreviousItemTime time.Time
+	Results          []database.SmallDocument
 }
 
-func (p *SearchDocumentsPage) NextPage() int {
-	return p.Page + 1
+func (p *SearchDocumentsPage) NextPage() string {
+	return p.NextItemTime.Format(helper.ISOTimeFormat)
 }
 
-func (p *SearchDocumentsPage) PreviousPage() int {
-	return p.Page - 1
+func (p *SearchDocumentsPage) PreviousPage() string {
+	return p.PreviousItemTime.Format(helper.ISOTimeFormat)
 }
 
 func (p *SearchDocumentsPage) SetNavInfo(navInfo NavigationInfo) {
@@ -591,20 +596,23 @@ func (p *SearchDocumentsPage) getPageName() string {
 }
 
 type SearchPersonalDocumentsPage struct {
-	NavInfo     NavigationInfo
-	Amount      int
-	Page        int
-	HasNext     bool
-	HasPrevious bool
-	Results     []database.SmallDocument
+	NavInfo          NavigationInfo
+	Amount           int
+	HasNext          bool
+	NextItemID       string
+	NextItemTime     time.Time
+	HasPrevious      bool
+	PreviousItemID   string
+	PreviousItemTime time.Time
+	Results          []database.SmallDocument
 }
 
-func (p *SearchPersonalDocumentsPage) NextPage() int {
-	return p.Page + 1
+func (p *SearchPersonalDocumentsPage) NextPage() string {
+	return p.NextItemTime.Format(helper.ISOTimeFormat)
 }
 
-func (p *SearchPersonalDocumentsPage) PreviousPage() int {
-	return p.Page - 1
+func (p *SearchPersonalDocumentsPage) PreviousPage() string {
+	return p.PreviousItemTime.Format(helper.ISOTimeFormat)
 }
 
 func (p *SearchPersonalDocumentsPage) SetNavInfo(navInfo NavigationInfo) {

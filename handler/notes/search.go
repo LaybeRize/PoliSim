@@ -8,6 +8,8 @@ import (
 	"net/http"
 )
 
+// Todo use timestamps for paging in the future
+
 func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	query := helper.GetAdvancedURLValues(request)
@@ -28,9 +30,9 @@ func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 
 	page.HasPrevious = page.Page > 1
 	var err error
-	page.Results, err = database.SearchForNotes(acc, page.Amount+1, page.Page, page.Query, page.ShowBlocked)
+	page.Results, err = database.SearchForNotes(acc, page.Amount, page.Page, page.Query, page.ShowBlocked)
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Debug(err.Error())
 		page.Results = make([]database.TruncatedBlackboardNotes, 0)
 
 	} else if len(page.Results) > page.Amount {
@@ -64,9 +66,9 @@ func PutSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 
 	page.HasPrevious = page.Page > 1
 
-	page.Results, err = database.SearchForNotes(acc, page.Amount+1, page.Page, page.Query, page.ShowBlocked)
+	page.Results, err = database.SearchForNotes(acc, page.Amount, page.Page, page.Query, page.ShowBlocked)
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Debug(err.Error())
 		page.Results = make([]database.TruncatedBlackboardNotes, 0)
 	}
 	if len(page.Results) > page.Amount {

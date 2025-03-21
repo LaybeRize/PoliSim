@@ -158,7 +158,7 @@ WHERE name = ANY($2) AND blocked = false;`, &letter.ID, pq.Array(letter.Reader),
 func GetLetterList(viewer []string, amount int, page int) ([]ReducedLetter, error) {
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, written, account_name, has_read FROM letter
  INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) 
- ORDER BY written DESC OFFSET $2 LIMIT $3;`, pq.Array(viewer), (page-1)*amount, amount)
+ ORDER BY written DESC OFFSET $2 LIMIT $3;`, pq.Array(viewer), (page-1)*amount, amount+1)
 	if err != nil {
 		return nil, err
 	}

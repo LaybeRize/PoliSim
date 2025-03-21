@@ -279,7 +279,7 @@ FROM newspaper_publication WHERE published = false ORDER BY special DESC, publis
 func GetPublishedNewspaper(amount int, page int, newspaper string) ([]Publication, error) {
 	result, err := postgresDB.Query(`SELECT id, newspaper_name, special, publish_date FROM newspaper_publication 
 WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' ORDER BY publish_date DESC OFFSET $1 LIMIT $2;`,
-		(page-1)*amount, amount, newspaper)
+		(page-1)*amount, amount+1, newspaper)
 	if err != nil {
 		return nil, err
 	}

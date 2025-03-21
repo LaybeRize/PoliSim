@@ -37,13 +37,13 @@
             <div class="wrapper note pager">
                 {{if .HasPrevious}}
                     <a hx-put="/my/documents"
-                       hx-vals='{"page": {{.PreviousPage}}}' hx-target="#page-body">
+                       hx-vals='{"backward": "{{.PreviousPage}}", "id": "{{.PreviousItemID}}"}' hx-target="#page-body">
                         {{/*documentPersonalSearch-6*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
                     <a hx-put="/my/documents"
-                       hx-vals='{"page": {{.NextPage}}}' hx-target="#page-body">
+                       hx-vals='{"forward": "{{.NextPage}}", "id": "{{.NextItemID}}"}' hx-target="#page-body">
                         {{/*documentPersonalSearch-7*/}}Nächste Seite &raquo;
                     </a>
                 {{end}}

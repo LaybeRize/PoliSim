@@ -47,6 +47,7 @@ const (
 	DocumentParticipationEveryMemberPlus = "Beteiligte: Alle Mitglieder der Organisation plus %s"
 	DocumentParticipationOnlyAdminsPlus  = "Beteiligte: Alle Administratoren der Organisation plus %s"
 	DocumentParticipationFormatString    = "Beteiligte: %s"
+	DocumentHasNoParticipants            = "Keine Beteiligten"
 
 	// Database Letter
 

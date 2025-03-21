@@ -4,8 +4,11 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/helper"
+	"log/slog"
 	"net/http"
 )
+
+// Todo use timestamps for paging in the future
 
 func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
@@ -26,8 +29,9 @@ func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request
 
 	page.HasPrevious = page.Page > 1
 	var err error
-	page.Results, err = database.GetPublishedNewspaper(page.Amount+1, page.Page, page.Query)
+	page.Results, err = database.GetPublishedNewspaper(page.Amount, page.Page, page.Query)
 	if err != nil {
+		slog.Debug(err.Error())
 		page.Results = make([]database.Publication, 0)
 	}
 	if len(page.Results) > page.Amount {
@@ -59,8 +63,9 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 	}
 
 	page.HasPrevious = page.Page > 1
-	page.Results, err = database.GetPublishedNewspaper(page.Amount+1, page.Page, page.Query)
+	page.Results, err = database.GetPublishedNewspaper(page.Amount, page.Page, page.Query)
 	if err != nil {
+		slog.Debug(err.Error())
 		page.Results = make([]database.Publication, 0)
 	}
 	if len(page.Results) > page.Amount {
