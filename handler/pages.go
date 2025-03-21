@@ -323,21 +323,24 @@ func (p *ViewPublicationPage) getPageName() string {
 }
 
 type SearchPublicationsPage struct {
-	NavInfo     NavigationInfo
-	Query       string
-	Amount      int
-	Page        int
-	HasNext     bool
-	HasPrevious bool
-	Results     []database.Publication
+	NavInfo          NavigationInfo
+	Query            string
+	Amount           int
+	HasNext          bool
+	NextItemID       string
+	NextItemTime     time.Time
+	HasPrevious      bool
+	PreviousItemID   string
+	PreviousItemTime time.Time
+	Results          []database.Publication
 }
 
-func (p *SearchPublicationsPage) NextPage() int {
-	return p.Page + 1
+func (p *SearchPublicationsPage) NextPage() string {
+	return p.NextItemTime.Format(helper.ISOTimeFormat)
 }
 
-func (p *SearchPublicationsPage) PreviousPage() int {
-	return p.Page - 1
+func (p *SearchPublicationsPage) PreviousPage() string {
+	return p.PreviousItemTime.Format(helper.ISOTimeFormat)
 }
 
 func (p *SearchPublicationsPage) SetNavInfo(navInfo NavigationInfo) {

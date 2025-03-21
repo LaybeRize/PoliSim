@@ -276,10 +276,31 @@ FROM newspaper_publication WHERE published = false ORDER BY special DESC, publis
 	return list, nil
 }
 
-func GetPublishedNewspaper(amount int, page int, newspaper string) ([]Publication, error) {
+func GetPublishedNewspaperForwards(amount int, timeStamp time.Time, newspaper string) ([]Publication, error) {
 	result, err := postgresDB.Query(`SELECT id, newspaper_name, special, publish_date FROM newspaper_publication 
-WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' ORDER BY publish_date DESC OFFSET $1 LIMIT $2;`,
-		(page-1)*amount, amount+1, newspaper)
+WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' AND publish_date <= $1 ORDER BY publish_date DESC LIMIT $2;`,
+		timeStamp, amount+1, newspaper)
+	if err != nil {
+		return nil, err
+	}
+	defer closeRows(result)
+	pub := Publication{Published: true}
+	list := make([]Publication, 0)
+	for result.Next() {
+		err = result.Scan(&pub.ID, &pub.NewspaperName, &pub.Special, &pub.PublishedDate)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, pub)
+	}
+	return list, nil
+}
+
+func GetPublishedNewspaperBackwards(amount int, timeStamp time.Time, newspaper string) ([]Publication, error) {
+	result, err := postgresDB.Query(`SELECT id, newspaper_name, special, publish_date FROM (
+SELECT id, newspaper_name, special, publish_date FROM newspaper_publication 
+WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' AND publish_date >= $1 ORDER BY publish_date LIMIT $2) as pub ORDER BY pub.publish_date DESC;`,
+		timeStamp, amount+1, newspaper)
 	if err != nil {
 		return nil, err
 	}
