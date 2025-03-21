@@ -155,11 +155,33 @@ WHERE id = $1;`, &id).Scan(&note.ID, &note.Title, &note.Author, &note.Flair, &no
 	return note, err
 }
 
-func SearchForNotes(acc *Account, amount int, page int, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
-	parameter := []any{(page - 1) * amount, amount + 1}
+func SearchForNotesForwards(acc *Account, amount int, timeStamp time.Time, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
+	parameter := []any{timeStamp, amount + 1}
 	query, parameter := queryAnalyzer(acc, parameter, input, showBlocked)
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM blackboard_note
-WHERE `+query+` ORDER BY posted DESC OFFSET $1 LIMIT $2;`, parameter...)
+WHERE `+query+` AND posted <= $1 ORDER BY posted DESC LIMIT $2;`, parameter...)
+	if err != nil {
+		return nil, err
+	}
+	defer closeRows(result)
+	arr := make([]TruncatedBlackboardNotes, 0)
+	trunc := TruncatedBlackboardNotes{}
+	for result.Next() {
+		err = result.Scan(&trunc.ID, &trunc.Title, &trunc.Author, &trunc.Flair, &trunc.PostedAt, &trunc.Removed)
+		if err != nil {
+			return nil, err
+		}
+		arr = append(arr, trunc)
+	}
+	return arr, nil
+}
+
+func SearchForNotesBackwards(acc *Account, amount int, timeStamp time.Time, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
+	parameter := []any{timeStamp, amount + 1}
+	query, parameter := queryAnalyzer(acc, parameter, input, showBlocked)
+	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM 
+(SELECT id, title, author, flair, posted, blocked FROM blackboard_note
+WHERE `+query+` AND posted >= $1 ORDER BY posted LIMIT $2) as note ORDER BY note.posted DESC;`, parameter...)
 	if err != nil {
 		return nil, err
 	}

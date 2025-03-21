@@ -138,22 +138,25 @@ func (p *CreateNotesPage) getPageName() string {
 }
 
 type SearchNotesPage struct {
-	NavInfo     NavigationInfo
-	Query       string
-	Amount      int
-	Page        int
-	ShowBlocked bool
-	HasNext     bool
-	HasPrevious bool
-	Results     []database.TruncatedBlackboardNotes
+	NavInfo          NavigationInfo
+	Query            string
+	ShowBlocked      bool
+	Amount           int
+	HasNext          bool
+	NextItemID       string
+	NextItemTime     time.Time
+	HasPrevious      bool
+	PreviousItemID   string
+	PreviousItemTime time.Time
+	Results          []database.TruncatedBlackboardNotes
 }
 
-func (p *SearchNotesPage) NextPage() int {
-	return p.Page + 1
+func (p *SearchNotesPage) NextPage() string {
+	return p.NextItemTime.Format(helper.ISOTimeFormat)
 }
 
-func (p *SearchNotesPage) PreviousPage() int {
-	return p.Page - 1
+func (p *SearchNotesPage) PreviousPage() string {
+	return p.PreviousItemTime.Format(helper.ISOTimeFormat)
 }
 
 func (p *SearchNotesPage) SetNavInfo(navInfo NavigationInfo) {

@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-// Todo use timestamps for paging in the future
-
 func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	query := helper.GetAdvancedURLValues(request)
@@ -17,28 +15,52 @@ func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	page := &handler.SearchNotesPage{
 		Query:       query.GetTrimmedString("query"),
 		Amount:      query.GetInt("amount"),
-		Page:        query.GetInt("page"),
 		ShowBlocked: query.GetBool("blocked"),
 	}
 
-	if page.Page < 1 {
-		page.Page = 1
-	}
 	if page.Amount < 10 || page.Amount > 50 {
 		page.Amount = 20
 	}
+	var backward bool
+	page.PreviousItemTime, backward = query.GetUTCTime("backward", false)
+	page.NextItemTime, _ = query.GetUTCTime("forward", true)
 
-	page.HasPrevious = page.Page > 1
 	var err error
-	page.Results, err = database.SearchForNotes(acc, page.Amount, page.Page, page.Query, page.ShowBlocked)
+	if backward {
+		page.Results, err = database.SearchForNotesBackwards(acc, page.Amount, page.PreviousItemTime, page.Query, page.ShowBlocked)
+	} else {
+		page.Results, err = database.SearchForNotesForwards(acc, page.Amount, page.NextItemTime, page.Query, page.ShowBlocked)
+	}
 	if err != nil {
 		slog.Debug(err.Error())
 		page.Results = make([]database.TruncatedBlackboardNotes, 0)
-
-	} else if len(page.Results) > page.Amount {
-		page.HasNext = true
-		page.Results = page.Results[:page.Amount]
 	}
+
+	if len(page.Results) > 0 {
+		id := query.GetTrimmedString("id")
+		if !backward && id == page.Results[0].ID {
+			page.HasPrevious = true
+			page.PreviousItemTime = page.NextItemTime
+			page.PreviousItemID = id
+		} else if backward && id == page.Results[len(page.Results)-1].ID {
+			page.HasNext = true
+			page.NextItemTime = page.PreviousItemTime
+			page.NextItemID = id
+			page.Results = page.Results[:len(page.Results)-1]
+		}
+	}
+
+	if !backward && len(page.Results) > page.Amount {
+		page.HasNext = true
+		page.NextItemTime = page.Results[page.Amount].PostedAt
+		page.NextItemID = page.Results[page.Amount].ID
+		page.Results = page.Results[:page.Amount]
+	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[0].PostedAt
+		page.PreviousItemID = page.Results[0].ID
+	}
+
 	handler.MakeFullPage(writer, acc, page)
 }
 
@@ -53,28 +75,51 @@ func PutSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	page := &handler.SearchNotesPage{
 		Query:       values.GetTrimmedString("query"),
 		Amount:      values.GetInt("amount"),
-		Page:        values.GetInt("page"),
 		ShowBlocked: values.GetBool("blocked"),
 	}
 
-	if page.Page < 1 {
-		page.Page = 1
-	}
 	if page.Amount < 10 || page.Amount > 50 {
 		page.Amount = 20
 	}
+	var backward bool
+	page.PreviousItemTime, backward = values.GetUTCTime("backward", false)
+	page.NextItemTime, _ = values.GetUTCTime("forward", true)
 
-	page.HasPrevious = page.Page > 1
-
-	page.Results, err = database.SearchForNotes(acc, page.Amount, page.Page, page.Query, page.ShowBlocked)
+	if backward {
+		page.Results, err = database.SearchForNotesBackwards(acc, page.Amount, page.PreviousItemTime, page.Query, page.ShowBlocked)
+	} else {
+		page.Results, err = database.SearchForNotesForwards(acc, page.Amount, page.NextItemTime, page.Query, page.ShowBlocked)
+	}
 	if err != nil {
 		slog.Debug(err.Error())
 		page.Results = make([]database.TruncatedBlackboardNotes, 0)
 	}
-	if len(page.Results) > page.Amount {
-		page.HasNext = true
-		page.Results = page.Results[:page.Amount]
+
+	if len(page.Results) > 0 {
+		id := values.GetTrimmedString("id")
+		if !backward && id == page.Results[0].ID {
+			page.HasPrevious = true
+			page.PreviousItemTime = page.NextItemTime
+			page.PreviousItemID = id
+		} else if backward && id == page.Results[len(page.Results)-1].ID {
+			page.HasNext = true
+			page.NextItemTime = page.PreviousItemTime
+			page.NextItemID = id
+			page.Results = page.Results[:len(page.Results)-1]
+		}
 	}
+
+	if !backward && len(page.Results) > page.Amount {
+		page.HasNext = true
+		page.NextItemTime = page.Results[page.Amount].PostedAt
+		page.NextItemID = page.Results[page.Amount].ID
+		page.Results = page.Results[:page.Amount]
+	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[0].PostedAt
+		page.PreviousItemID = page.Results[0].ID
+	}
+
 	writer.Header().Add("Hx-Push-Url", "/search/notes?"+values.Encode())
 	handler.MakePage(writer, acc, page)
 }
