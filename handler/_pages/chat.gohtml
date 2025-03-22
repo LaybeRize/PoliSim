@@ -6,13 +6,13 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <div hx-ext="ws" ws-connect="{{.ConnectURL}}" class="chat-window">
-        <button id="load-messages">Lade mehr Nachrichten</button>
+        <div id="load-messages"></div>
         <div id="chat-room">
         </div>
         <form id="form" ws-send hx-reset-on-success>
-            <label for="text-message"></label>
-            <input id="text-message" name="text" type="text" placeholder="Schreib eine neue Nachricht">
-            <button type="submit">Senden</button>
+            <label for="text-message">{{/*chat-1*/}}Nachricht-Text</label>
+            <input id="text-message" name="text" type="text" placeholder="{{/*chat-2*/}}Schreib eine neue Nachricht">
+            <button type="submit">{{/*chat-3*/}}Nachricht Senden</button>
         </form>
     </div>
     </body>
@@ -28,13 +28,28 @@
     {{- /*gotype: PoliSim/handler.ChatMessageObject*/ -}}
     <div id="message" class="{{if .IsSender}}message-self{{else}}message-other{{end}}">
         <h1>{{ .Msg.SenderName }}</h1>
-        <i>{{ .Msg.GetTimeSend .Account }}</i><br>
+        <i>{{ .Msg.GetTimeSend .Account }}</i>
         <p> {{ .Msg.Text }}</p>
     </div>
 {{end}}
 
 {{define "loadMessageButton"}}
-    <button id="load-messages" hx-swap-oob="true">
-        Lade mehr Nachrichten
+    {{- /*gotype: PoliSim/handler.ChatButtonObject*/ -}}
+    <button id="load-messages" hx-get="{{.NextMessagesURL}}" hx-target="this" hx-swap="outerHTML">
+        {{/*chat-4*/}}Lade mehr Nachrichten
     </button>
+{{end}}
+
+{{define "loadMessages"}}
+    {{- /*gotype: PoliSim/handler.ChatLoadNextMessages*/ -}}
+    {{if .HasNextMessages}}
+        <div id="chat-room" hx-swap-oob="afterbegin">
+            {{range .GetMessages}}
+                {{template "chatMessageContent" .}}
+            {{end}}
+        </div>
+        {{template "loadMessageButton" .Button}}
+    {{else}}
+        <div id="load-messages"></div>
+    {{end}}
 {{end}}

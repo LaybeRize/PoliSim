@@ -10,6 +10,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -707,6 +708,48 @@ func (c *ChatMessageObject) IsSender() bool { return c.Msg.SenderName == c.Recip
 
 func (c *ChatMessageObject) getRenderInfo() (string, string) {
 	return "chat", "chatMessage"
+}
+
+type ChatButtonObject struct {
+	Room      string
+	Recipient string
+	NextTime  time.Time
+}
+
+func (c *ChatButtonObject) NextMessagesURL() template.URL {
+	return template.URL("/get/messages/" + url.PathEscape(c.Room) +
+		"/" + url.PathEscape(c.Recipient) + "/" +
+		url.PathEscape(c.NextTime.Format(helper.ISOTimeFormat)))
+}
+
+func (c *ChatButtonObject) getRenderInfo() (string, string) {
+	return "chat", "loadMessageButton"
+}
+
+type ChatLoadNextMessages struct {
+	HasNextMessages bool
+	Messages        []database.Message
+	Account         *database.Account
+	Recipient       string
+	Button          ChatButtonObject
+}
+
+func (c *ChatLoadNextMessages) GetMessages() func(func(*ChatMessageObject) bool) {
+	return func(yield func(*ChatMessageObject) bool) {
+		for _, msg := range c.Messages {
+			if !yield(&ChatMessageObject{
+				Msg:       &msg,
+				Account:   c.Account,
+				Recipient: c.Recipient,
+			}) {
+				return
+			}
+		}
+	}
+}
+
+func (c *ChatLoadNextMessages) getRenderInfo() (string, string) {
+	return "chat", "loadMessages"
 }
 
 type ChangePassword struct {

@@ -394,8 +394,40 @@ table.view-vote {
 }
 
 .chat-window {
-    > form {
-        
+    > div#load-messages {
+        display: none;
+    }
+    > div#chat-room {
+        > div#message {
+            width: var(--standard-width);
+            max-width: 100vw;
+            filter: drop-shadow(0.3rem 0.3rem 0.125rem rgb(2 6 23));
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            color: rgb(181 255 255);
+
+            > h1 {
+                font-size: 1rem;
+                padding: 0;
+                margin: 0;
+            }
+            > i {
+                font-size: 0.8rem;
+                padding: 0;
+                margin: 0;
+            }
+            > p {
+                margin: 0;
+                padding-top: 0.4rem;
+                color: rgb(240, 240, 240);
+            }
+        }
+        > div#message.message-self {
+            background-color: rgb(25 23 82);
+        }
+        > div#message.message-other {
+            background-color: rgb(15 23 42);
+        }
     }
 }
 

@@ -260,6 +260,10 @@ const (
 	TitleHasNoHolder        = "Dieser Titel wird von niemandem gehalten"
 	TitleHolderFormatString = "Titel-Halter: %s"
 
+	// Handler Chat
+
+	ChatRoomTimeWasInvalid = "Die angegebene Zeit im Pfad ist nicht korrekt formatiert"
+
 	// Handler Markdown Go
 
 	MarkdownParseError = "`Anfrage konnte nicht verarbeitet werden`"

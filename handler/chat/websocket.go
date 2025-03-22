@@ -86,10 +86,10 @@ func serveWs(hub *Hub, owner *database.Account, user string, w http.ResponseWrit
 	}
 
 	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), id: user, owner: owner}
-	client.hub.register <- client
 
 	go client.writePump()
 	go client.readPump()
+	client.hub.register <- client
 }
 
 // Reads from Hub to the websocket
@@ -103,10 +103,14 @@ func (c *Client) writePump() {
 
 	messages, err := database.LoadLastMessages(20, time.Now().UTC().Add(time.Hour), c.hub.id, c.id)
 	if err == nil {
+		newTime := time.Time{}
 		for _, msg := range messages {
 			c.send <- getMessageTemplate(&msg, c.owner, c.id)
 		}
-		// Todo send an update for the Load next messages button
+		if len(messages) != 0 {
+			newTime = messages[0].SendDate
+		}
+		c.send <- getButtonUpdate(c.hub.id, c.id, newTime)
 	}
 
 	var w io.WriteCloser
@@ -126,12 +130,6 @@ func (c *Client) writePump() {
 			}
 
 			_, _ = w.Write(msg)
-
-			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				_, _ = w.Write(msg)
-			}
 
 			if err = w.Close(); err != nil {
 				return
@@ -246,6 +244,20 @@ func (h *Hub) run() {
 			h.RUnlock()
 		}
 	}
+}
+
+func getButtonUpdate(roomID string, receiverID string, timeStamp time.Time) []byte {
+	var renderedMessage bytes.Buffer
+	err := handler.MakeSpecialPagePartForWriter(&renderedMessage, &handler.ChatButtonObject{
+		Room:      roomID,
+		NextTime:  timeStamp,
+		Recipient: receiverID,
+	})
+	if err != nil {
+		log.Printf("error parsing Message: %v\n", err)
+	}
+
+	return renderedMessage.Bytes()
 }
 
 func getMessageTemplate(msg *database.Message, acc *database.Account, receiverID string) []byte {

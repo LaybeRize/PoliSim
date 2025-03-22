@@ -260,6 +260,10 @@ const (
 	TitleHasNoHolder        = "Title has no owner"
 	TitleHolderFormatString = "Title owner: %s"
 
+	// Handler Chat
+
+	ChatRoomTimeWasInvalid = "given time in path is not correctly formated"
+
 	// Handler Markdown Go
 
 	MarkdownParseError = "`Request could not be processed`"
@@ -347,6 +351,13 @@ var replaceMap = map[string]map[string]string{
 		"{{/*accountEdit-13*/}}Anzeigename":         "Display Name",
 		"{{/*accountEdit-14*/}}Nutzername":          "Username",
 		"{{/*accountEdit-15*/}}Nutzer suchen":       "Search for User",
+	},
+
+	"chat": {
+		"{{/*chat-1*/}}Nachricht-Text":              "Message Text",
+		"{{/*chat-2*/}}Schreib eine neue Nachricht": "Write a new message",
+		"{{/*chat-3*/}}Nachricht Senden":            "Send Message",
+		"{{/*chat-4*/}}Lade mehr Nachrichten":       "Load more Messages",
 	},
 
 	"documentColorEdit": {

@@ -282,7 +282,8 @@ CREATE TABLE has_voted (
 );
 -- Chat --
 CREATE TABLE chat_rooms (
-    room_id TEXT PRIMARY KEY
+    room_id TEXT PRIMARY KEY,	
+    member TEXT[] NOT NULL
 );
 CREATE TABLE chat_rooms_to_account (
     room_id TEXT NOT NULL,

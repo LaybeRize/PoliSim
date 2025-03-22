@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <title>Markdown Test</title>
     <link rel="stylesheet" href="../public/style.css">
+    <script src="../public/htmx.js"></script>
 </head>
 <body>
+<div class="markdown">
+    <ul id="oob-swap-component"></ul>
+</div>
+<button id="original-target" hx-get="./content.html" hx-target="#original-target" hx-swap="outerHTML">Alter Text</button>
 <div class="markdown">
     <h1>Test Überschrift 1</h1>
     <p>

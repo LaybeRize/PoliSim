@@ -12,6 +12,11 @@ type Message struct {
 	Text       string    `json:"text"`
 }
 
+type ChatRoom struct {
+	Name   string
+	Member []string
+}
+
 func (m *Message) GetTimeSend(a *Account) string {
 	return m.SendDate.In(a.TimeZone).Format(loc.TimeFormatString)
 }
@@ -47,18 +52,18 @@ func InsertMessage(msg *Message, roomID string) error {
 
 }
 
-func CreateChatRoom(roomID string, members []string) error {
+func CreateChatRoom(roomID string, member []string) error {
 	tx, err := postgresDB.Begin()
 	if err != nil {
 		return err
 	}
 	defer rollback(tx)
-	_, err = tx.Exec(`INSERT INTO chat_rooms (room_id) VALUES ($1)`, roomID)
+	_, err = tx.Exec(`INSERT INTO chat_rooms (room_id, member) VALUES ($1, ARRAY(SELECT name FROM account WHERE name = ANY($2)))`, roomID, pq.Array(member))
 	if err != nil {
 		return err
 	}
 	_, err = tx.Exec(`INSERT INTO chat_rooms_to_account (room_id, account_name) 
-SELECT $1 AS room_id, name FROM account WHERE name = ANY($2)`, roomID, pq.Array(members))
+SELECT $1 AS room_id, name FROM account WHERE name = ANY($2)`, roomID, pq.Array(member))
 	if err != nil {
 		return err
 	}
@@ -69,4 +74,24 @@ func QueryForRoomIdAndUser(roomID string, accountName string, ownerName string) 
 	return postgresDB.QueryRow(`SELECT room_id FROM chat_rooms_to_account cta 
     INNER JOIN ownership own ON cta.account_name = own.account_name WHERE room_id = $1 AND own.account_name = $2 AND owner_name = $3;`,
 		roomID, accountName, ownerName).Scan(&roomID)
+}
+
+func GetAllRoomsForUser(viewer []string) ([]ChatRoom, error) {
+	result, err := postgresDB.Query(`SELECT DISTINCT ON (chat_rooms.room_id) chat_rooms.room_id, member FROM chat_rooms 
+    INNER JOIN public.chat_rooms_to_account cta on chat_rooms.room_id = cta.room_id 
+WHERE account_name = ANY($1) ORDER BY chat_rooms.room_id`, pq.Array(viewer))
+	if err != nil {
+		return nil, err
+	}
+	defer closeRows(result)
+	arr := make([]ChatRoom, 0)
+	chat := ChatRoom{}
+	for result.Next() {
+		err = result.Scan(&chat.Name, pq.Array(&chat.Member))
+		if err != nil {
+			return nil, err
+		}
+		arr = append(arr, chat)
+	}
+	return arr, nil
 }
