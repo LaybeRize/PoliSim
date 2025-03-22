@@ -393,6 +393,12 @@ table.view-vote {
     display: none !important;
 }
 
+.chat-window {
+    > form {
+        
+    }
+}
+
 /* Markdown stuff */
 
 div.markdown {

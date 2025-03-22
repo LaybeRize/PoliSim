@@ -73,6 +73,9 @@ const (
 	PressUser
 )
 
+var BlockedAccountChannel = make(chan string)
+var OwnerChangeOnAccountChannel = make(chan []string)
+
 func CreateAccount(acc *Account) error {
 	if acc.Name == loc.AdministrationName {
 		return NotAllowedError
@@ -156,6 +159,9 @@ func UpdateAccount(acc *Account) error {
 			return err
 		}
 		err = tx.Commit()
+		if err != nil {
+			BlockedAccountChannel <- acc.Name
+		}
 	} else {
 		_, err = postgresDB.Exec(`UPDATE account SET role = $2, blocked = false WHERE name = $1;`,
 			&acc.Name, &acc.Role)
@@ -330,13 +336,11 @@ func GetMyAccountNames(owner *Account) ([]string, error) {
 	return names, err
 }
 
-func MakeOwner(ownerName string, targetName string) error {
+func UpdateOwner(ownerName string, targetName string) error {
 	_, err := postgresDB.Exec(`UPDATE ownership SET owner_name = $1 WHERE account_name = $2`, &ownerName, &targetName)
-	return err
-}
-
-func RemoveOwner(targetName string) error {
-	_, err := postgresDB.Exec(`UPDATE ownership SET owner_name = $1 WHERE account_name = $1`, &targetName)
+	if err != nil {
+		OwnerChangeOnAccountChannel <- []string{ownerName, targetName}
+	}
 	return err
 }
 

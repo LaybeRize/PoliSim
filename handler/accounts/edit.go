@@ -117,23 +117,17 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		err = database.RemoveOwner(page.Account.Name)
+		err = database.UpdateOwner(ownerAccount.Name, page.Account.Name)
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: loc.AccountPressUserOwnerRemovingError})
-			return
-		}
-		err = database.MakeOwner(ownerAccount.Name, page.Account.Name)
-		if err != nil {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-				Message: loc.AccountPressUserOwnerAddError})
+				Message: loc.AccountPressUserOwnerChangeError})
 			return
 		}
 		page.LinkedAccountName = ownerAccount.Name
 	}
 
 	if page.Account.Role == database.PressUser && values.GetTrimmedString("linked") == "" {
-		err = database.RemoveOwner(page.Account.Name)
+		err = database.UpdateOwner(page.Account.Name, page.Account.Name)
 		if err != nil {
 			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountPressUserOwnerRemovingError})

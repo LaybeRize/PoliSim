@@ -85,6 +85,8 @@ func afterStartProcesses() {
 func Shutdown() {
 	shutdown.Lock()
 	defer shutdown.Unlock()
+	close(OwnerChangeOnAccountChannel)
+	close(BlockedAccountChannel)
 	saveColorPalettesToDB()
 	saveCookiesToDB()
 	err := postgresDB.Close()

@@ -7,6 +7,7 @@ import (
 	"embed"
 	"errors"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -661,6 +662,19 @@ func (p *EditColorPage) getPageName() string {
 	return "documentColorEdit"
 }
 
+type DirectChatWindow struct {
+	NavInfo    NavigationInfo
+	ConnectURL template.URL
+}
+
+func (p *DirectChatWindow) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *DirectChatWindow) getPageName() string {
+	return "chat"
+}
+
 type AdminPage struct {
 	NavInfo NavigationInfo
 	MessageUpdate
@@ -681,6 +695,18 @@ type PartialStruct interface {
 type PartialRedirectStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 	targetElement() string
+}
+
+type ChatMessageObject struct {
+	Msg       *database.Message
+	Account   *database.Account
+	Recipient string
+}
+
+func (c *ChatMessageObject) IsSender() bool { return c.Msg.SenderName == c.Recipient }
+
+func (c *ChatMessageObject) getRenderInfo() (string, string) {
+	return "chat", "chatMessage"
 }
 
 type ChangePassword struct {
@@ -949,6 +975,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = pageNameText + loc.PagesEditColorPage
 	case *SearchPersonalDocumentsPage:
 		fullPage.Base.Title = pageNameText + loc.PagesPersonDocumentPage
+	case *DirectChatWindow:
+		fullPage.Base.Title = pageNameText + loc.PagesChatRoomPage
 	case *AdminPage:
 		fullPage.Base.Title = "Webserver Administration"
 	default:
@@ -978,6 +1006,20 @@ func MakeSpecialPagePart(w http.ResponseWriter, data PartialStruct) {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func MakeSpecialPagePartForWriter(w io.Writer, data PartialStruct) error {
+	pageName, templateName := data.getRenderInfo()
+
+	currentTemplate, exists := templateForge[pageName]
+	if !exists {
+		log.Fatalf("Could not find a template for data. Page required would be: %s", pageName)
+	}
+	err := currentTemplate.ExecuteTemplate(w, templateName, data)
+	if err != nil {
+		log.Println(err)
+	}
+	return err
 }
 
 func MakeSpecialPagePartWithRedirect(w http.ResponseWriter, data PartialRedirectStruct) {

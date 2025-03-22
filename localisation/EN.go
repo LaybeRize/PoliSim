@@ -93,7 +93,7 @@ const (
 	AccountErrorWhileUpdating             = "error while trying to save account updates"
 	AccountPressUserOwnerIsPressUser      = "press account can't be owner of another press account"
 	AccountPressUserOwnerRemovingError    = "error while trying to remove current owner"
-	AccountPressUserOwnerAddError         = "error while trying to add new owner"
+	AccountPressUserOwnerChangeError      = "error while trying to set new owner"
 	AccountSuccessfullyUpdated            = "account successfully updated"
 	AccountSearchedNamesDoesNotCorrespond = "the searched names don't correspond to any account"
 
@@ -297,6 +297,7 @@ const (
 	PagesViewVotePage           = "Vote View"
 	PagesEditColorPage          = "Manage Color Palettes"
 	PagesPersonDocumentPage     = "Personal Documents"
+	PagesChatRoomPage           = "Chatroom"
 )
 
 func SetHomePage(text []byte) {

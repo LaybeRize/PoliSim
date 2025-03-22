@@ -4,6 +4,7 @@ import (
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/handler/accounts"
+	"PoliSim/handler/chat"
 	"PoliSim/handler/documents"
 	"PoliSim/handler/letter"
 	"PoliSim/handler/newspaper"
@@ -116,8 +117,8 @@ func main() {
 	http.HandleFunc("GET /view/letter/{id}", letter.GetLetterViewPage)
 	http.HandleFunc("PATCH /view/letter/{id}", letter.PatchLetterViewPage)
 
-	//http.HandleFunc("GET /chat/{self}/{target}", chat.GetShowChat)
-	//http.HandleFunc("GET /connect/chat/{self}/{target}", chat.ConnectToWebsocket)
+	http.HandleFunc("GET /chat/{id}/{user}", chat.GetShowChat)
+	http.HandleFunc("GET /connect/chat/{id}/{user}", chat.ConnectToWebsocket)
 
 	http.HandleFunc("GET /administration", handler.GetManagementPage)
 	http.HandleFunc("POST /administration/file", handler.PostFileManagementPage)

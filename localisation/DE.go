@@ -93,7 +93,7 @@ const (
 	AccountErrorWhileUpdating             = "Es ist ein Fehler beim Speichern der Accountupdates aufgetreten"
 	AccountPressUserOwnerIsPressUser      = "Ein Presse-Nutzer kann kein Besitzer eines anderen Presse-Nutzers sein"
 	AccountPressUserOwnerRemovingError    = "Es ist ein Fehler beim Entfernen des bisherigen Besitzers aufgetreten"
-	AccountPressUserOwnerAddError         = "Es ist ein Fehler beim Hinzufügen des neuen Besitzers aufgetreten"
+	AccountPressUserOwnerChangeError      = "Es ist ein Fehler beim Setzen des neuen Besitzers aufgetreten"
 	AccountSuccessfullyUpdated            = "Account erfolgreich angepasst"
 	AccountSearchedNamesDoesNotCorrespond = "Die gesuchten Namen sind mit keinem Account verbunden"
 
@@ -297,6 +297,7 @@ const (
 	PagesViewVotePage           = "Abstimmungsansicht"
 	PagesEditColorPage          = "Farbpaletten anpassen"
 	PagesPersonDocumentPage     = "Persönliche Dokumente"
+	PagesChatRoomPage           = "Chatraum"
 )
 
 func SetHomePage(text []byte) {

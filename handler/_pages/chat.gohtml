@@ -1,0 +1,40 @@
+{{define "pageScript"}}
+    <script src="/public/websocket.js"></script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.DirectChatWindow*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <div hx-ext="ws" ws-connect="{{.ConnectURL}}" class="chat-window">
+        <button id="load-messages">Lade mehr Nachrichten</button>
+        <div id="chat-room">
+        </div>
+        <form id="form" ws-send hx-reset-on-success>
+            <label for="text-message"></label>
+            <input id="text-message" name="text" type="text" placeholder="Schreib eine neue Nachricht">
+            <button type="submit">Senden</button>
+        </form>
+    </div>
+    </body>
+{{end}}
+
+{{define "chatMessage"}}
+    <div id="chat-room" hx-swap-oob="beforeend">
+        {{template "chatMessageContent" .}}
+    </div>
+{{end}}
+
+{{define "chatMessageContent"}}
+    {{- /*gotype: PoliSim/handler.ChatMessageObject*/ -}}
+    <div id="message" class="{{if .IsSender}}message-self{{else}}message-other{{end}}">
+        <h1>{{ .Msg.SenderName }}</h1>
+        <i>{{ .Msg.GetTimeSend .Account }}</i><br>
+        <p> {{ .Msg.Text }}</p>
+    </div>
+{{end}}
+
+{{define "loadMessageButton"}}
+    <button id="load-messages" hx-swap-oob="true">
+        Lade mehr Nachrichten
+    </button>
+{{end}}

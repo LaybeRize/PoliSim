@@ -280,6 +280,24 @@ CREATE TABLE has_voted (
     CONSTRAINT fk_vote_id
         FOREIGN KEY(vote_id) REFERENCES document_to_vote(id)
 );
+-- Chat --
+CREATE TABLE chat_rooms (
+    room_id TEXT PRIMARY KEY
+);
+CREATE TABLE chat_rooms_to_account (
+    room_id TEXT NOT NULL,
+    account_name TEXT NOT NULL,
+    CONSTRAINT fk_room_id FOREIGN KEY (room_id) REFERENCES chat_rooms(room_id),
+    CONSTRAINT fk_account_name FOREIGN KEY (account_name) REFERENCES account(name)
+);
+CREATE TABLE chat_messages(
+    room_id TEXT NOT NULL,
+    sender TEXT NOT NULL,
+    message TEXT NOT NULL,
+    send_time TIMESTAMP PRIMARY KEY,
+    CONSTRAINT fk_room_id FOREIGN KEY (room_id) REFERENCES chat_rooms(room_id),
+    CONSTRAINT fk_account_name FOREIGN KEY (sender) REFERENCES account(name)
+);
 `)
 	if err != nil {
 		log.Fatalf("Could not create tables for the current version %d: %v", currVersion, err)
