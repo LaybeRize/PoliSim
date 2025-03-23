@@ -24,7 +24,7 @@ div.block-view {
     width: var(--standard-width);
     max-width: 100vw;
     h1 {
-        word-break: break-all;
+        word-break: break-word;
     }
 }
 
@@ -226,7 +226,7 @@ div.note {
         text-decoration: none;
         cursor: pointer;
         width: 100%;
-        word-break: break-all;
+        word-break: break-word;
     }
     a.read {
         box-sizing:border-box;
@@ -237,20 +237,20 @@ div.note {
         text-decoration: none;
         cursor: pointer;
         width: 100%;
-        word-break: break-all;
+        word-break: break-word;
     }
     h1 {
         box-sizing:border-box;
         font-size: 2rem;
         line-height: 2.2rem;
         color: var(--text-color);
-        word-break: break-all;
+        word-break: break-word;
     }
     h2 {
         box-sizing:border-box;
         font-size: 1.5rem;
         line-height: 1.7rem;
-        word-break: break-all;
+        word-break: break-word;
     }
     a.fit-content {
         width: fit-content;
@@ -422,7 +422,7 @@ table.view-vote {
                 font-size: 1rem;
                 padding: 0;
                 margin: 0;
-                word-break: break-all;
+                word-break: break-word;
             }
             > i {
                 font-size: 0.8rem;
@@ -433,7 +433,7 @@ table.view-vote {
                 margin: 0;
                 padding-top: 0.4rem;
                 color: rgb(240, 240, 240);
-                word-break: break-all;
+                word-break: break-word;
             }
         }
         > div#message.message-self {
@@ -454,6 +454,7 @@ div.markdown {
     filter: drop-shadow(0.3rem 0.3rem 0.125rem rgb(2 6 23));
     padding: 1rem;
     margin: 0.6rem;
+    word-break: break-word;
 }
 
 div.markdown.removed {
