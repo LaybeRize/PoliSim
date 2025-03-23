@@ -124,7 +124,7 @@ func GetOlderMessages(writer http.ResponseWriter, request *http.Request) {
 		handler.MakeSpecialPagePart(writer, &handler.ChatLoadNextMessages{HasNextMessages: false})
 		return
 	} else {
-		newTargetTimestamp = arr[0].SendDate
+		newTargetTimestamp = arr[len(arr)-1].SendDate
 	}
 
 	handler.MakeSpecialPagePart(writer, &handler.ChatLoadNextMessages{

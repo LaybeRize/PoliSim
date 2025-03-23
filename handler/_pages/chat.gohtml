@@ -6,20 +6,20 @@
     <body id="page-body">
     {{template "header" .NavInfo}}
     <div hx-ext="ws" ws-connect="{{.ConnectURL}}" class="chat-window">
-        <div id="load-messages"></div>
-        <div id="chat-room">
-        </div>
         <form id="form" ws-send hx-reset-on-success>
             <label for="text-message">{{/*chat-1*/}}Nachricht-Text</label>
             {{/*chat-2*/}}
             <button type="submit">{{/*chat-3*/}}Nachricht Senden</button>
         </form>
+        <div id="chat-room">
+        </div>
+        <div id="load-messages"></div>
     </div>
     </body>
 {{end}}
 
 {{define "chatMessage"}}
-    <div id="chat-room" hx-swap-oob="beforeend">
+    <div id="chat-room" hx-swap-oob="afterbegin">
         {{template "chatMessageContent" .}}
     </div>
 {{end}}
@@ -43,7 +43,7 @@
 {{define "loadMessages"}}
     {{- /*gotype: PoliSim/handler.ChatLoadNextMessages*/ -}}
     {{if .HasNextMessages}}
-        <div id="chat-room" hx-swap-oob="afterbegin">
+        <div id="chat-room" hx-swap-oob="beforeend">
             {{range .GetMessages}}
                 {{template "chatMessageContent" .}}
             {{end}}

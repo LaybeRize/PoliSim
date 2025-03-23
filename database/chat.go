@@ -12,9 +12,9 @@ import (
 )
 
 type Message struct {
-	SenderName string    `json:"-"`
-	SendDate   time.Time `json:"-"`
-	Text       string    `json:"text"`
+	SenderName string
+	SendDate   time.Time
+	Text       template.HTML
 }
 
 func (m *Message) GetTimeSend(a *Account) string {
@@ -40,9 +40,8 @@ func LoadLastMessages(amount int, timeStamp time.Time, roomID string, accountNam
 	if err != nil {
 		return nil, err
 	}
-	result, err := postgresDB.Query(`SELECT sender, send_time, message FROM 
-(SELECT sender, send_time, message FROM chat_messages WHERE send_time < $1 AND room_id = $2 ORDER BY send_time DESC LIMIT $3) as msg 
-ORDER BY msg.send_time`, timeStamp, roomID, amount)
+	result, err := postgresDB.Query(`SELECT sender, send_time, message FROM chat_messages 
+WHERE send_time < $1 AND room_id = $2 ORDER BY send_time DESC LIMIT $3`, timeStamp, roomID, amount)
 	if err != nil {
 		return nil, err
 	}

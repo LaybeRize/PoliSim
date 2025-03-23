@@ -7,10 +7,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"html/template"
 	"io"
 	"log"
 	"log/slog"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -105,11 +107,12 @@ func (c *Client) writePump() {
 	messages, err := database.LoadLastMessages(20, time.Now().UTC().Add(time.Hour), c.hub.id, c.id)
 	if err == nil {
 		newTime := time.Time{}
-		for _, msg := range messages {
-			c.send <- getMessageTemplate(&msg, c.owner, c.id)
+		msgLen := len(messages)
+		for i := range msgLen {
+			c.send <- getMessageTemplate(&messages[msgLen-i-1], c.owner, c.id)
 		}
 		if len(messages) != 0 {
-			newTime = messages[0].SendDate
+			newTime = messages[msgLen-1].SendDate
 		}
 		c.send <- getButtonUpdate(c.hub.id, c.id, newTime)
 	}
@@ -167,7 +170,9 @@ func (c *Client) readPump() {
 			break
 		}
 
-		msg := &database.Message{}
+		msg := &struct {
+			Text string `json:"text"`
+		}{}
 
 		reader := bytes.NewReader(text)
 		decoder := json.NewDecoder(reader)
@@ -177,18 +182,23 @@ func (c *Client) readPump() {
 			continue
 		}
 
-		if len([]rune(msg.Text)) > 2000 {
+		msg.Text = strings.TrimSpace(msg.Text)
+
+		if len([]rune(msg.Text)) > 2000 || msg.Text == "" {
 			continue
 		}
 
-		msg.SenderName = c.id
-		msg.SendDate = time.Now().UTC()
-		err = database.InsertMessage(msg, c.hub.id)
+		htmlMsg := &database.Message{
+			SenderName: c.id,
+			SendDate:   time.Now().UTC(),
+			Text:       template.HTML(strings.ReplaceAll(template.HTMLEscaper(msg.Text), "\n", "<br>")),
+		}
+		err = database.InsertMessage(htmlMsg, c.hub.id)
 		if err != nil {
 			slog.Debug("error:", "error", err.Error())
 			continue
 		}
-		c.hub.broadcast <- msg
+		c.hub.broadcast <- htmlMsg
 		c.send <- []byte(loc.ReplaceMap["chat"]["{{/*chat-2*/}}"])
 
 	}
