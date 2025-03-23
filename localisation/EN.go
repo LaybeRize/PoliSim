@@ -25,6 +25,7 @@ const (
 
 	RequestParseError                      = "error during request processing"
 	CouldNotFindAllAuthors                 = "couldn't find all possible authors"
+	CouldNotFindAllOwnedAccounts           = "couldn't find all possible accounts you own"
 	ErrorFindingAllOrganisationsForAccount = "couldn't find all possible organisation for selected account"
 	ContentOrBodyAreEmpty                  = "title or content empty"
 	ContentIsEmpty                         = "content is empty"
@@ -264,6 +265,16 @@ const (
 	// Handler Chat
 
 	ChatRoomTimeWasInvalid = "given time in path is not correctly formated"
+	ChatFailedToLoadChats  = "an error occurred while trying to load the chatrooms"
+
+	ChatRoomNameTooLong                          = "chatroom name exceeds allowed maximum of %d byte"
+	ChatRoomNameIsEmpty                          = "chatroom name is not allowed to be empty"
+	ChatCouldNotVerifyAccountCredentials         = "failed to validate your permissions on the selected base account"
+	ChatNotAllowedToCreateWithThatAccount        = "unauthorized to use selected base account"
+	ChatRoomNameAlreadyTaken                     = "chatroom name has been taken"
+	ChatRoomWithMemberConstellationAlreadyExists = "chatroom with that constellation of members already exists"
+	ChatRoomCreationError                        = "an error occurred while trying to create chatroom"
+	ChatRoomSuccessfullyCreated                  = "successfully created chatroom"
 
 	// Handler Markdown Go
 
@@ -303,13 +314,14 @@ const (
 	PagesEditColorPage          = "Manage Color Palettes"
 	PagesPersonDocumentPage     = "Personal Documents"
 	PagesChatRoomPage           = "Chatroom"
+	PagesChatRoomOverviewPage   = "Chatroom Overview"
 )
 
 func SetHomePage(text []byte) {
-	replaceMap["_home"]["$$home-page$$"] = string(text)
+	ReplaceMap["_home"]["$$home-page$$"] = string(text)
 }
 
-var replaceMap = map[string]map[string]string{
+var ReplaceMap = map[string]map[string]string{
 	"_home": {
 		"$$home-page$$": "",
 		"{{/*_home-1*/}}Herzlich willkommen, {{.Account.Name}}": "Welcome, {{.Account.Name}}",
@@ -355,10 +367,26 @@ var replaceMap = map[string]map[string]string{
 	},
 
 	"chat": {
-		"{{/*chat-1*/}}Nachricht-Text":              "Message Text",
-		"{{/*chat-2*/}}Schreib eine neue Nachricht": "Write a new message",
-		"{{/*chat-3*/}}Nachricht Senden":            "Send Message",
-		"{{/*chat-4*/}}Lade mehr Nachrichten":       "Load more Messages",
+		"{{/*chat-1*/}}Nachricht-Text":        "Message Text",
+		"{{/*chat-2*/}}":                      "<textarea id=\"text-message\" name=\"text\" rows=\"2\" maxlength=\"2000\" placeholder=\"Write a new message\"></textarea>",
+		"{{/*chat-3*/}}Nachricht Senden":      "Send Message",
+		"{{/*chat-4*/}}Lade mehr Nachrichten": "Load more Messages",
+	},
+
+	"chatOverview": {
+		"{{/*chatOverview-1*/}}Es konnten keine Chaträume gefunden werden": "No Chatrooms Found",
+		"{{/*chatOverview-2*/}}Raum: <strong>{{.Name}}</strong>":           "Room: <strong>{{.Name}}</strong>",
+		"{{/*chatOverview-3*/}}Mitglieder: {{.GetMemberList}}":             "Member: {{.GetMemberList}}",
+		"{{/*chatOverview-4*/}}Nutzer: {{.User}}":                          "Account: {{.User}}",
+		"{{/*chatOverview-5*/}}Suchen":                                     "Search",
+		"{{/*chatOverview-6*/}}-- Alle Accounts --":                        "-- All Accounts --",
+		"{{/*chatOverview-7*/}}Account":                                    "Account",
+		"{{/*chatOverview-8*/}}Chatraum erstellen":                         "Create Chatroom",
+		"{{/*chatOverview-9*/}}Chatraum erstellen":                         "Create Chatroom",
+		"{{/*chatOverview-10*/}}Basis-Account":                             "Base Account",
+		"{{/*chatOverview-11*/}}Mitglied hinzufügen":                       "Add Member",
+		"{{/*chatOverview-12*/}}Mitglieder":                                "Members",
+		"{{/*chatOverview-13*/}}Raumname":                                  "Chatroom Name",
 	},
 
 	"documentColorEdit": {
@@ -778,12 +806,13 @@ var replaceMap = map[string]map[string]string{
 		"{{/*templates-37*/}}{{if $anonym}}{{$voter}}. Wahlzettel{{else}}{{$voter}}{{end}}": "{{if $anonym}}Ballot {{$voter}}{{else}}{{$voter}}{{end}}",
 		"{{/*templates-38*/}}Ungültige Stimmen: {{.GetIllegalVotes}}":                       "Invalid Votes: {{.GetIllegalVotes}}",
 		"{{/*templates-39*/}}CSV Herunterladen":                                             "Download CSV",
+		"{{/*templates-40*/}}Chaträume":                                                     "Chatrooms",
 	},
 }
 
 func LocaliseTemplateString(input []byte, name string) string {
 	result := string(input)
-	for key, value := range replaceMap {
+	for key, value := range ReplaceMap {
 		if name == key {
 			for left, right := range value {
 				result = strings.ReplaceAll(result, left, right)

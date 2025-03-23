@@ -121,6 +121,10 @@ func main() {
 	http.HandleFunc("GET /connect/chat/{id}/{user}", chat.ConnectToWebsocket)
 	http.HandleFunc("GET /get/messages/{id}/{user}/{time}", chat.GetOlderMessages)
 
+	http.HandleFunc("GET /chat/overview", chat.GetChatOverview)
+	http.HandleFunc("POST /create/chat", chat.PostNewChat)
+	http.HandleFunc("PUT /update/chat/overview", chat.PutFilterChatOverview)
+
 	http.HandleFunc("GET /administration", handler.GetManagementPage)
 	http.HandleFunc("POST /administration/file", handler.PostFileManagementPage)
 

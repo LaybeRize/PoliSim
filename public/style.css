@@ -413,14 +413,16 @@ table.view-vote {
             width: var(--standard-width);
             max-width: 100vw;
             filter: drop-shadow(0.3rem 0.3rem 0.125rem rgb(2 6 23));
-            padding: 0.5rem;
+            padding: 0.6rem;
             margin: 0.5rem 0;
             color: rgb(181 255 255);
+            box-sizing: border-box;
 
             > h1 {
                 font-size: 1rem;
                 padding: 0;
                 margin: 0;
+                word-break: break-all;
             }
             > i {
                 font-size: 0.8rem;
@@ -431,6 +433,7 @@ table.view-vote {
                 margin: 0;
                 padding-top: 0.4rem;
                 color: rgb(240, 240, 240);
+                word-break: break-all;
             }
         }
         > div#message.message-self {

@@ -1,3 +1,71 @@
-{{define "page"}}
+{{define "pageScript"}}
+    <script>
+        function copy() {
+            let copy = document.querySelector("#input-for-member").cloneNode(true)
+            copy.setAttribute("class", "name-list")
+            copy.removeAttribute("id")
+            document.querySelector("#member-names").insertAdjacentElement("beforebegin", copy)
+        }
 
+        function destroyParent(self) {
+            self.parentElement.remove()
+        }
+    </script>
+{{end}}
+{{define "page"}}
+    {{- /*gotype: PoliSim/handler.ChatOverviewPage*/ -}}
+    <body id="page-body">
+    {{template "header" .NavInfo}}
+    <form id="search-form" hx-put="/update/chat/overview" hx-target="#page-body">
+        <label for="account">{{/*chatOverview-7*/}}Account</label>
+        <select id="account" name="account">
+            <option value="">{{/*chatOverview-6*/}}-- Alle Accounts --</option>
+            {{$account := .Viewer}}
+            {{range .PossibleViewers}}
+                <option value="{{.}}" {{if eq . $account}}selected{{end}}>{{.}}</option>
+            {{end}}
+        </select>
+        <button>{{/*chatOverview-5*/}}Suchen</button>
+    </form>
+    <details>
+        <summary>{{/*chatOverview-8*/}}Chatraum erstellen</summary>
+        <form hx-post="/create/chat" hx-target="#message-box">
+            <label for="chatroom-name">{{/*chatOverview-13*/}}Raumname</label>
+            <input id="chatroom-name" name="chatroom-name" type="text">
+            <label for="base-account">{{/*chatOverview-10*/}}Basis-Account</label>
+            <select id="base-account" name="base-account">
+                {{range .PossibleViewers}}
+                    <option value="{{.}}">{{.}}</option>
+                {{end}}
+            </select>
+            <button type="button" onclick="copy()">{{/*chatOverview-11*/}}Mitglied hinzufügen</button>
+            <label for="member">{{/*chatOverview-12*/}}Mitglieder</label>
+            <div id="input-for-member" class="name-list hide">
+                <input id="member" name="[]member" type="text" list="member-names">
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <datalist id="member-names">
+                {{range .AccountNames}}
+                    <option>{{.}}</option>
+                {{end}}
+            </datalist>
+            <button>{{/*chatOverview-9*/}}Chatraum erstellen</button>
+        </form>
+    </details>
+    {{template "message" .}}
+    <div class="wrapper note">
+        {{if eq (len .Chats) 0}}
+            <p>{{/*chatOverview-1*/}}Es konnten keine Chaträume gefunden werden</p>
+        {{else}}
+            {{range .Chats}}
+                {{- /*gotype: PoliSim/database.ChatRoom*/ -}}
+                <a href="{{.GetLink}}">
+                    {{/*chatOverview-2*/}}Raum: <strong>{{.Name}}</strong><br>
+                    {{/*chatOverview-3*/}}Mitglieder: {{.GetMemberList}}<br>
+                    {{/*chatOverview-4*/}}Nutzer: {{.User}}
+                </a>
+            {{end}}
+        {{end}}
+    </div>
+    </body>
 {{end}}

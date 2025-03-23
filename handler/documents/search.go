@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-// Todo: correct the backwards behaviour displaying "vorherige Seite" even if the list is the last results
-
 func GetSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	query := helper.GetAdvancedURLValues(request)

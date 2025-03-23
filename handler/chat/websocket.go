@@ -3,6 +3,7 @@ package chat
 import (
 	"PoliSim/database"
 	"PoliSim/handler"
+	loc "PoliSim/localisation"
 	"bytes"
 	"encoding/json"
 	"github.com/gorilla/websocket"
@@ -36,7 +37,7 @@ const (
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512
+	maxMessageSize = 2500
 )
 
 func init() {
@@ -162,9 +163,7 @@ func (c *Client) readPump() {
 		_, text, err := c.conn.ReadMessage()
 		slog.Debug("received:", "user", c.id, "text", text)
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				slog.Debug("error:", "error", err.Error())
-			}
+			slog.Debug("error:", "error", err.Error())
 			break
 		}
 
@@ -175,11 +174,23 @@ func (c *Client) readPump() {
 		err = decoder.Decode(msg)
 		if err != nil {
 			slog.Debug("error:", "error", err.Error())
+			continue
+		}
+
+		if len([]rune(msg.Text)) > 2000 {
+			continue
 		}
 
 		msg.SenderName = c.id
 		msg.SendDate = time.Now().UTC()
+		err = database.InsertMessage(msg, c.hub.id)
+		if err != nil {
+			slog.Debug("error:", "error", err.Error())
+			continue
+		}
 		c.hub.broadcast <- msg
+		c.send <- []byte(loc.ReplaceMap["chat"]["{{/*chat-2*/}}"])
+
 	}
 }
 
@@ -228,10 +239,6 @@ func (h *Hub) run() {
 			}
 			h.Unlock()
 		case msg := <-h.broadcast:
-			err := database.InsertMessage(msg, h.id)
-			if err != nil {
-				continue
-			}
 			h.RLock()
 			for client := range h.clients {
 				select {

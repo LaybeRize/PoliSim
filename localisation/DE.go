@@ -25,6 +25,7 @@ const (
 
 	RequestParseError                      = "Fehler bei der Verarbeitung der Eingangsinformationen"
 	CouldNotFindAllAuthors                 = "Konnte nicht alle möglichen Autoren finden"
+	CouldNotFindAllOwnedAccounts           = "Konnte nicht alle möglichen Nutzeraccounts finden"
 	ErrorFindingAllOrganisationsForAccount = "Konnte nicht alle erlaubten Organisationen für ausgewählten Account finden"
 	ContentOrBodyAreEmpty                  = "Titel oder Inhalt sind leer"
 	ContentIsEmpty                         = "Inhalt ist leer"
@@ -264,6 +265,16 @@ const (
 	// Handler Chat
 
 	ChatRoomTimeWasInvalid = "Die angegebene Zeit im Pfad ist nicht korrekt formatiert"
+	ChatFailedToLoadChats  = "Es ist ein Fehler beim Laden der Chaträume aufgetreten"
+
+	ChatRoomNameTooLong                          = "Der Name des Chatraums übersteigt die maximal zulässige Länge von %d Byte"
+	ChatRoomNameIsEmpty                          = "Der Chatraumname darf nicht leer sein"
+	ChatCouldNotVerifyAccountCredentials         = "Die Überprüfung der Berechtigung des Basis-Accounts ist fehlgeschlagen"
+	ChatNotAllowedToCreateWithThatAccount        = "Die Nutzung des ausgewählten Basis-Accounts ist unzulässig"
+	ChatRoomNameAlreadyTaken                     = "Der Chatraumname ist bereits vergeben"
+	ChatRoomWithMemberConstellationAlreadyExists = "Es existiert bereits ein Raum mit genau diesen Mitgliedern"
+	ChatRoomCreationError                        = "Es ist ein Fehler beim Erstellen des Chatraums aufgetreten"
+	ChatRoomSuccessfullyCreated                  = "Chatraum wurde erfolgreich erstellt"
 
 	// Handler Markdown Go
 
@@ -303,15 +314,20 @@ const (
 	PagesEditColorPage          = "Farbpaletten anpassen"
 	PagesPersonDocumentPage     = "Persönliche Dokumente"
 	PagesChatRoomPage           = "Chatraum"
+	PagesChatRoomOverviewPage   = "Chatraumübersicht"
 )
 
 func SetHomePage(text []byte) {
-	replaceMap["_home"]["$$home-page$$"] = string(text)
+	ReplaceMap["_home"]["$$home-page$$"] = string(text)
 }
 
-var replaceMap = map[string]map[string]string{
+var ReplaceMap = map[string]map[string]string{
 	"_home": {
 		"$$home-page$$": "",
+	},
+
+	"chat": {
+		"{{/*chat-2*/}}": "<textarea id=\"text-message\" name=\"text\" rows=\"2\" maxlength=\"2000\" placeholder=\"Schreib eine neue Nachricht\"></textarea>",
 	},
 
 	"base": {
@@ -321,7 +337,7 @@ var replaceMap = map[string]map[string]string{
 
 func LocaliseTemplateString(input []byte, name string) string {
 	result := string(input)
-	for key, value := range replaceMap {
+	for key, value := range ReplaceMap {
 		if name == key {
 			for left, right := range value {
 				result = strings.ReplaceAll(result, left, right)

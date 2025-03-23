@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/lib/pq"
+	"html/template"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -14,13 +17,22 @@ type Message struct {
 	Text       string    `json:"text"`
 }
 
+func (m *Message) GetTimeSend(a *Account) string {
+	return m.SendDate.In(a.TimeZone).Format(loc.TimeFormatString)
+}
+
 type ChatRoom struct {
 	Name   string
 	Member []string
+	User   string
 }
 
-func (m *Message) GetTimeSend(a *Account) string {
-	return m.SendDate.In(a.TimeZone).Format(loc.TimeFormatString)
+func (c *ChatRoom) GetLink() template.URL {
+	return template.URL("/chat/" + url.PathEscape(c.Name) + "/" + url.PathEscape(c.User))
+}
+
+func (c *ChatRoom) GetMemberList() string {
+	return strings.Join(c.Member, ", ")
 }
 
 func LoadLastMessages(amount int, timeStamp time.Time, roomID string, accountName string) ([]Message, error) {
@@ -61,14 +73,23 @@ func CreateChatRoom(roomID string, member []string) error {
 	}
 	defer rollback(tx)
 	var name string
-	err = tx.QueryRow(`SELECT room_id FROM chat_rooms WHERE member = ARRAY(SELECT name FROM account WHERE name = ANY($1) ORDER BY name)`, pq.Array(member)).Scan(name)
+	err = tx.QueryRow(`SELECT room_id FROM chat_rooms WHERE member = 
+	ARRAY(SELECT name FROM account WHERE name = ANY($1) AND blocked = false ORDER BY name)`, pq.Array(member)).Scan(&name)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return err
 	} else if err == nil {
 		return DoubleChatRoomEntry
 	}
 
-	_, err = tx.Exec(`INSERT INTO chat_rooms (room_id, member) VALUES ($1, ARRAY(SELECT name FROM account WHERE name = ANY($2) ORDER BY name))`, roomID, pq.Array(member))
+	err = tx.QueryRow(`SELECT room_id FROM chat_rooms WHERE room_id = $1`, roomID).Scan(&name)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	} else if err == nil {
+		return ChatRoomNameTaken
+	}
+
+	_, err = tx.Exec(`INSERT INTO chat_rooms (room_id, member) VALUES ($1, 
+	ARRAY(SELECT name FROM account WHERE name = ANY($2) AND blocked = false ORDER BY name))`, roomID, pq.Array(member))
 	if err != nil {
 		return err
 	}
@@ -87,9 +108,9 @@ func QueryForRoomIdAndUser(roomID string, accountName string, ownerName string) 
 }
 
 func GetAllRoomsForUser(viewer []string) ([]ChatRoom, error) {
-	result, err := postgresDB.Query(`SELECT DISTINCT ON (chat_rooms.room_id) chat_rooms.room_id, member FROM chat_rooms 
+	result, err := postgresDB.Query(`SELECT chat_rooms.room_id, member, account_name FROM chat_rooms 
     INNER JOIN public.chat_rooms_to_account cta on chat_rooms.room_id = cta.room_id 
-WHERE account_name = ANY($1) ORDER BY chat_rooms.room_id`, pq.Array(viewer))
+WHERE account_name = ANY($1) ORDER BY array_length(member, 1), chat_rooms.room_id`, pq.Array(viewer))
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +118,7 @@ WHERE account_name = ANY($1) ORDER BY chat_rooms.room_id`, pq.Array(viewer))
 	arr := make([]ChatRoom, 0)
 	chat := ChatRoom{}
 	for result.Next() {
-		err = result.Scan(&chat.Name, pq.Array(&chat.Member))
+		err = result.Scan(&chat.Name, pq.Array(&chat.Member), &chat.User)
 		if err != nil {
 			return nil, err
 		}

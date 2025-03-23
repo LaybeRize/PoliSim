@@ -4,6 +4,7 @@ import (
 	loc "PoliSim/localisation"
 	"database/sql"
 	"github.com/lib/pq"
+	"html/template"
 	"strings"
 	"time"
 )
@@ -61,6 +62,10 @@ func (a *Account) IsAdmin() bool {
 
 func (a *Account) IsHeadAdmin() bool {
 	return a.IsAtLeastHeadAdmin()
+}
+
+func (a *Account) QueryEscapeName() template.URL {
+	return template.URL(template.URLQueryEscaper(a.Name))
 }
 
 const (

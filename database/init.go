@@ -28,6 +28,7 @@ const (
 	DocumentHasInvalidVisibility DbError = "document has invalid visibility"
 	DocumentHasNoAttachedVotes   DbError = "document has no attached votes"
 	DoubleChatRoomEntry          DbError = "there already exists a room with these members"
+	ChatRoomNameTaken            DbError = "there already exists a room with this name"
 )
 
 var shutdown sync.Mutex

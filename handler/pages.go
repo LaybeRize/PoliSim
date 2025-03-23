@@ -676,6 +676,23 @@ func (p *DirectChatWindow) getPageName() string {
 	return "chat"
 }
 
+type ChatOverviewPage struct {
+	NavInfo         NavigationInfo
+	Viewer          string
+	PossibleViewers []string
+	AccountNames    []string
+	Chats           []database.ChatRoom
+	MessageUpdate
+}
+
+func (p *ChatOverviewPage) SetNavInfo(navInfo NavigationInfo) {
+	p.NavInfo = navInfo
+}
+
+func (p *ChatOverviewPage) getPageName() string {
+	return "chatOverview"
+}
+
 type AdminPage struct {
 	NavInfo NavigationInfo
 	MessageUpdate
@@ -1020,6 +1037,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 		fullPage.Base.Title = pageNameText + loc.PagesPersonDocumentPage
 	case *DirectChatWindow:
 		fullPage.Base.Title = pageNameText + loc.PagesChatRoomPage
+	case *ChatOverviewPage:
+		fullPage.Base.Title = pageNameText + loc.PagesChatRoomOverviewPage
 	case *AdminPage:
 		fullPage.Base.Title = "Webserver Administration"
 	default:
