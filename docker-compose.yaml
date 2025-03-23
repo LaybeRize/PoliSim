@@ -27,7 +27,5 @@ services:
 
 
 volumes:
-  neo_data:
-  neo_logs:
   pg_data:
   web_public:

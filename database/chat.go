@@ -73,7 +73,8 @@ func CreateChatRoom(roomID string, member []string) error {
 	defer rollback(tx)
 	var name string
 	err = tx.QueryRow(`SELECT room_id FROM chat_rooms WHERE member = 
-	ARRAY(SELECT name FROM account WHERE name = ANY($1) AND blocked = false ORDER BY name)`, pq.Array(member)).Scan(&name)
+	ARRAY(SELECT name FROM account WHERE name = ANY($1) AND name <> $2 AND blocked = false ORDER BY name)`,
+		pq.Array(member), loc.AdministrationAccountName).Scan(&name)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return err
 	} else if err == nil {
@@ -88,7 +89,8 @@ func CreateChatRoom(roomID string, member []string) error {
 	}
 
 	_, err = tx.Exec(`INSERT INTO chat_rooms (room_id, member) VALUES ($1, 
-	ARRAY(SELECT name FROM account WHERE name = ANY($2) AND blocked = false ORDER BY name))`, roomID, pq.Array(member))
+	ARRAY(SELECT name FROM account WHERE name = ANY($2) AND name <> $3 AND blocked = false ORDER BY name))`,
+		roomID, pq.Array(member), loc.AdministrationAccountName)
 	if err != nil {
 		return err
 	}
