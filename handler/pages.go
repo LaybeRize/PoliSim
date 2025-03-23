@@ -329,7 +329,7 @@ func (p *ViewPublicationPage) getPageName() string {
 
 type SearchPublicationsPage struct {
 	NavInfo          NavigationInfo
-	Query            string
+	Query            database.PublicationSearch
 	Amount           int
 	HasNext          bool
 	NextItemID       string
@@ -579,7 +579,7 @@ func (p *CreateVoteElementPage) getPageName() string {
 
 type SearchDocumentsPage struct {
 	NavInfo          NavigationInfo
-	ShowBlocked      bool
+	Query            *database.DocumentSearch
 	Amount           int
 	HasNext          bool
 	NextItemID       string

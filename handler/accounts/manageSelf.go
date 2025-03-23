@@ -5,7 +5,9 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
 )
@@ -118,7 +120,11 @@ func PostUpdateMyPassword(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	newPassword, err = database.HashPassword(newPassword)
-	if err != nil {
+	if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.AccountNewPasswordTooLong, ElementID: messageIdPassword})
+		return
+	} else if err != nil {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountErrorHashingNewPassword, ElementID: messageIdPassword})
 		return

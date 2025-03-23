@@ -13,7 +13,12 @@ func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request
 	query := helper.GetAdvancedURLValues(request)
 
 	page := &handler.SearchPublicationsPage{
-		Query:  query.GetTrimmedString("query"),
+		Query: database.PublicationSearch{
+			NewspaperName: query.GetTrimmedString("newspaper-name"),
+			ExactMatch:    query.GetBool("exact-match"),
+			IsSpecial:     query.GetBool("special"),
+			IsNotSpecial:  query.GetBool("not-special"),
+		},
 		Amount: query.GetInt("amount"),
 	}
 
@@ -26,9 +31,9 @@ func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request
 
 	var err error
 	if backward {
-		page.Results, err = database.GetPublishedNewspaperBackwards(page.Amount, page.PreviousItemTime, page.Query)
+		page.Results, err = database.GetPublishedNewspaperBackwards(page.Amount, page.PreviousItemTime, &page.Query)
 	} else {
-		page.Results, err = database.GetPublishedNewspaperForwards(page.Amount, page.NextItemTime, page.Query)
+		page.Results, err = database.GetPublishedNewspaperForwards(page.Amount, page.NextItemTime, &page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -54,10 +59,17 @@ func GetSearchPublicationsPage(writer http.ResponseWriter, request *http.Request
 		page.NextItemTime = page.Results[page.Amount].PublishedDate
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].PublishedDate
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].PublishedDate
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].PublishedDate
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -72,7 +84,12 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 	page := &handler.SearchPublicationsPage{
-		Query:  values.GetTrimmedString("query"),
+		Query: database.PublicationSearch{
+			NewspaperName: values.GetTrimmedString("newspaper-name"),
+			ExactMatch:    values.GetBool("exact-match"),
+			IsSpecial:     values.GetBool("special"),
+			IsNotSpecial:  values.GetBool("not-special"),
+		},
 		Amount: values.GetInt("amount"),
 	}
 
@@ -84,9 +101,9 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 	page.NextItemTime, _ = values.GetUTCTime("forward", true)
 
 	if backward {
-		page.Results, err = database.GetPublishedNewspaperBackwards(page.Amount, page.PreviousItemTime, page.Query)
+		page.Results, err = database.GetPublishedNewspaperBackwards(page.Amount, page.PreviousItemTime, &page.Query)
 	} else {
-		page.Results, err = database.GetPublishedNewspaperForwards(page.Amount, page.NextItemTime, page.Query)
+		page.Results, err = database.GetPublishedNewspaperForwards(page.Amount, page.NextItemTime, &page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -112,10 +129,17 @@ func PutSearchPublicationPage(writer http.ResponseWriter, request *http.Request)
 		page.NextItemTime = page.Results[page.Amount].PublishedDate
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].PublishedDate
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].PublishedDate
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].PublishedDate
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	writer.Header().Add("Hx-Push-Url", "/search/publications?"+values.Encode())

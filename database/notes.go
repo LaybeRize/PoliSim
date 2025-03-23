@@ -177,7 +177,7 @@ WHERE `+query+` AND posted <= $1 ORDER BY posted DESC LIMIT $2;`, parameter...)
 }
 
 func SearchForNotesBackwards(acc *Account, amount int, timeStamp time.Time, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
-	parameter := []any{timeStamp, amount + 1}
+	parameter := []any{timeStamp, amount + 2}
 	query, parameter := queryAnalyzer(acc, parameter, input, showBlocked)
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM 
 (SELECT id, title, author, flair, posted, blocked FROM blackboard_note

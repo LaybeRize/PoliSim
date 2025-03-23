@@ -56,6 +56,17 @@ form {
     display: flex;
     width: var(--standard-width);
     max-width: 100vw;
+    > details.advanced-search {
+        flex-direction: inherit;
+        align-items: inherit;
+        display: inherit;
+        width: inherit;
+        max-width: inherit;
+        > summary {
+            font-weight: bold;
+            padding: 0.3rem 0;
+        }
+    }
 }
 
 .error-div {

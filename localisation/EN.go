@@ -104,6 +104,7 @@ const (
 	AccountWrongOldPassword                  = "the old password is invalid"
 	AccountWrongRepeatPassword               = "the repeated password is not equal to the new password"
 	AccountNewPasswordMinimumLength          = "the new password has less then %d characters"
+	AccountNewPasswordTooLong                = "the new password is longer then the maximum allowed 72 bytes"
 	AccountErrorHashingNewPassword           = "error while hashing the new password"
 	AccountErrorSavingNewPassword            = "error while saving the new password"
 	AccountSuccessfullySavedNewPassword      = "password successfully changed"
@@ -452,6 +453,13 @@ var replaceMap = map[string]map[string]string{
 		"{{/*documentSearch-8*/}}Veröffentlicht von <i>{{.Author}}</i> im <i>{{.Organisation}}</i>":               "Written by <i>{{.Author}}</i> for <i>{{.Organisation}}</i>",
 		"{{/*documentSearch-9*/}}&laquo; Vorherige Seite":                                                         "&laquo; Previous Page",
 		"{{/*documentSearch-10*/}}Nächste Seite &raquo;":                                                          "Next Page &raquo;",
+		"{{/*documentSearch-11*/}}Dokumententitel":                                                                "Title",
+		"{{/*documentSearch-12*/}}Erweiterte Suche":                                                               "Advanced Search",
+		"{{/*documentSearch-13*/}}Nur exakte Übereinstimmungen für den Dokumententitel":                           "Only exact matches of Title",
+		"{{/*documentSearch-14*/}}Organisation":                                                                   "Organisation",
+		"{{/*documentSearch-15*/}}Nur exakte Übereinstimmungen für Organisation":                                  "Only exact matches of Organisation",
+		"{{/*documentSearch-16*/}}Autor":                                                                          "Author",
+		"{{/*documentSearch-17*/}}Nur exakte Übereinstimmungen für den Autor":                                     "Only exact matches of Author",
 	},
 
 	"documentView": {
@@ -584,7 +592,7 @@ var replaceMap = map[string]map[string]string{
 
 	"newspaperSearch": {
 		"{{/*newspaperSearch-1*/}}\"Die Anfrage hat zu einem Fehler auf der Serverseite geführt\"":                 "\"Requested could not be processed. Internal Server Error\"",
-		"{{/*newspaperSearch-2*/}}Suchanfrage":                                                                     "Search Query",
+		"{{/*newspaperSearch-2*/}}Zeitungsname":                                                                    "Newspaper Name",
 		"{{/*newspaperSearch-3*/}}Anzahl der Ergebnisse":                                                           "Number of Entries per Page",
 		"{{/*newspaperSearch-4*/}}Suchen":                                                                          "Search",
 		"{{/*newspaperSearch-5*/}}Es konnten keine Einträge gefunden werden, die den Suchkriterien gerecht werden": "No Entries found",
@@ -592,6 +600,10 @@ var replaceMap = map[string]map[string]string{
 		"{{/*newspaperSearch-7*/}}<i>Veröffentlicht am: {{.GetPublishedDate $acc}}</i>":                            "<i>Publish Date: {{.GetPublishedDate $acc}}</i>",
 		"{{/*newspaperSearch-8*/}}&laquo; Vorherige Seite":                                                         "&laquo; Previous Page",
 		"{{/*newspaperSearch-9*/}}Nächste Seite &raquo;":                                                           "Next Page &raquo;",
+		"{{/*newspaperSearch-10*/}}Erweiterte Suche":                                                               "Advanced Search",
+		"{{/*newspaperSearch-11*/}}Nur exakte Übereinstimmungen":                                                   "Only exact Matches",
+		"{{/*newspaperSearch-12*/}}Nur Eilmeldungen":                                                               "Only Breaking News",
+		"{{/*newspaperSearch-13*/}}Nur normale Publikationen":                                                      "Only ordinary Publications",
 	},
 
 	"noteCreate": {

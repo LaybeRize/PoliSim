@@ -179,7 +179,7 @@ func GetLetterListBackwards(viewer []string, amount int, timeStamp time.Time) ([
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, written, account_name, has_read FROM (
 SELECT id, title, author, flair, written, account_name, has_read FROM letter
  INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) AND written >= $2
- ORDER BY written LIMIT $3) as let ORDER BY let.written DESC;`, pq.Array(viewer), timeStamp, amount+1)
+ ORDER BY written LIMIT $3) as let ORDER BY let.written DESC;`, pq.Array(viewer), timeStamp, amount+2)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"html/template"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -412,64 +413,123 @@ func RemoveRestoreComment(commentID string) {
 	_, _ = postgresDB.Exec(`UPDATE comment_to_document SET removed = NOT removed WHERE comment_id = $1`, commentID)
 }
 
-func GetDocumentListForwards(amount int, timeStamp time.Time, acc *Account, showBlocked bool) ([]SmallDocument, error) {
-	parameter := []any{timeStamp, amount + 1}
-	parameter, query := getDocumentListQuery(acc, showBlocked, parameter)
-
-	result, err := postgresDB.Query(query+` AND written <= $1 ORDER BY written DESC LIMIT $2;`, parameter...)
-	if err != nil {
-		return nil, err
-	}
-	defer closeRows(result)
-	arr := make([]SmallDocument, 0)
-	trunc := SmallDocument{}
-	for result.Next() {
-		err = result.Scan(&trunc.ID, &trunc.Type, &trunc.Organisation, &trunc.Title, &trunc.Author, &trunc.Written, &trunc.Removed)
-		if err != nil {
-			return nil, err
-		}
-		arr = append(arr, trunc)
-	}
-	return arr, nil
+type DocumentSearch struct {
+	ShowBlocked             bool
+	DocumentTitle           string
+	ExactDocumentTitleMatch bool
+	Organisation            string
+	ExactOrganisationMatch  bool
+	OrganisationName        string
+	AuthorName              string
+	ExactAuthorMatch        bool
+	values                  []any
 }
 
-func GetDocumentListBackwards(amount int, timeStamp time.Time, acc *Account, showBlocked bool) ([]SmallDocument, error) {
-	parameter := []any{timeStamp, amount + 1}
-	parameter, query := getDocumentListQuery(acc, showBlocked, parameter)
-
-	result, err := postgresDB.Query(`SELECT id, type, organisation, title, author, written, removed FROM (`+
-		query+` AND written >= $1 ORDER BY written LIMIT $2) as doc ORDER BY doc.written DESC;`, parameter...)
-	if err != nil {
-		return nil, err
-	}
-	defer closeRows(result)
-	arr := make([]SmallDocument, 0)
-	trunc := SmallDocument{}
-	for result.Next() {
-		err = result.Scan(&trunc.ID, &trunc.Type, &trunc.Organisation, &trunc.Title, &trunc.Author, &trunc.Written, &trunc.Removed)
-		if err != nil {
-			return nil, err
-		}
-		arr = append(arr, trunc)
-	}
-	return arr, nil
+func (n *DocumentSearch) HasOrganisationName() bool {
+	return n.OrganisationName != ""
 }
 
-func getDocumentListQuery(acc *Account, showBlocked bool, parameter []any) ([]any, string) {
+func (n *DocumentSearch) GetQuery(acc *Account) string {
 	var query string
+
+	n.values = make([]any, 0)
+	pos := 3
 	if !acc.Exists() {
-		query = `SELECT id, type, organisation, title, author, written, removed FROM document WHERE public = true AND removed = false`
+		query = `SELECT id, type, organisation, title, author, written, removed FROM document WHERE public = true AND removed = false `
 	} else if !acc.IsAtLeastAdmin() {
-		query = `SELECT DISTINCT ON (written) id, type, organisation, title, author, written, removed FROM document_linked WHERE removed = false AND (public = true OR owner_name = $3)`
-		parameter = append(parameter, acc.Name)
+		query = `SELECT DISTINCT ON (written) id, type, organisation, title, author, written, removed FROM document_linked WHERE removed = false AND (public = true OR owner_name = $3) `
+		pos += 1
+		n.values = append(n.values, acc.Name)
 	} else {
-		if showBlocked {
-			query = `SELECT id, type, organisation, title, author, written, removed FROM document WHERE true`
+		if n.ShowBlocked {
+			query = `SELECT id, type, organisation, title, author, written, removed FROM document WHERE true `
 		} else {
-			query = `SELECT id, type, organisation, title, author, written, removed FROM document WHERE removed = false`
+			query = `SELECT id, type, organisation, title, author, written, removed FROM document WHERE removed = false `
 		}
 	}
-	return parameter, query
+
+	if n.DocumentTitle != "" {
+		if n.ExactDocumentTitleMatch {
+			query += "AND title = $" + strconv.Itoa(pos) + " "
+		} else {
+			query += "AND title LIKE '%' || $" + strconv.Itoa(pos) + " || '%' "
+		}
+		pos += 1
+		n.values = append(n.values, n.DocumentTitle)
+	}
+
+	if n.Organisation != "" {
+		if n.ExactOrganisationMatch {
+			query += "AND organisation = $" + strconv.Itoa(pos) + " "
+		} else {
+			query += "AND organisation LIKE '%' || $" + strconv.Itoa(pos) + " || '%' "
+		}
+		pos += 1
+		n.values = append(n.values, n.Organisation)
+	}
+
+	if n.OrganisationName != "" {
+		query += "AND organisation_name = $" + strconv.Itoa(pos) + " "
+		pos += 1
+		n.values = append(n.values, n.OrganisationName)
+	}
+
+	if n.AuthorName != "" {
+		if n.ExactAuthorMatch {
+			query += "AND author = $" + strconv.Itoa(pos) + " "
+		} else {
+			query += "AND author LIKE '%' || $" + strconv.Itoa(pos) + " || '%' "
+		}
+		pos += 1
+		n.values = append(n.values, n.AuthorName)
+	}
+
+	return query
+}
+
+func (n *DocumentSearch) GetValues(input []any) []any {
+	return append(input, n.values...)
+}
+
+func GetDocumentListForwards(amount int, timeStamp time.Time, acc *Account, info *DocumentSearch) ([]SmallDocument, error) {
+	query := info.GetQuery(acc) + ` AND written <= $1 ORDER BY written DESC LIMIT $2;`
+	result, err := postgresDB.Query(query,
+		info.GetValues([]any{timeStamp, amount + 1})...)
+	if err != nil {
+		return nil, err
+	}
+	defer closeRows(result)
+	arr := make([]SmallDocument, 0)
+	trunc := SmallDocument{}
+	for result.Next() {
+		err = result.Scan(&trunc.ID, &trunc.Type, &trunc.Organisation, &trunc.Title, &trunc.Author, &trunc.Written, &trunc.Removed)
+		if err != nil {
+			return nil, err
+		}
+		arr = append(arr, trunc)
+	}
+	return arr, nil
+}
+
+func GetDocumentListBackwards(amount int, timeStamp time.Time, acc *Account, info *DocumentSearch) ([]SmallDocument, error) {
+	query := `SELECT id, type, organisation, title, author, written, removed FROM (` +
+		info.GetQuery(acc) + ` AND written >= $1 ORDER BY written LIMIT $2) as doc ORDER BY doc.written DESC;`
+	result, err := postgresDB.Query(query,
+		info.GetValues([]any{timeStamp, amount + 2})...)
+	if err != nil {
+		return nil, err
+	}
+	defer closeRows(result)
+	arr := make([]SmallDocument, 0)
+	trunc := SmallDocument{}
+	for result.Next() {
+		err = result.Scan(&trunc.ID, &trunc.Type, &trunc.Organisation, &trunc.Title, &trunc.Author, &trunc.Written, &trunc.Removed)
+		if err != nil {
+			return nil, err
+		}
+		arr = append(arr, trunc)
+	}
+	return arr, nil
 }
 
 func GetPersonalDocumentListForwards(amount int, timeStamp time.Time, acc *Account) ([]SmallDocument, error) {
@@ -495,7 +555,7 @@ WHERE owner_name = $3 AND written <= $1 ORDER BY written DESC LIMIT $2;`, timeSt
 func GetPersonalDocumentListBackwards(amount int, timeStamp time.Time, acc *Account) ([]SmallDocument, error) {
 	result, err := postgresDB.Query(`SELECT id, type, organisation, title, author, written, removed FROM 
     (SELECT id, type, organisation, title, author, written, removed FROM document LEFT JOIN ownership ON ownership.account_name = author 
-WHERE owner_name = $3 AND written >= $1 ORDER BY written LIMIT $2) as doc ORDER BY doc.written DESC;`, timeStamp, amount+1, acc.GetName())
+WHERE owner_name = $3 AND written >= $1 ORDER BY written LIMIT $2) as doc ORDER BY doc.written DESC;`, timeStamp, amount+2, acc.GetName())
 	if err != nil {
 		return nil, err
 	}

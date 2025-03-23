@@ -8,13 +8,24 @@ import (
 	"net/http"
 )
 
+// Todo: correct the backwards behaviour displaying "vorherige Seite" even if the list is the last results
+
 func GetSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	query := helper.GetAdvancedURLValues(request)
 
 	page := &handler.SearchDocumentsPage{
-		Amount:      query.GetInt("amount"),
-		ShowBlocked: query.GetBool("blocked"),
+		Amount: query.GetInt("amount"),
+		Query: &database.DocumentSearch{
+			ShowBlocked:             query.GetBool("blocked"),
+			DocumentTitle:           query.GetTrimmedString("title"),
+			ExactDocumentTitleMatch: query.GetBool("match-title"),
+			Organisation:            query.GetTrimmedString("organisation"),
+			ExactOrganisationMatch:  query.GetBool("match-organisation"),
+			OrganisationName:        query.GetTrimmedString("organisation-name"),
+			AuthorName:              query.GetTrimmedString("author"),
+			ExactAuthorMatch:        query.GetBool("match-author"),
+		},
 	}
 
 	if page.Amount < 10 || page.Amount > 50 {
@@ -26,9 +37,9 @@ func GetSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 
 	var err error
 	if backward {
-		page.Results, err = database.GetDocumentListBackwards(page.Amount, page.PreviousItemTime, acc, page.ShowBlocked)
+		page.Results, err = database.GetDocumentListBackwards(page.Amount, page.PreviousItemTime, acc, page.Query)
 	} else {
-		page.Results, err = database.GetDocumentListForwards(page.Amount, page.NextItemTime, acc, page.ShowBlocked)
+		page.Results, err = database.GetDocumentListForwards(page.Amount, page.NextItemTime, acc, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -54,10 +65,17 @@ func GetSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 		page.NextItemTime = page.Results[page.Amount].Written
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].Written
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].Written
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].Written
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -71,8 +89,17 @@ func PutSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	page := &handler.SearchDocumentsPage{
-		Amount:      values.GetInt("amount"),
-		ShowBlocked: values.GetBool("blocked"),
+		Amount: values.GetInt("amount"),
+		Query: &database.DocumentSearch{
+			ShowBlocked:             values.GetBool("blocked"),
+			DocumentTitle:           values.GetTrimmedString("title"),
+			ExactDocumentTitleMatch: values.GetBool("match-title"),
+			Organisation:            values.GetTrimmedString("organisation"),
+			ExactOrganisationMatch:  values.GetBool("match-organisation"),
+			OrganisationName:        values.GetTrimmedString("organisation-name"),
+			AuthorName:              values.GetTrimmedString("author"),
+			ExactAuthorMatch:        values.GetBool("match-author"),
+		},
 	}
 
 	if page.Amount < 10 || page.Amount > 50 {
@@ -83,9 +110,9 @@ func PutSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 	page.NextItemTime, _ = values.GetUTCTime("forward", true)
 
 	if backward {
-		page.Results, err = database.GetDocumentListBackwards(page.Amount, page.PreviousItemTime, acc, page.ShowBlocked)
+		page.Results, err = database.GetDocumentListBackwards(page.Amount, page.PreviousItemTime, acc, page.Query)
 	} else {
-		page.Results, err = database.GetDocumentListForwards(page.Amount, page.NextItemTime, acc, page.ShowBlocked)
+		page.Results, err = database.GetDocumentListForwards(page.Amount, page.NextItemTime, acc, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -111,10 +138,17 @@ func PutSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 		page.NextItemTime = page.Results[page.Amount].Written
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].Written
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].Written
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].Written
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	writer.Header().Add("Hx-Push-Url", "/search/documents?"+values.Encode())
@@ -166,10 +200,17 @@ func GetPersonalSearchDocumentsPage(writer http.ResponseWriter, request *http.Re
 		page.NextItemTime = page.Results[page.Amount].Written
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].Written
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].Written
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].Written
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -222,10 +263,17 @@ func PutPersonalSearchDocumentsPage(writer http.ResponseWriter, request *http.Re
 		page.NextItemTime = page.Results[page.Amount].Written
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].Written
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].Written
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].Written
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	writer.Header().Add("Hx-Push-Url", "/my/documents?"+values.Encode())

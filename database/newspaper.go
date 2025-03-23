@@ -276,10 +276,43 @@ FROM newspaper_publication WHERE published = false ORDER BY special DESC, publis
 	return list, nil
 }
 
-func GetPublishedNewspaperForwards(amount int, timeStamp time.Time, newspaper string) ([]Publication, error) {
+type PublicationSearch struct {
+	NewspaperName string
+	ExactMatch    bool
+	IsSpecial     bool
+	IsNotSpecial  bool
+	values        []any
+}
+
+func (n *PublicationSearch) GetQuery() string {
+	var query string
+
+	n.values = make([]any, 0)
+	if n.NewspaperName != "" && n.ExactMatch {
+		query = "AND newspaper_name = $3 "
+		n.values = append(n.values, n.NewspaperName)
+	} else if n.NewspaperName != "" {
+		query = "AND newspaper_name LIKE '%' || $3 || '%' "
+		n.values = append(n.values, n.NewspaperName)
+	}
+
+	if n.IsSpecial && !n.IsNotSpecial {
+		query += "AND special = true "
+	} else if !n.IsSpecial && n.IsNotSpecial {
+		query += "AND special = false "
+	}
+
+	return query
+}
+
+func (n *PublicationSearch) GetValues(input []any) []any {
+	return append(input, n.values...)
+}
+
+func GetPublishedNewspaperForwards(amount int, timeStamp time.Time, info *PublicationSearch) ([]Publication, error) {
 	result, err := postgresDB.Query(`SELECT id, newspaper_name, special, publish_date FROM newspaper_publication 
-WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' AND publish_date <= $1 ORDER BY publish_date DESC LIMIT $2;`,
-		timeStamp, amount+1, newspaper)
+WHERE published = true `+info.GetQuery()+` AND publish_date <= $1 ORDER BY publish_date DESC LIMIT $2;`,
+		info.GetValues([]any{timeStamp, amount + 1})...)
 	if err != nil {
 		return nil, err
 	}
@@ -296,11 +329,11 @@ WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' AND publish_date
 	return list, nil
 }
 
-func GetPublishedNewspaperBackwards(amount int, timeStamp time.Time, newspaper string) ([]Publication, error) {
+func GetPublishedNewspaperBackwards(amount int, timeStamp time.Time, info *PublicationSearch) ([]Publication, error) {
 	result, err := postgresDB.Query(`SELECT id, newspaper_name, special, publish_date FROM (
 SELECT id, newspaper_name, special, publish_date FROM newspaper_publication 
-WHERE published = true AND newspaper_name LIKE '%' || $3 || '%' AND publish_date >= $1 ORDER BY publish_date LIMIT $2) as pub ORDER BY pub.publish_date DESC;`,
-		timeStamp, amount+1, newspaper)
+WHERE published = true `+info.GetQuery()+` AND publish_date >= $1 ORDER BY publish_date LIMIT $2) as pub ORDER BY pub.publish_date DESC;`,
+		info.GetValues([]any{timeStamp, amount + 2})...)
 	if err != nil {
 		return nil, err
 	}

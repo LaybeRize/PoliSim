@@ -104,6 +104,7 @@ const (
 	AccountWrongOldPassword                  = "Das alte Passwort ist falsch"
 	AccountWrongRepeatPassword               = "Die Wiederholung stimmt nicht mit dem neuen Passwort überein"
 	AccountNewPasswordMinimumLength          = "Das neue Passwort ist kürzer als %d Zeichen"
+	AccountNewPasswordTooLong                = "Das Passwort ist länger als die maximalen zulässigen 72 Bytes"
 	AccountErrorHashingNewPassword           = "Fehler beim Verschlüsseln des neuen Passworts"
 	AccountErrorSavingNewPassword            = "Fehler beim Speichern des neuen Passworts"
 	AccountSuccessfullySavedNewPassword      = "Passwort erfolgreich angepasst"

@@ -15,8 +15,17 @@
     {{template "header" .NavInfo}}
     {{$acc := .NavInfo.Account}}
     <form id="search-form" hx-put="/search/publications" hx-target="#page-body">
-        <label for="query">{{/*newspaperSearch-2*/}}Suchanfrage</label>
-        <input id="query" name="query" type="text" value="{{.Query}}">
+        <label for="newspaper-name">{{/*newspaperSearch-2*/}}Zeitungsname</label>
+        <input id="newspaper-name" name="newspaper-name" type="text" value="{{.Query.NewspaperName}}">
+        <details class="advanced-search">
+            <summary>{{/*newspaperSearch-10*/}}Erweiterte Suche</summary>
+            <label for="exact-match">{{/*newspaperSearch-11*/}}Nur exakte Übereinstimmungen</label>
+            <input type="checkbox" id="exact-match" name="exact-match" value="true" {{if .Query.ExactMatch}}checked{{end}}>
+            <label for="special">{{/*newspaperSearch-12*/}}Nur Eilmeldungen</label>
+            <input type="checkbox" id="special" name="special" value="true" {{if .Query.IsSpecial}}checked{{end}}>
+            <label for="not-special">{{/*newspaperSearch-13*/}}Nur normale Publikationen</label>
+            <input type="checkbox" id="not-special" name="not-special" value="true" {{if .Query.IsNotSpecial}}checked{{end}}>
+        </details>
         <label for="amount">{{/*newspaperSearch-3*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
         <button>{{/*newspaperSearch-4*/}}Suchen</button>

@@ -55,10 +55,17 @@ func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 		page.NextItemTime = page.Results[page.Amount].PostedAt
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].PostedAt
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].PostedAt
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].PostedAt
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -114,10 +121,17 @@ func PutSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 		page.NextItemTime = page.Results[page.Amount].PostedAt
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].PostedAt
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].PostedAt
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].PostedAt
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	writer.Header().Add("Hx-Push-Url", "/search/notes?"+values.Encode())

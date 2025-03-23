@@ -15,10 +15,28 @@
     {{template "header" .NavInfo}}
     {{$acc := .NavInfo.Account}}
     <form id="search-form" hx-put="/search/documents" hx-target="#page-body">
+        {{if .Query.HasOrganisationName}}
+            <input name="organisation-name" type="text" value="{{.Query.OrganisationName}}" style="display: none">
+        {{end}}
         {{if .NavInfo.Account.IsAtLeastAdmin}}
             <label for="blocked">{{/*documentSearch-2*/}}Blockierte Dokumente anzeigen</label>
-            <input type="checkbox" id="blocked" name="blocked" value="true" {{if .ShowBlocked}}checked{{end}}>
+            <input type="checkbox" id="blocked" name="blocked" value="true" {{if .Query.ShowBlocked}}checked{{end}}>
         {{end}}
+        <label for="title">{{/*documentSearch-11*/}}Dokumententitel</label>
+        <input id="title" name="title" type="text" value="{{.Query.DocumentTitle}}">
+        <details class="advanced-search">
+            <summary>{{/*documentSearch-12*/}}Erweiterte Suche</summary>
+            <label for="match-title">{{/*documentSearch-13*/}}Nur exakte Übereinstimmungen für den Dokumententitel</label>
+            <input type="checkbox" id="match-title" name="match-title" value="true" {{if .Query.ExactDocumentTitleMatch}}checked{{end}}>
+            <label for="organisation">{{/*documentSearch-14*/}}Organisation</label>
+            <input id="organisation" name="organisation" type="text" value="{{.Query.Organisation}}">
+            <label for="match-organisation">{{/*documentSearch-15*/}}Nur exakte Übereinstimmungen für Organisation</label>
+            <input type="checkbox" id="match-organisation" name="match-organisation" value="true" {{if .Query.ExactOrganisationMatch}}checked{{end}}>
+            <label for="author">{{/*documentSearch-16*/}}Autor</label>
+            <input id="author" name="author" type="text" value="{{.Query.AuthorName}}">
+            <label for="match-author">{{/*documentSearch-17*/}}Nur exakte Übereinstimmungen für den Autor</label>
+            <input type="checkbox" id="match-author" name="match-author" value="true" {{if .Query.ExactAuthorMatch}}checked{{end}}>
+        </details>
         <label for="amount">{{/*documentSearch-3*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
         <button>{{/*documentSearch-4*/}}Suchen</button>

@@ -75,10 +75,17 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		page.NextItemTime = page.Results[page.Amount].Written
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].Written
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].Written
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].Written
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	handler.MakeFullPage(writer, acc, page)
@@ -154,10 +161,17 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		page.NextItemTime = page.Results[page.Amount].Written
 		page.NextItemID = page.Results[page.Amount].ID
 		page.Results = page.Results[:page.Amount]
-	} else if backward && len(page.Results) == page.Amount && page.HasNext {
+	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
-		page.PreviousItemTime = page.Results[0].Written
-		page.PreviousItemID = page.Results[0].ID
+		page.PreviousItemTime = page.Results[1].Written
+		page.PreviousItemID = page.Results[1].ID
+		page.Results = page.Results[1:]
+	} else if backward && len(page.Results) > page.Amount {
+		amt := len(page.Results) - page.Amount
+		page.HasPrevious = true
+		page.PreviousItemTime = page.Results[amt].Written
+		page.PreviousItemID = page.Results[amt].ID
+		page.Results = page.Results[amt:]
 	}
 
 	writer.Header().Add("Hx-Push-Url", "/my/letter?"+values.Encode())

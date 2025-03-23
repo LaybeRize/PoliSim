@@ -2,6 +2,8 @@ package database
 
 import (
 	loc "PoliSim/localisation"
+	"database/sql"
+	"errors"
 	"github.com/lib/pq"
 	"time"
 )
@@ -58,7 +60,15 @@ func CreateChatRoom(roomID string, member []string) error {
 		return err
 	}
 	defer rollback(tx)
-	_, err = tx.Exec(`INSERT INTO chat_rooms (room_id, member) VALUES ($1, ARRAY(SELECT name FROM account WHERE name = ANY($2)))`, roomID, pq.Array(member))
+	var name string
+	err = tx.QueryRow(`SELECT room_id FROM chat_rooms WHERE member = ARRAY(SELECT name FROM account WHERE name = ANY($1) ORDER BY name)`, pq.Array(member)).Scan(name)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	} else if err == nil {
+		return DoubleChatRoomEntry
+	}
+
+	_, err = tx.Exec(`INSERT INTO chat_rooms (room_id, member) VALUES ($1, ARRAY(SELECT name FROM account WHERE name = ANY($2) ORDER BY name))`, roomID, pq.Array(member))
 	if err != nil {
 		return err
 	}
