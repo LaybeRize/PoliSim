@@ -40,7 +40,7 @@ func migrateToCurrentVersion() {
 	const currVersion = 1
 	log.Println("Setting up the database for current version ", currVersion)
 
-	// Todo create Indexes at least for document for better search performance on join
+	// Probably would need more indexes for even better performance with big datasets but the current ones should be good for now
 	_, err := postgresDB.Exec(`
 -- Account --
 CREATE TABLE account (
@@ -89,6 +89,7 @@ CREATE TABLE letter(
 	written TIMESTAMP NOT NULL UNIQUE,
 	body TEXT NOT NULL
 );
+CREATE INDEX letter_time_index ON letter USING btree (written);
 CREATE TABLE letter_to_account(
 	letter_id TEXT NOT NULL,
 	account_name TEXT NOT NULL,
@@ -112,6 +113,7 @@ CREATE TABLE newspaper_publication (
     CONSTRAINT fk_newspaper_name
         FOREIGN KEY (newspaper_name) REFERENCES newspaper(name)
 );
+CREATE INDEX publication_time_index ON newspaper_publication USING btree (publish_date);
 CREATE TABLE newspaper_article (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -143,6 +145,7 @@ CREATE TABLE blackboard_note(
     body  TEXT NOT NULL,
 	blocked BOOLEAN NOT NULL
 );
+CREATE INDEX blackboard_note_time_index ON blackboard_note USING btree (posted);
 CREATE TABLE blackboard_references(
 	base_note_id TEXT NOT NULL,
 	reference_id TEXT NOT NULL,
@@ -170,6 +173,8 @@ CREATE TABLE organisation_to_account(
     CONSTRAINT fk_account_name
         FOREIGN KEY(account_name) REFERENCES account(name)
 );
+CREATE INDEX ota_organisation_name_index ON organisation_to_account USING hash (organisation_name);
+CREATE INDEX ota_account_name_index ON organisation_to_account USING hash (account_name);
 CREATE VIEW organisation_linked AS
     SELECT organisation.*, ota.account_name, ota.is_admin, ownership.owner_name FROM organisation
     LEFT JOIN organisation_to_account ota ON organisation.name = ota.organisation_name
@@ -194,6 +199,7 @@ CREATE TABLE document (
     CONSTRAINT fk_organisation_name
         FOREIGN KEY (organisation_name) REFERENCES organisation(name) ON UPDATE CASCADE
 );
+CREATE INDEX document_time_index ON document USING btree (written);
 CREATE TABLE document_to_account (
     document_id TEXT NOT NULL,
     account_name TEXT,
@@ -203,6 +209,8 @@ CREATE TABLE document_to_account (
     CONSTRAINT fk_account_name
         FOREIGN KEY (account_name) REFERENCES account(name)
 );
+CREATE INDEX dta_document_index ON document_to_account USING hash (document_id);
+CREATE INDEX dta_account_name_index ON document_to_account USING hash (account_name);
 CREATE TABLE comment_to_document (
 	comment_id TEXT PRIMARY KEY,
 	document_id TEXT NOT NULL,
@@ -299,6 +307,7 @@ CREATE TABLE chat_messages(
     CONSTRAINT fk_room_id FOREIGN KEY (room_id) REFERENCES chat_rooms(room_id),
     CONSTRAINT fk_account_name FOREIGN KEY (sender) REFERENCES account(name)
 );
+CREATE INDEX chat_messages_room_index ON chat_messages USING hash (room_id);
 `)
 	if err != nil {
 		log.Fatalf("Could not create tables for the current version %d: %v", currVersion, err)

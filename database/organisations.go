@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"github.com/lib/pq"
+	"html/template"
 )
 
 type Organisation struct {
@@ -42,6 +43,10 @@ func (o *Organisation) GetClassType() string {
 	default:
 		return ""
 	}
+}
+
+func (o *Organisation) GetDocumentLink() template.URL {
+	return template.URL("/search/documents?organisation-name=" + template.URLQueryEscaper(o.Name))
 }
 
 func (o *Organisation) IsPublic() bool {

@@ -19,7 +19,10 @@
                     {{- /*gotype: PoliSim/database.Organisation*/ -}}
                     <div>
                         <a hx-get="/single/view/organisation?name={{urlquery .Name}}"
-                           hx-target="closest div"><i class="bi {{.GetClassType}}"></i> {{.Name}}</a>
+                           hx-target="closest div"><i class="bi {{.GetClassType}}"></i> {{.Name}}
+                            <a href="/search/documents?organisation-name={{urlquery .Name}}" target="_blank"
+                               class="link-color"><i class="bi bi-link-to"></i></a>
+                        </a>
                     </div>
                 {{end}}
                 </div>
@@ -36,8 +39,11 @@
     {{- /*gotype: PoliSim/handler.SingleOrganisationUpdate*/ -}}
     <div>
         {{if .Organisation.Exists}}
-            <a _="on click toggle .hide on the next <div/>"
-            ><i class="bi {{.Organisation.GetClassType}}"></i> {{.Organisation.Name}}</a>
+            <a _="on click toggle .hide on the next <div/>" class="button"
+            ><i class="bi {{.Organisation.GetClassType}}"></i> {{.Organisation.Name}}
+                <a href="{{.Organisation.GetDocumentLink}}" target="_blank"
+                   class="link-color"><i class="bi bi-link-to"></i></a>
+            </a>
             <div class="">
                 {{if .Organisation.HasFlair}}<i>{{/*organisationView-3*/}}Flair: {{.Organisation.Flair}}</i>
                 {{else}}<i>{{/*organisationView-4*/}}Kein Flair</i>{{end}}
