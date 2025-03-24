@@ -244,7 +244,7 @@ func (h *Hub) run() {
 		case client := <-h.unregister:
 			h.Lock()
 			if h.messageSend {
-				go database.SetUnreadMessages(h.id, h.getCurrentViewers())
+				h.messageSend = false
 			}
 			if _, ok := h.clients[client]; ok {
 				close(client.send)
