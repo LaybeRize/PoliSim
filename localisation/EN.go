@@ -276,6 +276,8 @@ const (
 	ChatRoomCreationError                        = "an error occurred while trying to create chatroom"
 	ChatRoomSuccessfullyCreated                  = "successfully created chatroom"
 
+	ChatRoomMessageTextarea = "<textarea id=\"text-message\" name=\"text\" rows=\"2\" maxlength=\"2000\" placeholder=\"Write a new message\"></textarea>"
+
 	// Handler Markdown Go
 
 	MarkdownParseError = "`Request could not be processed`"
@@ -318,10 +320,10 @@ const (
 )
 
 func SetHomePage(text []byte) {
-	ReplaceMap["_home"]["$$home-page$$"] = string(text)
+	replaceMap["_home"]["$$home-page$$"] = string(text)
 }
 
-var ReplaceMap = map[string]map[string]string{
+var replaceMap = map[string]map[string]string{
 	"_home": {
 		"$$home-page$$": "",
 		"{{/*_home-1*/}}Herzlich willkommen, {{.Account.Name}}": "Welcome, {{.Account.Name}}",
@@ -368,7 +370,7 @@ var ReplaceMap = map[string]map[string]string{
 
 	"chat": {
 		"{{/*chat-1*/}}Nachricht-Text":        "Message Text",
-		"{{/*chat-2*/}}":                      "<textarea id=\"text-message\" name=\"text\" rows=\"2\" maxlength=\"2000\" placeholder=\"Write a new message\"></textarea>",
+		"{{/*chat-2*/}}":                      ChatRoomMessageTextarea,
 		"{{/*chat-3*/}}Nachricht Senden":      "Send Message",
 		"{{/*chat-4*/}}Lade mehr Nachrichten": "Load more Messages",
 	},
@@ -822,7 +824,7 @@ var ReplaceMap = map[string]map[string]string{
 
 func LocaliseTemplateString(input []byte, name string) string {
 	result := string(input)
-	for key, value := range ReplaceMap {
+	for key, value := range replaceMap {
 		if name == key {
 			for left, right := range value {
 				result = strings.ReplaceAll(result, left, right)
@@ -830,4 +832,8 @@ func LocaliseTemplateString(input []byte, name string) string {
 		}
 	}
 	return result
+}
+
+func CleanUpMap() {
+	replaceMap = nil
 }

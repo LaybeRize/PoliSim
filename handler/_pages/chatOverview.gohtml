@@ -60,7 +60,9 @@
             {{range .Chats}}
                 {{- /*gotype: PoliSim/database.ChatRoom*/ -}}
                 <a href="{{.GetLink}}">
-                    {{/*chatOverview-2*/}}Raum: <strong>{{.Name}}</strong><br>
+                    {{if .NewMessage}} <strong style="color: rgb(244 63 94);">&#x25CF;</strong> {{end -}}
+                    {{/*chatOverview-2*/}}Raum: <strong>{{.Name}}</strong>
+                    <br>
                     {{/*chatOverview-3*/}}Mitglieder: {{.GetMemberList}}<br>
                     {{/*chatOverview-4*/}}Nutzer: {{.User}}
                 </a>

@@ -22,9 +22,10 @@ func (m *Message) GetTimeSend(a *Account) string {
 }
 
 type ChatRoom struct {
-	Name   string
-	Member []string
-	User   string
+	Name       string
+	Member     []string
+	User       string
+	NewMessage bool
 }
 
 func (c *ChatRoom) GetLink() template.URL {
@@ -94,8 +95,8 @@ func CreateChatRoom(roomID string, member []string) error {
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(`INSERT INTO chat_rooms_to_account (room_id, account_name) 
-SELECT $1 AS room_id, name FROM account WHERE name = ANY($2)`, roomID, pq.Array(member))
+	_, err = tx.Exec(`INSERT INTO chat_rooms_to_account (room_id, account_name, new_message) 
+SELECT $1 AS room_id, name, false AS new_message FROM account WHERE name = ANY($2)`, roomID, pq.Array(member))
 	if err != nil {
 		return err
 	}
@@ -109,9 +110,9 @@ func QueryForRoomIdAndUser(roomID string, accountName string, ownerName string) 
 }
 
 func GetAllRoomsForUser(viewer []string) ([]ChatRoom, error) {
-	result, err := postgresDB.Query(`SELECT chat_rooms.room_id, member, account_name FROM chat_rooms 
+	result, err := postgresDB.Query(`SELECT chat_rooms.room_id, member, account_name, new_message FROM chat_rooms 
     INNER JOIN public.chat_rooms_to_account cta on chat_rooms.room_id = cta.room_id 
-WHERE account_name = ANY($1) ORDER BY array_length(member, 1), chat_rooms.room_id`, pq.Array(viewer))
+WHERE account_name = ANY($1) ORDER BY new_message DESC, array_length(member, 1), chat_rooms.room_id`, pq.Array(viewer))
 	if err != nil {
 		return nil, err
 	}
@@ -119,11 +120,20 @@ WHERE account_name = ANY($1) ORDER BY array_length(member, 1), chat_rooms.room_i
 	arr := make([]ChatRoom, 0)
 	chat := ChatRoom{}
 	for result.Next() {
-		err = result.Scan(&chat.Name, pq.Array(&chat.Member), &chat.User)
+		err = result.Scan(&chat.Name, pq.Array(&chat.Member), &chat.User, &chat.NewMessage)
 		if err != nil {
 			return nil, err
 		}
 		arr = append(arr, chat)
 	}
 	return arr, nil
+}
+
+func SetUnreadMessages(roomID string, viewer []string) {
+	_, _ = postgresDB.Exec(`UPDATE chat_rooms_to_account SET new_message = true WHERE room_id = $1 AND (NOT (account_name = ANY($2)))`,
+		roomID, pq.Array(viewer))
+}
+
+func SetReadMessage(roomID string, user string) {
+	_, _ = postgresDB.Exec(`UPDATE chat_rooms_to_account SET new_message = false WHERE room_id = $1 AND account_name = $2`, roomID, user)
 }

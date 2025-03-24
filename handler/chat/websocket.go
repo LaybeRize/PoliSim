@@ -204,7 +204,7 @@ func (c *Client) readPump() {
 			continue
 		}
 		c.hub.broadcast <- htmlMsg
-		c.send <- []byte(loc.ReplaceMap["chat"]["{{/*chat-2*/}}"])
+		c.send <- []byte(loc.ChatRoomMessageTextarea)
 
 	}
 }
@@ -215,18 +215,20 @@ type Hub struct {
 	id      string
 	clients map[*Client]bool
 
-	broadcast  chan *database.Message
-	register   chan *Client
-	unregister chan *Client
+	broadcast   chan *database.Message
+	register    chan *Client
+	unregister  chan *Client
+	messageSend bool
 }
 
 func NewHub(id string) *Hub {
 	return &Hub{
-		id:         id,
-		clients:    map[*Client]bool{},
-		broadcast:  make(chan *database.Message),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
+		id:          id,
+		clients:     map[*Client]bool{},
+		broadcast:   make(chan *database.Message),
+		register:    make(chan *Client),
+		unregister:  make(chan *Client),
+		messageSend: false,
 	}
 }
 
@@ -237,10 +239,13 @@ func (h *Hub) run() {
 			h.Lock()
 			h.clients[client] = true
 			h.Unlock()
-
+			database.SetReadMessage(h.id, client.id)
 			slog.Debug("client registered", "id", client.id)
 		case client := <-h.unregister:
 			h.Lock()
+			if h.messageSend {
+				go database.SetUnreadMessages(h.id, h.getCurrentViewers())
+			}
 			if _, ok := h.clients[client]; ok {
 				close(client.send)
 				slog.Debug("client unregistered", "id", client.id)
@@ -255,6 +260,10 @@ func (h *Hub) run() {
 			h.Unlock()
 		case msg := <-h.broadcast:
 			h.RLock()
+			if !h.messageSend {
+				h.messageSend = true
+				go database.SetUnreadMessages(h.id, h.getCurrentViewers())
+			}
 			for client := range h.clients {
 				select {
 				case client.send <- getMessageTemplate(msg, client.owner, client.id):
@@ -266,6 +275,14 @@ func (h *Hub) run() {
 			h.RUnlock()
 		}
 	}
+}
+
+func (h *Hub) getCurrentViewers() []string {
+	res := make([]string, 0)
+	for c := range h.clients {
+		res = append(res, c.id)
+	}
+	return res
 }
 
 func getButtonUpdate(roomID string, receiverID string, timeStamp time.Time) []byte {

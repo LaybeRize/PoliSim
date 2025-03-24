@@ -939,6 +939,7 @@ func init() {
 	if os.Getenv("ICON_PATH") != "" {
 		IconPath = os.Getenv("ICON_PATH")
 	}
+	loc.CleanUpMap()
 }
 
 func getTemplatesAsSingleString() string {

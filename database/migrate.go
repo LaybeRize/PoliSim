@@ -293,6 +293,7 @@ CREATE TABLE chat_rooms (
 CREATE TABLE chat_rooms_to_account (
     room_id TEXT NOT NULL,
     account_name TEXT NOT NULL,
+    new_message BOOLEAN NOT NULL,
     CONSTRAINT fk_room_id FOREIGN KEY (room_id) REFERENCES chat_rooms(room_id),
     CONSTRAINT fk_account_name FOREIGN KEY (account_name) REFERENCES account(name)
 );
