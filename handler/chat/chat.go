@@ -114,28 +114,26 @@ func GetOlderMessages(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	arr, err := database.LoadLastMessages(20, timeStamp, id, user)
-	var newTargetTimestamp time.Time
-	if err != nil {
-		arr = make([]database.Message, 0)
-		newTargetTimestamp = timeStamp
-		slog.Debug(err.Error())
-	} else if len(arr) == 0 {
-		handler.MakeSpecialPagePart(writer, &handler.ChatLoadNextMessages{HasNextMessages: false})
-		return
-	} else {
-		newTargetTimestamp = arr[len(arr)-1].SendDate
-	}
-
-	handler.MakeSpecialPagePart(writer, &handler.ChatLoadNextMessages{
-		HasNextMessages: true,
-		Messages:        arr,
-		Account:         acc,
-		Recipient:       user,
+	pagePart := &handler.ChatLoadNextMessages{
+		CanLoadMoreMessages: false,
+		Account:             acc,
+		Recipient:           user,
 		Button: handler.ChatButtonObject{
 			Room:      id,
 			Recipient: user,
-			NextTime:  newTargetTimestamp,
 		},
-	})
+	}
+
+	pagePart.Messages, err = database.LoadLastMessages(loadMessageAmount+1, timeStamp, id, user)
+	if err != nil {
+		pagePart.Messages = make([]database.Message, 0)
+	}
+
+	if len(pagePart.Messages) > loadMessageAmount {
+		pagePart.Messages = pagePart.Messages[:loadMessageAmount]
+		pagePart.CanLoadMoreMessages = true
+		pagePart.Button.NextTime = pagePart.Messages[loadMessageAmount-1].SendDate
+	}
+
+	handler.MakeSpecialPagePart(writer, pagePart)
 }

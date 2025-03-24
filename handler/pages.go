@@ -753,11 +753,15 @@ func (c *ChatButtonObject) getRenderInfo() (string, string) {
 }
 
 type ChatLoadNextMessages struct {
-	HasNextMessages bool
-	Messages        []database.Message
-	Account         *database.Account
-	Recipient       string
-	Button          ChatButtonObject
+	CanLoadMoreMessages bool
+	Messages            []database.Message
+	Account             *database.Account
+	Recipient           string
+	Button              ChatButtonObject
+}
+
+func (c *ChatLoadNextMessages) HasMessagesToLoad() bool {
+	return len(c.Messages) != 0
 }
 
 func (c *ChatLoadNextMessages) GetMessages() func(func(*ChatMessageObject) bool) {

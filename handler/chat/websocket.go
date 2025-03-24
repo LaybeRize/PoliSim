@@ -95,6 +95,8 @@ func serveWs(hub *Hub, owner *database.Account, user string, w http.ResponseWrit
 	client.hub.register <- client
 }
 
+const loadMessageAmount = 20
+
 // Reads from Hub to the websocket
 func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
@@ -104,17 +106,20 @@ func (c *Client) writePump() {
 		_ = c.conn.Close()
 	}()
 
-	messages, err := database.LoadLastMessages(20, time.Now().UTC().Add(time.Hour), c.hub.id, c.id)
+	messages, err := database.LoadLastMessages(loadMessageAmount+1, time.Now().UTC().Add(time.Hour), c.hub.id, c.id)
 	if err == nil {
-		newTime := time.Time{}
 		msgLen := len(messages)
+		if len(messages) > loadMessageAmount {
+			msgLen = loadMessageAmount
+			c.send <- getButtonUpdate(c.hub.id, c.id, messages[loadMessageAmount-1].SendDate)
+		}
 		for i := range msgLen {
+			if msgLen-i-1 < 0 {
+				break
+			}
 			c.send <- getMessageTemplate(&messages[msgLen-i-1], c.owner, c.id)
 		}
-		if len(messages) != 0 {
-			newTime = messages[msgLen-1].SendDate
-		}
-		c.send <- getButtonUpdate(c.hub.id, c.id, newTime)
+
 	}
 
 	var w io.WriteCloser

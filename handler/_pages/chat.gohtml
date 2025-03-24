@@ -42,12 +42,14 @@
 
 {{define "loadMessages"}}
     {{- /*gotype: PoliSim/handler.ChatLoadNextMessages*/ -}}
-    {{if .HasNextMessages}}
+    {{if .HasMessagesToLoad}}
         <div id="chat-room" hx-swap-oob="beforeend">
             {{range .GetMessages}}
                 {{template "chatMessageContent" .}}
             {{end}}
         </div>
+    {{end}}
+    {{if .CanLoadMoreMessages}}
         {{template "loadMessageButton" .Button}}
     {{else}}
         <div id="load-messages"></div>
