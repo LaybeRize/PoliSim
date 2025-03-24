@@ -44,6 +44,10 @@
                 <input id="member" name="[]member" type="text" list="member-names">
                 <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
             </div>
+            <div id="input-for-member" class="name-list">
+                <input id="member" name="[]member" type="text" list="member-names">
+                <button type="button" onclick="destroyParent(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
             <datalist id="member-names">
                 {{range .AccountNames}}
                     <option>{{.}}</option>
