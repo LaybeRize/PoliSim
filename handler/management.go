@@ -2,6 +2,7 @@ package handler
 
 import (
 	"PoliSim/database"
+	"PoliSim/helper"
 	"errors"
 	"io"
 	"log/slog"
@@ -66,4 +67,30 @@ func PostFileManagementPage(writer http.ResponseWriter, request *http.Request) {
 
 	MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: false,
 		Message: "file successfully uploaded"})
+}
+
+func PostDirectSQLQuery(writer http.ResponseWriter, request *http.Request) {
+	acc, loggedIn := database.RefreshSession(writer, request)
+	if !(loggedIn && acc.Role == database.RootAdmin) {
+		PartialGetNotFoundPage(writer, request)
+		return
+	}
+
+	values, err := helper.GetAdvancedFormValues(request)
+	if err != nil {
+		MakeSpecialPagePart(writer, &AdminSQLQuery{Query: &database.AdministrationQuery{
+			Rows:  nil,
+			Error: errors.New("server error: could not parse values"),
+		}})
+		return
+	}
+	if os.Getenv("SQL_KEY") != values.GetString("key") {
+		MakeSpecialPagePart(writer, &AdminSQLQuery{Query: &database.AdministrationQuery{
+			Rows:  nil,
+			Error: errors.New("user error: provided key for accessing direct SQL statements is not valid"),
+		}})
+		return
+	}
+
+	MakeSpecialPagePart(writer, &AdminSQLQuery{Query: database.ExecuteQueryString(values.GetString("query"))})
 }

@@ -7,5 +7,38 @@
         <button>Create/Update File</button>
     </form>
     {{template "message" .}}
+    <form hx-post="/administration/sql" hx-target="#sql-return">
+        <label for="key">Key</label>
+        <input id="key" name="key" type="text"  />
+        <label for="query">SQL Query</label>
+        <textarea id="query" name="query" rows="3"></textarea>
+        <button>Direct Query</button>
+    </form>
+    {{template "SQLReturnValue" .}}
     </body>
+{{end}}
+
+{{define "SQLReturnValue"}}
+    {{- /*gotype: PoliSim/handler.AdminSQLQuery*/ -}}
+    <div class="markdown" id="sql-return">
+        {{if .Query.HasError}}
+            <p><strong>Error Message:</strong> {{.Query.Error.Error}}</p>
+        {{else}}
+            <p><strong>No Error</strong></p>
+        {{end}}
+        {{if .Query.HasRows}}
+            <p>
+                Returned {{len .Query.Rows}} Rows.
+            </p>
+            <table>
+                {{range .Query.Rows}}
+                    <tr>
+                        {{range .}}<td>{{.}}</td>{{end}}
+                    </tr>
+                {{end}}
+            </table>
+        {{else}}
+            <p>No rows returned.</p>
+        {{end}}
+    </div>
 {{end}}

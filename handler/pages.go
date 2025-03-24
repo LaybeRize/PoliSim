@@ -696,6 +696,7 @@ func (p *ChatOverviewPage) getPageName() string {
 type AdminPage struct {
 	NavInfo NavigationInfo
 	MessageUpdate
+	AdminSQLQuery
 }
 
 func (p *AdminPage) SetNavInfo(navInfo NavigationInfo) {
@@ -713,6 +714,14 @@ type PartialStruct interface {
 type PartialRedirectStruct interface {
 	getRenderInfo() (string, string) //first the templateForge key, then the definition name
 	targetElement() string
+}
+
+type AdminSQLQuery struct {
+	Query *database.AdministrationQuery
+}
+
+func (c *AdminSQLQuery) getRenderInfo() (string, string) {
+	return "_admin", "SQLReturnValue"
 }
 
 type ChatMessageObject struct {

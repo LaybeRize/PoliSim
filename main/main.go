@@ -127,6 +127,7 @@ func main() {
 
 	http.HandleFunc("GET /administration", handler.GetManagementPage)
 	http.HandleFunc("POST /administration/file", handler.PostFileManagementPage)
+	http.HandleFunc("POST /administration/sql", handler.PostDirectSQLQuery)
 
 	http.HandleFunc("GET /", handler.GetHomePage)
 
