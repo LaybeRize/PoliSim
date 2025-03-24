@@ -17,10 +17,6 @@
         <form id="search-form" hx-put="/search/notes" hx-target="#page-body">
             <label for="title">{{/*noteSearch-2*/}}Titel</label>
             <input id="title" name="title" type="text" value="{{.Query.Title}}">
-            {{if $acc.IsAtLeastAdmin}}
-                <label for="blocked">{{/*noteSearch-3*/}}Blockierte Notizen anzeigen</label>
-                <input type="checkbox" id="blocked" name="blocked" value="true" {{if .Query.ShowBlocked}}checked{{end}}>
-            {{end}}
             <details class="advanced-search">
                 <summary>{{/*noteSearch-11*/}}Erweiterte Suche</summary>
                 <label for="match-title">{{/*noteSearch-12*/}}Nur exakte Übereinstimmungen für den Notiztitel</label>

@@ -32,8 +32,9 @@ func migrate() {
 	switch version {
 	case 0:
 		migrateToCurrentVersion()
+	default:
+		log.Println("Running with DB version ", version)
 	}
-
 }
 
 func migrateToCurrentVersion() {
