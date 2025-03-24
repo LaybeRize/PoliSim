@@ -23,6 +23,19 @@
                 <option value="{{.}}" {{if eq . $account}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
+        <details class="advanced-search">
+            <summary>{{/*letterPersonalSearch-12*/}}Erweiterte Suche</summary>
+            <label for="title">{{/*letterPersonalSearch-17*/}}Titel</label>
+            <input id="title" name="title" type="text" value="{{.Query.Title}}">
+            <label for="match-title">{{/*letterPersonalSearch-13*/}}Nur exakte Übereinstimmungen für den Brieftitel</label>
+            <input type="checkbox" id="match-title" name="match-title" value="true" {{if .Query.ExactTitleMatch}}checked{{end}}>
+            <label for="author">{{/*letterPersonalSearch-14*/}}Autor</label>
+            <input id="author" name="author" type="text" value="{{.Query.Author}}">
+            <label for="match-author">{{/*letterPersonalSearch-15*/}}Nur exakte Übereinstimmungen für Autor</label>
+            <input type="checkbox" id="match-author" name="match-author" value="true" {{if .Query.ExactAuthorMatch}}checked{{end}}>
+            <label for="only-unread">{{/*letterPersonalSearch-16*/}}Nur ungelesene Briefe anzeigen</label>
+            <input type="checkbox" id="only-unread" name="only-unread" value="true" {{if .Query.ShowOnlyUnread}}checked{{end}}>
+        </details>
         <label for="amount">{{/*letterPersonalSearch-4*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
         <button>{{/*letterPersonalSearch-5*/}}Suchen</button>

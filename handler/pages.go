@@ -357,6 +357,7 @@ func (p *SearchPublicationsPage) getPageName() string {
 
 type SearchLetterPage struct {
 	NavInfo          NavigationInfo
+	Query            *database.LetterSearch
 	Account          string
 	PossibleAccounts []string
 	Amount           int

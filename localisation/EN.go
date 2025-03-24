@@ -567,6 +567,12 @@ var ReplaceMap = map[string]map[string]string{
 		"{{/*letterPersonalSearch-9*/}}<i>Versendet am: {{.GetTimeWritten $acc}}":                                       "<i>Publish Date: {{.GetTimeWritten $acc}}",
 		"{{/*letterPersonalSearch-10*/}}&laquo; Vorherige Seite":                                                        "&laquo; Previous Page",
 		"{{/*letterPersonalSearch-11*/}}Nächste Seite &raquo;":                                                          "Next Page &raquo;",
+		"{{/*letterPersonalSearch-12*/}}Erweiterte Suche":                                                               "Advanced Search",
+		"{{/*letterPersonalSearch-13*/}}Nur exakte Übereinstimmungen für den Brieftitel":                                "Only exact matches of Title",
+		"{{/*letterPersonalSearch-14*/}}Autor":                                                                          "Author",
+		"{{/*letterPersonalSearch-15*/}}Nur exakte Übereinstimmungen für Autor":                                         "Only exact matches of Author",
+		"{{/*letterPersonalSearch-16*/}}Nur ungelesene Briefe anzeigen":                                                 "Show only unread Letters",
+		"{{/*letterPersonalSearch-17*/}}Titel":                                                                          "Title",
 	},
 
 	"letterView": {

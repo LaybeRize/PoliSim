@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"html/template"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -155,10 +156,55 @@ WHERE name = ANY($2) AND blocked = false;`, &letter.ID, pq.Array(letter.Reader),
 	return err
 }
 
-func GetLetterListForwards(viewer []string, amount int, timeStamp time.Time) ([]ReducedLetter, error) {
+type LetterSearch struct {
+	Title            string
+	ExactTitleMatch  bool
+	Author           string
+	ExactAuthorMatch bool
+	ShowOnlyUnread   bool
+	values           []any
+}
+
+func (n *LetterSearch) GetQuery() string {
+	var query string
+
+	n.values = make([]any, 0)
+	pos := 4
+	if n.ShowOnlyUnread {
+		query += " AND has_read = false "
+	}
+
+	if n.Title != "" {
+		if n.ExactTitleMatch {
+			query += " AND title = $" + strconv.Itoa(pos) + " "
+		} else {
+			query += " AND title LIKE '%' || $" + strconv.Itoa(pos) + " || '%' "
+		}
+		pos += 1
+		n.values = append(n.values, n.Title)
+	}
+
+	if n.Author != "" {
+		if n.ExactAuthorMatch {
+			query += " AND author = $" + strconv.Itoa(pos) + " "
+		} else {
+			query += " AND author LIKE '%' || $" + strconv.Itoa(pos) + " || '%' "
+		}
+		pos += 1
+		n.values = append(n.values, n.Author)
+	}
+
+	return query
+}
+
+func (n *LetterSearch) GetValues(input []any) []any {
+	return append(input, n.values...)
+}
+
+func GetLetterListForwards(viewer []string, amount int, timeStamp time.Time, info *LetterSearch) ([]ReducedLetter, error) {
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, written, account_name, has_read FROM letter
- INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) AND written <= $2
- ORDER BY written DESC LIMIT $3;`, pq.Array(viewer), timeStamp, amount+1)
+ INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) `+info.GetQuery()+` AND written <= $2
+ ORDER BY written DESC LIMIT $3;`, info.GetValues([]any{pq.Array(viewer), timeStamp, amount + 1})...)
 	if err != nil {
 		return nil, err
 	}
@@ -175,11 +221,12 @@ func GetLetterListForwards(viewer []string, amount int, timeStamp time.Time) ([]
 	return list, err
 }
 
-func GetLetterListBackwards(viewer []string, amount int, timeStamp time.Time) ([]ReducedLetter, error) {
+func GetLetterListBackwards(viewer []string, amount int, timeStamp time.Time, info *LetterSearch) ([]ReducedLetter, error) {
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, written, account_name, has_read FROM (
 SELECT id, title, author, flair, written, account_name, has_read FROM letter
- INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) AND written >= $2
- ORDER BY written LIMIT $3) as let ORDER BY let.written DESC;`, pq.Array(viewer), timeStamp, amount+2)
+ INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) `+info.GetQuery()+` AND written >= $2
+ ORDER BY written LIMIT $3) as let ORDER BY let.written DESC;`,
+		info.GetValues([]any{pq.Array(viewer), timeStamp, amount + 2})...)
 	if err != nil {
 		return nil, err
 	}

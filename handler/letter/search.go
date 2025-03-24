@@ -19,6 +19,13 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 
 	var err error
 	page := &handler.SearchLetterPage{
+		Query: &database.LetterSearch{
+			Title:            query.GetTrimmedString("title"),
+			ExactTitleMatch:  query.GetBool("match-title"),
+			Author:           query.GetTrimmedString("author"),
+			ExactAuthorMatch: query.GetBool("match-author"),
+			ShowOnlyUnread:   query.GetBool("only-unread"),
+		},
 		Account: query.GetTrimmedString("account"),
 		Amount:  query.GetInt("amount"),
 	}
@@ -47,9 +54,9 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	page.NextItemTime, _ = query.GetUTCTime("forward", true)
 
 	if backward {
-		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime)
+		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime, page.Query)
 	} else {
-		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime)
+		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -105,6 +112,13 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	page := &handler.SearchLetterPage{
+		Query: &database.LetterSearch{
+			Title:            values.GetTrimmedString("title"),
+			ExactTitleMatch:  values.GetBool("match-title"),
+			Author:           values.GetTrimmedString("author"),
+			ExactAuthorMatch: values.GetBool("match-author"),
+			ShowOnlyUnread:   values.GetBool("only-unread"),
+		},
 		Account: values.GetTrimmedString("account"),
 		Amount:  values.GetInt("amount"),
 	}
@@ -133,9 +147,9 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	page.NextItemTime, _ = values.GetUTCTime("forward", true)
 
 	if backward {
-		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime)
+		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime, page.Query)
 	} else {
-		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime)
+		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -174,6 +188,7 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		page.Results = page.Results[amt:]
 	}
 
+	values.DeleteEmptyFields([]string{"title", "author", "account"})
 	writer.Header().Add("Hx-Push-Url", "/my/letter?"+values.Encode())
 	handler.MakePage(writer, acc, page)
 }

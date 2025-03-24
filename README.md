@@ -44,6 +44,8 @@ LOG_LEVEL=DEBUG
 POSTGRES_USER=[user]
 POSTGRES_DB=[testdb]
 POSTGRES_PASSWORD=[password]
+PAGE_NAME=[some string]
+ICON_PATH=[path]
 `````
 `LOG_LEVEL` can be omitted and everything in [] can be customized, the rest is either required to stay that way, or should
 stay that way if the docker-compose.yaml is used. DB_PASSWORD and the password after neo4j/ must be the same, otherwise 
