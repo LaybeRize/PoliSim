@@ -645,7 +645,7 @@ var ReplaceMap = map[string]map[string]string{
 
 	"notesSearch": {
 		"{{/*noteSearch-1*/}}\"Die Anfrage hat zu einem Fehler auf der Serverseite geführt\"": "\"Requested could not be processed. Internal Server Error\"",
-		"{{/*noteSearch-2*/}}Suchanfrage":                 "Query",
+		"{{/*noteSearch-2*/}}Titel":                       "Title",
 		"{{/*noteSearch-3*/}}Blockierte Notizen anzeigen": "Show Blocked Notes",
 		"{{/*noteSearch-4*/}}Anzahl der Ergebnisse":       "Number of Entries per Page",
 		"{{/*noteSearch-5*/}}Suchen":                      "Search",
@@ -654,6 +654,10 @@ var ReplaceMap = map[string]map[string]string{
 		"{{/*noteSearch-8*/}}<i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>":                             "<i>Publish Date: {{.GetTimePostedAt $acc}}</i>",
 		"{{/*noteSearch-9*/}}&laquo; Vorherige Seite":                                                         "&laquo; Previous Page",
 		"{{/*noteSearch-10*/}}Nächste Seite &raquo;":                                                          "Next Page &raquo;",
+		"{{/*noteSearch-11*/}}Erweiterte Suche":                                                               "Advanced Search",
+		"{{/*noteSearch-12*/}}Nur exakte Übereinstimmungen für den Notiztitel":                                "Only exact matches of Title",
+		"{{/*noteSearch-13*/}}Autor":                                                                          "Author",
+		"{{/*noteSearch-14*/}}Nur exakte Übereinstimmungen für Autor":                                         "Only exact matches of Author",
 	},
 
 	"notesView": {

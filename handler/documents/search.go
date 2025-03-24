@@ -149,6 +149,7 @@ func PutSearchDocumentsPage(writer http.ResponseWriter, request *http.Request) {
 		page.Results = page.Results[amt:]
 	}
 
+	values.DeleteEmptyFields([]string{"title", "organisation", "author"})
 	writer.Header().Add("Hx-Push-Url", "/search/documents?"+values.Encode())
 	handler.MakePage(writer, acc, page)
 }

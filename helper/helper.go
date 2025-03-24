@@ -218,3 +218,15 @@ func (a AdvancedValues) Exists(field string) bool {
 	_, exists := a[field]
 	return exists
 }
+
+func (a AdvancedValues) DeleteEmptyFields(fields []string) {
+	for _, field := range fields {
+		vs := a[field]
+		if len(vs) == 0 {
+			continue
+		}
+		if strings.TrimSpace(vs[0]) == "" {
+			delete(a, field)
+		}
+	}
+}

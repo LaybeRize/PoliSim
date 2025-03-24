@@ -141,8 +141,7 @@ func (p *CreateNotesPage) getPageName() string {
 
 type SearchNotesPage struct {
 	NavInfo          NavigationInfo
-	Query            string
-	ShowBlocked      bool
+	Query            *database.NoteSearch
 	Amount           int
 	HasNext          bool
 	NextItemID       string

@@ -18,10 +18,6 @@
         {{if .Query.HasOrganisationName}}
             <input name="organisation-name" type="text" value="{{.Query.OrganisationName}}" style="display: none">
         {{end}}
-        {{if .NavInfo.Account.IsAtLeastAdmin}}
-            <label for="blocked">{{/*documentSearch-2*/}}Blockierte Dokumente anzeigen</label>
-            <input type="checkbox" id="blocked" name="blocked" value="true" {{if .Query.ShowBlocked}}checked{{end}}>
-        {{end}}
         <label for="title">{{/*documentSearch-11*/}}Dokumententitel</label>
         <input id="title" name="title" type="text" value="{{.Query.DocumentTitle}}">
         <details class="advanced-search">
@@ -36,6 +32,10 @@
             <input id="author" name="author" type="text" value="{{.Query.AuthorName}}">
             <label for="match-author">{{/*documentSearch-17*/}}Nur exakte Übereinstimmungen für den Autor</label>
             <input type="checkbox" id="match-author" name="match-author" value="true" {{if .Query.ExactAuthorMatch}}checked{{end}}>
+            {{if .NavInfo.Account.IsAtLeastAdmin}}
+                <label for="blocked">{{/*documentSearch-2*/}}Blockierte Dokumente anzeigen</label>
+                <input type="checkbox" id="blocked" name="blocked" value="true" {{if .Query.ShowBlocked}}checked{{end}}>
+            {{end}}
         </details>
         <label for="amount">{{/*documentSearch-3*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">

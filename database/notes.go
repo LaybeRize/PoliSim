@@ -4,7 +4,7 @@ import (
 	loc "PoliSim/localisation"
 	"github.com/lib/pq"
 	"html/template"
-	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -155,11 +155,56 @@ WHERE id = $1;`, &id).Scan(&note.ID, &note.Title, &note.Author, &note.Flair, &no
 	return note, err
 }
 
-func SearchForNotesForwards(acc *Account, amount int, timeStamp time.Time, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
-	parameter := []any{timeStamp, amount + 1}
-	query, parameter := queryAnalyzer(acc, parameter, input, showBlocked)
+type NoteSearch struct {
+	Title            string
+	ExactTitleMatch  bool
+	Author           string
+	ExactAuthorMatch bool
+	ShowBlocked      bool
+	values           []any
+}
+
+func (n *NoteSearch) GetQuery(acc *Account) string {
+	var query string
+
+	n.values = make([]any, 0)
+	pos := 3
+	if n.ShowBlocked && acc.IsAtLeastAdmin() {
+		query += " true"
+	} else {
+		query += " blocked = false"
+	}
+
+	if n.Title != "" {
+		if n.ExactTitleMatch {
+			query += " AND title = $" + strconv.Itoa(pos) + " "
+		} else {
+			query += " AND title LIKE '%' || $" + strconv.Itoa(pos) + " || '%' "
+		}
+		pos += 1
+		n.values = append(n.values, n.Title)
+	}
+
+	if n.Author != "" {
+		if n.ExactAuthorMatch {
+			query += " AND author = $" + strconv.Itoa(pos) + " "
+		} else {
+			query += " AND author LIKE '%' || $" + strconv.Itoa(pos) + " || '%' "
+		}
+		pos += 1
+		n.values = append(n.values, n.Author)
+	}
+
+	return query
+}
+
+func (n *NoteSearch) GetValues(input []any) []any {
+	return append(input, n.values...)
+}
+
+func SearchForNotesForwards(acc *Account, amount int, timeStamp time.Time, info *NoteSearch) ([]TruncatedBlackboardNotes, error) {
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM blackboard_note
-WHERE `+query+` AND posted <= $1 ORDER BY posted DESC LIMIT $2;`, parameter...)
+WHERE `+info.GetQuery(acc)+` AND posted <= $1 ORDER BY posted DESC LIMIT $2;`, info.GetValues([]any{timeStamp, amount + 1})...)
 	if err != nil {
 		return nil, err
 	}
@@ -176,12 +221,10 @@ WHERE `+query+` AND posted <= $1 ORDER BY posted DESC LIMIT $2;`, parameter...)
 	return arr, nil
 }
 
-func SearchForNotesBackwards(acc *Account, amount int, timeStamp time.Time, input string, showBlocked bool) ([]TruncatedBlackboardNotes, error) {
-	parameter := []any{timeStamp, amount + 2}
-	query, parameter := queryAnalyzer(acc, parameter, input, showBlocked)
+func SearchForNotesBackwards(acc *Account, amount int, timeStamp time.Time, info *NoteSearch) ([]TruncatedBlackboardNotes, error) {
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, posted, blocked FROM 
 (SELECT id, title, author, flair, posted, blocked FROM blackboard_note
-WHERE `+query+` AND posted >= $1 ORDER BY posted LIMIT $2) as note ORDER BY note.posted DESC;`, parameter...)
+WHERE `+info.GetQuery(acc)+` AND posted >= $1 ORDER BY posted LIMIT $2) as note ORDER BY note.posted DESC;`, info.GetValues([]any{timeStamp, amount + 2})...)
 	if err != nil {
 		return nil, err
 	}
@@ -196,29 +239,4 @@ WHERE `+query+` AND posted >= $1 ORDER BY posted LIMIT $2) as note ORDER BY note
 		arr = append(arr, trunc)
 	}
 	return arr, nil
-}
-
-var queryRegexNotes = regexp.MustCompile(`^\s*(.*?)\s*(\[|$)`)
-var authorRegexNotes = regexp.MustCompile(`\[[bB][yY]:]\s*(.+?)\s*(\[|$)`)
-
-func queryAnalyzer(acc *Account, parameter []any, input string, showBlocked bool) (string, []any) {
-	query := ""
-	if showBlocked && acc.IsAtLeastAdmin() {
-		query += "true"
-	} else {
-		query += "blocked = false"
-	}
-
-	result := queryRegexNotes.FindStringSubmatch(input)
-	if result != nil && result[1] != "" {
-		parameter = append(parameter, result[1])
-		query += " AND title LIKE '%' || $3 || '%'"
-	}
-
-	if result = authorRegexNotes.FindStringSubmatch(input); result != nil {
-		parameter = append(parameter, result[1])
-		query += " AND author LIKE '%' || $4 || '%'"
-	}
-
-	return query, parameter
 }

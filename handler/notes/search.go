@@ -13,9 +13,14 @@ func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	query := helper.GetAdvancedURLValues(request)
 
 	page := &handler.SearchNotesPage{
-		Query:       query.GetTrimmedString("query"),
-		Amount:      query.GetInt("amount"),
-		ShowBlocked: query.GetBool("blocked"),
+		Query: &database.NoteSearch{
+			Title:            query.GetTrimmedString("title"),
+			ExactTitleMatch:  query.GetBool("match-title"),
+			Author:           query.GetTrimmedString("author"),
+			ExactAuthorMatch: query.GetBool("match-author"),
+			ShowBlocked:      query.GetBool("blocked"),
+		},
+		Amount: query.GetInt("amount"),
 	}
 
 	if page.Amount < 10 || page.Amount > 50 {
@@ -27,9 +32,9 @@ func GetSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 
 	var err error
 	if backward {
-		page.Results, err = database.SearchForNotesBackwards(acc, page.Amount, page.PreviousItemTime, page.Query, page.ShowBlocked)
+		page.Results, err = database.SearchForNotesBackwards(acc, page.Amount, page.PreviousItemTime, page.Query)
 	} else {
-		page.Results, err = database.SearchForNotesForwards(acc, page.Amount, page.NextItemTime, page.Query, page.ShowBlocked)
+		page.Results, err = database.SearchForNotesForwards(acc, page.Amount, page.NextItemTime, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -80,9 +85,14 @@ func PutSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	page := &handler.SearchNotesPage{
-		Query:       values.GetTrimmedString("query"),
-		Amount:      values.GetInt("amount"),
-		ShowBlocked: values.GetBool("blocked"),
+		Query: &database.NoteSearch{
+			Title:            values.GetTrimmedString("title"),
+			ExactTitleMatch:  values.GetBool("match-title"),
+			Author:           values.GetTrimmedString("author"),
+			ExactAuthorMatch: values.GetBool("match-author"),
+			ShowBlocked:      values.GetBool("blocked"),
+		},
+		Amount: values.GetInt("amount"),
 	}
 
 	if page.Amount < 10 || page.Amount > 50 {
@@ -93,9 +103,9 @@ func PutSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 	page.NextItemTime, _ = values.GetUTCTime("forward", true)
 
 	if backward {
-		page.Results, err = database.SearchForNotesBackwards(acc, page.Amount, page.PreviousItemTime, page.Query, page.ShowBlocked)
+		page.Results, err = database.SearchForNotesBackwards(acc, page.Amount, page.PreviousItemTime, page.Query)
 	} else {
-		page.Results, err = database.SearchForNotesForwards(acc, page.Amount, page.NextItemTime, page.Query, page.ShowBlocked)
+		page.Results, err = database.SearchForNotesForwards(acc, page.Amount, page.NextItemTime, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -134,6 +144,7 @@ func PutSearchNotePage(writer http.ResponseWriter, request *http.Request) {
 		page.Results = page.Results[amt:]
 	}
 
+	values.DeleteEmptyFields([]string{"title", "author"})
 	writer.Header().Add("Hx-Push-Url", "/search/notes?"+values.Encode())
 	handler.MakePage(writer, acc, page)
 }
