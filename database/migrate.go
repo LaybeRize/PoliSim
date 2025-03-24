@@ -89,7 +89,6 @@ CREATE TABLE letter(
 	written TIMESTAMP NOT NULL UNIQUE,
 	body TEXT NOT NULL
 );
-CREATE INDEX letter_time_index ON letter USING btree (written);
 CREATE TABLE letter_to_account(
 	letter_id TEXT NOT NULL,
 	account_name TEXT NOT NULL,
@@ -113,7 +112,6 @@ CREATE TABLE newspaper_publication (
     CONSTRAINT fk_newspaper_name
         FOREIGN KEY (newspaper_name) REFERENCES newspaper(name)
 );
-CREATE INDEX publication_time_index ON newspaper_publication USING btree (publish_date);
 CREATE TABLE newspaper_article (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -145,7 +143,6 @@ CREATE TABLE blackboard_note(
     body  TEXT NOT NULL,
 	blocked BOOLEAN NOT NULL
 );
-CREATE INDEX blackboard_note_time_index ON blackboard_note USING btree (posted);
 CREATE TABLE blackboard_references(
 	base_note_id TEXT NOT NULL,
 	reference_id TEXT NOT NULL,
@@ -199,7 +196,6 @@ CREATE TABLE document (
     CONSTRAINT fk_organisation_name
         FOREIGN KEY (organisation_name) REFERENCES organisation(name) ON UPDATE CASCADE
 );
-CREATE INDEX document_time_index ON document USING btree (written);
 CREATE TABLE document_to_account (
     document_id TEXT NOT NULL,
     account_name TEXT,
