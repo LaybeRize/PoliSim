@@ -33,13 +33,13 @@ func migrate() {
 	case 0:
 		migrateToCurrentVersion()
 	default:
-		log.Println("Running with DB version ", version)
+		log.Println("Running with DB version", version)
 	}
 }
 
 func migrateToCurrentVersion() {
 	const currVersion = 1
-	log.Println("Setting up the database for current version ", currVersion)
+	log.Println("Setting up the database for current version", currVersion)
 
 	// Probably would need more indexes for even better performance with big datasets but the current ones should be good for now
 	_, err := postgresDB.Exec(`
@@ -306,6 +306,10 @@ CREATE TABLE chat_messages(
     CONSTRAINT fk_account_name FOREIGN KEY (sender) REFERENCES account(name)
 );
 CREATE INDEX chat_messages_room_index ON chat_messages USING hash (room_id);
+-- A few more colors for fun
+INSERT INTO colors (name, background, text, link) VALUES ('Failure', '#4C0519', '#FFFFFF', '#FECDD3');
+INSERT INTO colors (name, background, text, link) VALUES ('Success', '#064E3B', '#FFFFFF', '#D1FAE5');
+INSERT INTO colors (name, background, text, link) VALUES ('Neutral', '#1C1917', '#FFFFFF', '#93C5FD');
 `)
 	if err != nil {
 		log.Fatalf("Could not create tables for the current version %d: %v", currVersion, err)

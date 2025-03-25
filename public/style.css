@@ -418,7 +418,7 @@ table.view-vote {
             filter: drop-shadow(0.3rem 0.3rem 0.125rem rgb(2 6 23));
             padding: 0.6rem;
             margin: 0.5rem 0;
-            color: rgb(181 255 255);
+            color: #e4e4e7;
             box-sizing: border-box;
 
             > h1 {
@@ -435,15 +435,15 @@ table.view-vote {
             > p {
                 margin: 0;
                 padding-top: 0.4rem;
-                color: rgb(240, 240, 240);
+                color: white;
                 word-break: break-word;
             }
         }
         > div#message.message-self {
-            background-color: rgb(25 23 82);
+            background-color: #1e3a8a;
         }
         > div#message.message-other {
-            background-color: rgb(15 23 42);
+            background-color: #0f172a;
         }
     }
 }
