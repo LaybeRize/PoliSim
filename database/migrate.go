@@ -67,9 +67,10 @@ CREATE INDEX ownership_owner_name ON ownership USING hash (owner_name);
 -- Colors --
 CREATE TABLE colors (
     name TEXT PRIMARY KEY,
-    background TEXT,
-    text TEXT,
-    link TEXT
+    background TEXT NOT NULL,
+    text TEXT NOT NULL,
+    link TEXT NOT NULL,
+    permanent BOOLEAN NOT NULL
 );
 -- Cookies --
 CREATE TABLE cookies (
@@ -307,9 +308,9 @@ CREATE TABLE chat_messages(
 );
 CREATE INDEX chat_messages_room_index ON chat_messages USING hash (room_id);
 -- A few more colors for fun
-INSERT INTO colors (name, background, text, link) VALUES ('Failure', '#4C0519', '#FFFFFF', '#FECDD3');
-INSERT INTO colors (name, background, text, link) VALUES ('Success', '#064E3B', '#FFFFFF', '#D1FAE5');
-INSERT INTO colors (name, background, text, link) VALUES ('Neutral', '#1C1917', '#FFFFFF', '#93C5FD');
+INSERT INTO colors (name, background, text, link, permanent) VALUES ('Failure', '#4C0519', '#FFFFFF', '#FECDD3', false);
+INSERT INTO colors (name, background, text, link, permanent) VALUES ('Success', '#064E3B', '#FFFFFF', '#D1FAE5', false);
+INSERT INTO colors (name, background, text, link, permanent) VALUES ('Neutral', '#1C1917', '#FFFFFF', '#93C5FD', false);
 `)
 	if err != nil {
 		log.Fatalf("Could not create tables for the current version %d: %v", currVersion, err)

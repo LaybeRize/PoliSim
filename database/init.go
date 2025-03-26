@@ -29,6 +29,7 @@ const (
 	DocumentHasNoAttachedVotes   DbError = "document has no attached votes"
 	DoubleChatRoomEntry          DbError = "there already exists a room with these members"
 	ChatRoomNameTaken            DbError = "there already exists a room with this name"
+	CanNotDeleteColor            DbError = "can't delete permanent color"
 )
 
 var shutdown sync.Mutex
@@ -74,6 +75,7 @@ func startPostgresDatabase() {
 func afterStartProcesses() {
 	migrate()
 
+	log.Println("Loading Colors")
 	loadColorPalettesFromDB()
 	log.Println("Loading Cookies")
 	loadCookiesFromDB()
@@ -124,10 +126,12 @@ func createRootAccount() {
 }
 
 func createAdministrationAccount() {
-	acc, err := GetAccountByName(loc.AdministrationAccountName)
+	acc, err := GetAccountByRole(Special)
 	if err == nil && acc != nil {
 		log.Println("Administration Account already exists")
-		return
+		if acc.Name != loc.AdministrationAccountName {
+			log.Println("Administration Account Name from a different Language")
+		}
 	} else if errors.Is(err, sql.ErrNoRows) && acc == nil {
 		createError := CreateAccount(&Account{
 			Name:     loc.AdministrationAccountName,

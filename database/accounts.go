@@ -82,7 +82,7 @@ var BlockedAccountChannel = make(chan string)
 var OwnerChangeOnAccountChannel = make(chan []string)
 
 func CreateAccount(acc *Account) error {
-	if acc.Name == loc.AdministrationName {
+	if loc.IsAdministrationName(acc.Name) {
 		return NotAllowedError
 	}
 	tx, err := postgresDB.Begin()
@@ -127,6 +127,19 @@ func GetAccountByName(name string) (*Account, error) {
 	err := postgresDB.QueryRow(`SELECT name,username,password,role,blocked,font_size,time_zone FROM account
                                       WHERE name = $1;`,
 		&name).Scan(&acc.Name, &acc.Username, &acc.Password, &acc.Role, &acc.Blocked, &acc.FontSize, &timeZoneStr)
+	if err != nil {
+		return nil, err
+	}
+	acc.TimeZone, err = time.LoadLocation(timeZoneStr)
+	return acc, err
+}
+
+func GetAccountByRole(role AccountRole) (*Account, error) {
+	acc := &Account{}
+	timeZoneStr := ""
+	err := postgresDB.QueryRow(`SELECT name,username,password,role,blocked,font_size,time_zone FROM account
+                                      WHERE role = $1;`,
+		role).Scan(&acc.Name, &acc.Username, &acc.Password, &acc.Role, &acc.Blocked, &acc.FontSize, &timeZoneStr)
 	if err != nil {
 		return nil, err
 	}

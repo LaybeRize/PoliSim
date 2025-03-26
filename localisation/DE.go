@@ -5,7 +5,6 @@ package loc
 import (
 	"html/template"
 	"log"
-	"strings"
 )
 
 func init() {
@@ -14,6 +13,8 @@ func init() {
 
 const (
 	LanguageTag = "de"
+
+	// Whenever AdministrationName is changed, change the value in the switch-case-statement in IsAdministrationName.
 
 	AdministrationName            = "Administration"
 	AdministrationAccountName     = "Max Musteradministrator"
@@ -319,10 +320,6 @@ const (
 	PagesChatRoomOverviewPage   = "Chatraumübersicht"
 )
 
-func SetHomePage(text []byte) {
-	replaceMap["_home"]["$$home-page$$"] = string(text)
-}
-
 var replaceMap = map[string]map[string]string{
 	"_home": {
 		"$$home-page$$": "",
@@ -335,20 +332,4 @@ var replaceMap = map[string]map[string]string{
 	"base": {
 		"{{/*base-1-language*/}}": LanguageTag,
 	},
-}
-
-func LocaliseTemplateString(input []byte, name string) string {
-	result := string(input)
-	for key, value := range replaceMap {
-		if name == key {
-			for left, right := range value {
-				result = strings.ReplaceAll(result, left, right)
-			}
-		}
-	}
-	return result
-}
-
-func CleanUpMap() {
-	replaceMap = nil
 }

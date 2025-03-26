@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"errors"
 	"log/slog"
 	"net/http"
 )
@@ -95,14 +96,13 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	name := values.GetTrimmedString("name")
-	if name == loc.StandardColorName {
+
+	color, err := database.RemoveColorPalette(name, acc)
+	if errors.Is(err, database.CanNotDeleteColor) {
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentStandardColorNotAllowedToBeDeleted})
 		return
 	}
-
-	color, err := database.RemoveColorPalette(name, acc)
-
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
