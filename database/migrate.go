@@ -289,6 +289,7 @@ CREATE TABLE has_voted (
 -- Chat --
 CREATE TABLE chat_rooms (
     room_id TEXT PRIMARY KEY,	
+	created TIMESTAMP NOT NULL,
     member TEXT[] NOT NULL
 );
 CREATE TABLE chat_rooms_to_account (
@@ -307,6 +308,10 @@ CREATE TABLE chat_messages(
     CONSTRAINT fk_account_name FOREIGN KEY (sender) REFERENCES account(name)
 );
 CREATE INDEX chat_messages_room_index ON chat_messages USING hash (room_id);
+CREATE VIEW chat_rooms_linked AS SELECT chat_rooms.room_id, chat_rooms.created, chat_rooms.member ,crta.new_message, own.account_name, own.owner_name 
+    FROM chat_rooms
+    INNER JOIN chat_rooms_to_account crta ON chat_rooms.room_id = crta.room_id
+    INNER JOIN ownership own ON crta.account_name = own.account_name;
 -- A few more colors for fun
 INSERT INTO colors (name, background, text, link, permanent) VALUES ('Failure', '#4C0519', '#FFFFFF', '#FECDD3', false);
 INSERT INTO colors (name, background, text, link, permanent) VALUES ('Success', '#064E3B', '#FFFFFF', '#D1FAE5', false);
