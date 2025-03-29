@@ -27,6 +27,8 @@
         </select>
         <label for="only-new">{{/*chatOverview-16*/}}Zeige nur Chaträume mit neuen Nachrichten</label>
         <input type="checkbox" id="only-new" name="only-new" value="true" {{if .Query.ShowOnlyUnreadChats}}checked{{end}}>
+        <label for="chat-name">{{/*chatOverview-18*/}}Chatraum-Name</label>
+        <input id="chat-name" name="chat-name" type="text" value="{{.Query.Name}}">
         <label for="amount">{{/*chatOverview-17*/}}Anzahl der Ergebnisse</label>
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
         <button>{{/*chatOverview-5*/}}Suchen</button>

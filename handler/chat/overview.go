@@ -25,6 +25,7 @@ func GetChatOverview(writer http.ResponseWriter, request *http.Request) {
 	query := helper.GetAdvancedURLValues(request)
 	page := &handler.ChatOverviewPage{
 		Query: &database.ChatSearch{
+			Name:                query.GetTrimmedString("chat-name"),
 			Viewer:              query.GetTrimmedString("viewer"),
 			ShowOnlyUnreadChats: query.GetBool("only-new"),
 			Owner:               acc.Name,
@@ -51,9 +52,9 @@ func GetChatOverview(writer http.ResponseWriter, request *http.Request) {
 	recName := query.GetTrimmedString("rec-name")
 
 	if backward {
-		page.Chats, err = database.GetRoomsPageBackwards(page.Amount, acc, page.PreviousItemTime, recName, page.Query)
+		page.Chats, err = database.GetRoomsPageBackwards(page.Amount, page.PreviousItemTime, recName, page.Query)
 	} else {
-		page.Chats, err = database.GetRoomsPageForwards(page.Amount, acc, page.NextItemTime, recName, page.Query)
+		page.Chats, err = database.GetRoomsPageForwards(page.Amount, page.NextItemTime, recName, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -123,6 +124,7 @@ func PutFilterChatOverview(writer http.ResponseWriter, request *http.Request) {
 
 	page := &handler.ChatOverviewPage{
 		Query: &database.ChatSearch{
+			Name:                values.GetTrimmedString("chat-name"),
 			Viewer:              values.GetTrimmedString("viewer"),
 			ShowOnlyUnreadChats: values.GetBool("only-new"),
 			Owner:               acc.Name,
@@ -141,9 +143,9 @@ func PutFilterChatOverview(writer http.ResponseWriter, request *http.Request) {
 	recName := values.GetTrimmedString("rec-name")
 
 	if backward {
-		page.Chats, err = database.GetRoomsPageBackwards(page.Amount, acc, page.PreviousItemTime, recName, page.Query)
+		page.Chats, err = database.GetRoomsPageBackwards(page.Amount, page.PreviousItemTime, recName, page.Query)
 	} else {
-		page.Chats, err = database.GetRoomsPageForwards(page.Amount, acc, page.NextItemTime, recName, page.Query)
+		page.Chats, err = database.GetRoomsPageForwards(page.Amount, page.NextItemTime, recName, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -248,6 +250,7 @@ func PostNewChat(writer http.ResponseWriter, request *http.Request) {
 
 	page := &handler.ChatOverviewPage{
 		Query: &database.ChatSearch{
+			Name:                values.GetTrimmedString("chat-name"),
 			Viewer:              values.GetTrimmedString("viewer"),
 			ShowOnlyUnreadChats: values.GetBool("only-new"),
 			Owner:               acc.Name,
@@ -266,7 +269,7 @@ func PostNewChat(writer http.ResponseWriter, request *http.Request) {
 		page.Amount = 20
 	}
 
-	page.Chats, err = database.GetRoomsPageForwards(page.Amount, acc, time.Now().UTC(), "", page.Query)
+	page.Chats, err = database.GetRoomsPageForwards(page.Amount, time.Now().UTC(), "", page.Query)
 
 	if len(page.Chats) > page.Amount {
 		page.HasNext = true

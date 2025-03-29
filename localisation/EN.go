@@ -390,6 +390,7 @@ var replaceMap = map[string]map[string]string{
 		"{{/*chatOverview-15*/}}Nächste Seite &raquo;":                     "Next Page &raquo;",
 		"{{/*chatOverview-16*/}}Zeige nur Chaträume mit neuen Nachrichten": "Show only Chatrooms with new Messages",
 		"{{/*chatOverview-17*/}}Anzahl der Ergebnisse":                     "Number of Entries per Page",
+		"{{/*chatOverview-18*/}}Chatraum-Name":                             "Chatroom Name",
 	},
 
 	"documentColorEdit": {

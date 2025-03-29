@@ -288,7 +288,8 @@ CREATE TABLE has_voted (
 );
 -- Chat --
 CREATE TABLE chat_rooms (
-    room_id TEXT PRIMARY KEY,	
+    room_id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
 	created TIMESTAMP NOT NULL UNIQUE,
     member TEXT[] NOT NULL
 );
@@ -308,7 +309,7 @@ CREATE TABLE chat_messages(
     CONSTRAINT fk_account_name FOREIGN KEY (sender) REFERENCES account(name)
 );
 CREATE INDEX chat_messages_room_index ON chat_messages USING hash (room_id);
-CREATE VIEW chat_rooms_linked AS SELECT chat_rooms.room_id, chat_rooms.created, chat_rooms.member ,crta.new_message, own.account_name, own.owner_name 
+CREATE VIEW chat_rooms_linked AS SELECT chat_rooms.room_id, chat_rooms.name, chat_rooms.created, chat_rooms.member ,crta.new_message, own.account_name, own.owner_name 
     FROM chat_rooms
     INNER JOIN chat_rooms_to_account crta ON chat_rooms.room_id = crta.room_id
     INNER JOIN ownership own ON crta.account_name = own.account_name;
