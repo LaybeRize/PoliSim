@@ -289,7 +289,7 @@ CREATE TABLE has_voted (
 -- Chat --
 CREATE TABLE chat_rooms (
     room_id TEXT PRIMARY KEY,	
-	created TIMESTAMP NOT NULL,
+	created TIMESTAMP NOT NULL UNIQUE,
     member TEXT[] NOT NULL
 );
 CREATE TABLE chat_rooms_to_account (

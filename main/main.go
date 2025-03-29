@@ -123,7 +123,7 @@ func main() {
 
 	http.HandleFunc("GET /chat/overview", chat.GetChatOverview)
 	http.HandleFunc("POST /create/chat", chat.PostNewChat)
-	http.HandleFunc("PUT /update/chat/overview", chat.PutFilterChatOverview)
+	http.HandleFunc("PUT /chat/overview", chat.PutFilterChatOverview)
 
 	http.HandleFunc("GET /administration", handler.GetManagementPage)
 	http.HandleFunc("POST /administration/file", handler.PostFileManagementPage)

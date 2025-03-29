@@ -16,20 +16,24 @@
     {{- /*gotype: PoliSim/handler.ChatOverviewPage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
-    <form id="search-form" hx-put="/update/chat/overview" hx-target="#page-body">
-        <label for="account">{{/*chatOverview-7*/}}Account</label>
-        <select id="account" name="account">
+    <form id="search-form" hx-put="/chat/overview" hx-target="#message-box">
+        <label for="viewer">{{/*chatOverview-7*/}}Account</label>
+        <select id="viewer" name="viewer">
             <option value="">{{/*chatOverview-6*/}}-- Alle Accounts --</option>
-            {{$account := .Viewer}}
+            {{$account := .Query.Viewer}}
             {{range .PossibleViewers}}
                 <option value="{{.}}" {{if eq . $account}}selected{{end}}>{{.}}</option>
             {{end}}
         </select>
+        <label for="only-new">{{/*chatOverview-16*/}}Zeige nur Chaträume mit neuen Nachrichten</label>
+        <input type="checkbox" id="only-new" name="only-new" value="true" {{if .Query.ShowOnlyUnreadChats}}checked{{end}}>
+        <label for="amount">{{/*chatOverview-17*/}}Anzahl der Ergebnisse</label>
+        <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
         <button>{{/*chatOverview-5*/}}Suchen</button>
     </form>
     <details>
         <summary>{{/*chatOverview-8*/}}Chatraum erstellen</summary>
-        <form hx-post="/create/chat" hx-target="#message-box">
+        <form hx-post="/create/chat" hx-target="#message-box" hx-include="#search-form">
             <label for="chatroom-name">{{/*chatOverview-13*/}}Raumname</label>
             <input id="chatroom-name" name="chatroom-name" type="text">
             <label for="base-account">{{/*chatOverview-10*/}}Basis-Account</label>
@@ -56,8 +60,14 @@
             <button>{{/*chatOverview-9*/}}Chatraum erstellen</button>
         </form>
     </details>
+    {{template "chatPaging" .}}
+    </body>
+{{end}}
+
+{{define "chatPaging"}}
+    {{- /*gotype: PoliSim/handler.ChatOverviewPage*/ -}}
     {{template "message" .}}
-    <div class="wrapper note">
+    <div id="chat-rooms" class="wrapper note" {{if .OutOfBandSwitch}}hx-swap-oob="true"{{end}}>
         {{if eq (len .Chats) 0}}
             <p>{{/*chatOverview-1*/}}Es konnten keine Chaträume gefunden werden</p>
         {{else}}
@@ -72,6 +82,22 @@
                 </a>
             {{end}}
         {{end}}
+        {{if or .HasNext .HasPrevious}}
+            <hr style="width: var(--standard-width); margin: 0.3rem 0;">
+            <div class="wrapper note pager">
+                {{if .HasPrevious}}
+                    <a hx-put="/chat/overview" hx-include="#search-form"
+                       hx-vals='{"backward": "{{.PreviousPage}}", "rec-name": "{{.PreviousPageRec}}"}' hx-target="#message-box">
+                        {{/*chatOverview-14*/}}&laquo; Vorherige Seite
+                    </a>
+                {{end}}
+                {{if .HasNext}}
+                    <a hx-put="/chat/overview" hx-include="#search-form"
+                       hx-vals='{"forward": "{{.NextPage}}", "rec-name": "{{.NextPageRec}}"}' hx-target="#message-box">
+                        {{/*chatOverview-15*/}}Nächste Seite &raquo;
+                    </a>
+                {{end}}
+            </div>
+        {{end}}
     </div>
-    </body>
 {{end}}

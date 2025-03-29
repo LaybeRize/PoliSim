@@ -386,6 +386,10 @@ var replaceMap = map[string]map[string]string{
 		"{{/*chatOverview-11*/}}Mitglied hinzufügen":                       "Add Member",
 		"{{/*chatOverview-12*/}}Mitglieder":                                "Members",
 		"{{/*chatOverview-13*/}}Raumname":                                  "Chatroom Name",
+		"{{/*chatOverview-14*/}}&laquo; Vorherige Seite":                   "&laquo; Previous Page",
+		"{{/*chatOverview-15*/}}Nächste Seite &raquo;":                     "Next Page &raquo;",
+		"{{/*chatOverview-16*/}}Zeige nur Chaträume mit neuen Nachrichten": "Show only Chatrooms with new Messages",
+		"{{/*chatOverview-17*/}}Anzahl der Ergebnisse":                     "Number of Entries per Page",
 	},
 
 	"documentColorEdit": {

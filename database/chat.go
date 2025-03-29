@@ -26,6 +26,7 @@ type ChatRoom struct {
 	Member     []string
 	User       string
 	NewMessage bool
+	Created    time.Time
 }
 
 func (c *ChatRoom) GetLink() template.URL {
@@ -117,10 +118,10 @@ type ChatSearch struct {
 
 func (n *ChatSearch) GetQuery() string {
 	query := "WHERE"
-	if n.Owner != "" {
-		query += " owner_name = $1"
-	} else {
+	if n.Viewer != "" {
 		query += " account_name = $1"
+	} else {
+		query += " owner_name = $1"
 	}
 
 	if n.ShowOnlyUnreadChats {
@@ -131,16 +132,16 @@ func (n *ChatSearch) GetQuery() string {
 }
 
 func (n *ChatSearch) GetViewer() string {
-	if n.Owner != "" {
-		return n.Owner
+	if n.Viewer != "" {
+		return n.Viewer
 	}
-	return n.Viewer
+	return n.Owner
 }
 
-func GetRoomsPageForwards(amount int, timeStamp time.Time, memberName string, info *ChatSearch) ([]ChatRoom, error) {
-	result, err := postgresDB.Query(`SELECT room_id, member, account_name, new_message FROM chat_rooms_linked `+
-		info.GetQuery()+` AND (created, account_name) <= ($2, $3) ORDER BY (created, account_name) DESC LIMIT $4`,
-		info.GetViewer(), timeStamp, memberName, amount+1)
+func GetRoomsPageForwards(amount int, acc *Account, timeStamp time.Time, memberName string, info *ChatSearch) ([]ChatRoom, error) {
+	result, err := postgresDB.Query(`SELECT room_id, member, account_name, new_message, created FROM chat_rooms_linked `+
+		info.GetQuery()+` AND owner_name = $5 AND (created, account_name) <= ($2, $3) ORDER BY (created, account_name) DESC LIMIT $4`,
+		info.GetViewer(), timeStamp, memberName, amount+1, acc.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +149,7 @@ func GetRoomsPageForwards(amount int, timeStamp time.Time, memberName string, in
 	arr := make([]ChatRoom, 0)
 	chat := ChatRoom{}
 	for result.Next() {
-		err = result.Scan(&chat.Name, pq.Array(&chat.Member), &chat.User, &chat.NewMessage)
+		err = result.Scan(&chat.Name, pq.Array(&chat.Member), &chat.User, &chat.NewMessage, &chat.Created)
 		if err != nil {
 			return nil, err
 		}
@@ -157,11 +158,11 @@ func GetRoomsPageForwards(amount int, timeStamp time.Time, memberName string, in
 	return arr, nil
 }
 
-func GetRoomsPageBackwards(amount int, timeStamp time.Time, memberName string, info *ChatSearch) ([]ChatRoom, error) {
-	result, err := postgresDB.Query(`SELECT room_id, member, account_name, new_message FROM (
+func GetRoomsPageBackwards(amount int, acc *Account, timeStamp time.Time, memberName string, info *ChatSearch) ([]ChatRoom, error) {
+	result, err := postgresDB.Query(`SELECT room_id, member, account_name, new_message, created FROM (
 SELECT room_id, member, account_name, new_message, created FROM chat_rooms_linked `+
-		info.GetQuery()+` AND (created, account_name) >= ($2, $3) ORDER BY (created, account_name) LIMIT $4) 
-    as room ORDER BY (created, account_name) DESC`, info.GetViewer(), timeStamp, memberName, amount+2)
+		info.GetQuery()+` AND owner_name = $5 AND (created, account_name) >= ($2, $3) ORDER BY (created, account_name) LIMIT $4) 
+    as room ORDER BY (created, account_name) DESC`, info.GetViewer(), timeStamp, memberName, amount+2, acc.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +170,7 @@ SELECT room_id, member, account_name, new_message, created FROM chat_rooms_linke
 	arr := make([]ChatRoom, 0)
 	chat := ChatRoom{}
 	for result.Next() {
-		err = result.Scan(&chat.Name, pq.Array(&chat.Member), &chat.User, &chat.NewMessage)
+		err = result.Scan(&chat.Name, pq.Array(&chat.Member), &chat.User, &chat.NewMessage, &chat.Created)
 		if err != nil {
 			return nil, err
 		}

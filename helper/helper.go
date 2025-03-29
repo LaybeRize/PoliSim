@@ -233,6 +233,12 @@ func (a AdvancedValues) DeleteEmptyFields(fields []string) {
 	}
 }
 
+func (a AdvancedValues) DeleteFields(fields []string) {
+	for _, field := range fields {
+		delete(a, field)
+	}
+}
+
 func EscapeStringForJSON(src string) string {
 	var buf bytes.Buffer
 	start := 0

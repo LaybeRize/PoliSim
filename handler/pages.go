@@ -687,12 +687,36 @@ func (p *DirectChatWindow) getPageName() string {
 }
 
 type ChatOverviewPage struct {
-	NavInfo         NavigationInfo
-	Viewer          string
-	PossibleViewers []string
-	AccountNames    []string
-	Chats           []database.ChatRoom
+	NavInfo          NavigationInfo
+	PossibleViewers  []string
+	AccountNames     []string
+	Chats            []database.ChatRoom
+	Query            *database.ChatSearch
+	OutOfBandSwitch  bool
+	Amount           int
+	HasNext          bool
+	NextItemRec      string
+	NextItemTime     time.Time
+	HasPrevious      bool
+	PreviousItemRec  string
+	PreviousItemTime time.Time
 	MessageUpdate
+}
+
+func (p *ChatOverviewPage) NextPage() string {
+	return p.NextItemTime.Format(helper.ISOTimeFormat)
+}
+
+func (p *ChatOverviewPage) NextPageRec() string {
+	return helper.EscapeStringForJSON(p.NextItemRec)
+}
+
+func (p *ChatOverviewPage) PreviousPage() string {
+	return p.PreviousItemTime.Format(helper.ISOTimeFormat)
+}
+
+func (p *ChatOverviewPage) PreviousPageRec() string {
+	return helper.EscapeStringForJSON(p.PreviousItemRec)
 }
 
 func (p *ChatOverviewPage) SetNavInfo(navInfo NavigationInfo) {
@@ -700,7 +724,13 @@ func (p *ChatOverviewPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *ChatOverviewPage) getPageName() string {
+	p.OutOfBandSwitch = false
 	return "chatOverview"
+}
+
+func (p *ChatOverviewPage) getRenderInfo() (string, string) {
+	p.OutOfBandSwitch = true
+	return "chatOverview", "chatPaging"
 }
 
 type AdminPage struct {
