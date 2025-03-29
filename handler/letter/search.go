@@ -52,11 +52,12 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	var backward bool
 	page.PreviousItemTime, backward = query.GetUTCTime("backward", false)
 	page.NextItemTime, _ = query.GetUTCTime("forward", true)
+	recName := query.GetTrimmedString("rec-name")
 
 	if backward {
-		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime, page.Query)
+		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime, recName, page.Query)
 	} else {
-		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime, page.Query)
+		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime, recName, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -65,15 +66,17 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 
 	if len(page.Results) > 0 {
 		id := query.GetTrimmedString("id")
-		if !backward && id == page.Results[0].ID {
+		if !backward && id == page.Results[0].ID && page.Results[0].Recipient == recName {
 			page.HasPrevious = true
 			page.PreviousItemTime = page.NextItemTime
 			page.PreviousItemID = id
-		} else if backward && id == page.Results[len(page.Results)-1].ID {
+			page.PreviousItemRec = page.Results[0].Recipient
+		} else if lst := len(page.Results) - 1; backward && id == page.Results[lst].ID && page.Results[lst].Recipient == recName {
 			page.HasNext = true
 			page.NextItemTime = page.PreviousItemTime
 			page.NextItemID = id
-			page.Results = page.Results[:len(page.Results)-1]
+			page.NextItemRec = page.Results[lst].Recipient
+			page.Results = page.Results[:lst]
 		}
 	}
 
@@ -81,17 +84,20 @@ func GetPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		page.HasNext = true
 		page.NextItemTime = page.Results[page.Amount].Written
 		page.NextItemID = page.Results[page.Amount].ID
+		page.NextItemRec = page.Results[page.Amount].Recipient
 		page.Results = page.Results[:page.Amount]
 	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
 		page.PreviousItemTime = page.Results[1].Written
 		page.PreviousItemID = page.Results[1].ID
+		page.PreviousItemRec = page.Results[1].Recipient
 		page.Results = page.Results[1:]
 	} else if backward && len(page.Results) > page.Amount {
 		amt := len(page.Results) - page.Amount
 		page.HasPrevious = true
 		page.PreviousItemTime = page.Results[amt].Written
 		page.PreviousItemID = page.Results[amt].ID
+		page.PreviousItemRec = page.Results[amt].Recipient
 		page.Results = page.Results[amt:]
 	}
 
@@ -145,11 +151,12 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 	var backward bool
 	page.PreviousItemTime, backward = values.GetUTCTime("backward", false)
 	page.NextItemTime, _ = values.GetUTCTime("forward", true)
+	recName := values.GetTrimmedString("rec-name")
 
 	if backward {
-		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime, page.Query)
+		page.Results, err = database.GetLetterListBackwards(accounts, page.Amount, page.PreviousItemTime, recName, page.Query)
 	} else {
-		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime, page.Query)
+		page.Results, err = database.GetLetterListForwards(accounts, page.Amount, page.NextItemTime, recName, page.Query)
 	}
 	if err != nil {
 		slog.Debug(err.Error())
@@ -158,15 +165,17 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 
 	if len(page.Results) > 0 {
 		id := values.GetTrimmedString("id")
-		if !backward && id == page.Results[0].ID {
+		if !backward && id == page.Results[0].ID && page.Results[0].Recipient == recName {
 			page.HasPrevious = true
 			page.PreviousItemTime = page.NextItemTime
 			page.PreviousItemID = id
-		} else if backward && id == page.Results[len(page.Results)-1].ID {
+			page.PreviousItemRec = page.Results[0].Recipient
+		} else if lst := len(page.Results) - 1; backward && id == page.Results[lst].ID && page.Results[lst].Recipient == recName {
 			page.HasNext = true
 			page.NextItemTime = page.PreviousItemTime
 			page.NextItemID = id
-			page.Results = page.Results[:len(page.Results)-1]
+			page.NextItemRec = page.Results[lst].Recipient
+			page.Results = page.Results[:lst]
 		}
 	}
 
@@ -174,17 +183,20 @@ func PutPagePersonalLetter(writer http.ResponseWriter, request *http.Request) {
 		page.HasNext = true
 		page.NextItemTime = page.Results[page.Amount].Written
 		page.NextItemID = page.Results[page.Amount].ID
+		page.NextItemRec = page.Results[page.Amount].Recipient
 		page.Results = page.Results[:page.Amount]
 	} else if backward && len(page.Results) > page.Amount && page.HasNext {
 		page.HasPrevious = true
 		page.PreviousItemTime = page.Results[1].Written
 		page.PreviousItemID = page.Results[1].ID
+		page.PreviousItemRec = page.Results[1].Recipient
 		page.Results = page.Results[1:]
 	} else if backward && len(page.Results) > page.Amount {
 		amt := len(page.Results) - page.Amount
 		page.HasPrevious = true
 		page.PreviousItemTime = page.Results[amt].Written
 		page.PreviousItemID = page.Results[amt].ID
+		page.PreviousItemRec = page.Results[amt].Recipient
 		page.Results = page.Results[amt:]
 	}
 

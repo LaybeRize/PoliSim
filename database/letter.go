@@ -169,7 +169,7 @@ func (n *LetterSearch) GetQuery() string {
 	var query string
 
 	n.values = make([]any, 0)
-	pos := 4
+	pos := 5
 	if n.ShowOnlyUnread {
 		query += " AND has_read = false "
 	}
@@ -201,10 +201,10 @@ func (n *LetterSearch) GetValues(input []any) []any {
 	return append(input, n.values...)
 }
 
-func GetLetterListForwards(viewer []string, amount int, timeStamp time.Time, info *LetterSearch) ([]ReducedLetter, error) {
+func GetLetterListForwards(viewer []string, amount int, timeStamp time.Time, recName string, info *LetterSearch) ([]ReducedLetter, error) {
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, written, account_name, has_read FROM letter
- INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) `+info.GetQuery()+` AND written <= $2
- ORDER BY written DESC LIMIT $3;`, info.GetValues([]any{pq.Array(viewer), timeStamp, amount + 1})...)
+ INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) `+info.GetQuery()+` AND (written, account_name) <= ($2, $3)
+ ORDER BY (written, account_name) DESC LIMIT $4;`, info.GetValues([]any{pq.Array(viewer), timeStamp, recName, amount + 1})...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,12 +221,12 @@ func GetLetterListForwards(viewer []string, amount int, timeStamp time.Time, inf
 	return list, err
 }
 
-func GetLetterListBackwards(viewer []string, amount int, timeStamp time.Time, info *LetterSearch) ([]ReducedLetter, error) {
+func GetLetterListBackwards(viewer []string, amount int, timeStamp time.Time, recName string, info *LetterSearch) ([]ReducedLetter, error) {
 	result, err := postgresDB.Query(`SELECT id, title, author, flair, written, account_name, has_read FROM (
 SELECT id, title, author, flair, written, account_name, has_read FROM letter
- INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) `+info.GetQuery()+` AND written >= $2
- ORDER BY written LIMIT $3) as let ORDER BY let.written DESC;`,
-		info.GetValues([]any{pq.Array(viewer), timeStamp, amount + 2})...)
+ INNER JOIN letter_to_account lta on letter.id = lta.letter_id WHERE account_name = ANY($1) `+info.GetQuery()+` AND (written, account_name) >= ($2, $3)
+ ORDER BY (written, account_name) LIMIT $4) as let ORDER BY (let.written, let.account_name) DESC;`,
+		info.GetValues([]any{pq.Array(viewer), timeStamp, recName, amount + 2})...)
 	if err != nil {
 		return nil, err
 	}

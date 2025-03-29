@@ -363,9 +363,11 @@ type SearchLetterPage struct {
 	Amount           int
 	HasNext          bool
 	NextItemID       string
+	NextItemRec      string
 	NextItemTime     time.Time
 	HasPrevious      bool
 	PreviousItemID   string
+	PreviousItemRec  string
 	PreviousItemTime time.Time
 	Results          []database.ReducedLetter
 }
@@ -374,8 +376,16 @@ func (p *SearchLetterPage) NextPage() string {
 	return p.NextItemTime.Format(helper.ISOTimeFormat)
 }
 
+func (p *SearchLetterPage) NextPageRec() string {
+	return helper.EscapeStringForJSON(p.NextItemRec)
+}
+
 func (p *SearchLetterPage) PreviousPage() string {
 	return p.PreviousItemTime.Format(helper.ISOTimeFormat)
+}
+
+func (p *SearchLetterPage) PreviousPageRec() string {
+	return helper.EscapeStringForJSON(p.PreviousItemRec)
 }
 
 func (p *SearchLetterPage) SetNavInfo(navInfo NavigationInfo) {

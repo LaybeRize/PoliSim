@@ -61,13 +61,13 @@
             <div class="wrapper note pager">
                 {{if .HasPrevious}}
                     <a hx-put="/my/letter" hx-include="#search-form"
-                       hx-vals='{"backward": "{{.PreviousPage}}", "id": "{{.PreviousItemID}}"}' hx-target="#page-body">
+                       hx-vals='{"backward": "{{.PreviousPage}}", "rec-name": "{{.PreviousPageRec}}", "id": "{{.PreviousItemID}}"}' hx-target="#page-body">
                         {{/*letterPersonalSearch-10*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
                     <a hx-put="/my/letter" hx-include="#search-form"
-                       hx-vals='{"forward": "{{.NextPage}}", "id": "{{.NextItemID}}"}' hx-target="#page-body">
+                       hx-vals='{"forward": "{{.NextPage}}", "rec-name": "{{.NextPageRec}}", "id": "{{.NextItemID}}"}' hx-target="#page-body">
                         {{/*letterPersonalSearch-11*/}}Nächste Seite &raquo;
                     </a>
                 {{end}}
