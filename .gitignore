@@ -1,4 +1,4 @@
 stack.env
 go.sum
 .idea
-build.cmd
+resources/run.log

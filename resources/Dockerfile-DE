@@ -8,7 +8,7 @@ COPY ./main ./main
 COPY ./public ./public
 COPY ./helper ./helper
 COPY ./localisation ./localisation
-COPY go.mod .
+COPY ./go.mod .
 RUN go mod tidy
 
 RUN go build -tags DE -o /poliSim /app/main
