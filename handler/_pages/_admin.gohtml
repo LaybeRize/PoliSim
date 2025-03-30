@@ -1,6 +1,11 @@
 {{define "page"}}
     {{- /*gotype: PoliSim/handler.AdminPage*/ -}}
     <body id="page-body">
+    <form hx-post="/administration/delete/file" hx-target="#page-body">
+        <label for="file">File</label>
+        <input id="file" name="file" type="text">
+        <button>Delete File</button>
+    </form>
     <form hx-post="/administration/file" hx-target="#page-body" hx-encoding="multipart/form-data">
         <label for="file">File</label>
         <input id="file" type="file" name="file" />
@@ -21,6 +26,7 @@
 {{define "SQLReturnValue"}}
     {{- /*gotype: PoliSim/handler.AdminSQLQuery*/ -}}
     <div class="markdown" id="sql-return">
+    {{if .QueryExists}}
         {{if .Query.HasError}}
             <p><strong>Error Message:</strong> {{.Query.Error.Error}}</p>
         {{else}}
@@ -40,5 +46,6 @@
         {{else}}
             <p>No rows returned.</p>
         {{end}}
+    {{end}}
     </div>
 {{end}}

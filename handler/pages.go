@@ -760,6 +760,10 @@ type AdminSQLQuery struct {
 	Query *database.AdministrationQuery
 }
 
+func (c *AdminSQLQuery) QueryExists() bool {
+	return c.Query != nil
+}
+
 func (c *AdminSQLQuery) getRenderInfo() (string, string) {
 	return "_admin", "SQLReturnValue"
 }

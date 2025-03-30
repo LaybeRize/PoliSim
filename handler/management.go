@@ -69,6 +69,31 @@ func PostFileManagementPage(writer http.ResponseWriter, request *http.Request) {
 		Message: "file successfully uploaded"})
 }
 
+func DeleteFileManagementPage(writer http.ResponseWriter, request *http.Request) {
+	acc, loggedIn := database.RefreshSession(writer, request)
+	if !(loggedIn && acc.Role == database.RootAdmin) {
+		PartialGetNotFoundPage(writer, request)
+		return
+	}
+
+	values, err := helper.GetAdvancedFormValues(request)
+	if err != nil {
+		slog.Error(err.Error())
+		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+			Message: "error while trying to parse form"})
+		return
+	}
+	err = os.Remove("./public/" + values.GetString("file"))
+	if err != nil {
+		slog.Error(err.Error())
+		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+			Message: err.Error()})
+		return
+	}
+	MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: false,
+		Message: "File successfully deleted"})
+}
+
 func PostDirectSQLQuery(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !(loggedIn && acc.Role == database.RootAdmin) {
