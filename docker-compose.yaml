@@ -23,7 +23,7 @@ services:
     volumes:
       - web_public:/app/public
     image:
-      layberize/polisim:testing
+      layberize/polisim
 
 
 volumes:

@@ -31,6 +31,7 @@ sim_dir = os.getcwd().removesuffix("resources")
 docker_files = [".\\resources\\" + s.rsplit("\\", 1)[1] for s in sorted(glob.glob(os.getcwd()+"\\Dockerfile*"))]
 language_abbreviations = [s.split("-")[1] for s in docker_files]
 commands = []
+old_version = ""
 build_version = ""
 
 language_link_string = ("![Supported Languages are " + ", ".join(language_abbreviations) +
@@ -48,9 +49,9 @@ file = open("./run.log", "w", encoding="UTF-8")
 new_readme_text = []
 for line in full_readme_text:
     if line.startswith("![Version is"):
-        build_version = line.removeprefix("![Version is ").split("]",1)[0]
-        file.write("Current Version: "+build_version+"\n")
-        build_version = upgrade_version(build_version, upgrade_type)
+        old_version = line.removeprefix("![Version is ").split("]",1)[0]
+        file.write("Current Version: "+old_version+"\n")
+        build_version = upgrade_version(old_version, upgrade_type)
         new_readme_text.append(f"![Version is {build_version}]"
                                f"(https://img.shields.io/badge/version-{build_version}-blue)\n")
         file.write("New Version: "+build_version+"\n")
@@ -65,11 +66,22 @@ for line in full_readme_text:
 with open("../README.md", "w", encoding="UTF-8") as readme:
     readme.writelines(new_readme_text)
 
+# Force a new version load of anything that is versioned in the html header
+with open("../handler/_templates/base.gohtml", "r+", encoding="UTF-8") as base:
+    data = base.read()
+    base.seek(0)
+    base.write(data.replace("?v="+old_version, "?v="+build_version))
+    base.truncate()
+
 # Generate the docker commands for the new version
 for pos, docker_file in enumerate(docker_files):
     commands.append("cd "+sim_dir+"; docker build -t "+
                     repo_name+":v"+build_version+"-"+language_abbreviations[pos]+
                     " -f "+docker_file+" .")
+    if language_abbreviations[pos] == "EN":
+        commands.append("cd "+sim_dir+"; docker build -t "+
+                        repo_name+
+                        " -f "+docker_file+" .")
 
 file.write("--> Creating containers for new version "+build_version+".\n")
 
