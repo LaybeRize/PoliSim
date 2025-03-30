@@ -1,5 +1,9 @@
 # PoliSim - A Political Simulation Website
 
+![Version is 0.11.1](https://img.shields.io/badge/version-0.11.1-blue)
+![Supported Languages are DE, EN](https://img.shields.io/badge/languages-DE,_EN-yellow)
+![Repository Licences](https://img.shields.io/github/license/LaybeRize/PoliSim)
+
 **PoliSim** is a Project aiming to deliver a website that can be used with any and all political simulations.
 It provides the user and admins, with organisations, titles, documents and other forms of interactive ways to
 communicate specifics of the political situation in the simulation.
@@ -30,6 +34,10 @@ Both ways let the users and administration add context, intrigue and situation w
 
 It enables Opinion pieces and general discourse which can be held in the public forum of the website. As well
 as sparking discussions in the organisations.
+
+## Chats
+
+Users can also create and write in their own chatrooms, where they can communicate in real time.
 
 # Setup Information
 
