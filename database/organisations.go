@@ -203,13 +203,9 @@ func GetOrganisationNameList() ([]string, error) {
 }
 
 func GetOrganisationsForUserView(account *Account) ([]Organisation, error) {
-	name := ""
-	if account.Exists() {
-		name = account.Name
-	}
 	result, err := postgresDB.Query(`SELECT DISTINCT ON (name) name, main_group, sub_group, visibility, flair 
 FROM organisation_linked WHERE visibility = $1 OR visibility = $2 OR owner_name = $3
-ORDER BY main_group, sub_group, name;`, PUBLIC, PRIVATE, &name)
+ORDER BY main_group, sub_group, name;`, PUBLIC, PRIVATE, account.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -247,17 +243,13 @@ ORDER BY name;`, &name)
 }
 
 func GetFullOrganisationInfoForUserView(account *Account, orgName string) (*Organisation, []string, []string, error) {
-	name := ""
-	if account.Exists() {
-		name = account.Name
-	}
 	organisation := &Organisation{}
 	user := make([]string, 0)
 	admin := make([]string, 0)
 	err := postgresDB.QueryRow(`SELECT name, main_group, sub_group, visibility, flair, users, admins
     FROM organisation_linked WHERE (visibility = $1 OR visibility = $2 OR owner_name = $3) AND name = $4
-    LIMIT 1;`, PUBLIC, PRIVATE, &name, &orgName).Scan(&organisation.Name, &organisation.MainType, &organisation.SubType,
-		&organisation.Visibility, &organisation.Flair, pq.Array(&user), pq.Array(&admin))
+    LIMIT 1;`, PUBLIC, PRIVATE, account.GetName(), &orgName).Scan(&organisation.Name, &organisation.MainType,
+		&organisation.SubType, &organisation.Visibility, &organisation.Flair, pq.Array(&user), pq.Array(&admin))
 	return organisation, user, admin, err
 }
 

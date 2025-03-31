@@ -313,7 +313,7 @@ func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
 	err := postgresDB.QueryRow(`SELECT id, type, organisation, title, author, flair, 
        written, body, public, removed, member_participation, admin_participation, end_time, extra_info, is_admin FROM document_linked 
           WHERE id = $1 AND (public = true OR owner_name = $2 OR $3 = true) ORDER BY is_admin DESC NULLS LAST LIMIT 1;`,
-		id, acc.Name, acc.IsAtLeastAdmin()).Scan(
+		id, acc.GetName(), acc.IsAtLeastAdmin()).Scan(
 		&doc.ID, &doc.Type, &doc.Organisation, &doc.Title, &doc.Author, &doc.Flair, &doc.Written, &doc.Body,
 		&doc.Public, &doc.Removed, &doc.MemberParticipation, &doc.AdminParticipation, &doc.End, doc, &doc.AllowedToAddTags)
 	doc.AllowedToAddTags = doc.AllowedToAddTags || acc.IsAtLeastAdmin()
