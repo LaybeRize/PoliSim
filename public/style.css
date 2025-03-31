@@ -482,6 +482,8 @@ div.markdown dd {
     padding-bottom: 0.2rem;
 }
 
+/* Dont forget thead, tr, tbody */
+
 div.markdown table {
     border-collapse: collapse;
     padding: 0.2rem;
@@ -521,7 +523,7 @@ div.markdown h3 {
 
 div.markdown h4 {
     font-size: 1.325rem;
-    line-height: 1rem;
+    line-height: 1.425rem;
     text-decoration-line: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 2px;
@@ -529,7 +531,7 @@ div.markdown h4 {
 
 div.markdown h5 {
     font-size: 1.325rem;
-    line-height: 0.75rem;
+    line-height: 1.375rem;
     text-decoration-line: underline;
     text-decoration-style: dotted;
     text-underline-offset: 2px;
@@ -537,7 +539,7 @@ div.markdown h5 {
 
 div.markdown h6 {
     font-size: 1.325rem;
-    line-height: 0;
+    line-height: 1.35rem;
 }
 
 div.markdown pre {
@@ -580,7 +582,7 @@ div.markdown a {
     color: rgb(34 211 238);
 }
 
-div.markdown div.footnotes ol {
+div.markdown span.footnotes ol {
     list-style-type: decimal;
 }
 
@@ -607,11 +609,27 @@ div.markdown mark {
     color: black;
 }
 
+div.markdown blockquote {
+    border-inline-start: 0.2rem solid #bfdbfe;
+    margin: 0;
+    padding-inline-start: 0.4rem;
+}
+
+div.markdown sub {}
+
+div.markdown sup {}
+
 div.markdown details {}
 
 div.markdown summary {}
 
 div.markdown small {}
+
+div.markdown del {}
+
+div.markdown strong {}
+
+div.markdown em {}
 
 /* symbols */
 
