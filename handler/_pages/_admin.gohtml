@@ -1,11 +1,23 @@
 {{define "page"}}
     {{- /*gotype: PoliSim/handler.AdminPage*/ -}}
     <body id="page-body">
+    <h1 class="admin-heading">Parameter</h1>
+    <form hx-post="/administration/parameter" hx-target="#page-body">
+        <label for="icon-path">Icon Path</label>
+        <input id="icon-path" name="icon-path" type="text" value="{{.PageIconPath}}">
+        <label for="page-name">Page Name</label>
+        <input id="page-name" name="page-name" type="text" value="{{.PageNameText}}">
+        <label for="welcome-file">Page Welcome File</label>
+        <input id="welcome-file" name="welcome-file" type="text">
+        <button>Update Parameter</button>
+    </form>
+    <h1 class="admin-heading">File Delete</h1>
     <form hx-post="/administration/delete/file" hx-target="#page-body">
         <label for="file">File</label>
         <input id="file" name="file" type="text">
         <button>Delete File</button>
     </form>
+    <h1 class="admin-heading">File Create/Update</h1>
     <form hx-post="/administration/file" hx-target="#page-body" hx-encoding="multipart/form-data">
         <label for="file">File</label>
         <input id="file" type="file" name="file" />

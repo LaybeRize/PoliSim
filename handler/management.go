@@ -48,7 +48,7 @@ func PostFileManagementPage(writer http.ResponseWriter, request *http.Request) {
 		slog.Debug("File Info:", "name", handler.Filename, "size", handler.Size)
 
 		var target *os.File
-		target, err = os.Create("./public/" + handler.Filename)
+		target, err = os.Create("./public/sim/" + handler.Filename)
 		defer target.Close()
 		if err != nil {
 			slog.Error(err.Error())
@@ -83,7 +83,7 @@ func DeleteFileManagementPage(writer http.ResponseWriter, request *http.Request)
 			Message: "error while trying to parse form"})
 		return
 	}
-	err = os.Remove("./public/" + values.GetString("file"))
+	err = os.Remove("./public/sim/" + values.GetString("file"))
 	if err != nil {
 		slog.Error(err.Error())
 		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
@@ -92,6 +92,33 @@ func DeleteFileManagementPage(writer http.ResponseWriter, request *http.Request)
 	}
 	MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: false,
 		Message: "File successfully deleted"})
+}
+
+func UpdateParameterManagementPage(writer http.ResponseWriter, request *http.Request) {
+	acc, loggedIn := database.RefreshSession(writer, request)
+	if !(loggedIn && acc.Role == database.RootAdmin) {
+		PartialGetNotFoundPage(writer, request)
+		return
+	}
+
+	values, err := helper.GetAdvancedFormValues(request)
+	if err != nil {
+		slog.Error(err.Error())
+		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+			Message: "error while trying to parse form"})
+		return
+	}
+	err = OverwriteInfo(values.GetTrimmedString("icon-path"),
+		values.GetTrimmedString("page-name"),
+		values.GetTrimmedString("welcome-file"))
+	if err != nil {
+		slog.Error(err.Error())
+		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+			Message: err.Error()})
+		return
+	}
+	MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: false,
+		Message: "Parameter successfully updated"})
 }
 
 func PostDirectSQLQuery(writer http.ResponseWriter, request *http.Request) {

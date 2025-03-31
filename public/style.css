@@ -448,6 +448,11 @@ table.view-vote {
     }
 }
 
+.admin-heading {
+    font-size: 2.075rem;
+    line-height: 2.25rem;
+}
+
 /* Markdown stuff */
 
 div.markdown {

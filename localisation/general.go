@@ -21,7 +21,7 @@ func LocaliseTemplateString(input []byte, name string) string {
 }
 
 func CleanUpMap() {
-	replaceMap = nil
+	replaceMap = getHomeMap()
 }
 
 func IsAdministrationName(name string) bool {

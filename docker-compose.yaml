@@ -21,7 +21,7 @@ services:
     env_file:
       - stack.env
     volumes:
-      - web_public:/app/public
+      - web_public:/app/public/sim
     image:
       layberize/polisim
 

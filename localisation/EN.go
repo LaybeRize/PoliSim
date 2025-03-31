@@ -320,6 +320,19 @@ const (
 	PagesChatRoomOverviewPage   = "Chatroom Overview"
 )
 
+func getHomeMap() map[string]map[string]string {
+	return map[string]map[string]string{
+		"_home": {
+			"$$home-page$$": "",
+			"{{/*_home-1*/}}Herzlich willkommen, {{.Account.Name}}": "Welcome, {{.Account.Name}}",
+			"{{/*_home-2*/}}Abmelden":                               "Sign out",
+			"{{/*_home-3*/}}Nutzername":                             "Username",
+			"{{/*_home-4*/}}Passwort":                               "Password",
+			"{{/*_home-5*/}}Einloggen":                              "Sign in",
+		},
+	}
+}
+
 var replaceMap = map[string]map[string]string{
 	"_home": {
 		"$$home-page$$": "",

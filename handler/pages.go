@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -735,7 +736,9 @@ func (p *ChatOverviewPage) getRenderInfo() (string, string) {
 }
 
 type AdminPage struct {
-	NavInfo NavigationInfo
+	NavInfo      NavigationInfo
+	PageIconPath string
+	PageNameText string
 	MessageUpdate
 	AdminSQLQuery
 }
@@ -937,17 +940,48 @@ var pages embed.FS
 //go:embed _templates/*
 var templates embed.FS
 
+var pageMutex sync.RWMutex
 var templateForge = make(map[string]*template.Template)
-
-var IconPath = "/public/fallback_icon.png"
+var iconPath = "/public/fallback_icon.png"
 var pageNameText = ""
+
+func OverwriteInfo(newIconPath string, newPageName string, remakeStartPage string) error {
+	pageMutex.Lock()
+	defer pageMutex.Unlock()
+	iconPath = newIconPath
+	if newPageName != "" {
+		pageNameText = newPageName + ": "
+	} else {
+		pageNameText = ""
+	}
+	if remakeStartPage != "" {
+		file, err := os.ReadFile("./public/sim/" + remakeStartPage)
+		if err != nil {
+			return err
+		}
+		loc.SetHomePage(file)
+		page, err := pages.ReadFile("_pages/_home.gohtml")
+		if err != nil {
+			return err
+		}
+		templateForge["_home"] = template.Must(
+			template.Must(template.New("").Parse(templateStringCache)).Parse(
+				loc.LocaliseTemplateString(page, "_home")))
+		loc.CleanUpMap()
+	}
+	return nil
+}
 
 func init() {
 	if os.Getenv("PAGE_NAME") != "" {
 		pageNameText = os.Getenv("PAGE_NAME") + ": "
 	}
+	var pageAdditon = "./public/welcome." + loc.LanguageTag + ".html"
+	if os.Getenv("WELCOME_FILE") != "" {
+		pageAdditon = "./public/sim/" + os.Getenv("WELCOME_FILE")
+	}
+
 	log.Println("Updating Welcome Page HTML")
-	const pageAdditon = "./public/welcome." + loc.LanguageTag + ".html"
 	_, err := os.Stat(pageAdditon)
 	if errors.Is(err, os.ErrNotExist) {
 		log.Println("No Welcome Page HTML found")
@@ -982,10 +1016,12 @@ func init() {
 
 	log.Println("Successfully created the Template Forge")
 	if os.Getenv("ICON_PATH") != "" {
-		IconPath = os.Getenv("ICON_PATH")
+		iconPath = os.Getenv("ICON_PATH")
 	}
 	loc.CleanUpMap()
 }
+
+var templateStringCache = ""
 
 func getTemplatesAsSingleString() string {
 	files, err := templates.ReadDir("_templates")
@@ -1001,10 +1037,14 @@ func getTemplatesAsSingleString() string {
 		}
 		arr[i] = loc.LocaliseTemplateString(temp, name)
 	}
-	return strings.Join(arr, "\n")
+	templateStringCache = strings.Join(arr, "\n")
+	return templateStringCache
 }
 
 func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
+	pageMutex.RLock()
+	defer pageMutex.RUnlock()
+
 	navInfo := NavigationInfo{Account: acc}
 	data.SetNavInfo(navInfo)
 
@@ -1021,12 +1061,15 @@ func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
 }
 
 func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
+	pageMutex.RLock()
+	defer pageMutex.RUnlock()
+
 	navInfo := NavigationInfo{Account: acc}
 	data.SetNavInfo(navInfo)
 
 	fullPage := FullPage{
 		Base: BaseInfo{
-			Icon:     IconPath,
+			Icon:     iconPath,
 			FontSize: acc.GetFontSize(),
 		},
 		Content: data,
@@ -1117,6 +1160,9 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 }
 
 func MakeSpecialPagePart(w http.ResponseWriter, data PartialStruct) {
+	pageMutex.RLock()
+	defer pageMutex.RUnlock()
+
 	pageName, templateName := data.getRenderInfo()
 
 	currentTemplate, exists := templateForge[pageName]
@@ -1131,6 +1177,9 @@ func MakeSpecialPagePart(w http.ResponseWriter, data PartialStruct) {
 }
 
 func MakeSpecialPagePartForWriter(w io.Writer, data PartialStruct) error {
+	pageMutex.RLock()
+	defer pageMutex.RUnlock()
+
 	pageName, templateName := data.getRenderInfo()
 
 	currentTemplate, exists := templateForge[pageName]
@@ -1145,6 +1194,9 @@ func MakeSpecialPagePartForWriter(w io.Writer, data PartialStruct) error {
 }
 
 func MakeSpecialPagePartWithRedirect(w http.ResponseWriter, data PartialRedirectStruct) {
+	pageMutex.RLock()
+	defer pageMutex.RUnlock()
+
 	w.Header().Add("HX-Retarget", data.targetElement())
 	pageName, templateName := data.getRenderInfo()
 

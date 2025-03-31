@@ -5,9 +5,17 @@ WORKDIR /app
 COPY ./database ./database
 COPY ./handler ./handler
 COPY ./main ./main
-COPY ./public ./public
 COPY ./helper ./helper
 COPY ./localisation ./localisation
+
+COPY ./public/fonts ./public/fonts
+COPY ./public/style.css ./public/style.css
+COPY ./public/fallback_icon.png ./public/fallback_icon.png
+COPY ./public/htmx.js ./public/htmx.js
+COPY ./public/hyperscript.js ./public/hyperscript.js
+COPY ./public/websocket.js ./public/websocket.js
+COPY ./public/welcome.de.html ./public/welcome.de.html
+
 COPY ./go.mod .
 RUN go mod tidy
 

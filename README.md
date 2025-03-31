@@ -1,6 +1,6 @@
 # PoliSim - A Political Simulation Website
 
-![Version is 0.11.4](https://img.shields.io/badge/version-0.11.4-blue)
+![Version is 0.12.0](https://img.shields.io/badge/version-0.12.0-blue)
 ![Supported Languages are DE, EN](https://img.shields.io/badge/languages-DE,_EN-yellow)
 ![Repository Licences](https://img.shields.io/github/license/LaybeRize/PoliSim)
 
@@ -54,6 +54,7 @@ POSTGRES_DB=[testdb]
 POSTGRES_PASSWORD=[password]
 PAGE_NAME=[some string]
 ICON_PATH=[path]
+WELCOME_FILE=[name]
 SQL_KEY=[key value]
 `````
 `LOG_LEVEL` can be omitted and everything in [] can be customized, the rest is either required to stay that way, or should

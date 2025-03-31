@@ -2,13 +2,21 @@ FROM golang:1.24.0-alpine
 
 WORKDIR /app
 
-COPY ../database ./database
-COPY ../handler ./handler
-COPY ../main ./main
-COPY ../public ./public
-COPY ../helper ./helper
-COPY ../localisation ./localisation
-COPY ../go.mod .
+COPY ./database ./database
+COPY ./handler ./handler
+COPY ./main ./main
+COPY ./helper ./helper
+COPY ./localisation ./localisation
+
+COPY ./public/fonts ./public/fonts
+COPY ./public/style.css ./public/style.css
+COPY ./public/fallback_icon.png ./public/fallback_icon.png
+COPY ./public/htmx.js ./public/htmx.js
+COPY ./public/hyperscript.js ./public/hyperscript.js
+COPY ./public/websocket.js ./public/websocket.js
+COPY ./public/welcome.en.html ./public/welcome.en.html
+
+COPY ./go.mod .
 RUN go mod tidy
 
 RUN go build -tags EN -o /poliSim /app/main
