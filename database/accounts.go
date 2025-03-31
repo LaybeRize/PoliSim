@@ -28,6 +28,13 @@ func (a *Account) GetName() string {
 	return a.Name
 }
 
+func (a *Account) GetFontSize() int {
+	if a == nil {
+		return 100
+	}
+	return a.FontSize
+}
+
 func (a *Account) Exists() bool {
 	return a != nil
 }

@@ -1,8 +1,5 @@
 {{define "header"}}
     {{- /* gotype: PoliSim/handler.NavigationInfo*/ -}}
-    {{if and .Account.Exists (ne .Account.FontSize 100) }}
-        <style>html {font-size: {{.Account.FontSize}}%;}</style>
-    {{end}}
     <header>
         <ul>
             <li>

@@ -22,8 +22,9 @@ type FullPage struct {
 }
 
 type BaseInfo struct {
-	Title string
-	Icon  string
+	Title    string
+	Icon     string
+	FontSize int
 }
 
 type NavigationInfo struct {
@@ -1025,7 +1026,8 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 
 	fullPage := FullPage{
 		Base: BaseInfo{
-			Icon: IconPath,
+			Icon:     IconPath,
+			FontSize: acc.GetFontSize(),
 		},
 		Content: data,
 	}
