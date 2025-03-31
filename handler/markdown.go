@@ -20,7 +20,7 @@ var extensions = parser.NoIntraEmphasis | parser.Tables | parser.FencedCode |
 	parser.BackslashLineBreak | parser.DefinitionLists | parser.EmptyLinesBreakList | parser.Footnotes |
 	parser.SuperSubscript
 var policy = bluemonday.NewPolicy().AllowElements("dl", "dt", "dd", "table", "th", "td", "tfoot", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "code", "hr", "ul", "ol", "p", "a", "img", "mark", "blockquote", "details", "summary",
-	"small", "li", "span", "tbody", "thead", "tr", "sub", "sup", "del", "strong", "em").AllowAttrs("class").OnElements("span").AllowAttrs("alt",
+	"small", "li", "span", "tbody", "thead", "tr", "sub", "sup", "del", "strong", "em", "br").AllowAttrs("class").OnElements("span").AllowAttrs("alt",
 	"src").OnElements("img").AllowAttrs("href").OnElements("a").AllowAttrs("colspan", "rowspan").OnElements("th", "td")
 
 func init() {
