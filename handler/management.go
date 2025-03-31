@@ -17,7 +17,7 @@ func GetManagementPage(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	MakeFullPage(writer, acc, &AdminPage{})
+	MakeFullPage(writer, acc, &AdminPage{PageIconPath: iconPath, PageNameText: pageNameText})
 }
 
 func PostFileManagementPage(writer http.ResponseWriter, request *http.Request) {
