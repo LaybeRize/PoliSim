@@ -21,7 +21,7 @@ var extensions = parser.NoIntraEmphasis | parser.Tables | parser.FencedCode |
 	parser.SuperSubscript
 var policy = bluemonday.NewPolicy().AllowElements("dl", "dt", "dd", "table", "th", "td", "tfoot", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "code", "hr", "ul", "ol", "p", "a", "img", "mark", "blockquote", "details", "summary",
 	"small", "li", "span", "tbody", "thead", "tr", "sub", "sup", "del", "strong", "em", "br").AllowAttrs("class").OnElements("span").AllowAttrs("alt",
-	"src").OnElements("img").AllowAttrs("href").OnElements("a").AllowAttrs("colspan", "rowspan").OnElements("th", "td")
+	"src").OnElements("img").AllowAttrs("href").OnElements("a").AllowAttrs("colspan", "rowspan", "align").OnElements("th", "td")
 
 func init() {
 	policy.AllowStandardURLs()
@@ -31,7 +31,8 @@ func MakeMarkdown(md string) template.HTML {
 	if md == "" {
 		return ""
 	}
-	htmlResult := policy.SanitizeBytes(markdown.ToHTML(markdown.NormalizeNewlines([]byte(md)), parser.NewWithExtensions(extensions), getRenderer()))
+	// policy.SanitizeBytes()
+	htmlResult := markdown.ToHTML(markdown.NormalizeNewlines([]byte(md)), parser.NewWithExtensions(extensions), getRenderer())
 	return template.HTML(strings.ReplaceAll(strings.ReplaceAll(string(htmlResult), "<code>\n", "<code>"), "\n</code>", "</code>"))
 }
 
