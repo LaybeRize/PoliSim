@@ -15,16 +15,15 @@ var extensions = parser.NoIntraEmphasis | parser.Tables | parser.FencedCode |
 	parser.Autolink | parser.Strikethrough | parser.SpaceHeadings | parser.OrderedListStart |
 	parser.BackslashLineBreak | parser.DefinitionLists | parser.EmptyLinesBreakList | parser.Footnotes |
 	parser.SuperSubscript
-var policy = bluemonday.UGCPolicy().AllowAttrs("class").OnElements("div")
+var policy = bluemonday.NewPolicy().AllowElements("mark", "details", "summary", "small")
 
 func MakeMarkdown(md string) template.HTML {
 	if md == "" {
 		return ""
 	}
-	intermediate := markdown.NormalizeNewlines([]byte(md))
-	maybeUnsafeHTML := markdown.ToHTML(intermediate, parser.NewWithExtensions(extensions), nil)
-	htmlResult := string(policy.SanitizeBytes(maybeUnsafeHTML))
-	return template.HTML(strings.ReplaceAll(strings.ReplaceAll(htmlResult, "<code>\n", "<code>"), "\n</code>", "</code>"))
+	intermediate := markdown.NormalizeNewlines(policy.SanitizeBytes([]byte(md)))
+	htmlResult := markdown.ToHTML(intermediate, parser.NewWithExtensions(extensions), nil)
+	return template.HTML(strings.ReplaceAll(strings.ReplaceAll(string(htmlResult), "<code>\n", "<code>"), "\n</code>", "</code>"))
 }
 
 func PostMakeMarkdown(writer http.ResponseWriter, request *http.Request) {

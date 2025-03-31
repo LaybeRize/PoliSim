@@ -602,19 +602,16 @@ div.markdown img[alt$="align-right"] {
     margin-left: 0.4rem;
 }
 
-/*
-div.markdown strong {
-
+div.markdown mark {
+    background-color: #bfdbfe;
+    color: black;
 }
 
-div.markdown em {
+div.markdown details {}
 
-}
+div.markdown summary {}
 
-div.markdown del {
-
-}
-*/
+div.markdown small {}
 
 /* symbols */
 
