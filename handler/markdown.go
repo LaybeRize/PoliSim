@@ -32,6 +32,7 @@ func init() {
 	policy.AllowAttrs("colspan", "rowspan").Matching(bluemonday.Integer).OnElements("th", "td")
 	policy.AllowAttrs("align").Matching(bluemonday.CellAlign).OnElements("th", "td")
 	policy.AllowAttrs("start").Matching(bluemonday.Integer).OnElements("ol")
+	policy.AllowAttrs("style").Matching(regexp.MustCompile(`^ *font-family *: *(serif|sans-serif|monospace) *(; *)?$`)).OnElements("p")
 
 	policy.AllowStandardURLs()
 	policy.AllowAttrs("align").Matching(bluemonday.ImageAlign).OnElements("img")
