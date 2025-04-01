@@ -31,8 +31,9 @@ func MakeMarkdown(md string) template.HTML {
 	if md == "" {
 		return ""
 	}
-	// policy.SanitizeBytes()
-	htmlResult := markdown.ToHTML(markdown.NormalizeNewlines([]byte(md)), parser.NewWithExtensions(extensions), getRenderer())
+	htmlResult := markdown.NormalizeNewlines([]byte(md))
+	htmlResult = policy.SanitizeBytes(htmlResult)
+	htmlResult = markdown.ToHTML(htmlResult, parser.NewWithExtensions(extensions), getRenderer())
 	return template.HTML(strings.ReplaceAll(strings.ReplaceAll(string(htmlResult), "<code>\n", "<code>"), "\n</code>", "</code>"))
 }
 
