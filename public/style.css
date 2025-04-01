@@ -605,12 +605,12 @@ div.markdown img[alt$="align-right"] {
 }
 
 div.markdown mark {
-    background-color: #bfdbfe;
+    background-color: #93c5fd;
     color: black;
 }
 
 div.markdown mark.added {
-    background-color: #d9f99d;
+    background-color: #bef264;
     color: black;
 }
 
