@@ -21,7 +21,7 @@ var extensions = parser.NoIntraEmphasis | parser.Tables | parser.FencedCode |
 	parser.SuperSubscript
 var policy = bluemonday.NewPolicy().AllowElements("dl", "dt", "dd", "table", "th", "td", "tfoot", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "code", "hr", "ul", "ol", "p", "a", "img", "mark", "blockquote", "details", "summary",
 	"small", "li", "span", "tbody", "thead", "tr", "sub", "sup", "del", "strong", "em", "br").AllowAttrs("class").OnElements("span").AllowAttrs("alt",
-	"src").OnElements("img").AllowAttrs("href").OnElements("a").AllowAttrs("colspan", "rowspan", "align").OnElements("th", "td")
+	"src").OnElements("img").AllowAttrs("href").OnElements("a").AllowAttrs("colspan", "rowspan", "align").OnElements("th", "td").AllowAttrs("start").OnElements("ol")
 
 func init() {
 	policy.AllowStandardURLs()
@@ -32,9 +32,9 @@ func MakeMarkdown(md string) template.HTML {
 		return ""
 	}
 	htmlResult := markdown.NormalizeNewlines([]byte(md))
-	htmlResult = policy.SanitizeBytes(htmlResult)
 	htmlResult = markdown.ToHTML(htmlResult, parser.NewWithExtensions(extensions), getRenderer())
-	return template.HTML(strings.ReplaceAll(strings.ReplaceAll(string(htmlResult), "<code>\n", "<code>"), "\n</code>", "</code>"))
+	htmlResult = policy.SanitizeBytes(htmlResult)
+	return template.HTML(htmlResult)
 }
 
 func PostMakeMarkdown(writer http.ResponseWriter, request *http.Request) {
@@ -57,11 +57,16 @@ func getRenderer() *html.Renderer {
 }
 
 func myRenderHook(w io.Writer, node ast.Node, entering bool) (ast.WalkStatus, bool) {
-	if para, ok := node.(*ast.List); ok {
-		List(w, para, entering)
-		return ast.GoToNext, true
+	switch node.(type) {
+	case *ast.List:
+		List(w, node.(*ast.List), entering)
+	case *ast.CodeBlock:
+		CodeBlock(node.(*ast.CodeBlock))
+		return ast.GoToNext, false
+	default:
+		return ast.GoToNext, false
 	}
-	return ast.GoToNext, false
+	return ast.GoToNext, true
 }
 
 // List writes ast.List node
@@ -113,4 +118,12 @@ func listExit(w io.Writer, list *ast.List) {
 	if list.IsFootnotesList {
 		_, _ = w.Write([]byte("\n</span>\n"))
 	}
+}
+
+func CodeBlock(node *ast.CodeBlock) {
+	maxLen := len(node.Literal)
+	if node.Literal[maxLen-1] == ' ' && node.Literal[maxLen-2] == '\n' {
+		maxLen -= 2
+	}
+	node.Literal = node.Literal[0:maxLen]
 }
