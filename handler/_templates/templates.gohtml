@@ -22,7 +22,7 @@
                 {{end}}
             </li>
             <li>
-                <a>{{/*templates-6*/}}Übersichten</a>
+                <a tabindex="0">{{/*templates-6*/}}Übersichten</a>
                 <ul>
                     <li><a href="/view/titles">{{/*templates-7*/}}Titelübersicht</a></li>
                     <li><a href="/view/organisations">{{/*templates-8*/}}Organisationsübersicht</a></li>
@@ -53,7 +53,7 @@
             {{end}}
             {{if .Account.IsAtLeastPressAdmin}}
                 <li>
-                    <a>{{/*templates-19*/}}Administration</a>
+                    <a tabindex="0">{{/*templates-19*/}}Administration</a>
                     <ul>
                         <li><a href="/check/newspapers">{{/*templates-20*/}}Zeitung verwalten</a></li>
                         {{if .Account.IsAtLeastAdmin}}

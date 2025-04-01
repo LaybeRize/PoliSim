@@ -87,7 +87,7 @@
         <div class="markdown {{if .Document.Removed}}removed{{end}}">{{.Document.Body}}</div>
         <div class="block-view">
             {{if .NavInfo.Account.IsAtLeastAdmin}}
-                <a class="button-link spacing" hx-patch="/change/blocked/document/{{.Document.ID}}"
+                <a tabindex="0" class="button-link spacing" hx-patch="/change/blocked/document/{{.Document.ID}}"
                    hx-target="#page-body">
                     {{/*documentView-19*/}}{{if .Document.Removed}}Dokument wieder freigeben{{else}}Dokument blockieren{{end}}
                 </a>

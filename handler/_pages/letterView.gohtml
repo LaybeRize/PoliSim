@@ -19,11 +19,11 @@
             <div class="markdown">{{.Letter.Body}}</div>
             {{if not .Letter.HasSigned}}
                 <div class="wrapper note pager">
-                    <a hx-patch="/view/letter/{{.Letter.ID}}?viewer={{urlquery .Letter.Recipient}}&decision=accept"
+                    <a tabindex="0" hx-patch="/view/letter/{{.Letter.ID}}?viewer={{urlquery .Letter.Recipient}}&decision=accept"
                        hx-target="#page-body">
                         {{/*letterView-3*/}}Als {{.Letter.Recipient}} zustimmen
                     </a>
-                    <a hx-patch="/view/letter/{{.Letter.ID}}?viewer={{urlquery .Letter.Recipient}}&decision=decline"
+                    <a tabindex="0" hx-patch="/view/letter/{{.Letter.ID}}?viewer={{urlquery .Letter.Recipient}}&decision=decline"
                        hx-target="#page-body">
                         {{/*letterView-4*/}}Als {{.Letter.Recipient}} ablehnen
                     </a>

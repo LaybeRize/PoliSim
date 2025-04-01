@@ -47,13 +47,13 @@
             <hr style="width: var(--standard-width); margin: 0.3rem 0;">
             <div class="wrapper note pager">
                 {{if .HasPrevious}}
-                    <a hx-put="/search/publications" hx-include="#search-form"
+                    <a tabindex="0" hx-put="/search/publications" hx-include="#search-form"
                        hx-vals='{"backward": "{{.PreviousPage}}", "id": "{{.PreviousItemID}}"}' hx-target="#page-body">
                         {{/*newspaperSearch-8*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
-                    <a hx-put="/search/publications" hx-include="#search-form"
+                    <a tabindex="0" hx-put="/search/publications" hx-include="#search-form"
                        hx-vals='{"forward": "{{.NextPage}}", "id": "{{.NextItemID}}"}' hx-target="#page-body">
                         {{/*newspaperSearch-9*/}}Nächste Seite &raquo;
                     </a>

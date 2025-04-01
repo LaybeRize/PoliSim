@@ -10,15 +10,15 @@
         {{else}}
         <div class="wrapper hierarchy-view">
         {{range $MainGroupName, $SubGroupMap := .Hierarchy}}
-            <a _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a><br>
+            <a tabindex="0" _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a><br>
             <div class="hide">
             {{range $SubGroupName, $Organisations := $SubGroupMap}}
-                <a _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a><br>
+                <a tabindex="0" _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a><br>
                 <div class="hide">
                 {{range $Organisations}}
                     {{- /*gotype: PoliSim/database.Organisation*/ -}}
                     <div>
-                        <a hx-get="/single/view/organisation?name={{urlquery .Name}}"
+                        <a tabindex="0" hx-get="/single/view/organisation?name={{urlquery .Name}}"
                            hx-target="closest div"><i class="bi {{.GetClassType}}"></i> {{.Name}}
                             <a href="/search/documents?organisation-name={{urlquery .Name}}" target="_blank"
                                class="link-color"><i class="bi bi-link-to"></i></a>
@@ -39,7 +39,7 @@
     {{- /*gotype: PoliSim/handler.SingleOrganisationUpdate*/ -}}
     <div>
         {{if .Organisation.Exists}}
-            <a _="on click toggle .hide on the next <div/>" class="button"
+            <a tabindex="0" _="on click toggle .hide on the next <div/>" class="button"
             ><i class="bi {{.Organisation.GetClassType}}"></i> {{.Organisation.Name}}
                 <a href="{{.Organisation.GetDocumentLink}}" target="_blank"
                    class="link-color"><i class="bi bi-link-to"></i></a>
@@ -50,7 +50,7 @@
                 <p>{{.User}}<br>{{.Admin}}</p>
             </div>
         {{else}}
-            <a _="on click toggle .hide on the next <div/>"><i class="bi bi-not-found"></i> {{.Name}}</a>
+            <a tabindex="0" _="on click toggle .hide on the next <div/>"><i class="bi bi-not-found"></i> {{.Name}}</a>
             <div class="">
                 <i class="alert-red">{{/*organisationView-5*/}}Organisationsinformationen nicht gefunden</i>
             </div>

@@ -94,7 +94,7 @@ header {
         list-style-type: none;
         padding: 0;
         margin: 0;
-        li:hover ul {
+        li:hover ul,li:focus-within ul {
             display: block;
         }
         li {
@@ -130,7 +130,7 @@ header {
                         color: var(--text-color);
                     }
                 }
-                li:hover {
+                li:hover,li:focus-within {
                     background-color: rgb(51 65 85);
                 }
             }
