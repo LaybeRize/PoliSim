@@ -609,6 +609,11 @@ div.markdown mark {
     color: black;
 }
 
+div.markdown mark.added {
+    background-color: #d9f99d;
+    color: black;
+}
+
 div.markdown blockquote {
     border-inline-start: 0.2rem solid #bfdbfe;
     margin: 0;
@@ -625,7 +630,9 @@ div.markdown summary {}
 
 div.markdown small {}
 
-div.markdown del {}
+div.markdown del.removed {
+    color: #fca5a5;
+}
 
 div.markdown strong {}
 
