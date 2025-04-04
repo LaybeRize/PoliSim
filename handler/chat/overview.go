@@ -13,8 +13,6 @@ import (
 	"time"
 )
 
-const messageID = "message-box"
-
 func GetChatOverview(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
@@ -103,22 +101,21 @@ func GetChatOverview(writer http.ResponseWriter, request *http.Request) {
 		page.Message = strings.Join(errorMsg, "\n")
 	}
 
-	page.ElementID = messageID
 	handler.MakeFullPage(writer, acc, page)
 }
 
 func PutFilterChatOverview(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.MissingPermissions, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.MissingPermissions})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.RequestParseError, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -129,8 +126,7 @@ func PutFilterChatOverview(writer http.ResponseWriter, request *http.Request) {
 			ShowOnlyUnreadChats: values.GetBool("only-new"),
 			Owner:               acc.Name,
 		},
-		Amount:        values.GetInt("amount"),
-		MessageUpdate: handler.MessageUpdate{ElementID: messageID},
+		Amount: values.GetInt("amount"),
 	}
 
 	if page.Amount < 10 || page.Amount > 50 {
@@ -149,9 +145,12 @@ func PutFilterChatOverview(writer http.ResponseWriter, request *http.Request) {
 	}
 	if err != nil {
 		slog.Debug(err.Error())
-		page.IsError = true
-		page.Message = loc.ChatFailedToLoadChats
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.ChatFailedToLoadChats})
+		return
 	}
+
+	page.PossibleViewers, err = database.GetMyAccountNames(acc)
 
 	if len(page.Chats) > 0 {
 		if !backward && page.Chats[0].Created.Equal(page.NextItemTime) && page.Chats[0].User == recName {
@@ -185,21 +184,21 @@ func PutFilterChatOverview(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	writer.Header().Add("Hx-Push-Url", "/chat/overview?"+values.Encode())
-	handler.MakeSpecialPagePart(writer, page)
+	handler.MakePage(writer, acc, page)
 }
 
 func PostNewChat(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.MissingPermissions, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.MissingPermissions})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.RequestParseError, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -209,24 +208,24 @@ func PostNewChat(writer http.ResponseWriter, request *http.Request) {
 
 	const maxRoomLength = 100
 	if len(roomName) > maxRoomLength {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: fmt.Sprintf(loc.ChatRoomNameTooLong, maxRoomLength), ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: fmt.Sprintf(loc.ChatRoomNameTooLong, maxRoomLength)})
 		return
 	} else if roomName == "" {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.ChatRoomNameIsEmpty, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.ChatRoomNameIsEmpty})
 		return
 	}
 
 	allowed, err := database.IsAccountAllowedToPostWith(acc, baseAccount)
 	if err != nil {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.ChatCouldNotVerifyAccountCredentials, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.ChatCouldNotVerifyAccountCredentials})
 		return
 	}
 	if !allowed {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.ChatNotAllowedToCreateWithThatAccount, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.ChatNotAllowedToCreateWithThatAccount})
 		return
 	}
 
@@ -234,16 +233,16 @@ func PostNewChat(writer http.ResponseWriter, request *http.Request) {
 
 	err = database.CreateChatRoom(roomName, member)
 	if errors.Is(err, database.ChatRoomNameTaken) {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.ChatRoomNameAlreadyTaken, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.ChatRoomNameAlreadyTaken})
 		return
 	} else if errors.Is(err, database.DoubleChatRoomEntry) {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.ChatRoomWithMemberConstellationAlreadyExists, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.ChatRoomWithMemberConstellationAlreadyExists})
 		return
 	} else if err != nil {
-		handler.MakeSpecialPagePart(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.ChatRoomCreationError, ElementID: messageID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.ChatRoomCreationError})
 		slog.Debug(err.Error())
 		return
 	}
@@ -257,9 +256,8 @@ func PostNewChat(writer http.ResponseWriter, request *http.Request) {
 		},
 		Amount: values.GetInt("amount"),
 		MessageUpdate: handler.MessageUpdate{
-			ElementID: messageID,
-			Message:   loc.ChatRoomSuccessfullyCreated,
-			IsError:   false,
+			Message: loc.ChatRoomSuccessfullyCreated,
+			IsError: false,
 		},
 	}
 
@@ -278,6 +276,8 @@ func PostNewChat(writer http.ResponseWriter, request *http.Request) {
 		page.Chats = page.Chats[:page.Amount]
 	}
 
+	page.PossibleViewers, err = database.GetMyAccountNames(acc)
+
 	writer.Header().Add("Hx-Push-Url", "/chat/overview?"+values.Encode())
-	handler.MakeSpecialPagePart(writer, page)
+	handler.MakePage(writer, acc, page)
 }

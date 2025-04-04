@@ -84,8 +84,8 @@
 
 {{define "message"}}
     {{- /*gotype: PoliSim/handler.MessageUpdate */ -}}
-    <div id="{{.GetElementID}}" class="{{if .IsError}}error-div{{else}}success-div{{end}}"
-         {{if eq "" .Message}}hidden{{end}}>
+    <div id="message-div" class="box-on-update {{if eq "" .Message}}hide{{else}}
+{{if .IsError}}error-div{{else}}success-div{{end}}{{end}}">
         {{- .Message -}}
     </div>
 {{end}}

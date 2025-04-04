@@ -10,20 +10,18 @@ import (
 	"net/http"
 )
 
-const elementID = "tag-message"
-
 func PostNewDocumentTagPage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.DocumentGeneralFunctionNotAvailable, ElementID: elementID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentGeneralFunctionNotAvailable})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.RequestParseError, ElementID: elementID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -37,41 +35,41 @@ func PostNewDocumentTagPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if tag.Text == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.DocumentTagTextEmpty, ElementID: elementID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentTagTextEmpty})
 		return
 	}
 
 	const maxLength = 400
 	if len([]rune(tag.Text)) > maxLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: fmt.Sprintf(loc.DocumentTagTextTooLong, maxLength), ElementID: elementID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: fmt.Sprintf(loc.DocumentTagTextTooLong, maxLength)})
 		return
 	}
 
 	if !helper.StringIsAColor(tag.BackgroundColor) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.DocumentTagColorInvalidBackground, ElementID: elementID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentTagColorInvalidBackground})
 		return
 	}
 
 	if !helper.StringIsAColor(tag.TextColor) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.DocumentTagColorInvalidText, ElementID: elementID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentTagColorInvalidText})
 		return
 	}
 
 	if !helper.StringIsAColor(tag.LinkColor) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.DocumentTagColorInvalidLink, ElementID: elementID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentTagColorInvalidLink})
 		return
 	}
 
 	err = database.CreateTagForDocument(request.PathValue("id"), acc, tag)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.DocumentTagCreationError, ElementID: elementID})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.DocumentTagCreationError})
 		return
 	}
 

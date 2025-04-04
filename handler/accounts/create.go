@@ -35,7 +35,7 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -48,31 +48,31 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if newAccount.Name == "" || len(newAccount.Name) > maxLengthNames {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.AccountDisplayNameTooLongOrNotAtAll, maxLengthNames)})
 		return
 	}
 
 	if newAccount.Username == "" || len(newAccount.Username) > maxLengthNames {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.AccountUsernameTooLongOrNotAtAll, maxLengthNames)})
 		return
 	}
 
 	if len(newAccount.Password) < minLengthPassword && newAccount.Role != database.PressUser {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.AccountPasswordTooShort, minLengthPassword)})
 		return
 	}
 
 	if newAccount.Role < database.HeadAdmin || newAccount.Role > database.PressUser {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountSelectedInvalidRole})
 		return
 	}
 
 	if newAccount.Role <= acc.Role {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountNotAllowedToCreateAccountOfThatRank})
 		return
 	}
@@ -80,14 +80,14 @@ func PostCreateAccount(writer http.ResponseWriter, request *http.Request) {
 	clearTextPassword := newAccount.Password
 	newAccount.Password, err = database.HashPassword(newAccount.Password)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountPasswordHashingError})
 		return
 	}
 
 	err = database.CreateAccount(newAccount)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountCreationError})
 		return
 	}

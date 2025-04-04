@@ -12,14 +12,14 @@ import (
 func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.MissingPermissions})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -31,7 +31,7 @@ func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.MissingPermissionForAccountInfo})
 		return
 	}
@@ -39,7 +39,7 @@ func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http
 	page.PossibleOrganisations, err = database.GetOrganisationNamesAdminIn(author)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ErrorFindingAllOrganisationsForAccount})
 		return
 	}
@@ -50,14 +50,14 @@ func GetFindOrganisationForAccountPage(writer http.ResponseWriter, request *http
 func PatchFixUserList(writer http.ResponseWriter, request *http.Request) {
 	_, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.MissingPermissions})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -70,14 +70,14 @@ func PatchFixUserList(writer http.ResponseWriter, request *http.Request) {
 	page.Reader, err = database.FilterNameListForNonBlocked(page.Reader, 1)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCouldNotFilterReaders})
 		return
 	}
 	page.Participants, err = database.FilterNameListForNonBlocked(page.Participants, 1)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCouldNotFilterParticipants})
 		return
 	}

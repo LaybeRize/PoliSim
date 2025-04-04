@@ -47,7 +47,7 @@ func PostCreateOrganisationPage(writer http.ResponseWriter, request *http.Reques
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -64,25 +64,25 @@ func PostCreateOrganisationPage(writer http.ResponseWriter, request *http.Reques
 	adminNames := values.GetTrimmedArray("[]admin")
 
 	if newOrganisation.Name == "" || newOrganisation.MainType == "" || newOrganisation.SubType == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.OrganisationGeneralInformationEmpty})
 		return
 	}
 
 	if len([]rune(newOrganisation.Name)) > maxNameLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.OrganisationGeneralNameTooLong, maxNameLength)})
 		return
 	}
 
 	if len([]rune(newOrganisation.MainType)) > maxMainTypeLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.OrganisationGeneralMainGroupTooLong, maxMainTypeLength)})
 		return
 	}
 
 	if len([]rune(newOrganisation.SubType)) > maxSubTypeLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.OrganisationGeneralSubGroupTooLong, maxSubTypeLength)})
 		return
 	}
@@ -90,13 +90,13 @@ func PostCreateOrganisationPage(writer http.ResponseWriter, request *http.Reques
 	if strings.Contains(newOrganisation.Flair, ",") ||
 		strings.Contains(newOrganisation.Flair, ";") ||
 		len([]rune(newOrganisation.Flair)) > maxFlairLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.OrganisationGeneralFlairContainsInvalidCharactersOrIsTooLong, maxFlairLength)})
 		return
 	}
 
 	if !newOrganisation.VisibilityIsValid() {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.OrganisationGeneralInvalidVisibility})
 		return
 	}
@@ -105,7 +105,7 @@ func PostCreateOrganisationPage(writer http.ResponseWriter, request *http.Reques
 
 	err = database.CreateOrganisation(newOrganisation, userNames, adminNames)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.OrganisationErrorWhileCreating})
 		return
 	}

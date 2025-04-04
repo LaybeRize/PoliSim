@@ -694,7 +694,6 @@ type ChatOverviewPage struct {
 	AccountNames     []string
 	Chats            []database.ChatRoom
 	Query            *database.ChatSearch
-	OutOfBandSwitch  bool
 	Amount           int
 	HasNext          bool
 	NextItemRec      string
@@ -726,13 +725,7 @@ func (p *ChatOverviewPage) SetNavInfo(navInfo NavigationInfo) {
 }
 
 func (p *ChatOverviewPage) getPageName() string {
-	p.OutOfBandSwitch = false
 	return "chatOverview"
-}
-
-func (p *ChatOverviewPage) getRenderInfo() (string, string) {
-	p.OutOfBandSwitch = true
-	return "chatOverview", "chatPaging"
 }
 
 type AdminPage struct {
@@ -911,27 +904,22 @@ func (p *ReaderAndParticipants) getRenderInfo() (string, string) {
 }
 
 type MessageUpdate struct {
-	ElementID string
-	Message   string
-	IsError   bool
+	Message string
+	IsError bool
 }
 
 func (p *MessageUpdate) getRenderInfo() (string, string) {
 	return "templates", "message"
 }
 
+const messageUpdateDivID = "message-div"
+
 func (p *MessageUpdate) targetElement() string {
-	if p.ElementID != "" {
-		return "#" + p.ElementID
-	}
-	return "#message-div"
+	return "#" + messageUpdateDivID
 }
 
 func (p *MessageUpdate) GetElementID() string {
-	if p.ElementID != "" {
-		return p.ElementID
-	}
-	return "message-div"
+	return messageUpdateDivID
 }
 
 //go:embed _pages/*
@@ -1193,11 +1181,12 @@ func MakeSpecialPagePartForWriter(w io.Writer, data PartialStruct) error {
 	return err
 }
 
-func MakeSpecialPagePartWithRedirect(w http.ResponseWriter, data PartialRedirectStruct) {
+func SendMessageUpdate(w http.ResponseWriter, data *MessageUpdate) {
 	pageMutex.RLock()
 	defer pageMutex.RUnlock()
 
 	w.Header().Add("HX-Retarget", data.targetElement())
+	w.Header().Add("HX-Reswap", "show:bottom")
 	pageName, templateName := data.getRenderInfo()
 
 	currentTemplate, exists := templateForge[pageName]

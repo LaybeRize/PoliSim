@@ -45,7 +45,7 @@ func PatchPublishPublication(writer http.ResponseWriter, request *http.Request) 
 	err = database.PublishPublication(pubID)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{
 			Message: loc.NewspaperErrorDuringPublication,
 			IsError: true,
 		})
@@ -72,7 +72,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{
 			Message: loc.RequestParseError,
 			IsError: true,
 		})
@@ -80,7 +80,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	}
 	rejectionText := values.GetTrimmedString("rejection")
 	if rejectionText == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{
 			Message: loc.NewspaperRejectionMessageEmpty,
 			IsError: true,
 		})
@@ -90,7 +90,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	transaction, err := database.RejectableArticle(request.PathValue("id"))
 	if err != nil {
 		slog.Debug("Possible error while trying to locate article", "error", err)
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{
 			Message: loc.NewspaperErrorFindingArticleToReject,
 			IsError: true,
 		})
@@ -99,7 +99,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	err = transaction.DeleteArticle()
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{
 			Message: loc.NewspaperErrorDeletingArticle,
 			IsError: true,
 		})
@@ -121,7 +121,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 	err = transaction.CreateLetter(letter)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{
 			Message: loc.NewspaperErrorCreatingRejectionLetter,
 			IsError: true,
 		})

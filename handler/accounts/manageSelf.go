@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-const messageIdPassword = "message-div-password"
-
 func GetMyProfile(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
@@ -25,11 +23,6 @@ func GetMyProfile(writer http.ResponseWriter, request *http.Request) {
 		Settings: handler.ModifyPersonalSettings{
 			FontScaling: acc.FontSize,
 			TimeZone:    acc.TimeZone.String(),
-		},
-		Password: handler.ChangePassword{
-			MessageUpdate: handler.MessageUpdate{
-				ElementID: messageIdPassword,
-			},
 		},
 	}
 
@@ -47,41 +40,33 @@ func PostUpdateMySettings(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
 
 	acc.FontSize = values.GetInt("fontScaling")
 	if acc.FontSize < minFontSizeScale {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.AccountFontSizeMustBeBiggerThen, minFontSizeScale)})
 		return
 	}
 	acc.TimeZone, err = time.LoadLocation(values.GetTrimmedString("timeZone"))
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountGivenTimezoneInvalid})
 		return
 	}
 
 	err = database.SetPersonalSettings(acc)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountErrorSavingPersonalSettings})
 		return
 	}
 
-	page := &handler.ModifyPersonalSettings{
-		FontScaling: acc.FontSize,
-		TimeZone:    acc.TimeZone.String(),
-		MessageUpdate: handler.MessageUpdate{
-			Message: loc.AccountPersonalSettingsSavedSuccessfully,
-			IsError: false,
-		},
-	}
-
-	handler.MakeSpecialPagePart(writer, page)
+	handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: false,
+		Message: loc.AccountPersonalSettingsSavedSuccessfully})
 	return
 }
 
@@ -95,8 +80,8 @@ func PostUpdateMyPassword(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValuesWithoutDebugLogger(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.RequestParseError, ElementID: messageIdPassword})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.RequestParseError})
 		return
 	}
 
@@ -104,41 +89,39 @@ func PostUpdateMyPassword(writer http.ResponseWriter, request *http.Request) {
 	newPassword := values.GetString("newPassword")
 	repeatNewPassword := values.GetString("newPasswordRepeat")
 	if !database.VerifyPassword(acc.Password, oldPassword) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.AccountWrongOldPassword, ElementID: messageIdPassword})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.AccountWrongOldPassword})
 		return
 	}
 	if newPassword != repeatNewPassword {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.AccountWrongRepeatPassword, ElementID: messageIdPassword})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.AccountWrongRepeatPassword})
 		return
 	}
 	if len(newPassword) < minLengthPassword {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message:   fmt.Sprintf(loc.AccountNewPasswordMinimumLength, minLengthPassword),
-			ElementID: messageIdPassword})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: fmt.Sprintf(loc.AccountNewPasswordMinimumLength, minLengthPassword)})
 		return
 	}
 	newPassword, err = database.HashPassword(newPassword)
 	if errors.Is(err, bcrypt.ErrPasswordTooLong) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.AccountNewPasswordTooLong, ElementID: messageIdPassword})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.AccountNewPasswordTooLong})
 		return
 	} else if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.AccountErrorHashingNewPassword, ElementID: messageIdPassword})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.AccountErrorHashingNewPassword})
 		return
 	}
 	acc.Password = newPassword
 	err = database.UpdatePassword(acc)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
-			Message: loc.AccountErrorSavingNewPassword, ElementID: messageIdPassword})
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
+			Message: loc.AccountErrorSavingNewPassword})
 		return
 	}
 
 	page := &handler.ChangePassword{}
-	page.ElementID = messageIdPassword
 	page.IsError = false
 	page.Message = loc.AccountSuccessfullySavedNewPassword
 	handler.MakeSpecialPagePart(writer, page)

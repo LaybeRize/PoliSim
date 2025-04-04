@@ -52,7 +52,7 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -71,14 +71,14 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if doc.Title == "" || doc.Body == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
 	const maxTitleLength = 400
 	if len([]rune(doc.Title)) > maxTitleLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
@@ -88,7 +88,7 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentGeneralMissingPermissionForDocumentCreation})
 		return
 	}
@@ -98,23 +98,23 @@ func PostCreateDocumentPage(writer http.ResponseWriter, request *http.Request) {
 	doc.Flair, err = database.GetAccountFlairs(&database.Account{Name: doc.Author})
 	if err != nil {
 		slog.Info(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
 	err = database.CreateDocument(doc, acc)
 	if errors.Is(err, database.DocumentHasInvalidVisibility) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreatePostHasInvalidVisibility})
 		return
 	} else if errors.Is(err, database.NotAllowedError) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreatePostNotAllowedError})
 		return
 	} else if err != nil {
 		slog.Info(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreatePostError})
 		return
 	}

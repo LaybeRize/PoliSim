@@ -29,25 +29,24 @@ func init() {
 
 func GetUniqueID(author string) string {
 	sum := time.Now().UnixNano()
-	for _, singleRune := range []rune(author) {
-		sum += int64(singleRune)
-	}
 
-	suffix := make([]byte, 4)
 	prefix := make([]byte, 4)
-	generator.Read(suffix)
+	suffix := make([]byte, 8)
 	generator.Read(prefix)
+	for pos, singleRune := range []byte(author) {
+		prefix[pos%4] += singleRune
+	}
 
 	suffix[0] += byte(sum)
 	suffix[1] += byte(sum >> 8)
 	suffix[2] += byte(sum >> 16)
 	suffix[3] += byte(sum >> 24)
-	prefix[0] += byte(sum >> 32)
-	prefix[1] += byte(sum >> 40)
-	prefix[2] += byte(sum >> 48)
-	prefix[3] += byte(sum >> 56)
+	suffix[4] += byte(sum >> 32)
+	suffix[5] += byte(sum >> 40)
+	suffix[6] += byte(sum >> 48)
+	suffix[7] += byte(sum >> 56)
 
-	return fmt.Sprintf("ID-%X-%X", suffix, prefix)
+	return fmt.Sprintf("ID-%X-%X", prefix, suffix)
 }
 
 func MakeCommaSeperatedStringToList(input string) []string {

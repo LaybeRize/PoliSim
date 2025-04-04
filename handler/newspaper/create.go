@@ -49,7 +49,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -64,21 +64,21 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	newspaper := values.GetTrimmedString("newspaper")
 
 	if article.Title == "" || article.RawBody == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
 	const maxTitleLength = 400
 	if len([]rune(article.Title)) > maxTitleLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 
 	const maxSubtitleLength = 600
 	if len([]rune(article.Subtitle)) > maxSubtitleLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.NewspaperSubtitleTooLong, maxSubtitleLength)})
 		return
 	}
@@ -88,7 +88,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			slog.Debug(err.Error())
 		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NewspaperMissingPermissionForNewspaper})
 		return
 	}
@@ -97,7 +97,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	article.Body = handler.MakeMarkdown(article.RawBody)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
@@ -105,7 +105,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	err = database.CreateArticle(article, isSpecial, newspaper)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NewspaperErrorWhileCreatingArticle})
 		return
 	}
@@ -135,7 +135,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.MissingPermissions})
 		return
 	}
@@ -143,7 +143,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -155,7 +155,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.MissingPermissionForAccountInfo})
 		return
 	}
@@ -163,7 +163,7 @@ func GetFindNewspaperForAccountPage(writer http.ResponseWriter, request *http.Re
 	page.PossibleNewspaper, err = database.GetNewspaperNameListForAccount(page.Author)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NewspaperCouldNotLoadAllNewspaperForAccount})
 		return
 	}

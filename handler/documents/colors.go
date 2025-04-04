@@ -35,7 +35,7 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -48,14 +48,14 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if color.Name == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentColorPaletteNameNotEmpty})
 		return
 	}
 
 	if !helper.StringIsAColor(color.Background) || !helper.StringIsAColor(color.Text) ||
 		!helper.StringIsAColor(color.Link) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentInvalidColor})
 		return
 	}
@@ -64,7 +64,7 @@ func PostCreateColor(writer http.ResponseWriter, request *http.Request) {
 
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentErrorCreatingColorPalette})
 		return
 	}
@@ -90,7 +90,7 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -99,13 +99,13 @@ func DeleteColor(writer http.ResponseWriter, request *http.Request) {
 
 	color, err := database.RemoveColorPalette(name, acc)
 	if errors.Is(err, database.CanNotDeleteColor) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentStandardColorNotAllowedToBeDeleted})
 		return
 	}
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentErrorDeletingColorPalette})
 		return
 	}

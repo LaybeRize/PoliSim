@@ -12,14 +12,14 @@ func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
 	_, loggedIn := database.RefreshSession(writer, request)
 
 	if loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountNotLoggedIn})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValuesWithoutDebugLogger(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -27,13 +27,13 @@ func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
 	username := values.GetTrimmedString("username")
 	loginAcc, accErr := database.GetAccountByUsername(username)
 	if accErr != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountNameOrPasswordWrong})
 		return
 	}
 	correctPassword := database.VerifyPassword(loginAcc.Password, values.GetString("password"))
 	if !correctPassword || loginAcc.Role == database.PressUser {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountNameOrPasswordWrong})
 		return
 	}
@@ -53,7 +53,7 @@ func PostLogOutAccount(writer http.ResponseWriter, request *http.Request) {
 	_, loggedIn := database.RefreshSession(writer, request)
 
 	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountCurrentlyNotLoggedIn})
 		return
 	}

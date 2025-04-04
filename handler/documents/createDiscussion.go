@@ -71,7 +71,7 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -92,28 +92,28 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 	}
 
 	if doc.End.IsZero() {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentGeneralTimestampInvalid})
 		return
 	}
 
 	locTime := time.Now().In(acc.TimeZone)
 	if doc.End.Before(locTime.Add(addMin)) || doc.End.After(locTime.Add(addMax)) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentTimeNotInAreaDiscussion})
 		return
 	}
 	doc.End = doc.End.UTC()
 
 	if doc.Title == "" || doc.Body == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
 	const maxTitleLength = 400
 	if len([]rune(doc.Title)) > maxTitleLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
@@ -123,7 +123,7 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentGeneralMissingPermissionForDocumentCreation})
 		return
 	}
@@ -133,23 +133,23 @@ func PostCreateDiscussionPage(writer http.ResponseWriter, request *http.Request)
 	doc.Flair, err = database.GetAccountFlairs(&database.Account{Name: doc.Author})
 	if err != nil {
 		slog.Info(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
 	err = database.CreateDocument(doc, acc)
 	if errors.Is(err, database.DocumentHasInvalidVisibility) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreateDiscussionHasInvalidVisibility})
 		return
 	} else if errors.Is(err, database.NotAllowedError) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreateDiscussionNotAllowedError})
 		return
 	} else if err != nil {
 		slog.Info(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentCreateDiscussionError})
 		return
 	}

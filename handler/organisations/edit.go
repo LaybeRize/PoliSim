@@ -27,7 +27,7 @@ func GetEditOrganisationPage(writer http.ResponseWriter, request *http.Request) 
 
 		page.IsError = true
 		if err != nil {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.OrganisationNoOrganisationWithThatName})
 			return
 		}
@@ -64,7 +64,7 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -82,25 +82,25 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 	adminNames := values.GetTrimmedArray("[]admin")
 
 	if organisationUpdate.Name == "" || organisationUpdate.MainType == "" || organisationUpdate.SubType == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.OrganisationGeneralInformationEmpty})
 		return
 	}
 
 	if len([]rune(organisationUpdate.Name)) > maxNameLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.OrganisationGeneralNameTooLong, maxNameLength)})
 		return
 	}
 
 	if len([]rune(organisationUpdate.MainType)) > maxMainTypeLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.OrganisationGeneralMainGroupTooLong, maxMainTypeLength)})
 		return
 	}
 
 	if len([]rune(organisationUpdate.SubType)) > maxSubTypeLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.OrganisationGeneralSubGroupTooLong, maxSubTypeLength)})
 		return
 	}
@@ -108,13 +108,13 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 	if strings.Contains(organisationUpdate.Flair, ",") ||
 		strings.Contains(organisationUpdate.Flair, ";") ||
 		len([]rune(organisationUpdate.Flair)) > maxFlairLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.OrganisationGeneralFlairContainsInvalidCharactersOrIsTooLong, maxFlairLength)})
 		return
 	}
 
 	if !organisationUpdate.VisibilityIsValid() {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.OrganisationGeneralInvalidVisibility})
 		return
 	}
@@ -123,14 +123,14 @@ func PatchEditOrganisationPage(writer http.ResponseWriter, request *http.Request
 
 	err = database.UpdateOrganisation(oldOrganisationName, organisationUpdate)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.OrganisationErrorUpdatingOrganisation})
 		return
 	}
 
 	err = database.AddOrganisationMember(organisationUpdate, userNames, adminNames)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.OrganisationErrorUpdatingOrganisationMember})
 		return
 	}
@@ -158,7 +158,7 @@ func PutOrganisationSearchPage(writer http.ResponseWriter, request *http.Request
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -166,7 +166,7 @@ func PutOrganisationSearchPage(writer http.ResponseWriter, request *http.Request
 	name := values.GetTrimmedString("name")
 	_, err = database.GetOrganisationByName(name)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.OrganisationNotFoundByName})
 		return
 	}

@@ -50,7 +50,7 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -60,7 +60,7 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 	}
 
 	if page.CurrNumber < voteArray[0] || page.CurrNumber > voteArray[len(voteArray)-1] {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentInvalidVoteNumber})
 		return
 	}
@@ -76,32 +76,32 @@ func PostCreateVoteElementPage(writer http.ResponseWriter, request *http.Request
 	}
 
 	if !page.Vote.HasValidType() {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentInvalidVoteType})
 		return
 	}
 
 	if page.Vote.MaxVotes < 1 && page.Vote.Type == database.VoteShares {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentInvalidNumberMaxVotes})
 		return
 	}
 
 	if len(page.Vote.Answers) < 1 {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentAmountAnswersTooSmall})
 		return
 	}
 
 	if page.Vote.Question == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentVoteMustHaveAQuestion})
 		return
 	}
 
 	const maxQuestionLength = 1000
 	if len([]rune(page.Vote.Question)) > maxQuestionLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.DocumentVoteQuestionTooLong, maxQuestionLength)})
 		return
 	}
@@ -128,7 +128,7 @@ func PatchGetVoteElementPage(writer http.ResponseWriter, request *http.Request) 
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}

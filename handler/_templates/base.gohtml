@@ -8,16 +8,21 @@
                 <meta charset="UTF-8">
                 <title>{{.Title}}</title>
                 <link rel="shortcut icon" type="image/png" href="{{.Icon}}">
-                <link rel="stylesheet" href="/public/style.css?v=0.12.3">
+                <link rel="stylesheet" href="/public/style.css?v=0.13.0">
                 <style>
                     html {
                         font-size: {{.FontSize}}%;
                     }
                 </style>
-                <script src="/public/htmx.js"></script>
+                <script src="/public/htmx.js?v=2"></script>
                 <script src="/public/hyperscript.js"></script>
                 <script>
-                    htmx.config.defaultSwapStyle = "outerHTML"
+                    //noinspection ALL
+                    htmx.config.defaultSwapStyle = "outerHTML";
+                    //noinspection ALL
+                    htmx.config.attributesToSettle = [];
+                    //noinspection ALL
+                    htmx.config.scrollBehavior = 'smooth';
                 </script>
                 {{block "pageScript" .}}{{end}}
             </head>

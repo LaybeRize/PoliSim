@@ -47,7 +47,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -58,14 +58,14 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NoteAuthorIsInvalid})
 		return
 	}
 
 	flairString, err := database.GetAccountFlairs(&database.Account{Name: author})
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
@@ -83,14 +83,14 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if note.Title == "" || string(note.Body) == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
 	const maxTitleLength = 400
 	if len([]rune(note.Title)) > maxTitleLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
@@ -98,7 +98,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 	err = database.CreateNote(note, references)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NoteErrorWhileCreatingNote})
 		return
 	}

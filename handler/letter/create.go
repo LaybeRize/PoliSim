@@ -49,7 +49,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -65,40 +65,40 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	letter.Flair, err = database.GetAccountFlairs(&database.Account{Name: letter.Author})
 	if err != nil {
 		slog.Info(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
 
 	if letter.Title == "" || letter.Body == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
 	const maxTitleLength = 400
 	if len([]rune(letter.Title)) > maxTitleLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 
 	allowed, _ := database.IsAccountAllowedToPostWith(acc, letter.Author)
 	if !allowed && !(acc.IsAtLeastAdmin() && letter.Author == loc.AdministrationAccountName) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.LetterNotAllowedToPostWithThatAccount})
 		return
 	}
 
 	letter.Reader, err = database.FilterNameListForNonBlocked(letter.Reader, 0)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.LetterRecipientListUnvalidated})
 		return
 	}
 
 	if len(letter.Reader) == 0 {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.LetterNeedAtLeastOneRecipient})
 		return
 	}
@@ -106,7 +106,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	err = database.CreateLetter(letter)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.LetterErrorWhileSending})
 		return
 	}
@@ -141,7 +141,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -157,28 +157,28 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 	page.IsError = true
 
 	if page.Title == "" || page.Body == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ContentOrBodyAreEmpty})
 		return
 	}
 
 	const maxTitleLength = 400
 	if len([]rune(page.Title)) > maxTitleLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.ErrorTitleTooLong, maxTitleLength)})
 		return
 	}
 
 	allowed, _ := database.IsAccountAllowedToPostWith(acc, page.Author)
 	if !allowed && !(acc.IsAtLeastAdmin() && page.Author == loc.AdministrationAccountName) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.LetterNotAllowedToPostWithThatAccount})
 		return
 	}
 
 	page.Recipients, err = database.FilterNameListForNonBlocked(page.Recipients, 0)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.LetterRecipientListUnvalidated})
 		return
 	}

@@ -47,14 +47,14 @@ func GetManageNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	if !acc.IsAtLeastAdmin() {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.MissingPermissions})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -66,7 +66,7 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 	err = database.CreateNewspaper(newspaper)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NewspaperErrorWhileCreatingNewspaper})
 		return
 	}
@@ -92,7 +92,7 @@ func PostCreateNewspaperPage(writer http.ResponseWriter, request *http.Request) 
 func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	if !acc.IsAtLeastAdmin() {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.MissingPermissions})
 		return
 	}
@@ -100,7 +100,7 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -111,7 +111,7 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	newspaper, err := database.GetFullNewspaperInfo(values.GetTrimmedString("name"))
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NewspaperErrorWhileSearchingNewspaper})
 		return
 	}
@@ -140,7 +140,7 @@ func PutSearchNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	if !acc.IsAtLeastAdmin() {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.MissingPermissions})
 		return
 	}
@@ -148,7 +148,7 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -162,14 +162,14 @@ func PatchUpdateNewspaperPage(writer http.ResponseWriter, request *http.Request)
 	err = database.RemoveAccountsFromNewspaper(&page.Newspaper)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NewspaperErrorWhileChangingNewspaper})
 		return
 	}
 	err = database.UpdateNewspaper(&page.Newspaper)
 	if err != nil {
 		slog.Error(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.NewspaperErrorWhileAddingReporters})
 		return
 	}

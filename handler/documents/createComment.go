@@ -12,14 +12,14 @@ import (
 func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentGeneralFunctionNotAvailable})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -32,7 +32,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 	comment.ID = helper.GetUniqueID(comment.Author)
 
 	if comment.Body == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ContentIsEmpty})
 		return
 	}
@@ -42,7 +42,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentMissingPermissionForComment})
 		return
 	}
@@ -50,7 +50,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 	comment.Flair, err = database.GetAccountFlairs(&database.Account{Name: comment.Author})
 	if err != nil {
 		slog.Info(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.ErrorLoadingFlairInfoForAccount})
 		return
 	}
@@ -58,7 +58,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 	err = database.CreateDocumentComment(docId, comment)
 	if err != nil {
 		slog.Info(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentErrorWhileSavingComment})
 		return
 	}

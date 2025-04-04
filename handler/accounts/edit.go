@@ -25,7 +25,7 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 		page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(query.GetTrimmedString("name"))
 
 		if err != nil {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountSearchedNameDoesNotCorrespond})
 			return
 		}
@@ -65,7 +65,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -76,7 +76,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	var ownerAccount *database.Account
 	page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(values.GetTrimmedString("name"))
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountErrorNoAccountToModify})
 		return
 	}
@@ -86,7 +86,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if page.Account.Role <= acc.Role {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountNoPermissionToEdit})
 		return
 	}
@@ -96,7 +96,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	if page.Account.Role != database.PressUser && role <= database.User && role > acc.Role {
 		page.Account.Role = role
 	} else if page.Account.Role != database.PressUser {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountRoleIsNotAllowed})
 		return
 	}
@@ -104,7 +104,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	page.Account.Blocked = values.GetBool("blocked")
 	err = database.UpdateAccount(page.Account)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountErrorWhileUpdating})
 		return
 	}
@@ -112,14 +112,14 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	if ownerAccount, err = database.GetAccountByName(values.GetTrimmedString("linked")); err == nil &&
 		page.Account.Role == database.PressUser {
 		if ownerAccount.Role == database.PressUser {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountPressUserOwnerIsPressUser})
 			return
 		}
 
 		err = database.UpdateOwner(ownerAccount.Name, page.Account.Name)
 		if err != nil {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountPressUserOwnerChangeError})
 			return
 		}
@@ -129,7 +129,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	if page.Account.Role == database.PressUser && values.GetTrimmedString("linked") == "" {
 		err = database.UpdateOwner(page.Account.Name, page.Account.Name)
 		if err != nil {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountPressUserOwnerRemovingError})
 			return
 		}
@@ -150,7 +150,7 @@ func PostEditSearchAccount(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -161,11 +161,13 @@ func PostEditSearchAccount(writer http.ResponseWriter, request *http.Request) {
 
 	switch true {
 	case nameErr != nil && usernameErr != nil:
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountSearchedNamesDoesNotCorrespond})
 		return
+	//goland:noinspection ALL
 	case accountByName.Exists():
 		name = accountByName.Name
+	//goland:noinspection ALL
 	case accountByUsername.Exists():
 		name = accountByUsername.Name
 	}

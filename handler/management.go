@@ -30,7 +30,7 @@ func PostFileManagementPage(writer http.ResponseWriter, request *http.Request) {
 	err := request.ParseMultipartForm(10 << 20)
 	if err != nil {
 		slog.Error(err.Error())
-		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+		SendMessageUpdate(writer, &MessageUpdate{IsError: true,
 			Message: "error while trying to parse multipart form"})
 		return
 	}
@@ -40,32 +40,34 @@ func PostFileManagementPage(writer http.ResponseWriter, request *http.Request) {
 		slog.Debug("No file was send")
 	} else if err != nil {
 		slog.Error(err.Error())
-		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+		SendMessageUpdate(writer, &MessageUpdate{IsError: true,
 			Message: "error while trying to open the send file"})
 		return
 	} else {
+		//goland:noinspection ALL
 		defer file.Close()
 		slog.Debug("File Info:", "name", handler.Filename, "size", handler.Size)
 
 		var target *os.File
 		target, err = os.Create("./public/sim/" + handler.Filename)
+		//goland:noinspection ALL
 		defer target.Close()
 		if err != nil {
 			slog.Error(err.Error())
-			MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+			SendMessageUpdate(writer, &MessageUpdate{IsError: true,
 				Message: "error while trying to open the file path on the server"})
 			return
 		}
 		_, err = io.Copy(target, file)
 		if err != nil {
 			slog.Error(err.Error())
-			MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+			SendMessageUpdate(writer, &MessageUpdate{IsError: true,
 				Message: "error while trying to copy the file onto the server"})
 			return
 		}
 	}
 
-	MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: false,
+	SendMessageUpdate(writer, &MessageUpdate{IsError: false,
 		Message: "file successfully uploaded"})
 }
 
@@ -79,18 +81,18 @@ func DeleteFileManagementPage(writer http.ResponseWriter, request *http.Request)
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Error(err.Error())
-		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+		SendMessageUpdate(writer, &MessageUpdate{IsError: true,
 			Message: "error while trying to parse form"})
 		return
 	}
 	err = os.Remove("./public/sim/" + values.GetString("file"))
 	if err != nil {
 		slog.Error(err.Error())
-		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+		SendMessageUpdate(writer, &MessageUpdate{IsError: true,
 			Message: err.Error()})
 		return
 	}
-	MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: false,
+	SendMessageUpdate(writer, &MessageUpdate{IsError: false,
 		Message: "File successfully deleted"})
 }
 
@@ -104,7 +106,7 @@ func UpdateParameterManagementPage(writer http.ResponseWriter, request *http.Req
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
 		slog.Error(err.Error())
-		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+		SendMessageUpdate(writer, &MessageUpdate{IsError: true,
 			Message: "error while trying to parse form"})
 		return
 	}
@@ -113,11 +115,11 @@ func UpdateParameterManagementPage(writer http.ResponseWriter, request *http.Req
 		values.GetTrimmedString("welcome-file"))
 	if err != nil {
 		slog.Error(err.Error())
-		MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: true,
+		SendMessageUpdate(writer, &MessageUpdate{IsError: true,
 			Message: err.Error()})
 		return
 	}
-	MakeSpecialPagePartWithRedirect(writer, &MessageUpdate{IsError: false,
+	SendMessageUpdate(writer, &MessageUpdate{IsError: false,
 		Message: "Parameter successfully updated"})
 }
 

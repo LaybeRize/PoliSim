@@ -16,7 +16,7 @@
     {{- /*gotype: PoliSim/handler.ChatOverviewPage*/ -}}
     <body id="page-body">
     {{template "header" .NavInfo}}
-    <form id="search-form" hx-put="/chat/overview" hx-target="#message-box">
+    <form id="search-form" hx-put="/chat/overview" hx-target="#page-body">
         <label for="viewer">{{/*chatOverview-7*/}}Account</label>
         <select id="viewer" name="viewer">
             <option value="">{{/*chatOverview-6*/}}-- Alle Accounts --</option>
@@ -33,9 +33,9 @@
         <input id="amount" name="amount" type="number" value="{{.Amount}}" min="10" max="50">
         <button>{{/*chatOverview-5*/}}Suchen</button>
     </form>
-    <details>
+    <details id="chat-room-details">
         <summary>{{/*chatOverview-8*/}}Chatraum erstellen</summary>
-        <form hx-post="/create/chat" hx-target="#message-box" hx-include="#search-form">
+        <form id="create-chatroom-form" hx-post="/create/chat" hx-target="#page-body" hx-include="#search-form">
             <label for="chatroom-name">{{/*chatOverview-13*/}}Raumname</label>
             <input id="chatroom-name" name="chatroom-name" type="text">
             <label for="base-account">{{/*chatOverview-10*/}}Basis-Account</label>
@@ -62,14 +62,14 @@
             <button>{{/*chatOverview-9*/}}Chatraum erstellen</button>
         </form>
     </details>
+    {{template "message" .}}
     {{template "chatPaging" .}}
     </body>
 {{end}}
 
 {{define "chatPaging"}}
     {{- /*gotype: PoliSim/handler.ChatOverviewPage*/ -}}
-    {{template "message" .}}
-    <div id="chat-rooms" class="wrapper note" {{if .OutOfBandSwitch}}hx-swap-oob="true"{{end}}>
+    <div id="chat-rooms" class="wrapper note">
         {{if eq (len .Chats) 0}}
             <p>{{/*chatOverview-1*/}}Es konnten keine Chaträume gefunden werden</p>
         {{else}}

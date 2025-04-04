@@ -27,7 +27,7 @@ func GetEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 
 		page.IsError = true
 		if err != nil {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.TitleNoTitleWithThatName})
 			return
 		}
@@ -63,7 +63,7 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -78,25 +78,25 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	names := values.GetTrimmedArray("[]holder")
 
 	if titleUpdate.Name == "" || titleUpdate.MainType == "" || titleUpdate.SubType == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.TitleGeneralInformationEmpty})
 		return
 	}
 
 	if len([]rune(titleUpdate.Name)) > maxNameLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.TitleGeneralNameTooLong, maxNameLength)})
 		return
 	}
 
 	if len([]rune(titleUpdate.MainType)) > maxMainTypeLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.TitleGeneralMainGroupTooLong, maxMainTypeLength)})
 		return
 	}
 
 	if len([]rune(titleUpdate.SubType)) > maxSubTypeLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.TitleGeneralSubGroupTooLong, maxSubTypeLength)})
 		return
 	}
@@ -104,21 +104,21 @@ func PatchEditTitlePage(writer http.ResponseWriter, request *http.Request) {
 	if strings.Contains(titleUpdate.Flair, ",") ||
 		strings.Contains(titleUpdate.Flair, ";") ||
 		len([]rune(titleUpdate.Flair)) > maxFlairLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.TitleGeneralFlairContainsInvalidCharactersOrIsTooLong, maxFlairLength)})
 		return
 	}
 
 	err = database.UpdateTitle(oldTitleName, titleUpdate)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.TitleErrorWhileUpdatingTitle})
 		return
 	}
 
 	err = database.AddTitleHolder(titleUpdate, names)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.TitleErrorWhileUpdatingTitleHolder})
 		return
 	}
@@ -145,7 +145,7 @@ func PutTitleSearchPage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -153,7 +153,7 @@ func PutTitleSearchPage(writer http.ResponseWriter, request *http.Request) {
 	name := values.GetTrimmedString("name")
 	_, err = database.GetTitleByName(name)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.TitleNotFoundByName})
 		return
 	}

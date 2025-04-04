@@ -44,7 +44,7 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -58,25 +58,25 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 	names := values.GetTrimmedArray("[]holder")
 
 	if newTitle.Name == "" || newTitle.MainType == "" || newTitle.SubType == "" {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.TitleGeneralInformationEmpty})
 		return
 	}
 
 	if len([]rune(newTitle.Name)) > maxNameLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.TitleGeneralNameTooLong, maxNameLength)})
 		return
 	}
 
 	if len([]rune(newTitle.MainType)) > maxMainTypeLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.TitleGeneralMainGroupTooLong, maxMainTypeLength)})
 		return
 	}
 
 	if len([]rune(newTitle.SubType)) > maxSubTypeLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.TitleGeneralSubGroupTooLong, maxSubTypeLength)})
 		return
 	}
@@ -84,14 +84,14 @@ func PostCreateTitlePage(writer http.ResponseWriter, request *http.Request) {
 	if strings.Contains(newTitle.Flair, ",") ||
 		strings.Contains(newTitle.Flair, ";") ||
 		len([]rune(newTitle.Flair)) > maxFlairLength {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: fmt.Sprintf(loc.TitleGeneralFlairContainsInvalidCharactersOrIsTooLong, maxFlairLength)})
 		return
 	}
 
 	err = database.CreateTitle(newTitle, names)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.TitleErrorWhileCreating})
 		return
 	}

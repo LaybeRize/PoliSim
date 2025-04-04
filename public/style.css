@@ -405,6 +405,18 @@ table.view-vote {
 
 .hide {
     display: none !important;
+    opacity: 0 !important;
+    background-color: transparent !important;
+}
+
+.box-on-update.htmx-settling {
+    opacity: 0;
+    transition: none;
+}
+
+.box-on-update {
+    opacity: 1;
+    transition: opacity 1s ease-in;
 }
 
 .chat-window {

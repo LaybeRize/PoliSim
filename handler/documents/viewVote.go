@@ -33,14 +33,14 @@ func GetVoteView(writer http.ResponseWriter, request *http.Request) {
 func PostVote(writer http.ResponseWriter, request *http.Request) {
 	acc, loggedIn := database.RefreshSession(writer, request)
 	if !loggedIn {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentGeneralFunctionNotAvailable})
 		return
 	}
 
 	values, err := helper.GetAdvancedFormValues(request)
 	if err != nil {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.RequestParseError})
 		return
 	}
@@ -51,7 +51,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			slog.Error(err.Error())
 		}
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentNotAllowedToVoteWithThatAccount})
 		return
 	}
@@ -59,7 +59,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 	answers, voteType, maxVotes, err := database.GetAnswersAndTypeForVote(id, acc)
 	if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentNotAllowedToVoteOnThis})
 		return
 	}
@@ -73,7 +73,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 		pos := values.GetInt("vote")
 
 		if pos <= 0 || pos > len(answers) {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.DocumentVoteIsInvalid + "\n" + loc.DocumentVotePositionInvalid})
 			return
 		}
@@ -94,7 +94,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 		for i := range len(answers) {
 			amount := values.GetInt(fmt.Sprintf("vote-%d", i+1))
 			if amount < 0 {
-				handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+				handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 					Message: loc.DocumentVoteIsInvalid + "\n" + loc.DocumentVoteShareNotSmallerZero})
 				return
 			}
@@ -103,7 +103,7 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		if sum > maxVotes {
-			handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.DocumentVoteIsInvalid + "\n" + loc.DocumentVoteSumTooBig})
 			return
 		}
@@ -117,13 +117,13 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 			if pos <= 0 {
 				votesCasted[i] = -1
 			} else if pos > len(answers) {
-				handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+				handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 					Message: loc.DocumentVoteIsInvalid + "\n" + loc.DocumentVoteRankTooBig})
 				return
 			} else {
 				_, exists := lookUpMap[pos]
 				if exists {
-					handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+					handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 						Message: loc.DocumentVoteIsInvalid + "\n" + loc.DocumentVoteInvalidDoubleRank})
 					return
 				}
@@ -136,12 +136,12 @@ func PostVote(writer http.ResponseWriter, request *http.Request) {
 
 	err = database.CastVoteWithAccount(voter, id, votesCasted)
 	if errors.Is(err, database.AlreadyVoted) {
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentAlreadyVotedWithThatAccount})
 		return
 	} else if err != nil {
 		slog.Debug(err.Error())
-		handler.MakeSpecialPagePartWithRedirect(writer, &handler.MessageUpdate{IsError: true,
+		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.DocumentErrorWhileVoting})
 		return
 	}
