@@ -1,3 +1,12 @@
+{{define "pageScript"}}
+    <script>
+        function toggleDiv(self) {
+            self.nextElementSibling.nextElementSibling.classList.toggle("hide");
+            self.firstChild.classList.toggle("bi-list-closed");
+            self.firstChild.classList.toggle("bi-list-opened");
+        }
+    </script>
+{{end}}
 {{define "page"}}
     {{- /*gotype: PoliSim/handler.ViewTitlePage*/ -}}
     <body id="page-body">
@@ -7,14 +16,14 @@
     {{else}}
         <div class="wrapper hierarchy-view">
         {{range $MainGroupName, $SubGroupMap := .TitleHierarchy}}
-            <a tabindex="0" _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a><br>
+            <a tabindex="0" onclick="toggleDiv(this);"><i class="bi bi-list-closed"></i> {{$MainGroupName}}</a><br>
             <div class="hide">
             {{range $SubGroupName, $TitleNames := $SubGroupMap}}
-                <a tabindex="0" _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a><br>
+                <a tabindex="0" onclick="toggleDiv(this);"><i class="bi bi-list-closed"></i> {{$SubGroupName}}</a><br>
                 <div class="hide">
                 {{range $Title := $TitleNames}}
                     <div>
-                        <a tabindex="0" hx-get="/single/view/title?name={{urlquery $Title}}" hx-target="closest div">{{$Title}}</a>
+                        <a tabindex="0" hx-get="/single/view/title?name={{urlquery $Title}}" hx-target="closest div"><i class="bi bi-list-closed"></i> {{$Title}}</a>
                     </div>
                 {{end}}
                 </div>
@@ -29,7 +38,7 @@
 {{define "singleTitle"}}
     {{- /*gotype: PoliSim/handler.SingleTitelUpdate*/ -}}
     <div>
-        <a tabindex="0" _="on click toggle .hide on the next <div/>">{{.Title}}</a>
+        <a tabindex="0" onclick="toggleDiv(this);"><i class="bi bi-list-opened"></i> {{.Title}}</a><br>
         <div class="">
             {{if .Found}}
                 {{if .HasFlair}}<i>{{/*titleView-2*/}}Flair: {{.Flair}}</i>

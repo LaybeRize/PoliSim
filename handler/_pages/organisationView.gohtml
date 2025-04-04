@@ -1,3 +1,12 @@
+{{define "pageScript"}}
+    <script>
+        function toggleDiv(self) {
+            self.nextElementSibling.nextElementSibling.classList.toggle("hide");
+            self.firstChild.classList.toggle("bi-list-closed");
+            self.firstChild.classList.toggle("bi-list-opened");
+        }
+    </script>
+{{end}}
 {{define "page"}}
     {{- /*gotype: PoliSim/handler.ViewOrganisationPage*/ -}}
     <body id="page-body">
@@ -10,19 +19,19 @@
         {{else}}
         <div class="wrapper hierarchy-view">
         {{range $MainGroupName, $SubGroupMap := .Hierarchy}}
-            <a tabindex="0" _="on click toggle .hide on the next <div/>">{{$MainGroupName}}</a><br>
+            <a tabindex="0" onclick="toggleDiv(this);"><i class="bi bi-list-closed"></i> {{$MainGroupName}}</a><br>
             <div class="hide">
             {{range $SubGroupName, $Organisations := $SubGroupMap}}
-                <a tabindex="0" _="on click toggle .hide on the next <div/>">{{$SubGroupName}}</a><br>
+                <a tabindex="0" onclick="toggleDiv(this);"><i class="bi bi-list-closed"></i> {{$SubGroupName}}</a><br>
                 <div class="hide">
                 {{range $Organisations}}
                     {{- /*gotype: PoliSim/database.Organisation*/ -}}
                     <div>
                         <a tabindex="0" hx-get="/single/view/organisation?name={{urlquery .Name}}"
-                           hx-target="closest div"><i class="bi {{.GetClassType}}"></i> {{.Name}}
-                            <a href="/search/documents?organisation-name={{urlquery .Name}}" target="_blank"
-                               class="link-color"><i class="bi bi-link-to"></i></a>
+                           hx-target="closest div"><i class="bi bi-list-closed"></i> <i class="bi {{.GetClassType}}"></i> {{.Name}}
                         </a>
+                        <a href="/search/documents?organisation-name={{urlquery .Name}}"
+                           target="_blank"><i class="bi bi-link-to link-color"></i></a>
                     </div>
                 {{end}}
                 </div>
@@ -39,18 +48,17 @@
     {{- /*gotype: PoliSim/handler.SingleOrganisationUpdate*/ -}}
     <div>
         {{if .Organisation.Exists}}
-            <a tabindex="0" _="on click toggle .hide on the next <div/>" class="button"
-            ><i class="bi {{.Organisation.GetClassType}}"></i> {{.Organisation.Name}}
-                <a href="{{.Organisation.GetDocumentLink}}" target="_blank"
-                   class="link-color"><i class="bi bi-link-to"></i></a>
-            </a>
+            <a tabindex="0" class="button" onclick="toggleDiv(this);"><i class="bi bi-list-opened"></i>
+                <i class="bi {{.Organisation.GetClassType}}"></i> {{.Organisation.Name}}
+            </a> <a href="{{.Organisation.GetDocumentLink}}"
+                    target="_blank"><i class="bi bi-link-to link-color"></i></a>
             <div class="">
                 {{if .Organisation.HasFlair}}<i>{{/*organisationView-3*/}}Flair: {{.Organisation.Flair}}</i>
                 {{else}}<i>{{/*organisationView-4*/}}Kein Flair</i>{{end}}
                 <p>{{.User}}<br>{{.Admin}}</p>
             </div>
         {{else}}
-            <a tabindex="0" _="on click toggle .hide on the next <div/>"><i class="bi bi-not-found"></i> {{.Name}}</a>
+            <a tabindex="0" onclick="toggleDiv(this);"><i class="bi bi-list-opened"></i> <i class="bi bi-not-found"></i> {{.Name}}</a><br>
             <div class="">
                 <i class="alert-red">{{/*organisationView-5*/}}Organisationsinformationen nicht gefunden</i>
             </div>

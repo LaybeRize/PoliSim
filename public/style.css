@@ -319,7 +319,7 @@ div.hierarchy-view {
                     line-height: 1.75rem;
                     padding: 0 0 0.4rem 0;
                 }
-                .link-color {
+                > a > i.link-color {
                     color: rgb(34 211 238);
                 }
                 border-left: 0;
@@ -678,7 +678,7 @@ div.markdown em {}
 .bi-secret::before { content: "\f33f"; }
 .bi-x-lg::before { content: "\f659"; }
 .bi-not-found::before { content: "\f506"; }
-.bi-list-closed::before { content: "\f22d"; }
+.bi-list-closed::before { content: "\f231"; }
 .bi-list-opened::before { content: "\f229"; }
 .bi-important::before { content: "\f281"; }
 .bi-letter-closed::before { content: "\f32c"; }

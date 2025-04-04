@@ -47,6 +47,8 @@ func GetSingleOrganisationView(writer http.ResponseWriter, request *http.Request
 		} else {
 			part.Admin = fmt.Sprintf(loc.OrganisationAdministratorList, strings.Join(admin, ", "))
 		}
+	} else {
+		part.Organisation = nil
 	}
 
 	handler.MakeSpecialPagePart(writer, part)
