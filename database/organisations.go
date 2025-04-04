@@ -203,7 +203,7 @@ func GetOrganisationNameList() ([]string, error) {
 }
 
 func GetOrganisationsForUserView(account *Account) ([]Organisation, error) {
-	result, err := postgresDB.Query(`SELECT DISTINCT ON (name) name, main_group, sub_group, visibility, flair 
+	result, err := postgresDB.Query(`SELECT DISTINCT name, main_group, sub_group, visibility, flair 
 FROM organisation_linked WHERE visibility = $1 OR visibility = $2 OR owner_name = $3
 ORDER BY main_group, sub_group, name;`, PUBLIC, PRIVATE, account.GetName())
 	if err != nil {
