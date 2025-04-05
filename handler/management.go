@@ -146,5 +146,16 @@ func PostDirectSQLQuery(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	MakeSpecialPagePart(writer, &AdminSQLQuery{Query: database.ExecuteQueryString(values.GetString("query"))})
+	if values.GetTrimmedString("param-1") != "" {
+		valueList := []any{
+			values.GetTrimmedString("param-1"),
+			values.GetTrimmedString("param-2"),
+			values.GetTrimmedString("param-3"),
+			values.GetTrimmedString("param-4"),
+			values.GetTrimmedString("param-5"),
+		}
+		MakeSpecialPagePart(writer, &AdminSQLQuery{Query: database.ExecuteNamedQuery(values.GetString("query"), valueList)})
+	} else {
+		MakeSpecialPagePart(writer, &AdminSQLQuery{Query: database.ExecuteQueryString(values.GetString("query"))})
+	}
 }

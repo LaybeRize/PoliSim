@@ -1,3 +1,6 @@
+{{define "pageScript"}}
+    <script src="/public/administration.js"></script>
+{{end}}
 {{define "page"}}
     {{- /*gotype: PoliSim/handler.AdminPage*/ -}}
     <body id="page-body">
@@ -27,8 +30,47 @@
     <form hx-post="/administration/sql" hx-target="#sql-return">
         <label for="key">Key</label>
         <input id="key" name="key" type="text"  />
+        <details>
+            <summary>Special parametrized Query</summary>
+            <label for="parameter-query-selection">Parameter Query Selection</label><br>
+            <select id="parameter-query-selection">
+                <option value="del-document">
+                    Delete Document
+                </option>
+                <option value="del-note">
+                    Delete Note
+                </option>
+                <option value="del-letter">
+                    Delete Letter
+                </option>
+                <option value="del-article">
+                    Delete Article
+                </option>
+                <option value="del-publication">
+                    Delete Publication
+                </option>
+                <option value="del-newspaper">
+                    Delete Newspaper
+                </option>
+                <option value="del-chatroom">
+                    Delete Chatroom
+                </option>
+            </select><br>
+            <button type="button" onclick="updateQuery()">Load Selected Query</button>
+            <p id="query-parameter-info"></p>
+            <label for="param-1">Parameter 1</label>
+            <input id="param-1" name="param-1" type="text"  />
+            <label for="param-2">Parameter 2</label>
+            <input id="param-2" name="param-2" type="text"  />
+            <label for="param-3">Parameter 3</label>
+            <input id="param-3" name="param-3" type="text"  />
+            <label for="param-4">Parameter 4</label>
+            <input id="param-4" name="param-4" type="text"  />
+            <label for="param-5">Parameter 5</label>
+            <input id="param-5" name="param-5" type="text"  />
+        </details>
         <label for="query">SQL Query</label>
-        <textarea id="query" name="query" rows="3"></textarea>
+        <textarea id="query" name="query" rows="3" style="font-family: monospace;"></textarea>
         <button>Direct Query</button>
     </form>
     {{template "SQLReturnValue" .}}
@@ -37,7 +79,7 @@
 
 {{define "SQLReturnValue"}}
     {{- /*gotype: PoliSim/handler.AdminSQLQuery*/ -}}
-    <div class="markdown" id="sql-return">
+    <div class="markdown box-on-update" id="sql-return">
     {{if .QueryExists}}
         {{if .Query.HasError}}
             <p><strong>Error Message:</strong> {{.Query.Error.Error}}</p>
