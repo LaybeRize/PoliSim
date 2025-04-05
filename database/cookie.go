@@ -1,24 +1,36 @@
 package database
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"log/slog"
+	"math/rand"
 	"net/http"
 	"sync"
 	"time"
 )
 
 var sessionStore = make(map[string]*SessionData)
-var mu sync.Mutex
+var sessionMutex sync.RWMutex
 
 type SessionData struct {
 	Account   *Account
 	ExpiresAt time.Time
 	UpdateAt  time.Time
+	Lock      sync.Mutex
+	InUse     bool
+}
+
+func (s *SessionData) IsValid() bool {
+	if s == nil {
+		return false
+	}
+	s.Lock.Lock()
+	if s.InUse {
+		return true
+	}
+	s.Lock.Unlock()
+	return false
 }
 
 const cleanupInterval = 5 * time.Hour
@@ -38,6 +50,7 @@ func CreateSession(w http.ResponseWriter, account *Account) {
 		Account:   account,
 		ExpiresAt: time.Now().Add(expirationTime),
 		UpdateAt:  time.Now().Add(updateTime),
+		InUse:     true,
 	}
 	setSessionCookie(w, sessionID)
 }
@@ -50,22 +63,26 @@ func RefreshSession(w http.ResponseWriter, r *http.Request) (*Account, bool) {
 
 	sessionID := cookie.Value
 
-	mu.Lock()
-	defer mu.Unlock()
+	sessionMutex.RLock()
+	defer sessionMutex.RUnlock()
 
-	data, exists := sessionStore[sessionID]
-	if !exists || time.Now().After(data.ExpiresAt) || data.Account.Blocked {
-		delete(sessionStore, sessionID)
+	data := sessionStore[sessionID]
+	if !data.IsValid() {
+		return nil, false
+	}
+	defer data.Lock.Unlock()
+
+	if time.Now().After(data.ExpiresAt) || data.Account.Blocked {
+		data.InUse = false
 		return nil, false
 	}
 
 	if time.Now().After(data.UpdateAt) {
-		delete(sessionStore, sessionID)
+		data.InUse = false
 		CreateSession(w, data.Account)
 		return data.Account, true
 	}
 
-	sessionStore[sessionID].ExpiresAt = time.Now().Add(expirationTime)
 	setSessionCookie(w, sessionID)
 
 	return data.Account, true
@@ -79,8 +96,8 @@ func EndSession(w http.ResponseWriter, r *http.Request) {
 
 	sessionID := cookie.Value
 
-	mu.Lock()
-	defer mu.Unlock()
+	sessionMutex.RLock()
+	defer sessionMutex.RUnlock()
 
 	delete(sessionStore, sessionID)
 	http.SetCookie(w, &http.Cookie{
@@ -94,17 +111,24 @@ func EndSession(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+var generator = rand.New(rand.NewSource(time.Now().UnixMilli()))
+
 func generateSessionID() string {
-	randomBytes := make([]byte, 16)
-	_, err := rand.Read(randomBytes)
-	if err != nil {
-		randomBytes = []byte(fmt.Sprintf("%x", time.Now().String()))
-	}
+	prefix := make([]byte, 8)
+	suffix := make([]byte, 8)
+	generator.Read(prefix)
 
-	combined := append(randomBytes, []byte(fmt.Sprintf("%d", time.Now().UnixNano()))...)
+	timeNano := time.Now().UnixNano()
+	suffix[0] += byte(timeNano)
+	suffix[1] += byte(timeNano >> 8)
+	suffix[2] += byte(timeNano >> 16)
+	suffix[3] += byte(timeNano >> 24)
+	suffix[4] += byte(timeNano >> 32)
+	suffix[5] += byte(timeNano >> 40)
+	suffix[6] += byte(timeNano >> 48)
+	suffix[7] += byte(timeNano >> 56)
 
-	hash := sha256.Sum256(combined)
-	return hex.EncodeToString(hash[:])
+	return fmt.Sprintf("TOKEN-%X-%X", prefix, suffix)
 }
 
 func setSessionCookie(w http.ResponseWriter, sessionID string) {
@@ -121,13 +145,15 @@ func setSessionCookie(w http.ResponseWriter, sessionID string) {
 }
 
 func updateAccount(account *Account) {
-	mu.Lock()
-	defer mu.Unlock()
+	sessionMutex.RLock()
+	defer sessionMutex.RUnlock()
 
-	for sessionID, sessionData := range sessionStore {
-		if sessionData.Account.Name == account.Name {
-			sessionStore[sessionID].Account = account
+	for _, sessionData := range sessionStore {
+		sessionData.Lock.Lock()
+		if sessionData.InUse && sessionData.Account.Name == account.Name {
+			sessionData.Account = account
 		}
+		sessionData.Lock.Unlock()
 	}
 }
 
@@ -142,11 +168,13 @@ func startCleanup() {
 }
 
 func doCleanup() {
-	mu.Lock()
-	defer mu.Unlock()
+	sessionMutex.Lock()
+	defer sessionMutex.Unlock()
 
 	for sessionID, sessionData := range sessionStore {
-		if time.Now().After(sessionData.ExpiresAt) {
+		if !sessionData.InUse ||
+			time.Now().After(sessionData.ExpiresAt) ||
+			sessionData.Account.Blocked {
 			delete(sessionStore, sessionID)
 		}
 	}
@@ -163,7 +191,7 @@ FROM cookies LEFT JOIN account ON cookies.name = account.name;`)
 
 	for results.Next() {
 		var key string
-		var session = SessionData{Account: &Account{}}
+		var session = SessionData{Account: &Account{}, InUse: true}
 		timeZoneStr := ""
 
 		err = results.Scan(&session.Account.Username, &session.Account.Password, &session.Account.Role,
@@ -193,6 +221,9 @@ func saveCookiesToDB() {
     `
 	for key := range sessionStore {
 		session := sessionStore[key]
+		if !session.InUse {
+			continue
+		}
 		_, err := postgresDB.Exec(queryStmt, &key, &session.Account.Name, &session.ExpiresAt, &session.UpdateAt)
 		if err != nil {
 			slog.Error("While saving colors encountered an error: ", "err", err)

@@ -26,7 +26,7 @@ func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
 
 	username := values.GetTrimmedString("username")
 	loginAcc, accErr := database.GetAccountByUsername(username)
-	if accErr != nil {
+	if accErr != nil || loginAcc.Blocked {
 		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountNameOrPasswordWrong})
 		return

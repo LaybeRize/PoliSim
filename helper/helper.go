@@ -28,7 +28,6 @@ func init() {
 }
 
 func GetUniqueID(author string) string {
-	sum := time.Now().UnixNano()
 
 	prefix := make([]byte, 4)
 	suffix := make([]byte, 8)
@@ -37,14 +36,15 @@ func GetUniqueID(author string) string {
 		prefix[pos%4] += singleRune
 	}
 
-	suffix[0] += byte(sum)
-	suffix[1] += byte(sum >> 8)
-	suffix[2] += byte(sum >> 16)
-	suffix[3] += byte(sum >> 24)
-	suffix[4] += byte(sum >> 32)
-	suffix[5] += byte(sum >> 40)
-	suffix[6] += byte(sum >> 48)
-	suffix[7] += byte(sum >> 56)
+	timeNano := time.Now().UnixNano()
+	suffix[0] += byte(timeNano)
+	suffix[1] += byte(timeNano >> 8)
+	suffix[2] += byte(timeNano >> 16)
+	suffix[3] += byte(timeNano >> 24)
+	suffix[4] += byte(timeNano >> 32)
+	suffix[5] += byte(timeNano >> 40)
+	suffix[6] += byte(timeNano >> 48)
+	suffix[7] += byte(timeNano >> 56)
 
 	return fmt.Sprintf("ID-%X-%X", prefix, suffix)
 }
