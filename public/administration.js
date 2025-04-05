@@ -30,17 +30,17 @@ window.onload = function () {
                 break;
             case "del-newspaper":
                 textInfoEl.innerHTML += "- Parameter 1: Newspaper Name";
-                textAreaEl.value = "WITH newspaper_publication AS ( SELECT id FROM newspaper_publication WHERE newspaper_name = $1 )\n"+
-                    "DELETE FROM newspaper_article WHERE publication_id = (SELECT id FROM newspaper_publication); --PARAM=0:1\n"+
+                textAreaEl.value = "DELETE FROM newspaper_article WHERE publication_id =\n"+
+                    "    ANY(ARRAY(SELECT id FROM newspaper_publication WHERE newspaper_name = $1));  --PARAM=0:1\n"+
                     "DELETE FROM newspaper_publication WHERE newspaper_name = $1; --PARAM=0:1\n"+
                     "DELETE FROM newspaper_to_account WHERE newspaper_name = $1; --PARAM=0:1\n"+
                     "DELETE FROM newspaper WHERE name = $1; --PARAM=0:1\n"+
                     "SELECT ARRAY[COUNT(name)::TEXT] FROM newspaper WHERE name = $1; --PARAM=0:1";
                 break;
             case "del-document":
-                textInfoEl.innerHTML += "- Parameter 1: Note ID";
-                textAreaEl.value = "WITH document_to_vote AS (SELECT id FROM document_to_vote WHERE document_id = $1)\n"+
-                    "DELETE FROM has_voted WHERE vote_id = (SELECT id FROM document_to_vote); --PARAM=0:1\n"+
+                textInfoEl.innerHTML += "- Parameter 1: Document ID";
+                textAreaEl.value = "DELETE FROM has_voted WHERE vote_id = \n"+
+                    "    ANY(ARRAY(SELECT id FROM document_to_vote WHERE document_id = $1)); --PARAM=0:1\n"+
                     "DELETE FROM comment_to_document WHERE document_id = $1; --PARAM=0:1\n"+
                     "DELETE FROM document_to_vote WHERE document_id = $1; --PARAM=0:1\n"+
                     "DELETE FROM document_to_account WHERE document_id = $1; --PARAM=0:1\n"+

@@ -30,8 +30,8 @@ SELECT ARRAY[COUNT(id)::TEXT] FROM newspaper_publication WHERE id = $1; --PARAM=
 /*
 Parameter 1: Newspaper Name
 */
-WITH newspaper_publication AS ( SELECT id FROM newspaper_publication WHERE newspaper_name = $1 )
-DELETE FROM newspaper_article WHERE publication_id = (SELECT id FROM newspaper_publication);  --PARAM=0:1
+DELETE FROM newspaper_article WHERE publication_id =
+    ANY(ARRAY(SELECT id FROM newspaper_publication WHERE newspaper_name = $1));  --PARAM=0:1
 DELETE FROM newspaper_publication WHERE newspaper_name = $1; --PARAM=0:1
 DELETE FROM newspaper_to_account WHERE newspaper_name = $1; --PARAM=0:1
 DELETE FROM newspaper WHERE name = $1; --PARAM=0:1
@@ -57,8 +57,8 @@ SELECT ARRAY[COUNT(id)::TEXT] FROM blackboard_note WHERE id = $1; --PARAM=0:1
 /*
 Parameter 1: Note ID
 */
-WITH document_to_vote AS (SELECT id FROM document_to_vote WHERE document_id = $1)
-DELETE FROM has_voted WHERE vote_id = (SELECT id FROM document_to_vote); --PARAM=0:1
+DELETE FROM has_voted WHERE vote_id =
+    ANY(ARRAY(SELECT id FROM document_to_vote WHERE document_id = $1)); --PARAM=0:1
 DELETE FROM comment_to_document WHERE document_id = $1; --PARAM=0:1
 DELETE FROM document_to_vote WHERE document_id = $1; --PARAM=0:1
 DELETE FROM document_to_account WHERE document_id = $1; --PARAM=0:1

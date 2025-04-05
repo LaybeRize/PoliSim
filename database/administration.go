@@ -64,7 +64,7 @@ func ExecuteNamedQuery(query string, parameters []any) *AdministrationQuery {
 	var end int
 	for matchPos := range len(matches) {
 		start, _ = strconv.Atoi(matches[matchPos][3])
-		start, _ = strconv.Atoi(matches[matchPos][4])
+		end, _ = strconv.Atoi(matches[matchPos][4])
 		if matchPos == len(matches)-1 {
 			break
 		}
