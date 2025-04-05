@@ -213,7 +213,7 @@ func CastVoteWithAccount(name string, id string, votes []int) error {
 		return err
 	}
 
-	err = tx.QueryRow(`SELECT id FROM document_linked WHERE id = $1 AND end_time > $2 AND
+	err = tx.QueryRow(`SELECT id FROM document_linked WHERE id = $1 AND end_time > $2 AND removed = false AND
                                      ((doc_account = $3 AND participant = true) OR 
                                       (organisation_account = $3 AND member_participation = true) OR 
                                       (organisation_account = $3 AND is_admin = true AND admin_participation = true)) LIMIT 1;`,

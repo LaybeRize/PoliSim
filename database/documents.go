@@ -362,7 +362,7 @@ func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {
 	}
 	defer rollback(tx)
 
-	err = tx.QueryRow(`SELECT id FROM document_linked WHERE id = $1 AND is_admin = true AND owner_name = $2 LIMIT 1;`,
+	err = tx.QueryRow(`SELECT id FROM document_linked WHERE id = $1 AND is_admin = true AND removed = false AND owner_name = $2 LIMIT 1;`,
 		docID, acc.GetName()).Scan(&docID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return NotAllowedError
@@ -370,7 +370,7 @@ func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {
 		return err
 	}
 	var docIDs []string
-	err = tx.QueryRow(`SELECT ARRAY(SELECT id FROM document WHERE id = ANY($1) AND id <> $2)`,
+	err = tx.QueryRow(`SELECT ARRAY(SELECT id FROM document WHERE id = ANY($1) AND removed = false AND id <> $2)`,
 		pq.Array(tag.Links), docID).Scan(pq.Array(&docIDs))
 
 	tag.Written = time.Now().UTC()
@@ -393,7 +393,7 @@ func CreateTagForDocument(docID string, acc *Account, tag *DocumentTag) error {
 }
 
 func CreateDocumentComment(documentId string, comment *DocumentComment) error {
-	err := postgresDB.QueryRow(`SELECT id FROM document_linked WHERE id = $1 AND end_time > $2 AND
+	err := postgresDB.QueryRow(`SELECT id FROM document_linked WHERE id = $1 AND end_time > $2 AND removed = false AND
                                      ((doc_account = $3 AND participant = true) OR 
                                       (organisation_account = $3 AND member_participation = true) OR 
                                       (organisation_account = $3 AND is_admin = true AND admin_participation = true)) LIMIT 1;`,
