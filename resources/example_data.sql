@@ -43,7 +43,6 @@ INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
                                                                                        ('Freighter', 'Gavin George', true),
                                                                                        ('Freighter', 'Timothy Nunez', true),
                                                                                        ('Freighter', 'Eden Wilcher', false);
--- Todo: a few more titles
 -- Title
 INSERT INTO title (name, main_group, sub_group, flair) VALUES
                   ('Head Chief of Heating', 'Housing', 'Household Management', 'HCoH');
@@ -51,6 +50,14 @@ INSERT INTO title_to_account (title_name, account_name) VALUES ('Head Chief of H
                                                                ('Head Chief of Heating', 'Gavin George'),
                                                                ('Head Chief of Heating', 'Timothy Nunez'),
                                                                ('Head Chief of Heating', 'Eden Wilcher');
+INSERT INTO title (name, main_group, sub_group, flair) VALUES
+                  ('Simple Worker', 'Housing', 'Construction', '');
+INSERT INTO title (name, main_group, sub_group, flair) VALUES
+                  ('Construction Overseer', 'Ships', 'Construction', 'Constr. Overseer');
+INSERT INTO title (name, main_group, sub_group, flair) VALUES
+                  ('Sailor', 'Ships', 'Usage', '');
+INSERT INTO title_to_account (title_name, account_name) VALUES ('Sailor', 'Vania Walton'),
+                                                               ('Sailor', 'Eden Wilcher');
 -- Newspaper
 INSERT INTO newspaper (name) VALUES ('Falling Times'), ('Quacker''s Manual'), ('TimTom Daily'), ('The Sunshine'), ('Nyan Cat News');
 INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) VALUES ('ID-ABC123-DEF436', 'Falling Times', false, false, '2025-03-25 21:15:52.000000'),
@@ -58,5 +65,5 @@ INSERT INTO newspaper_publication (id, newspaper_name, special, published, publi
                                                                                                 ('ID-ABR323-DEF436', 'TimTom Daily', false, false, '2025-03-24 12:45:50.000000'),
                                                                                                 ('ID-QBC453-DZR936', 'The Sunshine', false, false, '2025-03-29 05:28:49.000000'),
                                                                                                 ('ID-AVC963-ASQ176', 'Nyan Cat News', false, false, '2025-03-30 20:39:42.000000');
--- Todo: add documents/discussions/votes/notes/articles
+
 
