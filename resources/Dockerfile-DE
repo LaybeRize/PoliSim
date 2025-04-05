@@ -7,10 +7,10 @@ COPY ./handler ./handler
 COPY ./main ./main
 COPY ./helper ./helper
 COPY ./localisation ./localisation
-
-COPY ./public/fonts ./public/fonts
+# Public Folder
 COPY ./public/administration.js ./public/administration.js
 COPY ./public/fallback_icon.png ./public/fallback_icon.png
+COPY ./public/fonts ./public/fonts
 COPY ./public/htmx.js ./public/htmx.js
 COPY ./public/style.css ./public/style.css
 COPY ./public/websocket.js ./public/websocket.js
