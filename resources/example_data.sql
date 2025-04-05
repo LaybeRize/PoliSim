@@ -1,7 +1,7 @@
 -- DROP SCHEMA public CASCADE;
 -- CREATE SCHEMA public;
 
--- Password for all Users is 1234567890
+-- Password for all Accounts is 1234567890
 INSERT INTO account (name, username, password, role, blocked, font_size, time_zone) VALUES
                     ('Clarissa Stephens','Clarissa Stephens','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',4, true,100,'UTC');
 INSERT INTO account (name, username, password, role, blocked, font_size, time_zone) VALUES
@@ -43,7 +43,7 @@ INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
                                                                                        ('Freighter', 'Gavin George', true),
                                                                                        ('Freighter', 'Timothy Nunez', true),
                                                                                        ('Freighter', 'Eden Wilcher', false);
--- Title
+-- Titles
 INSERT INTO title (name, main_group, sub_group, flair) VALUES
                   ('Head Chief of Heating', 'Housing', 'Household Management', 'HCoH');
 INSERT INTO title_to_account (title_name, account_name) VALUES ('Head Chief of Heating', 'Vania Walton'),
@@ -58,12 +58,22 @@ INSERT INTO title (name, main_group, sub_group, flair) VALUES
                   ('Sailor', 'Ships', 'Usage', '');
 INSERT INTO title_to_account (title_name, account_name) VALUES ('Sailor', 'Vania Walton'),
                                                                ('Sailor', 'Eden Wilcher');
--- Newspaper
+-- Newspapers
 INSERT INTO newspaper (name) VALUES ('Falling Times'), ('Quacker''s Manual'), ('TimTom Daily'), ('The Sunshine'), ('Nyan Cat News');
-INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) VALUES ('ID-ABC123-DEF436', 'Falling Times', false, false, '2025-03-25 21:15:52.000000'),
-                                                                                                ('ID-AET123-DEF636', 'Quacker''s Manual', false, false, '2025-03-22 22:42:51.000000'),
-                                                                                                ('ID-ABR323-DEF436', 'TimTom Daily', false, false, '2025-03-24 12:45:50.000000'),
-                                                                                                ('ID-QBC453-DZR936', 'The Sunshine', false, false, '2025-03-29 05:28:49.000000'),
-                                                                                                ('ID-AVC963-ASQ176', 'Nyan Cat News', false, false, '2025-03-30 20:39:42.000000');
+INSERT INTO newspaper_to_account (newspaper_name, account_name) VALUES ('Falling Times', 'Gavin George'),
+                                                                       ('Falling Times', 'Vania Walton'),
+                                                                       ('Quacker''s Manual', 'Timothy Nunez'),
+                                                                       ('TimTom Daily', 'Vania Walton'),
+                                                                       ('TimTom Daily', 'Gavin George'),
+                                                                       ('The Sunshine', 'Eden Wilcher'),
+                                                                       ('The Sunshine', 'Gavin George'),
+                                                                       ('The Sunshine', 'Timothy Nunez'),
+                                                                       ('Nyan Cat News', 'Eden Wilcher');
 
-
+-- Publications
+INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) VALUES ('ID-PUB-ABC123-DEF436', 'Falling Times', false, false, '2025-03-25 21:15:52.000000'),
+                                                                                                ('ID-PUB-AET123-DEF636', 'Quacker''s Manual', false, false, '2025-03-22 22:42:51.000000'),
+                                                                                                ('ID-PUB-ABR323-DEF436', 'TimTom Daily', false, false, '2025-03-24 12:45:50.000000'),
+                                                                                                ('ID-PUB-QBC453-DZR936', 'The Sunshine', false, false, '2025-03-29 05:28:49.000000'),
+                                                                                                ('ID-PUB-QBC453-ERT52A', 'The Sunshine', true, false, '2025-04-02 12:48:42.000000'),
+                                                                                                ('ID-PUB-AVC963-ASQ176', 'Nyan Cat News', false, false, '2025-03-30 20:39:42.000000');
