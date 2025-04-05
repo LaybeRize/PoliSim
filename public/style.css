@@ -552,6 +552,7 @@ div.markdown h5 {
 div.markdown h6 {
     font-size: 1.325rem;
     line-height: 1.35rem;
+    margin-block: 2rem;
 }
 
 div.markdown pre {
@@ -594,8 +595,13 @@ div.markdown a {
     color: rgb(34 211 238);
 }
 
-div.markdown span.footnotes ol {
-    list-style-type: decimal;
+
+
+div.markdown figure {
+    margin-inline: 0;
+    &.footnotes ol {
+        list-style-type: decimal;
+    }
 }
 
 div.markdown img {

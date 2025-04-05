@@ -8,10 +8,6 @@
 </head>
 <body>
 <div class="markdown">
-    <ul id="oob-swap-component"></ul>
-</div>
-<button id="original-target" hx-get="./content.html" hx-target="#original-target" hx-swap="outerHTML">Alter Text</button>
-<div class="markdown">
     <h1>Test Überschrift 1</h1>
     <p>
         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
@@ -58,7 +54,10 @@ Neue Zeile und ganz viel text txt esfd asd abkjasd klasj ksjk klasd klasd jhnasn
         Hier handelt es sich um einen Paragraphen.
         <code>Code text</code>
         Dieser Text ist <strong>fett</strong>, dieser ist <em>italienisch</em> und der letzte ist <del>durchgestrichen</del>.
-        <a>Text</a>
+        <mark>Das ist markierter Text</mark> und das <del class="removed">wurde entfernt</del> während das hier <mark class="added">hinzugefügt wurde.</mark><br>
+        Es gehen auch andere Stil richtungen <span style="font-family: monospace">Monospace oder</span><span style="font-family: sans-serif">Sans Serif oder auch</span>
+        normales <span style="font-family: serif">Serif so wie hier.</span><br>
+        <a href="https://example.org">Text</a>
     </p>
     <table>
         <thead>
@@ -94,7 +93,7 @@ Neue Zeile und ganz viel text txt esfd asd abkjasd klasj ksjk klasd klasd jhnasn
     </dl>
     <p>This is a footnote.<sup id="fnref:1"><a href="#fn:1" rel="nofollow">1</a></sup></p>
 
-    <div class="footnotes">
+    <figure class="footnotes">
 
         <hr>
 
@@ -102,7 +101,7 @@ Neue Zeile und ganz viel text txt esfd asd abkjasd klasj ksjk klasd klasd jhnasn
             <li id="fn:1">the footnote text.</li>
         </ol>
 
-    </div>
+    </figure>
 
 </div>
 </body>

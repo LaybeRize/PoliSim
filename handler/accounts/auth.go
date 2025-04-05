@@ -26,13 +26,13 @@ func PostLoginAccount(writer http.ResponseWriter, request *http.Request) {
 
 	username := values.GetTrimmedString("username")
 	loginAcc, accErr := database.GetAccountByUsername(username)
-	if accErr != nil || loginAcc.Blocked {
+	if accErr != nil {
 		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountNameOrPasswordWrong})
 		return
 	}
 	correctPassword := database.VerifyPassword(loginAcc.Password, values.GetString("password"))
-	if !correctPassword || loginAcc.Role == database.PressUser {
+	if loginAcc.Blocked || !correctPassword || loginAcc.Role == database.PressUser {
 		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountNameOrPasswordWrong})
 		return

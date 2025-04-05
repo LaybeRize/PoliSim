@@ -26,8 +26,8 @@ var policy = bluemonday.NewPolicy()
 func init() {
 	policy.AllowElements("dl", "dt", "dd", "table", "th", "td", "tfoot", "h1", "h2", "h3", "h4", "h5", "h6",
 		"pre", "code", "hr", "ul", "ol", "p", "a", "img", "mark", "blockquote", "details", "summary",
-		"small", "li", "span", "tbody", "thead", "tr", "sub", "sup", "del", "strong", "em", "br")
-	policy.AllowAttrs("class").Matching(regexp.MustCompile(`^(footnotes|added|removed)$`)).OnElements("span", "del", "mark")
+		"small", "li", "span", "tbody", "thead", "tr", "sub", "sup", "del", "strong", "em", "br", "figure")
+	policy.AllowAttrs("class").Matching(regexp.MustCompile(`^(footnotes|added|removed)$`)).OnElements("figure", "del", "mark")
 	policy.AllowAttrs("style").Matching(regexp.MustCompile(`^ *font-family *: *(serif|sans-serif|monospace) *(; *)?$`)).OnElements("span")
 	policy.AllowAttrs("href").OnElements("a")
 	policy.AllowAttrs("colspan", "rowspan").Matching(bluemonday.Integer).OnElements("th", "td")
@@ -98,7 +98,7 @@ func listEnter(w io.Writer, nodeData *ast.List) {
 	var attrs []string
 
 	if nodeData.IsFootnotesList {
-		_, _ = w.Write([]byte("\n<span class=\"footnotes\">\n\n<hr />"))
+		_, _ = w.Write([]byte("\n<figure class=\"footnotes\">\n\n<hr />"))
 	}
 	if html.IsListItem(nodeData.Parent) {
 		grand := nodeData.Parent.GetParent()
@@ -132,7 +132,7 @@ func listExit(w io.Writer, list *ast.List) {
 	_, _ = w.Write([]byte(closeTag))
 
 	if list.IsFootnotesList {
-		_, _ = w.Write([]byte("\n</span>\n"))
+		_, _ = w.Write([]byte("\n</figure>\n"))
 	}
 }
 
