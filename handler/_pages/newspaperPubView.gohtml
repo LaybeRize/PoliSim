@@ -23,7 +23,7 @@
         {{- /*gotype: PoliSim/database.NewspaperArticle*/ -}}
         <div class="wrapper article">
             <hr>
-            <div class="block-view">
+            <div class="block-view" data-article-id="{{.ID}}">
                 <h1>{{.Title}}</h1>
                 {{if .HasSubtitle}}<h2>{{.Subtitle}}</h2>{{end}}
                 <p>
