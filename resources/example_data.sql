@@ -67,7 +67,7 @@ INSERT INTO newspaper_to_account (newspaper_name, account_name) VALUES ('Falling
                                                                        ('TimTom Daily', 'Gavin George'),
                                                                        ('The Sunshine', 'Eden Wilcher'),
                                                                        ('The Sunshine', 'Gavin George'),
-                                                                       ('The Sunshine', 'Timothy Nunez'),
+                                                                       ('The Sunshine', 'Lane Langstaff'),
                                                                        ('Nyan Cat News', 'Eden Wilcher');
 
 -- Publications
@@ -77,3 +77,79 @@ INSERT INTO newspaper_publication (id, newspaper_name, special, published, publi
                                                                                                 ('ID-PUB-QBC453-DZR936', 'The Sunshine', false, false, '2025-03-29 05:28:49.000000'),
                                                                                                 ('ID-PUB-QBC453-ERT52A', 'The Sunshine', true, false, '2025-04-02 12:48:42.000000'),
                                                                                                 ('ID-PUB-AVC963-ASQ176', 'Nyan Cat News', false, false, '2025-03-30 20:39:42.000000');
+
+-- Articles
+INSERT INTO newspaper_article (id, title, subtitle, author, flair, written, publication_id, html_body, raw_body) VALUES
+                              ('ID-ARTICLE-ABC123-ABC125', 'Example Titel #1', '', 'Lane Langstaff', '',
+                               '2025-04-02 12:48:31.000000', 'ID-PUB-QBC453-ERT52A',
+                               '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                               'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'||E'\n\n'||'Aenean volutpat dignissim metus, non eleifend tortor cursus eget.'),
+                              ('ID-ARTICLE-DBC123-ABC126', 'Example Titel #2', '', 'Eden Wilcher', 'Test, abc, LoL',
+                               '2025-04-02 13:12:07.000000', 'ID-PUB-QBC453-ERT52A',
+                               '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                               'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'||E'\n\n'||'Aenean volutpat dignissim metus, non eleifend tortor cursus eget.'),
+                              ('ID-ARTICLE-EBC123-ABC127', 'Example Titel #3', '', 'Timothy Nunez', '',
+                               '2025-03-25 11:21:01.000000', 'ID-PUB-AET123-DEF636',
+                               '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                               'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'||E'\n\n'||'Aenean volutpat dignissim metus, non eleifend tortor cursus eget.'),
+                              ('ID-ARTICLE-FBC123-ABC128', 'Example Titel #4', '', 'Lane Langstaff', 'Another Flair',
+                               '2025-04-01 15:48:49.000000', 'ID-PUB-QBC453-DZR936',
+                               '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                               'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'||E'\n\n'||'Aenean volutpat dignissim metus, non eleifend tortor cursus eget.');
+
+-- Todo: Documents
+
+-- Todo: Discussions
+
+-- Todo: Votes
+
+-- Notes
+INSERT INTO blackboard_note (id, title, author, flair, posted, body, blocked) VALUES
+                            ('ID-NOTE-ABC123-ABC923', 'Example Note #1', 'Eden Wilcher', '', '2025-03-01 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', false),
+                            ('ID-NOTE-ABC223-ABC823', 'Example Note #2', 'Gavin George', '', '2025-03-02 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', false),
+                            ('ID-NOTE-ABC323-ABC723', 'Example Note #3', 'Lane Langstaff', 'Test-Flair', '2025-03-03 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', false),
+                            ('ID-NOTE-ABC423-ABC623', 'Example Note #4', 'Lonnie Hampton', '', '2025-03-04 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', false),
+                            ('ID-NOTE-ABC523-ABC523', 'Example Note #5', 'Timothy Nunez', '', '2025-03-05 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', true),
+                            ('ID-NOTE-ABC623-ABC423', 'Example Note #6', 'Vania Walton', 'Ltn., Army Commander', '2025-03-06 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', false),
+                            ('ID-NOTE-ABC723-ABC323', 'Example Note #7', 'Eden Wilcher', '', '2025-03-07 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', false),
+                            ('ID-NOTE-ABC823-ABC223', 'Example Note #8', 'Vania Walton', 'Cptn.', '2025-03-08 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', false),
+                            ('ID-NOTE-ABC923-ABC123', 'Example Note #9', 'Lonnie Hampton', '', '2025-03-09 12:00:00.000000',
+                             '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>', false);
+INSERT INTO blackboard_references (base_note_id, reference_id)  VALUES ('ID-NOTE-ABC823-ABC223', 'ID-NOTE-ABC323-ABC723'),
+                                                                       ('ID-NOTE-ABC823-ABC223', 'ID-NOTE-ABC623-ABC423'),
+                                                                       ('ID-NOTE-ABC823-ABC223', 'ID-NOTE-ABC423-ABC623'),
+                                                                       ('ID-NOTE-ABC623-ABC423', 'ID-NOTE-ABC123-ABC923'),
+                                                                       ('ID-NOTE-ABC723-ABC323', 'ID-NOTE-ABC323-ABC723'),
+                                                                       ('ID-NOTE-ABC723-ABC323', 'ID-NOTE-ABC423-ABC623'),
+                                                                       ('ID-NOTE-ABC523-ABC523', 'ID-NOTE-ABC123-ABC923'),
+                                                                       ('ID-NOTE-ABC923-ABC123', 'ID-NOTE-ABC623-ABC423'),
+                                                                       ('ID-NOTE-ABC923-ABC123', 'ID-NOTE-ABC423-ABC623'),
+                                                                       ('ID-NOTE-ABC923-ABC123', 'ID-NOTE-ABC123-ABC923'),
+                                                                       ('ID-NOTE-ABC923-ABC123', 'ID-NOTE-ABC523-ABC523');
+
+-- Chats
+INSERT INTO chat_rooms (room_id, name, created, member) VALUES ('ID-CHAT-ATD341-TWAS11', 'Plan for next Election', '2025-03-30 20:04:13.000000', ARRAY['Vania Walton', 'Clarissa Stephens']),
+                                                               ('ID-CHAT-ARD541-TWAS12', 'Privat Conversation', '2025-02-12 13:42:22.000000', ARRAY['Gavin George', 'Lonnie Hampton']),
+                                                               ('ID-CHAT-ASD241-TWAS13', 'Big Chat', '2025-04-01 08:13:31.000000', ARRAY['Gavin George', 'Clarissa Stephens', 'Lonnie Hampton', 'Eden Wilcher']);
+INSERT INTO chat_rooms_to_account (room_id, account_name, new_message) VALUES ('ID-CHAT-ATD341-TWAS11', 'Vania Walton', false),
+                                                                              ('ID-CHAT-ATD341-TWAS11', 'Lane Langstaff', false),
+                                                                              ('ID-CHAT-ARD541-TWAS12', 'Gavin George', true),
+                                                                              ('ID-CHAT-ARD541-TWAS12', 'Lonnie Hampton', false),
+                                                                              ('ID-CHAT-ASD241-TWAS13', 'Gavin George', false),
+                                                                              ('ID-CHAT-ASD241-TWAS13', 'Lane Langstaff', true),
+                                                                              ('ID-CHAT-ASD241-TWAS13', 'Lonnie Hampton', true),
+                                                                              ('ID-CHAT-ASD241-TWAS13', 'Eden Wilcher', false);
+INSERT INTO chat_messages (room_id, sender, message, send_time) VALUES ('ID-CHAT-ARD541-TWAS12', 'Lonnie Hampton', 'Hello Gavin,<br>I haven''t heard from you in a long time.<br>Do you want to catch up soon?', '2025-04-02 13:42:22.000000'),
+                                                                       ('ID-CHAT-ARD541-TWAS12', 'Lonnie Hampton', 'Just hit me up if you are ready to talk.', '2025-04-02 13:44:22.000000'),
+                                                                       ('ID-CHAT-ASD241-TWAS13', 'Gavin George', 'Welcome, welcome guys.<br>I hope we can do great things together!', '2025-04-02 13:41:12.000000'),
+                                                                       ('ID-CHAT-ASD241-TWAS13', 'Eden Wilcher', 'Not sure why I am here ...', '2025-04-02 13:42:34.000000'),
+                                                                       ('ID-CHAT-ASD241-TWAS13', 'Gavin George', 'Oh come on, Eden, you will have fun too, right?<br>I really hope we can all become good friends.', '2025-04-02 13:46:42.000000'),
+                                                                       ('ID-CHAT-ASD241-TWAS13', 'Eden Wilcher', 'Not happening, bro.', '2025-04-02 13:52:55.000000');
