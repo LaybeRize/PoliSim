@@ -9,10 +9,10 @@ COPY ./helper ./helper
 COPY ./localisation ./localisation
 
 COPY ./public/fonts ./public/fonts
-COPY ./public/style.css ./public/style.css
+COPY ./public/administration.js ./public/administration.js
 COPY ./public/fallback_icon.png ./public/fallback_icon.png
 COPY ./public/htmx.js ./public/htmx.js
-COPY ./public/hyperscript.js ./public/hyperscript.js
+COPY ./public/style.css ./public/style.css
 COPY ./public/websocket.js ./public/websocket.js
 COPY ./public/welcome.en.html ./public/welcome.en.html
 
