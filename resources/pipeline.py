@@ -9,6 +9,8 @@ repo_name = "layberize/polisim"
 
 # Function get the new version
 def upgrade_version(old_version_str: str, upgrade: str) -> str:
+    if upgrade.upper() == "REBUILD":
+        return old_version_str
     if upgrade.upper() == "MAJOR":
         return str(int(old_version_str.split(".",1)[0]) + 1) + ".0.0"
 
@@ -50,8 +52,8 @@ def update_docker_files(docker_file_paths: list[str], docker_file_languages: lis
 
 def main_function():
     # Get the type of version upgrade
-    upgrade_type = input("New version is major, minor or fix?\n>")
-    if upgrade_type.upper() not in ["MAJOR", "MINOR", "FIX"]:
+    upgrade_type = input("New version is major, minor or fix or just rebuild?\n>")
+    if upgrade_type.upper() not in ["MAJOR", "MINOR", "FIX", "REBUILD"]:
         print("Could not find the upgrade type. ending program")
         exit(1)
 
