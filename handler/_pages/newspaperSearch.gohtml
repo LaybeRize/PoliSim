@@ -36,7 +36,7 @@
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.Publication*/ -}}
-                <a href="/publication/view/{{.ID}}" target="_blank">{{if .Special -}}
+                <a href="/publication/view/{{.ID}}">{{if .Special -}}
                     <i class="bi bi-important"></i>
                     {{- end }} {{/*newspaperSearch-6*/}}<strong>{{.NewspaperName}}</strong><br>
                     {{/*newspaperSearch-7*/}}<i>Veröffentlicht am: {{.GetPublishedDate $acc}}</i>

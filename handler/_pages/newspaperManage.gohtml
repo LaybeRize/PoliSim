@@ -15,11 +15,12 @@
         let newspaperChange = false;
 
         window.onload = function () {
+            //noinspection ALL
             document.body.addEventListener("htmx:afterSwap", function (evt) {
                 if (newspaperCreate) {document.querySelector("#newspaper-create").setAttribute("open", '')}
                 if (newspaperChange) {document.querySelector("#newspaper-change").setAttribute("open", '')}
             });
-
+            //noinspection ALL
             document.body.addEventListener("htmx:configRequest", function (evt) {
                 newspaperCreate = document.querySelector("#newspaper-create").hasAttribute("open")
                 newspaperChange = document.querySelector("#newspaper-change").hasAttribute("open")
@@ -91,7 +92,7 @@
             {{else}}
                 {{range .Publications}}
                     {{- /*gotype: PoliSim/database.Publication*/ -}}
-                    <a href="/publication/view/{{.ID}}" target="_blank">{{if .Special -}}
+                    <a href="/publication/view/{{.ID}}">{{if .Special -}}
                             <i class="bi bi-important"></i>
                         {{- end }} {{/*newspaperManage-12*/}}Zeitung: <strong>{{.NewspaperName}}</strong><br>
                         {{/*newspaperManage-13*/}}<i>Erstellt am: {{.GetPublishedDate $acc}}</i>

@@ -40,7 +40,7 @@
             {{else}}
                 {{range .Results}}
                     {{- /*gotype: PoliSim/database.TruncatedBlackboardNotes*/ -}}
-                    <a href="/notes?loaded={{.ID}}" target="_blank">{{/*noteSearch-7*/}}<strong>{{.Title}}</strong> von {{.GetAuthor}}<br>
+                    <a href="/notes?loaded={{.ID}}">{{/*noteSearch-7*/}}<strong>{{.Title}}</strong> von {{.GetAuthor}}<br>
                         {{/*noteSearch-8*/}}<i>Veröffentlicht am: {{.GetTimePostedAt $acc}}</i>
                     </a>
                 {{end}}

@@ -46,7 +46,7 @@
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.ReducedLetter*/ -}}
-                <a href="/view/letter/{{.ID}}?viewer={{urlquery .Recipient}}" target="_blank"
+                <a href="/view/letter/{{.ID}}?viewer={{urlquery .Recipient}}"
                    {{if .Viewed}}class="read"{{end}}>
                     {{- if .Viewed -}}<i class="bi bi-letter-open"></i>
                     {{- else -}}<i class="bi bi-letter-closed"></i>
@@ -61,13 +61,15 @@
             <div class="wrapper note pager">
                 {{if .HasPrevious}}
                     <a tabindex="0" hx-put="/my/letter" hx-include="#search-form"
-                       hx-vals='{"backward": "{{.PreviousPage}}", "rec-name": "{{.PreviousPageRec}}", "id": "{{.PreviousItemID}}"}' hx-target="#page-body">
+                       hx-vals='{"backward": "{{.PreviousPage}}", "rec-name": "{{.PreviousPageRec}}", "id": "{{.PreviousItemID}}"}'
+                       hx-target="#page-body">
                         {{/*letterPersonalSearch-10*/}}&laquo; Vorherige Seite
                     </a>
                 {{end}}
                 {{if .HasNext}}
                     <a tabindex="0" hx-put="/my/letter" hx-include="#search-form"
-                       hx-vals='{"forward": "{{.NextPage}}", "rec-name": "{{.NextPageRec}}", "id": "{{.NextItemID}}"}' hx-target="#page-body">
+                       hx-vals='{"forward": "{{.NextPage}}", "rec-name": "{{.NextPageRec}}", "id": "{{.NextItemID}}"}'
+                       hx-target="#page-body">
                         {{/*letterPersonalSearch-11*/}}Nächste Seite &raquo;
                     </a>
                 {{end}}

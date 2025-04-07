@@ -276,7 +276,7 @@ div.name-list {
 div.pager {
     flex-direction: row;
     width: fit-content;
-    a {
+    a:not(.markdown a) {
         margin: 0.5rem;
         width: fit-content;
     }
