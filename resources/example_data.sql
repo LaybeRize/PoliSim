@@ -5,11 +5,11 @@
 INSERT INTO account (name, username, password, role, blocked, font_size, time_zone) VALUES
                     ('Clarissa Stephens','Clarissa Stephens','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',4, true,100,'UTC');
 INSERT INTO account (name, username, password, role, blocked, font_size, time_zone) VALUES
-                    ('Vania Walton','Cool Username','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',4, false,100,'Europe/Berlin');
+                    ('Vania Walton','Cool Username','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',1, false,100,'Europe/Berlin');
 INSERT INTO account (name, username, password, role, blocked, font_size, time_zone) VALUES
-                    ('Timothy Nunez','XxNavigatorXx','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',4, false,100,'Asia/Shanghai');
+                    ('Timothy Nunez','XxNavigatorXx','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',2, false,100,'Asia/Shanghai');
 INSERT INTO account (name, username, password, role, blocked, font_size, time_zone) VALUES
-                    ('Lonnie Hampton','Lonnie Hampton','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',4, false,100,'America/Juneau');
+                    ('Lonnie Hampton','Lonnie Hampton','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',3, false,100,'America/Juneau');
 INSERT INTO account (name, username, password, role, blocked, font_size, time_zone) VALUES
                     ('Lane Langstaff','Lane Langstaff','$2a$10$99SOqMF93J320lJYWdfjjeGfdPSGnjG2QDiZcUFyNSbo4Fk7LwcMq',4, false,100,'Etc/GMT-5');
 INSERT INTO account (name, username, password, role, blocked, font_size, time_zone) VALUES ('Gavin George','Gavin George','',5, false,100,'UTC');
@@ -97,11 +97,32 @@ INSERT INTO newspaper_article (id, title, subtitle, author, flair, written, publ
                                '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
                                'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'||E'\n\n'||'Aenean volutpat dignissim metus, non eleifend tortor cursus eget.');
 
--- Todo: Documents
+-- Documents
+INSERT INTO document (id, type, organisation, organisation_name, title, author, flair, body, written, end_time, public, removed, member_participation, admin_participation, extra_info) VALUES
+                     ('ID-DOCUMENT-ABCDEF', 0, 'Ordinary House','The Villa', 'Example Document #1', 'Timothy Nunez', '', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                      '2025-03-01 10:00:00.000000','0001-01-01 00:00:00.000000',true, false,false,false,
+                      '{"tags": [{"id": "ID-TAG-3D63642E", "text": "Example Tag  #1", "links": ["ID-DOCUMENT-53CDEG"], "written": "2025-03-05T21:40:11.1259218Z", "outgoing": true, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": null, "result": null, "participants": null}'),
+                     ('ID-DOCUMENT-75CDE4', 0, 'The Villa','The Villa', 'Example Document #2', 'Timothy Nunez', 'ABC, Test Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                      '2025-03-02 12:00:00.000000','0001-01-01 00:00:00.000000',true, false,false,false,
+                      '{"tags": [{"id": "ID-TAG-TEASD235", "text": "Example Tag  #1", "links": ["ID-DOCUMENT-ABCDEF"], "written": "2025-03-05T21:40:11.1259218Z", "outgoing": false, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": null, "result": null, "participants": null}'),
+                     ('ID-DOCUMENT-53CDEG', 0, 'Toilet-House','Toilet-House', 'Example Document #3', 'Eden Wilcher', 'Captain', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                      '2025-03-03 14:00:00.000000','0001-01-01 00:00:00.000000',true, false,false,false,
+                      '{"tags": [], "links": null, "reader": null, "result": null, "participants": null}'),
+                     ('ID-DOCUMENT-12CDET', 0, 'Freighter','Freighter', 'Example Document #4', 'Gavin George', 'No Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                      '2025-03-04 15:32:12.000000','0001-01-01 00:00:00.000000',true, false,false,false,
+                      '{"tags": [], "links": null, "reader": null, "result": null, "participants": null}');
 
 -- Todo: Discussions
 
 -- Todo: Votes
+
+-- Letters
+INSERT INTO letter (id, title, author, flair, signable, written, body) VALUES
+                   ('ID-LETTER-12345678', 'Example Letter #1', 'Lonnie Hampton', '', false, '2025-03-01 10:32:10.000000', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>');
+INSERT INTO letter_to_account (letter_id, account_name, has_read, sign_status) VALUES
+                              ('ID-LETTER-12345678', 'Lonnie Hampton', true, 3),
+                              ('ID-LETTER-12345678', 'Gavin George', false, 3),
+                              ('ID-LETTER-12345678', 'Lane Langstaff', false, 3);
 
 -- Notes
 INSERT INTO blackboard_note (id, title, author, flair, posted, body, blocked) VALUES
