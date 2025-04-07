@@ -108,7 +108,11 @@ INSERT INTO account(name, username, password, role, blocked, font_size, time_zon
 	if err != nil {
 		return err
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		createdAccountForNotifications <- acc.Name
+	}
+	return err
 }
 
 func GetAccountByUsername(username string) (*Account, error) {
@@ -184,8 +188,9 @@ func UpdateAccount(acc *Account) error {
 			return err
 		}
 		err = tx.Commit()
-		if err != nil {
+		if err == nil {
 			BlockedAccountChannel <- acc.Name
+			blockedAccountChannelForNotifications <- acc.Name
 		}
 	} else {
 		_, err = postgresDB.Exec(`UPDATE account SET role = $2, blocked = false WHERE name = $1;`,
@@ -363,8 +368,9 @@ func GetMyAccountNames(owner *Account) ([]string, error) {
 
 func UpdateOwner(ownerName string, targetName string) error {
 	_, err := postgresDB.Exec(`UPDATE ownership SET owner_name = $1 WHERE account_name = $2`, &ownerName, &targetName)
-	if err != nil {
+	if err == nil {
 		OwnerChangeOnAccountChannel <- []string{ownerName, targetName}
+		ownerChangeOnAccountChannelForNotifications <- []string{ownerName, targetName}
 	}
 	return err
 }

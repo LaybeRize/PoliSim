@@ -29,7 +29,8 @@ type BaseInfo struct {
 }
 
 type NavigationInfo struct {
-	Account *database.Account
+	Account       *database.Account
+	Notifications *database.Notification
 }
 
 type PageStruct interface {
@@ -1033,7 +1034,10 @@ func MakePage(w http.ResponseWriter, acc *database.Account, data PageStruct) {
 	pageMutex.RLock()
 	defer pageMutex.RUnlock()
 
-	navInfo := NavigationInfo{Account: acc}
+	navInfo := NavigationInfo{
+		Account:       acc,
+		Notifications: database.GetUserNotification(acc),
+	}
 	data.SetNavInfo(navInfo)
 
 	currentTemplate, exists := templateForge[data.getPageName()]
@@ -1052,7 +1056,10 @@ func MakeFullPage(w http.ResponseWriter, acc *database.Account, data PageStruct)
 	pageMutex.RLock()
 	defer pageMutex.RUnlock()
 
-	navInfo := NavigationInfo{Account: acc}
+	navInfo := NavigationInfo{
+		Account:       acc,
+		Notifications: database.GetUserNotification(acc),
+	}
 	data.SetNavInfo(navInfo)
 
 	fullPage := FullPage{

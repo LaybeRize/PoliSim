@@ -79,6 +79,8 @@ func afterStartProcesses() {
 	loadColorPalettesFromDB()
 	log.Println("Loading Cookies")
 	loadCookiesFromDB()
+	log.Println("Loading Notifications")
+	loadNotificationsFromDB()
 	createRootAccount()
 	createAdministrationAccount()
 	log.Println("Starting Vote Cleanup Routine")

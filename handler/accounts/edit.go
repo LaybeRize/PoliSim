@@ -110,7 +110,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	if ownerAccount, err = database.GetAccountByName(values.GetTrimmedString("linked")); err == nil &&
-		page.Account.Role == database.PressUser {
+		page.Account.Role == database.PressUser && !page.Account.Blocked {
 		if ownerAccount.Role == database.PressUser {
 			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountPressUserOwnerIsPressUser})
@@ -126,13 +126,15 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 		page.LinkedAccountName = ownerAccount.Name
 	}
 
-	if page.Account.Role == database.PressUser && values.GetTrimmedString("linked") == "" {
+	if page.Account.Role == database.PressUser && values.GetTrimmedString("linked") == "" && !page.Account.Blocked {
 		err = database.UpdateOwner(page.Account.Name, page.Account.Name)
 		if err != nil {
 			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountPressUserOwnerRemovingError})
 			return
 		}
+		page.LinkedAccountName = ""
+	} else if page.Account.Blocked {
 		page.LinkedAccountName = ""
 	}
 

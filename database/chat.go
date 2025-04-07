@@ -186,10 +186,28 @@ SELECT room_id, member, account_name, new_message, created, name FROM chat_rooms
 }
 
 func SetUnreadMessages(roomID string, viewer []string) {
-	_, _ = postgresDB.Exec(`UPDATE chat_rooms_to_account SET new_message = true WHERE room_id = $1 AND (NOT (account_name = ANY($2)))`,
+	result, err := postgresDB.Query(`UPDATE chat_rooms_to_account SET new_message = true 
+                             WHERE room_id = $1 AND (NOT (account_name = ANY($2))) RETURNING account_name;`,
 		roomID, pq.Array(viewer))
+	if err != nil {
+		return
+	}
+	defer closeRows(result)
+	val := newEntry{ID: roomID, Accounts: make([]string, 0)}
+	for result.Next() {
+		var name string
+		err = result.Scan(&name)
+		if err != nil {
+			continue
+		}
+		val.Accounts = append(val.Accounts, name)
+	}
+	newChatMessage <- val
 }
 
 func SetReadMessage(roomID string, user string) {
-	_, _ = postgresDB.Exec(`UPDATE chat_rooms_to_account SET new_message = false WHERE room_id = $1 AND account_name = $2`, roomID, user)
+	_, err := postgresDB.Exec(`UPDATE chat_rooms_to_account SET new_message = false WHERE room_id = $1 AND account_name = $2`, roomID, user)
+	if err == nil {
+		markChatAsRead <- []string{user, roomID}
+	}
 }

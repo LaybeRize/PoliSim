@@ -145,13 +145,26 @@ VALUES ($1, $2, true, $3);`, &letter.ID, &letter.Author, &authorSign)
 		}
 	}
 
-	_, err = tx.Exec(`
+	result, err := tx.Query(`
 INSERT INTO letter_to_account (letter_id, account_name, has_read, sign_status)
 SELECT $1 AS letter_id, name, false AS has_read, $3 AS sign_status FROM account
-WHERE name = ANY($2) AND blocked = false;`, &letter.ID, pq.Array(letter.Reader), &signature)
+WHERE name = ANY($2) AND blocked = false RETURNING account_name;`, &letter.ID, pq.Array(letter.Reader), &signature)
 	if err != nil {
 		_ = tx.Rollback()
+		return err
 	}
+
+	val := newEntry{ID: letter.ID, Accounts: make([]string, 0)}
+	for result.Next() {
+		var name string
+		var tempErr error
+		tempErr = result.Scan(&name)
+		if tempErr != nil {
+			continue
+		}
+		val.Accounts = append(val.Accounts, name)
+	}
+	newLetter <- val
 
 	return err
 }
@@ -259,6 +272,7 @@ RETURNING letter.title, letter.author, letter.flair, letter.written, letter.sign
 	if err != nil {
 		return nil, err
 	}
+	markLetterAsRead <- []string{reader, id}
 	result, err := postgresDB.Query(`SELECT account_name, sign_status FROM letter_to_account WHERE letter_id = $1`, &id)
 	if err != nil {
 		return nil, err

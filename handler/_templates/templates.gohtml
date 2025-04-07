@@ -42,12 +42,14 @@
             </li>
             {{if .Account.Exists}}
                 <li>
-                    <a href="/my/profile">{{/*templates-15*/}}Profil</a>
+                    <a href="/my/profile">{{/*templates-15*/}}Profil {{if .Notifications.HasNotifications}}<span class="message">[!]</span>{{end}}</a>
                     <ul>
-                        <li><a href="/my/letter">{{/*templates-16*/}}Meine Briefe</a></li>
+                        <li><a href="/my/letter">{{/*templates-16*/}}Meine Briefe
+                                {{if .Notifications.HasUnreadLetters}}<span class="message">[{{.Notifications.UnreadLetters}}]</span>{{end}}</a></li>
                         <li><a href="/create/letter">{{/*templates-17*/}}Brief schreiben</a></li>
                         <li><a href="/my/documents">{{/*templates-18*/}}Meine Dokumente</a></li>
-                        <li><a href="/chat/overview">{{/*templates-40*/}}Chaträume</a></li>
+                        <li><a href="/chat/overview">{{/*templates-40*/}}Chaträume
+                                {{if .Notifications.HasUnreadChats}}<span class="message">[{{.Notifications.UnreadChats}}]</span>{{end}}</a></li>
                     </ul>
                 </li>
             {{end}}

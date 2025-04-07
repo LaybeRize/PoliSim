@@ -474,6 +474,10 @@ table.view-vote {
     line-height: 2.25rem;
 }
 
+span.message {
+    color: #f97316;
+}
+
 /* Markdown stuff */
 
 div.markdown {

@@ -28,7 +28,7 @@ func init() {
 		"pre", "code", "hr", "ul", "ol", "p", "a", "img", "mark", "blockquote", "details", "summary",
 		"small", "li", "span", "tbody", "thead", "tr", "sub", "sup", "del", "strong", "em", "br", "figure")
 	policy.AllowAttrs("class").Matching(regexp.MustCompile(`^(footnotes|added|removed)$`)).OnElements("figure", "del", "mark")
-	policy.AllowAttrs("style").Matching(regexp.MustCompile(`^ *font-family *: *(serif|sans-serif|monospace) *(; *)?$`)).OnElements("span")
+	policy.AllowAttrs("style").Matching(regexp.MustCompile(`^ *font-family *: *(serif|sans-serif|monospace) *(; *)?$`)).OnElements("span", "p")
 	policy.AllowAttrs("href").OnElements("a")
 	policy.AllowAttrs("colspan", "rowspan").Matching(bluemonday.Integer).OnElements("th", "td")
 	policy.AllowAttrs("align").Matching(bluemonday.CellAlign).OnElements("th", "td")
@@ -39,7 +39,7 @@ func init() {
 	policy.AllowAttrs("alt").Matching(bluemonday.Paragraph).OnElements("img")
 	policy.AllowAttrs("style").Matching(regexp.MustCompile(`^ *(height|width) *: *[0-9]+(.[0-9]+)?(%|rem) *(; *)?$`)).OnElements("img")
 	policy.AllowAttrs("src").OnElements("img")
-	policy.AllowAttrs("referrerpolicy").Matching(regexp.MustCompile(`^no-referrer$`)).OnElements("img")
+	policy.AllowAttrs("referrerpolicy").Matching(regexp.MustCompile(`^no-referrer$`)).OnElements("img", "a")
 }
 
 func MakeMarkdown(md string) template.HTML {
