@@ -177,13 +177,14 @@ const (
 
 	// Handler Letter
 
+	LetterRePrefix                        = "RE: "
 	LetterErrorLoadingRecipients          = "couldn't load names for possible recipients"
-	LetterNotAllowedToPostWithThatAccount = "letter can't be send with given author"
+	LetterNotAllowedToPostWithThatAccount = "letter can't be sent with given author"
 	LetterRecipientListUnvalidated        = "couldn't validate recipient list"
 	LetterNeedAtLeastOneRecipient         = "number of recipients is not allowed to be zero"
-	LetterAllowedToBeSent                 = "letter is allowed to be send like this"
+	LetterAllowedToBeSent                 = "letter is allowed to be sent like this"
 	LetterErrorWhileSending               = "couldn't send letter"
-	LetterSuccessfullySendLetter          = "letter successfully send"
+	LetterSuccessfullySendLetter          = "letter successfully sent"
 
 	// Handler Newspaper
 
@@ -598,6 +599,8 @@ var replaceMap = map[string]map[string]string{
 		"{{/*letterView-3*/}}Als {{.Letter.Recipient}} zustimmen":                             "Accept as {{.Letter.Recipient}}",
 		"{{/*letterView-4*/}}Als {{.Letter.Recipient}} ablehnen":                              "Decline as {{.Letter.Recipient}}",
 		"{{/*letterView-5*/}}ID: {{.Letter.ID}}":                                              "ID: {{.Letter.ID}}",
+		"{{/*letterView-6*/}}Antwort an Author verfassen":                                     "Write Answer to Author",
+		"{{/*letterView-7*/}}Antwort an Alle verfassen":                                       "Write Answer to All",
 	},
 
 	"newspaperCreate": {

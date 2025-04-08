@@ -177,6 +177,7 @@ const (
 
 	// Handler Letter
 
+	LetterRePrefix                        = "RE: "
 	LetterErrorLoadingRecipients          = "Konnte mögliche Empfängernamen nicht laden"
 	LetterNotAllowedToPostWithThatAccount = "Der Brief darf nicht mit dem angegebenen Account als Autor verschickt werden"
 	LetterRecipientListUnvalidated        = "Konnte Empfängerliste nicht validieren"

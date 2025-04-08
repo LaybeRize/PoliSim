@@ -17,9 +17,18 @@ func GetCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 		handler.GetNotFoundPage(writer, request)
 		return
 	}
-	page := &handler.CreateLetterPage{Recipients: []string{""}}
+	page := &handler.CreateLetterPage{}
 	page.IsError = true
 	page.Author = acc.Name
+
+	values := helper.GetAdvancedURLValues(request)
+	if title := values.GetTrimmedString("title"); title != "" {
+		page.Title = title
+	}
+	if author := values.GetTrimmedString("author"); author != "" {
+		page.Author = author
+	}
+	page.Recipients = append(values.GetTrimmedArray("recipients"), "")
 
 	var err error
 	page.PossibleAuthors, err = database.GetMyAccountNames(acc)

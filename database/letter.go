@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"html/template"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -95,6 +96,39 @@ func (l *Letter) GetTimeWritten(a *Account) string {
 		return l.Written.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
 	return l.Written.Format(loc.TimeFormatString)
+}
+
+func (l *Letter) CanReply() bool {
+	return l.Recipient != loc.AdministrationName
+}
+
+func (l *Letter) CanReplyToSender() bool {
+	return l.Recipient != l.Author
+}
+
+func (l *Letter) GetReplyOnlyToSender() template.URL {
+	return template.URL("/create/letter?" + url.Values{
+		"title":      []string{loc.LetterRePrefix + l.Title},
+		"author":     []string{l.Recipient},
+		"recipients": []string{l.Author},
+	}.Encode())
+}
+
+func (l *Letter) GetFullReply() template.URL {
+	res := make([]string, len(l.Reader)-1)
+	pos := 0
+	for _, name := range l.Reader {
+		if name != l.Recipient {
+			res[pos] = name
+			pos += 1
+		}
+	}
+
+	return template.URL("/create/letter?" + url.Values{
+		"title":      []string{loc.LetterRePrefix + l.Title},
+		"author":     []string{l.Recipient},
+		"recipients": res,
+	}.Encode())
 }
 
 func CreateLetter(letter *Letter) error {
@@ -273,7 +307,7 @@ RETURNING letter.title, letter.author, letter.flair, letter.written, letter.sign
 		return nil, err
 	}
 	markLetterAsRead <- []string{reader, id}
-	result, err := postgresDB.Query(`SELECT account_name, sign_status FROM letter_to_account WHERE letter_id = $1`, &id)
+	result, err := postgresDB.Query(`SELECT account_name, sign_status FROM letter_to_account WHERE letter_id = $1 ORDER BY account_name;`, &id)
 	if err != nil {
 		return nil, err
 	}

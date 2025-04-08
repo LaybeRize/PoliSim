@@ -29,6 +29,19 @@
                     </a>
                 </div>
             {{end}}
+            {{if .Letter.CanReply}}
+                <hr style="width: var(--standard-width); margin: 0.3rem 0;">
+                <div class="wrapper note pager">
+                    {{if .Letter.CanReplyToSender}}
+                        <a href="{{.Letter.GetReplyOnlyToSender}}" target="_blank">
+                            {{/*letterView-6*/}}Antwort an Author verfassen
+                        </a>
+                    {{end}}
+                    <a href="{{.Letter.GetFullReply}}" target="_blank">
+                        {{/*letterView-7*/}}Antwort an Alle verfassen
+                    </a>
+                </div>
+            {{end}}
         </div>
     </body>
 {{end}}
