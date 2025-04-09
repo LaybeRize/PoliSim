@@ -5,6 +5,7 @@ import (
 	"PoliSim/handler"
 	"PoliSim/helper"
 	loc "PoliSim/localisation"
+	"log/slog"
 	"net/http"
 	"net/url"
 )
@@ -104,6 +105,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	page.Account.Blocked = values.GetBool("blocked")
 	err = database.UpdateAccount(page.Account)
 	if err != nil {
+		slog.Debug(err.Error())
 		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountErrorWhileUpdating})
 		return
@@ -119,6 +121,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 
 		err = database.UpdateOwner(ownerAccount.Name, page.Account.Name)
 		if err != nil {
+			slog.Debug(err.Error())
 			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountPressUserOwnerChangeError})
 			return
@@ -129,6 +132,7 @@ func PostEditAccount(writer http.ResponseWriter, request *http.Request) {
 	if page.Account.Role == database.PressUser && values.GetTrimmedString("linked") == "" && !page.Account.Blocked {
 		err = database.UpdateOwner(page.Account.Name, page.Account.Name)
 		if err != nil {
+			slog.Debug(err.Error())
 			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 				Message: loc.AccountPressUserOwnerRemovingError})
 			return

@@ -176,8 +176,8 @@ CREATE INDEX ota_organisation_name_index ON organisation_to_account USING hash (
 CREATE INDEX ota_account_name_index ON organisation_to_account USING hash (account_name);
 CREATE VIEW organisation_linked AS
     SELECT organisation.*, ota.account_name, ota.is_admin, ownership.owner_name FROM organisation
-    LEFT JOIN organisation_to_account ota ON organisation.name = ota.organisation_name
-    LEFT JOIN ownership ON ota.account_name = ownership.account_name;
+    INNER JOIN organisation_to_account ota ON organisation.name = ota.organisation_name
+    INNER JOIN ownership ON ota.account_name = ownership.account_name;
 -- Document --
 CREATE TABLE document (
     id TEXT PRIMARY KEY,

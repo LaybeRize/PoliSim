@@ -171,6 +171,12 @@ func UpdateAccount(acc *Account) error {
 		if err != nil {
 			return err
 		}
+		_, err = tx.Exec(`UPDATE organisation SET users = array_remove(users, $1), admins = array_remove(admins, $1) 
+                                FROM organisation_to_account ota 
+                                WHERE  ota.organisation_name = organisation.name AND ota.account_name = $1;`, &acc.Name)
+		if err != nil {
+			return err
+		}
 		_, err = tx.Exec(`DELETE FROM organisation_to_account WHERE account_name = $1;`, &acc.Name)
 		if err != nil {
 			return err
