@@ -331,7 +331,7 @@ func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
 
 		var result *sql.Rows
 		result, err = postgresDB.Query(`SELECT comment_id, author, flair, written, body, removed 
-FROM comment_to_document WHERE document_id = $1 ORDER BY written;`, &doc.ID)
+FROM comment_to_document WHERE document_id = $1 ORDER BY written, comment_id;`, &doc.ID)
 		if err != nil {
 			return nil, nil, err
 		}

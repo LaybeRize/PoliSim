@@ -101,10 +101,10 @@ INSERT INTO document (id, type, organisation, organisation_name, title, author, 
                       '{"tags": [{"id": "ID-TAG-3D63642E", "text": "Example Tag  #1", "links": ["ID-DOCUMENT-75CDE4"], "written": "2025-03-05T21:40:11.1259218Z", "outgoing": true, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": null, "result": null, "participants": null}'),
                      ('ID-DOCUMENT-75CDE4', 0, 'The Villa','The Villa', 'Example Document #2', 'Timothy Nunez', 'ABC, Test Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
                       '2025-03-02 12:00:00.000000','0001-01-01 00:00:00.000000',true, false,false,false,
-                      '{"tags": [{"id": "ID-TAG-TEASD235", "text": "Example Tag  #1", "links": ["ID-DOCUMENT-ABCDEF"], "written": "2025-03-05T21:40:11.1259218Z", "outgoing": false, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": null, "result": null, "participants": null}'),
+                      '{"tags": [{"id": "ID-TAG-3D63642E", "text": "Example Tag  #1", "links": ["ID-DOCUMENT-ABCDEF"], "written": "2025-03-05T21:40:11.1259218Z", "outgoing": false, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": null, "result": null, "participants": null}'),
                      ('ID-DOCUMENT-53CDEG', 0, 'Toilet-House','Toilet-House', 'Example Document #3', 'Eden Wilcher', 'Captain', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
                       '2025-03-03 14:00:00.000000','0001-01-01 00:00:00.000000',true, false,false,false,
-                      '{"tags": [{"id": "ID-TAG-ASDWEWE2", "text": "Example Tag  #1", "links": ["ID-DISCUSSION-ABCDEF"], "written": "2025-04-05T21:40:11.1259218Z", "outgoing": false, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": null, "result": null, "participants": null}'),
+                      '{"tags": [{"id": "ID-TAG-ASDWEWE2", "text": "Example Tag  #2", "links": ["ID-DISCUSSION-ABCDEF"], "written": "2025-04-05T21:40:11.1259218Z", "outgoing": false, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": null, "result": null, "participants": null}'),
                      ('ID-DOCUMENT-12CDET', 0, 'Freighter','Freighter', 'Example Document #4', 'Gavin George', 'No Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
                       '2025-03-04 15:32:12.000000','0001-01-01 00:00:00.000000',true, false,false,false,
                       '{"tags": [], "links": null, "reader": null, "result": null, "participants": null}');
@@ -115,23 +115,35 @@ INSERT INTO document_to_account (document_id, account_name, participant) VALUES 
 -- Discussions
 INSERT INTO document (id, type, organisation, organisation_name, title, author, flair, body, written, end_time, public, removed, member_participation, admin_participation, extra_info) VALUES
                      ('ID-DISCUSSION-ABCDEF', 1, 'The Villa','The Villa', 'Example Discussion #1', 'Timothy Nunez', '', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
-                      '2025-03-01 10:00:00.000000','0001-01-01 00:00:00.000000',false, false,false,true,
-                      '{"tags": [{"id": "ID-TAG-VASD3412", "text": "Example Tag  #1", "links": ["ID-DOCUMENT-53CDEG"], "written": "2025-04-05T21:40:11.1259218Z", "outgoing": true, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": [], "result": null, "participants": []}'),
+                      '2025-03-01 10:10:00.000000','0001-01-01 00:00:00.000000',false, false,false,true,
+                      '{"tags": [{"id": "ID-TAG-ASDWEWE2", "text": "Example Tag  #2", "links": ["ID-DOCUMENT-53CDEG"], "written": "2025-04-05T21:40:11.1259218Z", "outgoing": true, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": [], "result": null, "participants": []}'),
                      ('ID-DISCUSSION-75CDE4', 1, 'Super-Bunker','Super-Bunker', 'Example Discussion #2', 'Timothy Nunez', 'ABC, Test Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
-                      '2025-03-02 12:00:00.000000','0001-01-01 00:00:00.000000',false, false,false,false,
+                      '2025-03-02 12:10:00.000000','0001-01-01 00:00:00.000000',false, false,false,false,
                       '{"tags": [], "links": null, "reader": [], "result": null, "participants": []}'),
                       ('ID-DISCUSSION-53CDEG', 1, 'Freighter','Freighter', 'Example Discussion #3', 'Gavin George', 'Captain', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
-                      '2025-03-03 14:00:00.000000','0001-01-01 00:00:00.000000',false, false,false,false,
+                      '2025-03-03 14:10:00.000000','0001-01-01 00:00:00.000000',false, false,false,false,
                       '{"tags": [], "links": null, "reader": ["Lane Langstaff", "Lonnie Hampton"], "result": null, "participants": ["Gavin George", "Timothy Nunez"]}'),
                       ('ID-DISCUSSION-12CDET', 1, 'Toilet-House','Toilet-House', 'Example Discussion #4', 'Eden Wilcher', 'No Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
-                      '2025-03-04 15:32:12.000000','0001-01-01 00:00:00.000000',true, false,true,true,
+                      '2025-03-04 14:52:12.000000','0001-01-01 00:00:00.000000',true, false,true,true,
                       '{"tags": [], "links": null, "reader": [], "result": null, "participants": []}');
 INSERT INTO document_to_account (document_id, account_name, participant) VALUES ('ID-DISCUSSION-53CDEG', 'Lonnie Hampton', false),
                                                                                 ('ID-DISCUSSION-53CDEG', 'Lane Langstaff', false),
                                                                                 ('ID-DISCUSSION-53CDEG', 'Timothy Nunez', true),
                                                                                 ('ID-DISCUSSION-53CDEG', 'Gavin George', true),
                                                                                 ('ID-DISCUSSION-12CDET', NULL, NULL);
+INSERT INTO comment_to_document (comment_id, document_id, author, flair, written, removed, body) VALUES
+                                ('ID-COMMENT-SDF62FDG', 'ID-DISCUSSION-ABCDEF', 'Timothy Nunez', '', '2025-03-02 11:10:00.000000', false, '<p>Comment #1.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
+                                ('ID-COMMENT-SDF62FD3', 'ID-DISCUSSION-12CDET', 'Eden Wilcher', '', '2025-04-04 18:52:12.000000', false, '<p>Comment #2.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
+                                ('ID-COMMENT-SDF62FD4', 'ID-DISCUSSION-53CDEG', 'Timothy Nunez', '', '2025-03-04 13:12:15.000000', false, '<p>Comment #3.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
+                                ('ID-COMMENT-AASDEW23', 'ID-DISCUSSION-53CDEG', 'Gavin George', '', '2025-03-04 14:12:15.000000', false, '<p>Comment #4.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
+                                ('ID-COMMENT-GSDG41AS', 'ID-DISCUSSION-53CDEG', 'Timothy Nunez', '', '2025-03-04 14:12:15.000000', false, '<p>Comment #5.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
+                                ('ID-COMMENT-GSDFGJE3', 'ID-DISCUSSION-53CDEG', 'Gavin George', '', '2025-03-04 15:12:15.000000', false, '<p>Comment #6.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>');
 -- Todo: Votes
+INSERT INTO personal_votes (number, account_name, id, question, answers, type, max_votes, show_votes, anonymous, end_date, vote_info) VALUES
+                           (1, 'Eden Wilcher', 'ID-VOTE-A4A592A595653318', 'Who many Rivers flow through North America?', '{12,109,24}', 0, 100, false, true, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": {}, "type": 0, "answers": ["12", "109", "24"], "question": "Who many Rivers flow through North America?", "anonymous": true, "answer_amount": 3, "illegal_votes": []}'),
+                           (2, 'Timothy Nunez', 'ID-VOTE-C4A0C545549E3418', 'Which Statements were said by Donald Trump?', '{Big Loans. The biggest.,CHINA!!!!,I was once an Astronaut. The best! I was the bestest Astronaut of the beautiful biggly United States.,So much Computer.}', 1, 100, true, true, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": {}, "type": 1, "answers": ["Big Loans. The biggest.", "CHINA!!!!", "I was once an Astronaut. The best! I was the bestest Astronaut of the beautiful biggly United States.", "So much Computer."], "question": "Which Statements were said by Donald Trump?", "anonymous": true, "answer_amount": 4, "illegal_votes": []}'),
+                           (3, 'Lane Langstaff', 'ID-VOTE-989C174982A03418', 'Rank the following Foods', '{Pizza,Pasta,Sushi,Cake,Bread}', 2, 100, false, false, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": {}, "type": 2, "answers": ["Pizza", "Pasta", "Sushi", "Cake", "Bread"], "question": "Rank the following Foods", "anonymous": false, "answer_amount": 5, "illegal_votes": []}'),
+                           (4, 'Gavin George', 'ID-VOTE-D40C8AD98CA03418', 'Do you want a next Minecraft Movie?', '{Yes}', 3, 120, true, false, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": {}, "type": 3, "answers": ["Yes"], "question": "Do you want a next Minecraft Movie?", "anonymous": false, "answer_amount": 1, "illegal_votes": []}');
 
 -- Letters
 INSERT INTO letter (id, title, author, flair, signable, written, body) VALUES
