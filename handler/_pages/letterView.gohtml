@@ -37,9 +37,11 @@
                             {{/*letterView-6*/}}Antwort an Author verfassen
                         </a>
                     {{end}}
-                    <a href="{{.Letter.GetFullReply}}" target="_blank">
-                        {{/*letterView-7*/}}Antwort an Alle verfassen
-                    </a>
+                    {{if .Letter.CanFullReply}}
+                        <a href="{{.Letter.GetFullReply}}" target="_blank">
+                            {{/*letterView-7*/}}Antwort an Alle verfassen
+                        </a>
+                    {{end}}
                 </div>
             {{end}}
         </div>

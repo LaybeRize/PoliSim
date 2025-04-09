@@ -1,3 +1,5 @@
+-- noinspection ALL
+
 -- Delete Chatroom
 /*
 Parameter 1: Chatroom ID
@@ -64,3 +66,13 @@ DELETE FROM document_to_vote WHERE document_id = $1; --PARAM=0:1
 DELETE FROM document_to_account WHERE document_id = $1; --PARAM=0:1
 DELETE FROM document WHERE id = $1; --PARAM=0:1
 SELECT ARRAY[COUNT(id)::TEXT] FROM document WHERE id = $1; --PARAM=0:1
+
+-- Remove Document Tag
+/*
+Parameter 1: Tag ID
+*/
+UPDATE document SET extra_info = subquery.element
+FROM  (SELECT document.id AS doc_id, extra_info #- ARRAY['tags', (position - 1)::TEXT] AS element
+       FROM document, jsonb_array_elements(extra_info->'tags') WITH ORDINALITY arr(elem, position)
+       WHERE elem->>'id' = $1) as subquery
+WHERE id = subquery.doc_id RETURNING ARRAY[id]; --PARAM=0:1

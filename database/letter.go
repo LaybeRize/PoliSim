@@ -106,6 +106,10 @@ func (l *Letter) CanReplyToSender() bool {
 	return l.Recipient != l.Author
 }
 
+func (l *Letter) CanFullReply() bool {
+	return l.Recipient == l.Author || len(l.Reader) > 2
+}
+
 func (l *Letter) GetReplyOnlyToSender() template.URL {
 	return template.URL("/create/letter?" + url.Values{
 		"title":      []string{loc.LetterRePrefix + l.Title},

@@ -59,6 +59,15 @@ window.onload = function () {
                     "DELETE FROM blackboard_note WHERE id = $1; --PARAM=0:1\n"+
                     "SELECT ARRAY[COUNT(id)::TEXT] FROM blackboard_note WHERE id = $1; --PARAM=0:1";
                 break;
+            case "del-doc-tag":
+                textInfoEl.innerHTML += "Parameter 1: Tag ID";
+                //noinspection ALL
+                textAreaEl.value = "UPDATE document SET extra_info = subquery.element\n"+
+                    "FROM  (SELECT document.id AS doc_id, extra_info #- ARRAY['tags', (position - 1)::TEXT] AS element\n"+
+                    "       FROM document, jsonb_array_elements(extra_info->'tags') WITH ORDINALITY arr(elem, position)\n"+
+                    "       WHERE elem->>'id' = $1) as subquery\n"+
+                    "WHERE id = subquery.doc_id RETURNING ARRAY[id]; --PARAM=0:1";
+                break;
             case "":
                 textInfoEl.innerHTML += "";
                 textAreaEl.value = "\n"+
