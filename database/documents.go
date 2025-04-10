@@ -226,7 +226,7 @@ func CreateDocument(document *Document, acc *Account) error {
 	}
 
 	if document.Type != DocTypePost {
-		err = tx.QueryRow(`SELECT ARRAY(SELECT name FROM account WHERE name = ANY($1) AND blocked = false), 
+		err = tx.QueryRow(`SELECT ARRAY(SELECT name FROM account WHERE name = ANY($1) AND (NOT (name = ANY($2))) AND blocked = false), 
        ARRAY(SELECT name FROM account WHERE name = ANY($2) AND blocked = false);`,
 			pq.Array(document.Reader), pq.Array(document.Participants)).
 			Scan(pq.Array(&document.Reader), pq.Array(&document.Participants))

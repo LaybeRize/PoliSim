@@ -37,14 +37,19 @@ type (
 	}
 
 	AccountVotes struct {
-		Question     string           `json:"question"`
-		Answers      []string         `json:"answers"`
-		Anonymous    bool             `json:"anonymous"`
-		Type         VoteType         `json:"type"`
-		AnswerAmount int              `json:"answer_amount"`
-		IllegalVotes []string         `json:"illegal_votes"`
-		List         map[string][]int `json:"list"`
-		CSV          string           `json:"CSV"`
+		Question     string             `json:"question"`
+		Answers      []string           `json:"answers"`
+		Anonymous    bool               `json:"anonymous"`
+		Type         VoteType           `json:"type"`
+		AnswerAmount int                `json:"answer_amount"`
+		IllegalVotes []string           `json:"illegal_votes"`
+		List         []SingleCastedVote `json:"list"`
+		CSV          string             `json:"CSV"`
+	}
+
+	SingleCastedVote struct {
+		Voter         string `json:"voter"`
+		BallotNumbers []int  `json:"ballot"`
 	}
 )
 
@@ -87,17 +92,18 @@ func (a *AccountVotes) NoVotes() bool {
 
 func (a *AccountVotes) VoteIterator() func(func(string, []string) bool) {
 	return func(yield func(string, []string) bool) {
-		pos := 0
-		for name, votes := range a.List {
+		var name string
+		for pos, votes := range a.List {
 			newList := make([]string, a.AnswerAmount)
-			for i, val := range votes {
+			for i, val := range votes.BallotNumbers {
 				if val > 0 {
 					newList[i] = strconv.Itoa(val)
 				}
 			}
-			pos += 1
 			if a.Anonymous {
-				name = strconv.Itoa(pos)
+				name = strconv.Itoa(pos + 1)
+			} else {
+				name = votes.Voter
 			}
 			if !yield(name, newList) {
 				return
@@ -156,7 +162,7 @@ func CreateOrUpdateVote(instance *VoteInstance, acc *Account, number int) error 
 		Type:         instance.Type,
 		AnswerAmount: instance.AnswerLength(),
 		IllegalVotes: []string{},
-		List:         map[string][]int{},
+		List:         []SingleCastedVote{},
 		CSV:          "",
 	}
 	_, err := postgresDB.Exec(`INSERT INTO personal_votes (number, account_name, id, question, answers, type, max_votes, show_votes, anonymous, end_date, vote_info) 
@@ -241,14 +247,14 @@ func CastVoteWithAccount(name string, id string, votes []int) error {
 			return err
 		}
 		_, err = tx.Exec(`UPDATE document_to_vote 
-SET vote_info = jsonb_insert(vote_info, '{illegal_votes,0}', $2) WHERE id = $1;`,
+SET vote_info = jsonb_insert(vote_info, '{illegal_votes, -1}', $2, true) WHERE id = $1;`,
 			id, string(byteStr))
 	} else {
-		byteStr, err = json.Marshal(map[string][]int{name: votes})
+		byteStr, err = json.Marshal(&SingleCastedVote{Voter: name, BallotNumbers: votes})
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(`UPDATE document_to_vote SET vote_info = jsonb_set(vote_info, '{list}', vote_info->'list' || $2) WHERE id = $1;`,
+		_, err = tx.Exec(`UPDATE document_to_vote SET vote_info = jsonb_insert(vote_info, '{list, -1}', $2, true) WHERE id = $1;`,
 			id, string(byteStr))
 	}
 	if err != nil {
