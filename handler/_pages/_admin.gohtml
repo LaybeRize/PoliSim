@@ -27,6 +27,7 @@
         <button>Create/Update File</button>
     </form>
     {{template "message" .}}
+    <h1 class="admin-heading">SQL Access</h1>
     <form hx-post="/administration/sql" hx-target="#sql-return">
         <label for="key">Key</label>
         <input id="key" name="key" type="text"  />

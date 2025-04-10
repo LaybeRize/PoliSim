@@ -18,6 +18,7 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	page := &handler.EditAccountPage{Account: nil}
+	page.IsError = true
 	query := helper.GetAdvancedURLValues(request)
 	var err error
 
@@ -26,8 +27,10 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 		page.Account, ownerAccount, err = database.GetAccountAndOwnerByAccountName(query.GetTrimmedString("name"))
 
 		if err != nil {
-			handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
-				Message: loc.AccountSearchedNameDoesNotCorrespond})
+			slog.Debug(err.Error())
+			page.Account = nil
+			page.Message = loc.AccountSearchedNameDoesNotCorrespond
+			handler.MakeFullPage(writer, acc, page)
 			return
 		}
 		if page.Account.Role == database.PressUser {
@@ -36,6 +39,7 @@ func GetEditAccount(writer http.ResponseWriter, request *http.Request) {
 			}
 			page.AccountNames, err = database.GetNamesForActiveUsers()
 			if err != nil {
+				slog.Debug(err.Error())
 				page.Message = loc.AccountErrorFindingNamesForOwner
 				handler.MakeFullPage(writer, acc, page)
 				return
@@ -167,6 +171,7 @@ func PostEditSearchAccount(writer http.ResponseWriter, request *http.Request) {
 
 	switch true {
 	case nameErr != nil && usernameErr != nil:
+		slog.Debug("Errors", "name", nameErr, "user", usernameErr)
 		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,
 			Message: loc.AccountSearchedNamesDoesNotCorrespond})
 		return

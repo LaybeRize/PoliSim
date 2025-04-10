@@ -226,7 +226,7 @@ func saveCookiesToDB() {
 		}
 		_, err := postgresDB.Exec(queryStmt, &key, &session.Account.Name, &session.ExpiresAt, &session.UpdateAt)
 		if err != nil {
-			slog.Error("While saving colors encountered an error: ", "err", err)
+			slog.Error("While saving cookies encountered an error: ", "err", err)
 		}
 	}
 }
