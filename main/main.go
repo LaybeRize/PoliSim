@@ -61,6 +61,7 @@ func main() {
 	http.HandleFunc("PATCH /check/reader/and/participants", documents.PatchFixUserList)
 
 	http.HandleFunc("GET /view/document/{id}", documents.GetDocumentViewPage)
+	http.HandleFunc("GET /view/document/{id}/csv", documents.GetDocumentVoteResults)
 	http.HandleFunc("POST /create/tag/on/{id}", documents.PostNewDocumentTagPage)
 	http.HandleFunc("GET /search/documents", documents.GetSearchDocumentsPage)
 	http.HandleFunc("PUT /search/documents", documents.PutSearchDocumentsPage)

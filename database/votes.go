@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lib/pq"
+	"html/template"
 	"log"
 	"log/slog"
 	"net/url"
@@ -48,8 +49,8 @@ type (
 	}
 
 	SingleCastedVote struct {
-		Voter         string `json:"voter"`
-		BallotNumbers []int  `json:"ballot"`
+		Voter  string `json:"voter"`
+		Ballot []int  `json:"ballot"`
 	}
 )
 
@@ -68,8 +69,8 @@ func (a *AccountVotes) Scan(src interface{}) error {
 	}
 }
 
-func (a *AccountVotes) GetEscapeCSV() string {
-	return strings.ReplaceAll(url.QueryEscape(a.CSV), "+", "%20")
+func (a *AccountVotes) GetEscapeCSV() template.URL {
+	return template.URL(url.PathEscape(a.CSV))
 }
 
 func (a *AccountVotes) GetHeaderWidth() int {
@@ -95,7 +96,7 @@ func (a *AccountVotes) VoteIterator() func(func(string, []string) bool) {
 		var name string
 		for pos, votes := range a.List {
 			newList := make([]string, a.AnswerAmount)
-			for i, val := range votes.BallotNumbers {
+			for i, val := range votes.Ballot {
 				if val > 0 {
 					newList[i] = strconv.Itoa(val)
 				}
@@ -250,7 +251,7 @@ func CastVoteWithAccount(name string, id string, votes []int) error {
 SET vote_info = jsonb_insert(vote_info, '{illegal_votes, -1}', $2, true) WHERE id = $1;`,
 			id, string(byteStr))
 	} else {
-		byteStr, err = json.Marshal(&SingleCastedVote{Voter: name, BallotNumbers: votes})
+		byteStr, err = json.Marshal(&SingleCastedVote{Voter: name, Ballot: votes})
 		if err != nil {
 			return err
 		}
@@ -332,7 +333,8 @@ func generateResults() {
 	defer shutdown.Unlock()
 
 	log.Println("Cleaning Vote Results")
-	result, err := postgresDB.Query(`SELECT id FROM document WHERE end_time < $1 AND type = $2;`, time.Now().UTC(), DocTypeVote)
+	result, err := postgresDB.Query(`SELECT id FROM document WHERE end_time < $1 AND type = $2 AND processed = false;`,
+		time.Now().UTC(), DocTypeVote)
 	if err != nil {
 		slog.Error(err.Error())
 		return
@@ -403,14 +405,17 @@ func transactionForSingleDocument(documentID string) {
 		slog.Error(err.Error())
 		return
 	}
-	_, err = tx.Exec(`UPDATE document SET extra_info = jsonb_set(extra_info, '{links}', '[]', false) WHERE id = $1;`,
+	_, err = tx.Exec(`UPDATE document SET extra_info = jsonb_set(extra_info, '{links}', '[]', false), processed = true WHERE id = $1;`,
 		documentID)
 	if err != nil {
 		slog.Error(err.Error())
 		return
 	}
 
-	_ = tx.Commit()
+	err = tx.Commit()
+	if err == nil {
+		slog.Debug("Made new Result for Document: ", "docID", documentID)
+	}
 	return
 }
 

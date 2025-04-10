@@ -316,8 +316,12 @@ func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
 		id, acc.GetName(), acc.IsAtLeastAdmin()).Scan(
 		&doc.ID, &doc.Type, &doc.Organisation, &doc.Title, &doc.Author, &doc.Flair, &doc.Written, &doc.Body,
 		&doc.Public, &doc.Removed, &doc.MemberParticipation, &doc.AdminParticipation, &doc.End, doc, &doc.AllowedToAddTags)
-	doc.AllowedToAddTags = doc.AllowedToAddTags || acc.IsAtLeastAdmin()
 
+	if err != nil {
+		return nil, nil, err
+	}
+
+	doc.AllowedToAddTags = doc.AllowedToAddTags || acc.IsAtLeastAdmin()
 	commentator := make([]string, 0)
 
 	if doc.Type == DocTypeDiscussion {
@@ -349,6 +353,36 @@ FROM comment_to_document WHERE document_id = $1 ORDER BY written, comment_id;`, 
 	}
 
 	return doc, commentator, err
+}
+
+func GetVoteCSVForDocument(id string, acc *Account) (string, error) {
+	doc := &Document{}
+	err := postgresDB.QueryRow(`SELECT type, extra_info FROM document_linked 
+          WHERE id = $1 AND (public = true OR owner_name = $2 OR $3 = true) ORDER BY is_admin DESC NULLS LAST LIMIT 1;`,
+		id, acc.GetName(), acc.IsAtLeastAdmin()).Scan(&doc.Type, doc)
+
+	if err != nil {
+		return "", err
+	}
+
+	if doc.Type != DocTypeVote {
+		return "", NotAllowedError
+	}
+
+	if len(doc.Result) == 0 {
+		return "", nil
+	} else if len(doc.Result) == 1 {
+		return doc.Result[0].CSV, nil
+	}
+	resultString := ""
+	for i := range len(doc.Result) {
+		if i == 0 {
+			resultString = doc.Result[i].CSV
+			continue
+		}
+		resultString += "\n" + doc.Result[i].CSV
+	}
+	return resultString, nil
 }
 
 func RemoveRestoreDocument(docId string) {

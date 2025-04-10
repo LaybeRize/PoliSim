@@ -47,7 +47,7 @@
         {{else}}
             {{range .Results}}
                 {{- /*gotype: PoliSim/database.SmallDocument*/ -}}
-                <a href="/view/document/{{.ID}}" target="_blank">{{- if .IsPost -}}
+                <a href="/view/document/{{.ID}}">{{- if .IsPost -}}
                         <i class="bi bi-post"></i>
                     {{- end }}{{- if .IsDiscussion -}}
                         <i class="bi bi-discussion"></i>

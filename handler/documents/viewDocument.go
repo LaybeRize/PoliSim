@@ -30,6 +30,18 @@ func getDocumentPageObject(acc *database.Account, request *http.Request) *handle
 	return page
 }
 
+func GetDocumentVoteResults(writer http.ResponseWriter, request *http.Request) {
+	acc, _ := database.RefreshSession(writer, request)
+	csv, err := database.GetVoteCSVForDocument(request.PathValue("id"), acc)
+	if err != nil {
+		writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+	writer.Header().Add("Content-Type", "text/csv;charset=utf-8")
+	writer.Header().Add("Content-Disposition", `attachment; filename="results.csv"`)
+	_, _ = writer.Write([]byte(csv))
+}
+
 func PatchRemoveDocument(writer http.ResponseWriter, request *http.Request) {
 	acc, _ := database.RefreshSession(writer, request)
 	if !acc.IsAtLeastAdmin() {

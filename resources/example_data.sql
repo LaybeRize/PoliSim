@@ -29,7 +29,7 @@ INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) 
                                                                                        ('The Villa', 'Gavin George', false),
                                                                                        ('The Villa', 'Timothy Nunez', true);
 INSERT INTO organisation (name, main_group, sub_group, visibility, flair, users, admins) VALUES
-                         ('Toilet-House', 'Land based Objects', 'Houses', 0, 'Supt.', ARRAY[] , ARRAY['Eden Wilcher']);
+                         ('Toilet-House', 'Land based Objects', 'Houses', 0, 'Supt.', ARRAY[]::TEXT[] , ARRAY['Eden Wilcher']);
 INSERT INTO organisation_to_account (organisation_name, account_name, is_admin) VALUES ('Toilet-House', 'Eden Wilcher', true);
 INSERT INTO organisation (name, main_group, sub_group, visibility, flair, users, admins) VALUES
                          ('Super-Bunker', 'Land based Objects', 'Underground', 2, '', ARRAY['Eden Wilcher', 'Timothy Nunez'] , ARRAY['Gavin George', 'Vania Walton']);
@@ -115,16 +115,16 @@ INSERT INTO document_to_account (document_id, account_name, participant) VALUES 
 -- Discussions
 INSERT INTO document (id, type, organisation, organisation_name, title, author, flair, body, written, end_time, public, removed, member_participation, admin_participation, extra_info) VALUES
                      ('ID-DISCUSSION-ABCDEF', 1, 'The Villa','The Villa', 'Example Discussion #1', 'Timothy Nunez', '', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
-                      '2025-03-01 10:10:00.000000','0001-01-01 00:00:00.000000',false, false,false,true,
+                      '2025-03-01 10:10:00.000000','2025-03-05 10:10:00.000000',false, false,false,true,
                       '{"tags": [{"id": "ID-TAG-ASDWEWE2", "text": "Example Tag  #2", "links": ["ID-DOCUMENT-53CDEG"], "written": "2025-04-05T21:40:11.1259218Z", "outgoing": true, "link_color": "#fecdd3", "text_color": "#ffffff", "background_color": "#4c0519"}], "links": null, "reader": [], "result": null, "participants": []}'),
                      ('ID-DISCUSSION-75CDE4', 1, 'Super-Bunker','Super-Bunker', 'Example Discussion #2', 'Timothy Nunez', 'ABC, Test Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
-                      '2025-03-02 12:10:00.000000','0001-01-01 00:00:00.000000',false, false,false,false,
+                      '2025-03-02 12:10:00.000000','2025-03-04 12:10:00.000000',false, false,false,false,
                       '{"tags": [], "links": null, "reader": [], "result": null, "participants": []}'),
                       ('ID-DISCUSSION-53CDEG', 1, 'Freighter','Freighter', 'Example Discussion #3', 'Gavin George', 'Captain', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
-                      '2025-03-03 14:10:00.000000','0001-01-01 00:00:00.000000',false, false,false,false,
+                      '2025-03-03 14:10:00.000000','2025-03-13 14:10:00.000000',false, false,false,false,
                       '{"tags": [], "links": null, "reader": ["Lane Langstaff", "Lonnie Hampton"], "result": null, "participants": ["Gavin George", "Timothy Nunez"]}'),
                       ('ID-DISCUSSION-12CDET', 1, 'Toilet-House','Toilet-House', 'Example Discussion #4', 'Eden Wilcher', 'No Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
-                      '2025-03-04 14:52:12.000000','0001-01-01 00:00:00.000000',true, false,true,true,
+                      '2025-03-04 14:52:12.000000','2025-03-10 14:52:12.000000',true, false,true,true,
                       '{"tags": [], "links": null, "reader": [], "result": null, "participants": []}');
 INSERT INTO document_to_account (document_id, account_name, participant) VALUES ('ID-DISCUSSION-53CDEG', 'Lonnie Hampton', false),
                                                                                 ('ID-DISCUSSION-53CDEG', 'Lane Langstaff', false),
@@ -133,17 +133,46 @@ INSERT INTO document_to_account (document_id, account_name, participant) VALUES 
                                                                                 ('ID-DISCUSSION-12CDET', NULL, NULL);
 INSERT INTO comment_to_document (comment_id, document_id, author, flair, written, removed, body) VALUES
                                 ('ID-COMMENT-SDF62FDG', 'ID-DISCUSSION-ABCDEF', 'Timothy Nunez', '', '2025-03-02 11:10:00.000000', false, '<p>Comment #1.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
-                                ('ID-COMMENT-SDF62FD3', 'ID-DISCUSSION-12CDET', 'Eden Wilcher', '', '2025-04-04 18:52:12.000000', false, '<p>Comment #2.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
+                                ('ID-COMMENT-SDF62FD3', 'ID-DISCUSSION-12CDET', 'Eden Wilcher', '', '2025-03-07 18:52:12.000000', false, '<p>Comment #2.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
                                 ('ID-COMMENT-SDF62FD4', 'ID-DISCUSSION-53CDEG', 'Timothy Nunez', '', '2025-03-04 13:12:15.000000', false, '<p>Comment #3.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
                                 ('ID-COMMENT-AASDEW23', 'ID-DISCUSSION-53CDEG', 'Gavin George', '', '2025-03-04 14:12:15.000000', false, '<p>Comment #4.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
                                 ('ID-COMMENT-GSDG41AS', 'ID-DISCUSSION-53CDEG', 'Timothy Nunez', '', '2025-03-04 14:12:15.000000', false, '<p>Comment #5.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'),
                                 ('ID-COMMENT-GSDFGJE3', 'ID-DISCUSSION-53CDEG', 'Gavin George', '', '2025-03-04 15:12:15.000000', false, '<p>Comment #6.<br>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>');
--- Todo: Votes
+-- Personal Votes
 INSERT INTO personal_votes (number, account_name, id, question, answers, type, max_votes, show_votes, anonymous, end_date, vote_info) VALUES
-                           (1, 'Eden Wilcher', 'ID-VOTE-A4A592A595653318', 'Who many Rivers flow through North America?', '{12,109,24}', 0, 100, false, true, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": {}, "type": 0, "answers": ["12", "109", "24"], "question": "Who many Rivers flow through North America?", "anonymous": true, "answer_amount": 3, "illegal_votes": []}'),
-                           (2, 'Timothy Nunez', 'ID-VOTE-C4A0C545549E3418', 'Which Statements were said by Donald Trump?', '{Big Loans. The biggest.,CHINA!!!!,I was once an Astronaut. The best! I was the bestest Astronaut of the beautiful biggly United States.,So much Computer.}', 1, 100, true, true, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": {}, "type": 1, "answers": ["Big Loans. The biggest.", "CHINA!!!!", "I was once an Astronaut. The best! I was the bestest Astronaut of the beautiful biggly United States.", "So much Computer."], "question": "Which Statements were said by Donald Trump?", "anonymous": true, "answer_amount": 4, "illegal_votes": []}'),
-                           (3, 'Lane Langstaff', 'ID-VOTE-989C174982A03418', 'Rank the following Foods', '{Pizza,Pasta,Sushi,Cake,Bread}', 2, 100, false, false, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": {}, "type": 2, "answers": ["Pizza", "Pasta", "Sushi", "Cake", "Bread"], "question": "Rank the following Foods", "anonymous": false, "answer_amount": 5, "illegal_votes": []}'),
-                           (4, 'Gavin George', 'ID-VOTE-D40C8AD98CA03418', 'Do you want a next Minecraft Movie?', '{Yes}', 3, 120, true, false, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": {}, "type": 3, "answers": ["Yes"], "question": "Do you want a next Minecraft Movie?", "anonymous": false, "answer_amount": 1, "illegal_votes": []}');
+                           (1, 'Eden Wilcher', 'ID-VOTE-A4A592A595653318', 'Who many Rivers flow through North America?', '{12,109,24}', 0, 100, false, true, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": [], "type": 0, "answers": ["12", "109", "24"], "question": "Who many Rivers flow through North America?", "anonymous": true, "answer_amount": 3, "illegal_votes": []}'),
+                           (2, 'Timothy Nunez', 'ID-VOTE-C4A0C545549E3418', 'Which Statements were said by Donald Trump?', '{Big Loans. The biggest.,CHINA!!!!,I was once an Astronaut. The best! I was the bestest Astronaut of the beautiful biggly United States.,So much Computer.}', 1, 100, true, true, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": [], "type": 1, "answers": ["Big Loans. The biggest.", "CHINA!!!!", "I was once an Astronaut. The best! I was the bestest Astronaut of the beautiful biggly United States.", "So much Computer."], "question": "Which Statements were said by Donald Trump?", "anonymous": true, "answer_amount": 4, "illegal_votes": []}'),
+                           (3, 'Lane Langstaff', 'ID-VOTE-989C174982A03418', 'Rank the following Foods', '{Pizza,Pasta,Sushi,Cake,Bread}', 2, 100, false, false, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": [], "type": 2, "answers": ["Pizza", "Pasta", "Sushi", "Cake", "Bread"], "question": "Rank the following Foods", "anonymous": false, "answer_amount": 5, "illegal_votes": []}'),
+                           (4, 'Gavin George', 'ID-VOTE-D40C8AD98CA03418', 'Do you want a next Minecraft Movie?', '{Yes}', 3, 120, true, false, '0001-01-01 00:00:00.000000', '{"CSV": "", "list": [], "type": 3, "answers": ["Yes"], "question": "Do you want a next Minecraft Movie?", "anonymous": false, "answer_amount": 1, "illegal_votes": []}');
+-- Votes
+INSERT INTO document (id, type, organisation, organisation_name, title, author, flair, body, written, end_time, public, removed, member_participation, admin_participation, extra_info) VALUES
+                     ('ID-VOTE-DOC-ABCDEF', 2, 'The Villa','The Villa', 'Example Vote #1', 'Timothy Nunez', '', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                      '2025-03-01 10:10:15.900000','2025-03-05 10:10:00.000000',false, false,false,true,
+                      '{"tags": [], "links": [{"id": "ID-VOTE-6345FASDF", "question": "Who many Rivers flow through North America?"}], "reader": [], "result": [], "participants": []}'),
+                     ('ID-VOTE-DOC-75CDE4', 2, 'Super-Bunker','Super-Bunker', 'Example Vote #2', 'Timothy Nunez', 'ABC, Test Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                      '2025-03-02 12:10:15.900000','2025-03-04 12:10:00.000000',false, false,false,false,
+                      '{"tags": [], "links": [{"id": "ID-VOTE-EWRT4745", "question": "Which Statements were said by Donald Trump?"}], "reader": [], "result": [], "participants": []}'),
+                      ('ID-VOTE-DOC-53CDEG', 2, 'Freighter','Freighter', 'Example Vote #3', 'Gavin George', 'Captain', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                      '2025-03-03 14:10:15.900000','2025-03-13 14:10:00.000000',false, false,false,false,
+                      '{"tags": [], "links": [{"id": "ID-VOTE-ZWRZ6546", "question": "Rank the following Foods"}], "reader": ["Lane Langstaff", "Lonnie Hampton"], "result": [], "participants": ["Gavin George", "Timothy Nunez"]}'),
+                      ('ID-VOTE-DOC-12CDET', 2, 'Toilet-House','Toilet-House', 'Example Vote #4', 'Eden Wilcher', 'No Flair', '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br>Aenean volutpat dignissim metus, non eleifend tortor cursus eget.</p>',
+                      '2025-03-04 14:52:15.900000',(now() AT TIME ZONE 'UTC')::TIMESTAMP + '1 day'::INTERVAL,true, false,true,true,
+                       '{"tags": [], "links": [{"id": "ID-VOTE-957GHWET", "question": "Do you want a next Minecraft Movie?"}], "reader": [], "result": [], "participants": ["Gavin George", "Timothy Nunez"]}');
+INSERT INTO document_to_account (document_id, account_name, participant) VALUES ('ID-VOTE-DOC-53CDEG', 'Lonnie Hampton', false),
+                                                                                ('ID-VOTE-DOC-53CDEG', 'Lane Langstaff', false),
+                                                                                ('ID-VOTE-DOC-53CDEG', 'Timothy Nunez', true),
+                                                                                ('ID-VOTE-DOC-53CDEG', 'Gavin George', true),
+                                                                                ('ID-VOTE-DOC-12CDET', 'Timothy Nunez', true),
+                                                                                ('ID-VOTE-DOC-12CDET', 'Gavin George', true);
+INSERT INTO document_to_vote (document_id, id, question, answers, type, max_votes, show_votes, anonymous, end_date, vote_info) VALUES
+                           ('ID-VOTE-DOC-ABCDEF', 'ID-VOTE-6345FASDF', 'Who many Rivers flow through North America?', '{12,109,24}', 0, 100, false, true, '2025-03-05 10:10:00.000000', '{"CSV": "", "list": [{"voter": "Timothy Nunez", "ballot": [1, 0, 0]}], "type": 0, "answers": ["12", "109", "24"], "question": "Who many Rivers flow through North America?", "anonymous": true, "answer_amount": 3, "illegal_votes": []}'),
+                           ('ID-VOTE-DOC-75CDE4', 'ID-VOTE-EWRT4745', 'Which Statements were said by Donald Trump?', '{Big Loans. The biggest.,CHINA!!!!,I was once an Astronaut. The best! I was the bestest Astronaut of the beautiful biggly United States.,So much Computer.}', 1, 100, true, true, '2025-03-04 12:10:00.000000', '{"CSV": "", "list": [], "type": 1, "answers": ["Big Loans. The biggest.", "CHINA!!!!", "I was once an Astronaut. The best! I was the bestest Astronaut of the beautiful biggly United States.", "So much Computer."], "question": "Which Statements were said by Donald Trump?", "anonymous": true, "answer_amount": 4, "illegal_votes": []}'),
+                           ('ID-VOTE-DOC-53CDEG', 'ID-VOTE-ZWRZ6546', 'Rank the following Foods', '{Pizza,Pasta,Sushi,Cake,Bread}', 2, 100, false, false, '2025-03-13 14:10:00.000000', '{"CSV": "", "list": [{"voter": "Timothy Nunez", "ballot": [1, 4, 3, 5, -1]}], "type": 2, "answers": ["Pizza", "Pasta", "Sushi", "Cake", "Bread"], "question": "Rank the following Foods", "anonymous": false, "answer_amount": 5, "illegal_votes": []}'),
+                           ('ID-VOTE-DOC-12CDET', 'ID-VOTE-957GHWET', 'Do you want a next Minecraft Movie?', '{Yes}', 3, 120, true, false, (now() AT TIME ZONE 'UTC')::TIMESTAMP + '1 day'::INTERVAL,
+                            '{"CSV": "", "list": [{"voter": "Timothy Nunez", "ballot": [5]}, {"voter": "Eden Wilcher", "ballot": [110]}], "type": 3, "answers": ["Yes"], "question": "Do you want a next Minecraft Movie?", "anonymous": false, "answer_amount": 1, "illegal_votes": ["Gavin George"]}');
+INSERT INTO has_voted (account_name, vote_id) VALUES ('Eden Wilcher', 'ID-VOTE-957GHWET'),
+                                                     ('Timothy Nunez', 'ID-VOTE-957GHWET'),
+                                                     ('Gavin George', 'ID-VOTE-957GHWET');
 
 -- Letters
 INSERT INTO letter (id, title, author, flair, signable, written, body) VALUES

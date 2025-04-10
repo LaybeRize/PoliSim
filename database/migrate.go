@@ -192,6 +192,7 @@ CREATE TABLE document (
     end_time TIMESTAMP,
     public  BOOLEAN NOT NULL,
     removed BOOLEAN NOT NULL,
+    processed BOOLEAN NOT NULL DEFAULT FALSE,
     member_participation BOOLEAN NOT NULL,
     admin_participation BOOLEAN NOT NULL,
     extra_info jsonb NOT NULL,
