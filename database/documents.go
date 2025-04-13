@@ -1,12 +1,14 @@
 package database
 
 import (
+	"PoliSim/helper"
 	loc "PoliSim/localisation"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"github.com/lib/pq"
 	"html/template"
 	"strconv"
@@ -172,6 +174,46 @@ func (d *Document) IsVote() bool { return d.Type == DocTypeVote }
 
 func (d *Document) Ended() bool { return time.Now().After(d.End) }
 
+func (d *Document) GetEmbed() *discordgo.MessageEmbed {
+	if !d.Public {
+		return nil
+	}
+	base := &discordgo.MessageEmbed{
+		URL:         helper.UrlPrefix + "/view/document/" + d.ID,
+		Type:        discordgo.EmbedTypeRich,
+		Title:       d.Title,
+		Description: fmt.Sprintf(loc.DocumentNameOrganisation, d.Organisation),
+		Timestamp:   d.Written.Format("2006-01-02T15:04:05Z"),
+		Color:       0x1E293B,
+		Footer:      nil,
+		Image:       nil,
+		Thumbnail:   nil,
+		Video:       nil,
+		Provider:    nil,
+		Author:      &discordgo.MessageEmbedAuthor{Name: d.GetAuthor()},
+		Fields: []*discordgo.MessageEmbedField{{
+			Name: loc.DocumentNameType,
+		}},
+	}
+	switch true {
+	case d.IsPost():
+		base.Fields[0].Value = loc.DocumentNameTypeDocument
+	case d.IsDiscussion():
+		base.Fields[0].Value = loc.DocumentNameTypeDiscussion
+	case d.IsVote():
+		base.Fields[0].Value = loc.DocumentNameTypeVote
+	}
+
+	if !d.IsPost() {
+		base.Fields = append(base.Fields, &discordgo.MessageEmbedField{
+			Name:  loc.DocumentNameEndTime,
+			Value: fmt.Sprintf("<t:%d:R>", d.End.Unix()),
+		})
+	}
+
+	return base
+}
+
 func (t *DocumentTag) Value() (driver.Value, error) {
 	return json.Marshal(t)
 }
@@ -237,11 +279,12 @@ func CreateDocument(document *Document, acc *Account) error {
 
 	document.Tags = make([]DocumentTag, 0)
 
+	document.Written = time.Now().UTC()
 	_, err = tx.Exec(`INSERT INTO document (id, type, organisation, organisation_name, title, author, flair, body, written, 
                       end_time, public, removed, member_participation, admin_participation, extra_info) 
 VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, $9, $10, false, $11, $12, $13);`,
 		document.ID, document.Type, document.Organisation, document.Title, document.Author, document.Flair,
-		document.Body, time.Now().UTC(), document.End, document.Public, document.MemberParticipation,
+		document.Body, document.Written, document.End, document.Public, document.MemberParticipation,
 		document.AdminParticipation, &document)
 	if err != nil {
 		return err
@@ -304,8 +347,11 @@ ORDER BY id RETURNING id, question;`, document.ID, acc.GetName(), pq.Array(docum
 			return err
 		}
 	}
-
-	return tx.Commit()
+	err = tx.Commit()
+	if err == nil {
+		helper.SendDiscordEmbedMessage(document.GetEmbed())
+	}
+	return err
 }
 
 func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {

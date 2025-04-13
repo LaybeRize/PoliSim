@@ -113,6 +113,13 @@ const (
 
 	// Handler Documents
 
+	DocumentNameType           = "Art"
+	DocumentNameTypeDocument   = "Dokument"
+	DocumentNameTypeDiscussion = "Diskussion"
+	DocumentNameTypeVote       = "Abstimmung"
+	DocumentNameEndTime        = "Ende"
+	DocumentNameOrganisation   = "Veröffentlicht in %s"
+
 	DocumentGeneralMissingPermissionForDocumentCreation = "Fehlende Berechtigung um mit diesem Account ein Dokument zu erstellen"
 	DocumentGeneralFunctionNotAvailable                 = "Diese Funktion ist nicht verfügbar"
 	DocumentGeneralTimestampInvalid                     = "Der angegebene Zeitstempel für das Ende ist nicht gültig"

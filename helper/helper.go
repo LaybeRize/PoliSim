@@ -3,6 +3,7 @@ package helper
 import (
 	"bytes"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"log"
 	"log/slog"
 	"math/rand"
@@ -18,12 +19,35 @@ import (
 
 var generator = rand.New(rand.NewSource(time.Now().UnixNano()))
 var matchColor = regexp.MustCompile(`(?m)^#[A-Fa-f0-9]{6}$`)
+var discordChannelID = os.Getenv("DISCORD_CHANNEL")
+var UrlPrefix = os.Getenv("URL_PREFIX")
+var discord *discordgo.Session = nil
 
 func init() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Llongfile)
 	if os.Getenv("LOG_LEVEL") == "DEBUG" {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
+	discordToken, hasToken := os.LookupEnv("DISCORD_TOKEN")
+	if hasToken {
+		var err error
+		discord, err = discordgo.New("Bot " + discordToken)
+		if err != nil {
+			log.Fatalf("Could not connect to discord properly: %v", err)
+		}
+	}
+}
+
+func SendDiscordEmbedMessage(message *discordgo.MessageEmbed) {
+	if discord == nil || message == nil {
+		return
+	}
+	_, err := discord.ChannelMessageSendComplex(discordChannelID, &discordgo.MessageSend{
+		Embeds: []*discordgo.MessageEmbed{message},
+	})
+	if err != nil {
+		slog.Debug(err.Error())
 	}
 }
 

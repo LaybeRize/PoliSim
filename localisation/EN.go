@@ -113,6 +113,13 @@ const (
 
 	// Handler Documents
 
+	DocumentNameType           = "Type"
+	DocumentNameTypeDocument   = "Document"
+	DocumentNameTypeDiscussion = "Discussion"
+	DocumentNameTypeVote       = "Vote"
+	DocumentNameEndTime        = "End Time"
+	DocumentNameOrganisation   = "Published in %s"
+
 	DocumentGeneralMissingPermissionForDocumentCreation = "missing permission to create document with this account"
 	DocumentGeneralFunctionNotAvailable                 = "this functionality is not available"
 	DocumentGeneralTimestampInvalid                     = "the given end timestamp is invalid"
