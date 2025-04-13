@@ -117,7 +117,7 @@ const (
 	DocumentNameTypeDocument   = "Document"
 	DocumentNameTypeDiscussion = "Discussion"
 	DocumentNameTypeVote       = "Vote"
-	DocumentNameEndTime        = "End Time"
+	DocumentNameEndTime        = "Ends"
 	DocumentNameOrganisation   = "Published in %s"
 
 	DocumentGeneralMissingPermissionForDocumentCreation = "missing permission to create document with this account"
