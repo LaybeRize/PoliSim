@@ -5,6 +5,7 @@ import (
 	loc "PoliSim/localisation"
 	"database/sql"
 	"errors"
+	"github.com/bwmarrin/discordgo"
 	"github.com/lib/pq"
 	"html/template"
 	"time"
@@ -57,6 +58,29 @@ func (n *Publication) GetPublishedDate(a *Account) string {
 		return n.PublishedDate.In(a.TimeZone).Format(loc.TimeFormatString)
 	}
 	return n.PublishedDate.Format(loc.TimeFormatString)
+}
+
+func (n *Publication) GetEmbed() *discordgo.MessageEmbed {
+	base := &discordgo.MessageEmbed{
+		URL:       helper.UrlPrefix + "/publication/view/" + n.ID,
+		Type:      discordgo.EmbedTypeRich,
+		Title:     loc.NewspaperEmbedTitel,
+		Timestamp: n.PublishedDate.Format("2006-01-02T15:04:05Z"),
+		Color:     0xFEF3C7,
+		Footer:    nil,
+		Image:     nil,
+		Thumbnail: nil,
+		Video:     nil,
+		Provider:  nil,
+		Author:    &discordgo.MessageEmbedAuthor{Name: n.NewspaperName},
+		Fields:    nil,
+	}
+	if n.Special {
+		base.Description = loc.NewspaperDescriptionIsSpecial
+	} else {
+		base.Description = loc.NewspaperDescriptionIsNormal
+	}
+	return base
 }
 
 func CreateNewspaper(newspaper *Newspaper) error {
@@ -197,31 +221,35 @@ VALUES ($1, $2, true, false, $3)`, id, name, time.Now().UTC())
 }
 
 func PublishPublication(id string) error {
+	pub := &Publication{ID: id, Published: true}
 	tx, err := postgresDB.Begin()
 	if err != nil {
 		return err
 	}
 	defer rollback(tx)
-	var newspaperName string
-	err = tx.QueryRow(`SELECT id FROM newspaper_article WHERE publication_id = $1 LIMIT 1;`, &id).Scan(&newspaperName)
+	err = tx.QueryRow(`SELECT id FROM newspaper_article WHERE publication_id = $1 LIMIT 1;`, &id).Scan(&pub.NewspaperName)
 	if err != nil {
 		return err
 	}
-	var special bool
+	pub.PublishedDate = time.Now().UTC()
 	err = tx.QueryRow(`UPDATE newspaper_publication 
 SET published = true, publish_date = $2 WHERE id = $1 RETURNING special, newspaper_name`,
-		&id, time.Now().UTC()).Scan(&special, &newspaperName)
+		&id, pub.PublishedDate).Scan(&pub.Special, &pub.NewspaperName)
 	if err != nil {
 		return err
 	}
-	if !special {
+	if !pub.Special {
 		_, err = tx.Exec(`INSERT INTO newspaper_publication (id, newspaper_name, special, published, publish_date) 
-VALUES ($1, $2, false, false, $3)`, helper.GetUniqueID(newspaperName), newspaperName, time.Now().UTC())
+VALUES ($1, $2, false, false, $3)`, helper.GetUniqueID(pub.NewspaperName), pub.NewspaperName, time.Now().UTC())
 		if err != nil {
 			return err
 		}
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err == nil {
+		helper.SendDiscordEmbedMessage(helper.DiscordPressChannelID, pub.GetEmbed())
+	}
+	return err
 }
 
 func GetPublicationForUser(id string, isAdmin bool) error {

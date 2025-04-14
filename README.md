@@ -41,23 +41,40 @@ Users can also create and write in their own chatrooms, where they can communica
 
 # Setup Information
 
+Legend:
+````
+[User-Defined Value]
+<Optinal Value>
+<--
+Optional Value
+But all must be defined 
+If one is defined
+-->
+````
+
 The container composition needs the following environment information to run:
 `````
-DB_ADDRESS=db
 ADDRESS=0.0.0.0:[8080]
 NAME=[Your Name Here]
 USERNAME=[Your Username Here]
-PASSWORD=[test]
-LOG_LEVEL=DEBUG
+PASSWORD=[Your Password Here]
+DB_ADDRESS=db
 POSTGRES_USER=[user]
 POSTGRES_DB=[testdb]
 POSTGRES_PASSWORD=[password]
-PAGE_NAME=[some string]
-ICON_PATH=[path]
-WELCOME_FILE=[name]
 SQL_KEY=[key value]
+<LOG_LEVEL=DEBUG>
+<PAGE_NAME=[some string]>
+<ICON_PATH=[path]>
+<WELCOME_FILE=[name]>
+<--
+DISCORD_TOKEN=[Discord Bot Token]
+URL_PREFIX=[the actual URL prefix for the website]
+<DOCUMENT_CHANNEL_ID=[Channel ID for public Documents]>
+<PRESS_CHANNEL_ID=[Channel ID for Press Publications]>
+<NOTES_CHANNEL_ID=[Channel ID for User Notes]>
+-->
 `````
-`LOG_LEVEL` can be omitted and everything in [] can be customized, the rest is either required to stay that way, or should
-stay that way if the docker-compose.yaml is used. DB_PASSWORD and the password after neo4j/ must be the same, otherwise 
-the server can't connect to the DB. The password must be at least 8 characters by neo4j's demand. If you are using the 
-provided compose file, you can actually change NEO4J_AUTH to `${DB_USER}/${DB_PASSWORD}`.
+
+Anything which is marked non-customizable should stay that way if the docker-compose.yaml is used. 
+If the docker-compose.yaml is not used these can of course be customized too.

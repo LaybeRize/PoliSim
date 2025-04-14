@@ -64,6 +64,10 @@ const (
 	NotesContentRemovedHTML = template.HTML("<code>[Removed]</code>")
 	NotesRemovedTitelText   = "[Removed]"
 
+	NotesInfoField          = "Information"
+	NotesMultipleReferences = "[%d References](%s%s)"
+	NotesSingleReference    = "[One Reference](%s%s)"
+
 	// Database Votes
 
 	VoteNoIllegalVotesCasted = "None"
@@ -194,6 +198,10 @@ const (
 	LetterSuccessfullySendLetter          = "letter successfully sent"
 
 	// Handler Newspaper
+
+	NewspaperDescriptionIsSpecial = "Special Publication"
+	NewspaperDescriptionIsNormal  = ""
+	NewspaperEmbedTitel           = "New Newspaper Publication"
 
 	NewspaperCouldNotLoadAllNewspaperForAccount = "couldn't load all possible newspaper for the selected author"
 	NewspaperSubtitleTooLong                    = "Subtitle is longer then maximum of %d characters"

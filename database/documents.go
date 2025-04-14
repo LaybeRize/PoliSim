@@ -349,7 +349,7 @@ ORDER BY id RETURNING id, question;`, document.ID, acc.GetName(), pq.Array(docum
 	}
 	err = tx.Commit()
 	if err == nil {
-		helper.SendDiscordEmbedMessage(document.GetEmbed())
+		helper.SendDiscordEmbedMessage(helper.DiscordDocumentChannelID, document.GetEmbed())
 	}
 	return err
 }

@@ -19,7 +19,9 @@ import (
 
 var generator = rand.New(rand.NewSource(time.Now().UnixNano()))
 var matchColor = regexp.MustCompile(`(?m)^#[A-Fa-f0-9]{6}$`)
-var discordChannelID = os.Getenv("DISCORD_CHANNEL")
+var DiscordDocumentChannelID *string = nil
+var DiscordPressChannelID *string = nil
+var DiscordNotesChannelID *string = nil
 var UrlPrefix = os.Getenv("URL_PREFIX")
 var discord *discordgo.Session = nil
 
@@ -36,14 +38,28 @@ func init() {
 		if err != nil {
 			log.Fatalf("Could not connect to discord properly: %v", err)
 		}
+		log.Println("Discord Bot started")
+		_ = discord.UpdateCustomStatus("")
+	}
+	documentChannel, hasChannel := os.LookupEnv("DOCUMENT_CHANNEL_ID")
+	if hasChannel {
+		DiscordDocumentChannelID = &documentChannel
+	}
+	pressChannel, hasChannel := os.LookupEnv("PRESS_CHANNEL_ID")
+	if hasChannel {
+		DiscordPressChannelID = &pressChannel
+	}
+	noteChannel, hasChannel := os.LookupEnv("NOTES_CHANNEL_ID")
+	if hasChannel {
+		DiscordNotesChannelID = &noteChannel
 	}
 }
 
-func SendDiscordEmbedMessage(message *discordgo.MessageEmbed) {
-	if discord == nil || message == nil {
+func SendDiscordEmbedMessage(channelID *string, message *discordgo.MessageEmbed) {
+	if discord == nil || channelID == nil || message == nil {
 		return
 	}
-	_, err := discord.ChannelMessageSendComplex(discordChannelID, &discordgo.MessageSend{
+	_, err := discord.ChannelMessageSendComplex(*channelID, &discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{message},
 	})
 	if err != nil {

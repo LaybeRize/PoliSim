@@ -64,6 +64,10 @@ const (
 	NotesContentRemovedHTML = template.HTML("<code>[Inhalt wurde entfernt]</code>")
 	NotesRemovedTitelText   = "[Entfernt]"
 
+	NotesInfoField          = "Informationen"
+	NotesMultipleReferences = "[%d Referenzen](%s%s)"
+	NotesSingleReference    = "[Eine Referenz](%s%s)"
+
 	// Database Votes
 
 	VoteNoIllegalVotesCasted = "Keine"
@@ -194,6 +198,10 @@ const (
 	LetterSuccessfullySendLetter          = "Brief erfolgreich erstellt"
 
 	// Handler Newspaper
+
+	NewspaperDescriptionIsSpecial = "Sonderausgabe"
+	NewspaperDescriptionIsNormal  = ""
+	NewspaperEmbedTitel           = "Neue Veröffentlichung"
 
 	NewspaperCouldNotLoadAllNewspaperForAccount = "Konnte nicht alle möglichen Zeitungen für ausgewählten Account finden"
 	NewspaperSubtitleTooLong                    = "Untertitel überschreitet die maximal erlaubte Länge von %d Zeichen"
