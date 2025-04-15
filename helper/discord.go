@@ -5,12 +5,13 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"strings"
 )
 
 var DiscordDocumentChannelID *string = nil
 var DiscordPressChannelID *string = nil
 var DiscordNotesChannelID *string = nil
-var UrlPrefix = os.Getenv("URL_PREFIX")
+var UrlPrefix = strings.TrimRight(os.Getenv("URL_PREFIX"), "/")
 var discord *discordgo.Session = nil
 
 func setupDiscord() {
