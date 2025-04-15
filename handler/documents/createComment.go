@@ -27,7 +27,7 @@ func PostCreateComment(writer http.ResponseWriter, request *http.Request) {
 	docId := request.PathValue("id")
 	comment := &database.DocumentComment{
 		Author: values.GetTrimmedString("author"),
-		Body:   handler.MakeMarkdown(values.GetTrimmedString("markdown")),
+		Body:   helper.MakeMarkdown(values.GetTrimmedString("markdown")),
 	}
 	comment.ID = helper.GetUniqueID(comment.Author)
 

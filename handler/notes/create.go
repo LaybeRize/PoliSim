@@ -76,7 +76,7 @@ func PostNoteCreatePage(writer http.ResponseWriter, request *http.Request) {
 		Title:    values.GetTrimmedString("title"),
 		Author:   author,
 		Flair:    flairString,
-		Body:     handler.MakeMarkdown(values.GetTrimmedString("markdown")),
+		Body:     helper.MakeMarkdown(values.GetTrimmedString("markdown")),
 		Removed:  false,
 		Parents:  nil,
 		Children: nil,

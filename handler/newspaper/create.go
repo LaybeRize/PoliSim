@@ -94,7 +94,7 @@ func PostCreateArticlePage(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	article.Flair, err = database.GetAccountFlairs(&database.Account{Name: article.Author})
-	article.Body = handler.MakeMarkdown(article.RawBody)
+	article.Body = helper.MakeMarkdown(article.RawBody)
 	if err != nil {
 		slog.Debug(err.Error())
 		handler.SendMessageUpdate(writer, &handler.MessageUpdate{IsError: true,

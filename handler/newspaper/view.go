@@ -112,7 +112,7 @@ func DeleteArticle(writer http.ResponseWriter, request *http.Request) {
 		Author:   loc.AdministrationName,
 		Flair:    "",
 		Signable: false,
-		Body: handler.MakeMarkdown(fmt.Sprintf(loc.NewspaperFormatContentForRejection,
+		Body: helper.MakeMarkdown(fmt.Sprintf(loc.NewspaperFormatContentForRejection,
 			rejectionText, transaction.Article.RawBody)),
 		Reader: []string{transaction.Article.Author},
 	}

@@ -79,7 +79,7 @@ func PostCreateVotePage(writer http.ResponseWriter, request *http.Request) {
 		Organisation:        values.GetTrimmedString("organisation"),
 		Title:               values.GetTrimmedString("title"),
 		Author:              values.GetTrimmedString("author"),
-		Body:                handler.MakeMarkdown(values.GetTrimmedString("markdown")),
+		Body:                helper.MakeMarkdown(values.GetTrimmedString("markdown")),
 		Public:              values.GetBool("public"),
 		Removed:             false,
 		MemberParticipation: values.GetBool("member"),

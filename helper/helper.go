@@ -3,15 +3,11 @@ package helper
 import (
 	"bytes"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"log/slog"
 	"math/rand"
-	"net/http"
-	"net/url"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -19,11 +15,6 @@ import (
 
 var generator = rand.New(rand.NewSource(time.Now().UnixNano()))
 var matchColor = regexp.MustCompile(`(?m)^#[A-Fa-f0-9]{6}$`)
-var DiscordDocumentChannelID *string = nil
-var DiscordPressChannelID *string = nil
-var DiscordNotesChannelID *string = nil
-var UrlPrefix = os.Getenv("URL_PREFIX")
-var discord *discordgo.Session = nil
 
 func init() {
 	log.SetOutput(os.Stdout)
@@ -31,40 +22,9 @@ func init() {
 	if os.Getenv("LOG_LEVEL") == "DEBUG" {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
-	discordToken, hasToken := os.LookupEnv("DISCORD_TOKEN")
-	if hasToken {
-		var err error
-		discord, err = discordgo.New("Bot " + discordToken)
-		if err != nil {
-			log.Fatalf("Could not connect to discord properly: %v", err)
-		}
-		log.Println("Discord Bot started")
-		_ = discord.UpdateCustomStatus("")
-	}
-	documentChannel, hasChannel := os.LookupEnv("DOCUMENT_CHANNEL_ID")
-	if hasChannel {
-		DiscordDocumentChannelID = &documentChannel
-	}
-	pressChannel, hasChannel := os.LookupEnv("PRESS_CHANNEL_ID")
-	if hasChannel {
-		DiscordPressChannelID = &pressChannel
-	}
-	noteChannel, hasChannel := os.LookupEnv("NOTES_CHANNEL_ID")
-	if hasChannel {
-		DiscordNotesChannelID = &noteChannel
-	}
-}
 
-func SendDiscordEmbedMessage(channelID *string, message *discordgo.MessageEmbed) {
-	if discord == nil || channelID == nil || message == nil {
-		return
-	}
-	_, err := discord.ChannelMessageSendComplex(*channelID, &discordgo.MessageSend{
-		Embeds: []*discordgo.MessageEmbed{message},
-	})
-	if err != nil {
-		slog.Debug(err.Error())
-	}
+	setupDiscord()
+	setupMarkdown()
 }
 
 func GetUniqueID(author string) string {
@@ -107,175 +67,6 @@ func MakeCommaSeperatedStringToList(input string) []string {
 
 func StringIsAColor(input string) bool {
 	return matchColor.FindString(input) != ""
-}
-
-type AdvancedValues map[string][]string
-
-func GetAdvancedFormValues(request *http.Request) (AdvancedValues, error) {
-	err := request.ParseForm()
-	if err != nil {
-		slog.Error(err.Error())
-		return nil, err
-	}
-	slog.Debug("Reading Form: ", "URL", request.URL.EscapedPath(), "Mapping", request.Form)
-	return AdvancedValues(request.Form), nil
-}
-
-func GetAdvancedFormValuesWithoutDebugLogger(request *http.Request) (AdvancedValues, error) {
-	err := request.ParseForm()
-	if err != nil {
-		slog.Error(err.Error())
-		return nil, err
-	}
-	return AdvancedValues(request.Form), nil
-}
-
-func GetAdvancedURLValues(request *http.Request) AdvancedValues {
-	slog.Debug("Reading Form: ", "URL", request.URL.EscapedPath(), "Mapping", request.URL.Query())
-	return AdvancedValues(request.URL.Query())
-}
-
-func (a AdvancedValues) MergeIntoMe(otherValues AdvancedValues) AdvancedValues {
-	for key, value := range otherValues {
-		a[key] = append(a[key], value...)
-	}
-	return a
-}
-
-func (a AdvancedValues) GetString(field string) string {
-	vs := a[field]
-	if len(vs) == 0 {
-		return ""
-	}
-	return vs[0]
-}
-
-func (a AdvancedValues) GetTrimmedString(field string) string {
-	vs := a[field]
-	if len(vs) == 0 {
-		return ""
-	}
-	return strings.TrimSpace(vs[0])
-}
-
-func (a AdvancedValues) GetArray(field string) []string {
-	vs := a[field]
-	if len(vs) == 0 {
-		return []string{}
-	}
-	return vs
-}
-
-func (a AdvancedValues) GetTrimmedArray(field string) []string {
-	vs := a[field]
-	if len(vs) == 0 {
-		return []string{}
-	}
-	for i, str := range vs {
-		vs[i] = strings.TrimSpace(str)
-	}
-	return vs
-}
-
-func (a AdvancedValues) GetCommaSeperatedArray(field string) []string {
-	vs := a[field]
-	if len(vs) == 0 {
-		return []string{}
-	}
-	return MakeCommaSeperatedStringToList(vs[0])
-}
-
-func (a AdvancedValues) GetFilteredArray(field string) []string {
-	result := make([]string, 0, len(a[field]))
-	for _, element := range a[field] {
-		if str := strings.TrimSpace(element); str != "" {
-			result = append(result, str)
-		}
-	}
-	return result
-}
-
-func (a AdvancedValues) GetBool(field string) bool {
-	vs := a[field]
-	if len(vs) == 0 {
-		return false
-	}
-	return strings.TrimSpace(vs[0]) == "true"
-}
-
-func (a AdvancedValues) GetInt(field string) int {
-	vs := a[field]
-	if len(vs) == 0 {
-		return -1
-	}
-	res, err := strconv.Atoi(vs[0])
-	if err != nil {
-		return -1
-	}
-	return res
-}
-
-const ISOTimeFormat = "2006-01-02T15:04:05.999999"
-
-func (a AdvancedValues) GetUTCTime(field string, onExceptionNow bool) (time.Time, bool) {
-	vs := a[field]
-	if len(vs) == 0 {
-		if onExceptionNow {
-			return time.Now().UTC(), false
-		}
-		return time.Time{}, false
-	}
-	val, err := time.ParseInLocation(ISOTimeFormat, strings.TrimSpace(vs[0]), time.UTC)
-	if err != nil {
-		if onExceptionNow {
-			return time.Now().UTC(), true
-		}
-		return time.Time{}, true
-	}
-	return val, true
-}
-
-func (a AdvancedValues) GetTime(field string, format string, location *time.Location) time.Time {
-	vs := a[field]
-	if len(vs) == 0 {
-		return time.Time{}
-	}
-	val, err := time.ParseInLocation(format, vs[0], location)
-	if err != nil {
-		return time.Time{}
-	}
-	return val
-}
-
-func (a AdvancedValues) Encode() string {
-	return url.Values(a).Encode()
-}
-
-func (a AdvancedValues) Has(field string) bool {
-	return len(a[field]) != 0
-}
-
-func (a AdvancedValues) Exists(field string) bool {
-	_, exists := a[field]
-	return exists
-}
-
-func (a AdvancedValues) DeleteEmptyFields(fields []string) {
-	for _, field := range fields {
-		vs := a[field]
-		if len(vs) == 0 {
-			continue
-		}
-		if strings.TrimSpace(vs[0]) == "" {
-			delete(a, field)
-		}
-	}
-}
-
-func (a AdvancedValues) DeleteFields(fields []string) {
-	for _, field := range fields {
-		delete(a, field)
-	}
 }
 
 func EscapeStringForJSON(src string) string {

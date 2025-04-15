@@ -66,7 +66,7 @@ func PostCreateLetterPage(writer http.ResponseWriter, request *http.Request) {
 	letter := &database.Letter{
 		Title:    values.GetTrimmedString("title"),
 		Author:   values.GetTrimmedString("author"),
-		Body:     handler.MakeMarkdown(values.GetTrimmedString("markdown")),
+		Body:     helper.MakeMarkdown(values.GetTrimmedString("markdown")),
 		Signable: values.GetBool("signable"),
 		Reader:   values.GetTrimmedArray("[]recipient"),
 	}
@@ -162,7 +162,7 @@ func PatchCheckCreateLetterPage(writer http.ResponseWriter, request *http.Reques
 		Signable:   values.GetBool("signable"),
 		Recipients: values.GetTrimmedArray("[]recipient"),
 	}
-	page.Information = handler.MakeMarkdown(page.Body)
+	page.Information = helper.MakeMarkdown(page.Body)
 	page.IsError = true
 
 	if page.Title == "" || page.Body == "" {
