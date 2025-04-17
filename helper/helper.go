@@ -27,6 +27,13 @@ func init() {
 	setupMarkdown()
 }
 
+func Shutdown() {
+	err := discord.Close()
+	if err != nil {
+		slog.Error(err.Error())
+	}
+}
+
 func GetUniqueID(author string) string {
 
 	prefix := make([]byte, 4)

@@ -22,8 +22,13 @@ func setupDiscord() {
 		if err != nil {
 			log.Fatalf("Could not connect to discord properly: %v", err)
 		}
-		log.Println("Discord Bot started")
-		_ = discord.UpdateCustomStatus("")
+		log.Println("Discord Bot created")
+		err = discord.Open()
+		if err != nil {
+			log.Fatalf("Could open connection to discord properly: %v", err)
+		}
+		log.Println("Discord Bot connected")
+		_ = discord.UpdateCustomStatus("Watching over the Simulation")
 	}
 	documentChannel, hasChannel := os.LookupEnv("DOCUMENT_CHANNEL_ID")
 	if hasChannel {

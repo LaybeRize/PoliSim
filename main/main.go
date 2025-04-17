@@ -11,6 +11,7 @@ import (
 	"PoliSim/handler/notes"
 	"PoliSim/handler/organisations"
 	"PoliSim/handler/titles"
+	"PoliSim/helper"
 	"context"
 	"errors"
 	"log"
@@ -165,5 +166,6 @@ func serverHandling() {
 		log.Fatalf("HTTP shutdown error: %v", err)
 	}
 	database.Shutdown()
+	helper.Shutdown()
 	log.Println("Graceful shutdown complete.")
 }
