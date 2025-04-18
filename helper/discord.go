@@ -1,6 +1,7 @@
 package helper
 
 import (
+	loc "PoliSim/localisation"
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"log/slog"
@@ -28,7 +29,7 @@ func setupDiscord() {
 			log.Fatalf("Could open connection to discord properly: %v", err)
 		}
 		log.Println("Discord Bot connected")
-		_ = discord.UpdateCustomStatus("Watching over the Simulation")
+		_ = discord.UpdateCustomStatus(loc.DiscordStatusText)
 	}
 	documentChannel, hasChannel := os.LookupEnv("DOCUMENT_CHANNEL_ID")
 	if hasChannel {

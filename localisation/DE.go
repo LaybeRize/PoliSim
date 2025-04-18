@@ -37,6 +37,10 @@ const (
 	MissingPermissionForAccountInfo        = "Fehlende Berechtigung um die Informationen für diesen Account anzufordern"
 	ErrorLoadingAccountNames               = "Konnte Accountnamen nicht laden"
 
+	// Discord
+
+	DiscordStatusText = "Über die Simulation wachen"
+
 	// Database Documents
 
 	DocumentCommentContentRemovedHTML    = template.HTML("<code>[Inhalt wurde entfernt]</code>")
