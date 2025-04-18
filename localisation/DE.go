@@ -39,7 +39,7 @@ const (
 
 	// Discord
 
-	DiscordStatusText = "Über die Simulation wachen"
+	DiscordStatusText = "Wacht über die Simulation"
 
 	// Database Documents
 

@@ -3,10 +3,8 @@ package helper
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"log/slog"
 	"math/rand"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -17,12 +15,6 @@ var generator = rand.New(rand.NewSource(time.Now().UnixNano()))
 var matchColor = regexp.MustCompile(`(?m)^#[A-Fa-f0-9]{6}$`)
 
 func init() {
-	log.SetOutput(os.Stdout)
-	log.SetFlags(log.LstdFlags | log.Llongfile)
-	if os.Getenv("LOG_LEVEL") == "DEBUG" {
-		slog.SetLogLoggerLevel(slog.LevelDebug)
-	}
-
 	setupDiscord()
 	setupMarkdown()
 }

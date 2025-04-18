@@ -1,6 +1,8 @@
 package main
 
 import (
+	_ "PoliSim/logging"
+
 	"PoliSim/database"
 	"PoliSim/handler"
 	"PoliSim/handler/accounts"
