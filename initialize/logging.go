@@ -1,4 +1,4 @@
-package logging
+package initialize
 
 import (
 	"log"
@@ -14,7 +14,7 @@ const (
 	LevelError   = "ERROR"
 )
 
-func init() {
+func setupLogging() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Llongfile)
 	switch strings.ToUpper(os.Getenv("LOG_LEVEL")) {
