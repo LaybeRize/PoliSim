@@ -599,6 +599,10 @@ div.markdown ol {
     list-style-position: inside;
 }
 
+div.markdown li {
+    margin-top: 0.2rem;
+}
+
 div.markdown p {
     text-align: start;
     overflow-wrap: break-word;
@@ -794,4 +798,16 @@ div.markdown em {}
         transition-duration: 0s !important;
         transition-delay: 0s !important;
     }
+}
+
+@counter-style bracket-numbers {
+    system: extends decimal;
+    prefix: "(";
+    suffix: ") ";
+}
+
+@counter-style bracket-letters {
+    system: extends lower-latin;
+    prefix: "(";
+    suffix: ") ";
 }

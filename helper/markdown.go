@@ -28,10 +28,12 @@ func setupMarkdown() {
 		"small", "li", "span", "tbody", "thead", "tr", "sub", "sup", "del", "strong", "em", "br", "figure")
 	policy.AllowAttrs("class").Matching(regexp.MustCompile(`^(footnotes|added|removed)$`)).OnElements("figure", "del", "mark")
 	policy.AllowAttrs("style").Matching(regexp.MustCompile(`^ *font-family *: *(serif|sans-serif|monospace) *(; *)?$`)).OnElements("span", "p")
+	policy.AllowAttrs("style").Matching(regexp.MustCompile(`^ *list-style-type *: *[a-z-]* *(; *)?$`)).OnElements("ol", "ul")
 	policy.AllowAttrs("href").OnElements("a")
 	policy.AllowAttrs("colspan", "rowspan").Matching(bluemonday.Integer).OnElements("th", "td")
 	policy.AllowAttrs("align").Matching(bluemonday.CellAlign).OnElements("th", "td")
 	policy.AllowAttrs("start").Matching(bluemonday.Integer).OnElements("ol")
+	policy.AllowAttrs("id").Matching(regexp.MustCompile(`^md-[a-zA-Z0-9-]*$`)).OnElements("span", "p", "h1", "h2", "h3", "h4", "h5", "h6")
 
 	policy.AllowStandardURLs()
 	policy.AllowAttrs("align").Matching(bluemonday.ImageAlign).OnElements("img")
