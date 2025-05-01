@@ -4,9 +4,10 @@ WORKDIR /app
 
 COPY ./database ./database
 COPY ./handler ./handler
-COPY ./main ./main
 COPY ./helper ./helper
+COPY ./initialize ./initialize
 COPY ./localisation ./localisation
+COPY ./main ./main
 # Public Folder
 COPY ./public/administration.js ./public/administration.js
 COPY ./public/fallback_icon.png ./public/fallback_icon.png

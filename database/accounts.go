@@ -109,7 +109,7 @@ INSERT INTO account(name, username, password, role, blocked, font_size, time_zon
 		return err
 	}
 	err = tx.Commit()
-	if err != nil {
+	if err == nil {
 		createdAccountForNotifications <- acc.Name
 	}
 	return err
