@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/gomarkdown/markdown"
@@ -51,6 +52,7 @@ func MakeMarkdown(md string) template.HTML {
 	htmlResult = markdown.ToHTML(htmlResult, parser.NewWithExtensions(extensions), getRenderer())
 	htmlResult = bytes.ReplaceAll(htmlResult, []byte("<img"), []byte("<img referrerpolicy=\"no-referrer\" "))
 	htmlResult = policy.SanitizeBytes(htmlResult)
+	htmlResult = addAutoIDForHeadings(htmlResult)
 	return template.HTML(htmlResult)
 }
 
@@ -60,6 +62,55 @@ func getRenderer() *html.Renderer {
 		RenderNodeHook: myRenderHook,
 	}
 	return html.NewRenderer(opts)
+}
+
+func addAutoIDForHeadings(htmlInput []byte) []byte {
+	result := bytes.NewBuffer([]byte{})
+	scanner := bufio.NewScanner(bytes.NewReader(htmlInput))
+
+	counter := 0
+	transform := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+
+		if len(data) >= 4 && data[0] == '<' && data[1] == 'h' &&
+			data[2] >= 49 && data[2] <= 49+5 &&
+			data[3] == '>' {
+			//data starts with a heading that can be extended with an automatic generated ID
+			counter += 1
+			return 4, []byte{'<', 'h', data[2],
+				' ', 'i', 'd', '=', '"', 'a', 'u', 't', 'o', '-', 'm', 'd', '-',
+				byte(48 + ((counter / 100) % 10)),
+				byte(48 + ((counter / 10) % 10)),
+				byte(48 + (counter % 10)),
+				'"', '>'}, nil
+		} else if len(data) >= 4 && data[0] == '<' {
+			//data starts with a < but is not a heading or one that can not be processed
+			if i := bytes.Index(data[1:], []byte("<")); i > 0 {
+				return i + 1, data[:i+1], nil
+			}
+		} else if i := bytes.Index(data, []byte("<")); i > 0 {
+			// data does not start with a < and can safely be returned to the user
+			return i, data[:i], nil
+		}
+		//returning all data that has not been read yet but there are no more headings
+		if atEOF && len(data) > 0 {
+			return len(data), data, nil
+		}
+		//end the process
+		if atEOF {
+			return 0, nil, io.EOF
+		}
+		if len(data) > (bufio.MaxScanTokenSize / 2) {
+			return len(data), data, nil
+		}
+		//request more data if none of the above have handled the data
+		return 0, nil, nil
+	}
+
+	scanner.Split(transform)
+	for scanner.Scan() {
+		_, _ = result.Write(scanner.Bytes())
+	}
+	return result.Bytes()
 }
 
 func myRenderHook(w io.Writer, node ast.Node, entering bool) (ast.WalkStatus, bool) {
