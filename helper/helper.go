@@ -20,6 +20,10 @@ func init() {
 }
 
 func Shutdown() {
+	if discord == nil {
+		return
+	}
+
 	err := discord.Close()
 	if err != nil {
 		slog.Error(err.Error())

@@ -13,6 +13,15 @@ body {
     align-items: center;
     display: flex;
     max-width: 100vw;
+    margin-top: 0;
+}
+
+header.page-header {
+    padding-top: 0.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: rgb(30 41 59);
 }
 
 div.block-view {
