@@ -1,6 +1,6 @@
 # PoliSim - A Political Simulation Website
 
-![Version is 0.17.0](https://img.shields.io/badge/version-0.17.0-blue)
+![Version is 1.0.0](https://img.shields.io/badge/version-1.0.0-blue)
 ![Supported Languages are DE, EN](https://img.shields.io/badge/languages-DE,_EN-yellow)
 ![Repository Licences](https://img.shields.io/github/license/LaybeRize/PoliSim)
 

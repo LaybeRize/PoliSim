@@ -15,7 +15,7 @@
     {{if .Document.ShowRemovedMessage .NavInfo.Account}}
         <p>{{/*documentView-1*/}}Das Dokument wurde entfernt</p>
     {{else}}
-    <div class="wrapper">
+    <div class="wrapper" style="position: relative;">
         <div class="aside-tags">
             {{$acc := .NavInfo.Account}}
             {{ range $tag := .Document.Tags}}
