@@ -356,18 +356,28 @@ ORDER BY id RETURNING id, question;`, document.ID, acc.GetName(), pq.Array(docum
 
 func GetDocumentForUser(id string, acc *Account) (*Document, []string, error) {
 	doc := &Document{}
-	err := postgresDB.QueryRow(`SELECT id, type, organisation, title, author, flair, 
-       written, body, public, removed, member_participation, admin_participation, end_time, extra_info, is_admin FROM document_linked 
-          WHERE id = $1 AND (public = true OR owner_name = $2 OR $3 = true) ORDER BY is_admin DESC NULLS LAST LIMIT 1;`,
+	var orderCriteria *int
+	err := postgresDB.QueryRow(`SELECT id, type, organisation, title, author, flair,
+        written, body, public, removed, member_participation, admin_participation, end_time, extra_info, is_admin, 2 AS order_criteria FROM document_linked
+ WHERE id = $1 AND (public = true OR $3 = true) 
+UNION
+SELECT id, type, organisation, title, author, flair,
+       written, body, public, removed, member_participation, admin_participation, end_time, extra_info, is_admin, 1 AS order_criteria FROM document_linked
+WHERE id = $1 AND owner_name = $2
+ORDER BY order_criteria LIMIT 1;`,
 		id, acc.GetName(), acc.IsAtLeastAdmin()).Scan(
 		&doc.ID, &doc.Type, &doc.Organisation, &doc.Title, &doc.Author, &doc.Flair, &doc.Written, &doc.Body,
-		&doc.Public, &doc.Removed, &doc.MemberParticipation, &doc.AdminParticipation, &doc.End, doc, &doc.AllowedToAddTags)
+		&doc.Public, &doc.Removed, &doc.MemberParticipation, &doc.AdminParticipation, &doc.End, doc, &doc.AllowedToAddTags, &orderCriteria)
 
 	if err != nil {
 		return nil, nil, err
 	}
 
+	if *orderCriteria != 1 {
+		doc.AllowedToAddTags = false
+	}
 	doc.AllowedToAddTags = doc.AllowedToAddTags || acc.IsAtLeastAdmin()
+
 	commentator := make([]string, 0)
 
 	if doc.Type == DocTypeDiscussion {
@@ -404,7 +414,7 @@ FROM comment_to_document WHERE document_id = $1 ORDER BY written, comment_id;`, 
 func GetVoteCSVForDocument(id string, acc *Account) (string, error) {
 	doc := &Document{}
 	err := postgresDB.QueryRow(`SELECT type, extra_info FROM document_linked 
-          WHERE id = $1 AND (public = true OR owner_name = $2 OR $3 = true) ORDER BY is_admin DESC NULLS LAST LIMIT 1;`,
+          WHERE id = $1 AND (public = true OR owner_name = $2 OR $3 = true) LIMIT 1;`,
 		id, acc.GetName(), acc.IsAtLeastAdmin()).Scan(&doc.Type, doc)
 
 	if err != nil {
